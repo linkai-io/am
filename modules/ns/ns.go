@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/modules/ns/state"
 	"gopkg.linkai.io/v1/repos/libraries/dnsclient"
 )
@@ -16,6 +17,7 @@ var (
 // Config represents this modules configuration data to be passed in on
 // initialization.
 type Config struct {
+	OrgID     string `json:"org_id"`
 	DNSServer string `json:"dns_server"`
 }
 
@@ -50,11 +52,11 @@ func (ns *NS) Name() string {
 }
 
 // Analyze a domain zone, extracts NS, MX, A, AAAA, CNAME records
-func (ns *NS) Analyze(zone string) {
+func (ns *NS) Analyze(zone string) *am.Zone {
 	if !ns.st.IsNew(zone) {
-		return
+		return nil
 	}
-
+	return nil
 }
 
 // parseConfig parses the configuration options and validates they are sane.
