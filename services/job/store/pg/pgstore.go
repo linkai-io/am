@@ -91,7 +91,3 @@ func (s *Store) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Store) afterConnect(conn *pgx.Conn) error {
 	return nil
 }
-
-func (s *Store) Jobs(orgID int64) ([]*Job, error) {
-	
-}
