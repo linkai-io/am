@@ -20,8 +20,10 @@ func main() {
 	store := pg.New()
 
 	service := scangroup.New(store)
+
 	s := grpc.NewServer()
-	protoc.RegisterScanGroupServer(s, service)
+	sgp := protoc.New(service)
+	protoc.RegisterScanGroupServer(s, sgp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {

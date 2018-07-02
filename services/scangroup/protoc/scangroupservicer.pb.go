@@ -34,7 +34,7 @@ func (m *NSModuleConfig) Reset()         { *m = NSModuleConfig{} }
 func (m *NSModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*NSModuleConfig) ProtoMessage()    {}
 func (*NSModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{0}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{0}
 }
 func (m *NSModuleConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NSModuleConfig.Unmarshal(m, b)
@@ -74,7 +74,7 @@ func (m *BruteModuleConfig) Reset()         { *m = BruteModuleConfig{} }
 func (m *BruteModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*BruteModuleConfig) ProtoMessage()    {}
 func (*BruteModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{1}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{1}
 }
 func (m *BruteModuleConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_BruteModuleConfig.Unmarshal(m, b)
@@ -127,7 +127,7 @@ func (m *PortModuleConfig) Reset()         { *m = PortModuleConfig{} }
 func (m *PortModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*PortModuleConfig) ProtoMessage()    {}
 func (*PortModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{2}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{2}
 }
 func (m *PortModuleConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PortModuleConfig.Unmarshal(m, b)
@@ -176,7 +176,7 @@ func (m *WebModuleConfig) Reset()         { *m = WebModuleConfig{} }
 func (m *WebModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*WebModuleConfig) ProtoMessage()    {}
 func (*WebModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{3}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{3}
 }
 func (m *WebModuleConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WebModuleConfig.Unmarshal(m, b)
@@ -231,7 +231,7 @@ func (m *WebModuleConfig) GetFingerprintFrameworks() bool {
 	return false
 }
 
-type GroupConfiguration struct {
+type ModuleConfiguration struct {
 	NSConfig             *NSModuleConfig    `protobuf:"bytes,1,opt,name=NSConfig,proto3" json:"NSConfig,omitempty"`
 	BruteConfig          *BruteModuleConfig `protobuf:"bytes,2,opt,name=BruteConfig,proto3" json:"BruteConfig,omitempty"`
 	PortConfig           *PortModuleConfig  `protobuf:"bytes,3,opt,name=PortConfig,proto3" json:"PortConfig,omitempty"`
@@ -242,59 +242,59 @@ type GroupConfiguration struct {
 	XXX_sizecache        int32              `json:"-"`
 }
 
-func (m *GroupConfiguration) Reset()         { *m = GroupConfiguration{} }
-func (m *GroupConfiguration) String() string { return proto.CompactTextString(m) }
-func (*GroupConfiguration) ProtoMessage()    {}
-func (*GroupConfiguration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{4}
+func (m *ModuleConfiguration) Reset()         { *m = ModuleConfiguration{} }
+func (m *ModuleConfiguration) String() string { return proto.CompactTextString(m) }
+func (*ModuleConfiguration) ProtoMessage()    {}
+func (*ModuleConfiguration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{4}
 }
-func (m *GroupConfiguration) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GroupConfiguration.Unmarshal(m, b)
+func (m *ModuleConfiguration) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ModuleConfiguration.Unmarshal(m, b)
 }
-func (m *GroupConfiguration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GroupConfiguration.Marshal(b, m, deterministic)
+func (m *ModuleConfiguration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ModuleConfiguration.Marshal(b, m, deterministic)
 }
-func (dst *GroupConfiguration) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GroupConfiguration.Merge(dst, src)
+func (dst *ModuleConfiguration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ModuleConfiguration.Merge(dst, src)
 }
-func (m *GroupConfiguration) XXX_Size() int {
-	return xxx_messageInfo_GroupConfiguration.Size(m)
+func (m *ModuleConfiguration) XXX_Size() int {
+	return xxx_messageInfo_ModuleConfiguration.Size(m)
 }
-func (m *GroupConfiguration) XXX_DiscardUnknown() {
-	xxx_messageInfo_GroupConfiguration.DiscardUnknown(m)
+func (m *ModuleConfiguration) XXX_DiscardUnknown() {
+	xxx_messageInfo_ModuleConfiguration.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GroupConfiguration proto.InternalMessageInfo
+var xxx_messageInfo_ModuleConfiguration proto.InternalMessageInfo
 
-func (m *GroupConfiguration) GetNSConfig() *NSModuleConfig {
+func (m *ModuleConfiguration) GetNSConfig() *NSModuleConfig {
 	if m != nil {
 		return m.NSConfig
 	}
 	return nil
 }
 
-func (m *GroupConfiguration) GetBruteConfig() *BruteModuleConfig {
+func (m *ModuleConfiguration) GetBruteConfig() *BruteModuleConfig {
 	if m != nil {
 		return m.BruteConfig
 	}
 	return nil
 }
 
-func (m *GroupConfiguration) GetPortConfig() *PortModuleConfig {
+func (m *ModuleConfiguration) GetPortConfig() *PortModuleConfig {
 	if m != nil {
 		return m.PortConfig
 	}
 	return nil
 }
 
-func (m *GroupConfiguration) GetWebModuleConfig() *WebModuleConfig {
+func (m *ModuleConfiguration) GetWebModuleConfig() *WebModuleConfig {
 	if m != nil {
 		return m.WebModuleConfig
 	}
 	return nil
 }
 
-func (m *GroupConfiguration) GetDailyScanSchedules() []int64 {
+func (m *ModuleConfiguration) GetDailyScanSchedules() []int64 {
 	if m != nil {
 		return m.DailyScanSchedules
 	}
@@ -318,7 +318,7 @@ func (m *Group) Reset()         { *m = Group{} }
 func (m *Group) String() string { return proto.CompactTextString(m) }
 func (*Group) ProtoMessage()    {}
 func (*Group) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{5}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{5}
 }
 func (m *Group) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Group.Unmarshal(m, b)
@@ -388,24 +388,24 @@ func (m *Group) GetDeleted() bool {
 }
 
 type GroupVersion struct {
-	OrgID                int32               `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID              int32               `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID       int32               `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-	VersionName          string              `protobuf:"bytes,4,opt,name=VersionName,proto3" json:"VersionName,omitempty"`
-	CreationTime         int64               `protobuf:"varint,5,opt,name=CreationTime,proto3" json:"CreationTime,omitempty"`
-	CreatedBy            int32               `protobuf:"varint,6,opt,name=CreatedBy,proto3" json:"CreatedBy,omitempty"`
-	Configuration        *GroupConfiguration `protobuf:"bytes,7,opt,name=Configuration,proto3" json:"Configuration,omitempty"`
-	Deleted              bool                `protobuf:"varint,8,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	OrgID                int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32                `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupVersionID       int32                `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
+	VersionName          string               `protobuf:"bytes,4,opt,name=VersionName,proto3" json:"VersionName,omitempty"`
+	CreationTime         int64                `protobuf:"varint,5,opt,name=CreationTime,proto3" json:"CreationTime,omitempty"`
+	CreatedBy            int32                `protobuf:"varint,6,opt,name=CreatedBy,proto3" json:"CreatedBy,omitempty"`
+	Configuration        *ModuleConfiguration `protobuf:"bytes,7,opt,name=Configuration,proto3" json:"Configuration,omitempty"`
+	Deleted              bool                 `protobuf:"varint,8,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
 }
 
 func (m *GroupVersion) Reset()         { *m = GroupVersion{} }
 func (m *GroupVersion) String() string { return proto.CompactTextString(m) }
 func (*GroupVersion) ProtoMessage()    {}
 func (*GroupVersion) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{6}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{6}
 }
 func (m *GroupVersion) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GroupVersion.Unmarshal(m, b)
@@ -467,7 +467,7 @@ func (m *GroupVersion) GetCreatedBy() int32 {
 	return 0
 }
 
-func (m *GroupVersion) GetConfiguration() *GroupConfiguration {
+func (m *GroupVersion) GetConfiguration() *ModuleConfiguration {
 	if m != nil {
 		return m.Configuration
 	}
@@ -484,6 +484,7 @@ func (m *GroupVersion) GetDeleted() bool {
 type NewGroupRequest struct {
 	Group                *Group        `protobuf:"bytes,1,opt,name=Group,proto3" json:"Group,omitempty"`
 	Version              *GroupVersion `protobuf:"bytes,2,opt,name=Version,proto3" json:"Version,omitempty"`
+	RequesterUserID      int32         `protobuf:"varint,3,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -493,7 +494,7 @@ func (m *NewGroupRequest) Reset()         { *m = NewGroupRequest{} }
 func (m *NewGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*NewGroupRequest) ProtoMessage()    {}
 func (*NewGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{7}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{7}
 }
 func (m *NewGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NewGroupRequest.Unmarshal(m, b)
@@ -527,8 +528,16 @@ func (m *NewGroupRequest) GetVersion() *GroupVersion {
 	return nil
 }
 
+func (m *NewGroupRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
 type NewVersionRequest struct {
 	Version              *GroupVersion `protobuf:"bytes,1,opt,name=Version,proto3" json:"Version,omitempty"`
+	RequesterUserID      int32         `protobuf:"varint,2,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -538,7 +547,7 @@ func (m *NewVersionRequest) Reset()         { *m = NewVersionRequest{} }
 func (m *NewVersionRequest) String() string { return proto.CompactTextString(m) }
 func (*NewVersionRequest) ProtoMessage()    {}
 func (*NewVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{8}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{8}
 }
 func (m *NewVersionRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NewVersionRequest.Unmarshal(m, b)
@@ -565,63 +574,125 @@ func (m *NewVersionRequest) GetVersion() *GroupVersion {
 	return nil
 }
 
-type VersionRequest struct {
+func (m *NewVersionRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
+type GroupVersionRequest struct {
 	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
 	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
 	GroupVersionID       int32    `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
+	RequesterUserID      int32    `protobuf:"varint,4,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *VersionRequest) Reset()         { *m = VersionRequest{} }
-func (m *VersionRequest) String() string { return proto.CompactTextString(m) }
-func (*VersionRequest) ProtoMessage()    {}
-func (*VersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{9}
+func (m *GroupVersionRequest) Reset()         { *m = GroupVersionRequest{} }
+func (m *GroupVersionRequest) String() string { return proto.CompactTextString(m) }
+func (*GroupVersionRequest) ProtoMessage()    {}
+func (*GroupVersionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{9}
 }
-func (m *VersionRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_VersionRequest.Unmarshal(m, b)
+func (m *GroupVersionRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GroupVersionRequest.Unmarshal(m, b)
 }
-func (m *VersionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_VersionRequest.Marshal(b, m, deterministic)
+func (m *GroupVersionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GroupVersionRequest.Marshal(b, m, deterministic)
 }
-func (dst *VersionRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VersionRequest.Merge(dst, src)
+func (dst *GroupVersionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupVersionRequest.Merge(dst, src)
 }
-func (m *VersionRequest) XXX_Size() int {
-	return xxx_messageInfo_VersionRequest.Size(m)
+func (m *GroupVersionRequest) XXX_Size() int {
+	return xxx_messageInfo_GroupVersionRequest.Size(m)
 }
-func (m *VersionRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_VersionRequest.DiscardUnknown(m)
+func (m *GroupVersionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupVersionRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_VersionRequest proto.InternalMessageInfo
+var xxx_messageInfo_GroupVersionRequest proto.InternalMessageInfo
 
-func (m *VersionRequest) GetOrgID() int32 {
+func (m *GroupVersionRequest) GetOrgID() int32 {
 	if m != nil {
 		return m.OrgID
 	}
 	return 0
 }
 
-func (m *VersionRequest) GetGroupID() int32 {
+func (m *GroupVersionRequest) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
 	}
 	return 0
 }
 
-func (m *VersionRequest) GetGroupVersionID() int32 {
+func (m *GroupVersionRequest) GetGroupVersionID() int32 {
 	if m != nil {
 		return m.GroupVersionID
 	}
 	return 0
 }
 
+func (m *GroupVersionRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
+type GroupVersionResponse struct {
+	OrgID                int32         `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupVersion         *GroupVersion `protobuf:"bytes,2,opt,name=GroupVersion,proto3" json:"GroupVersion,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *GroupVersionResponse) Reset()         { *m = GroupVersionResponse{} }
+func (m *GroupVersionResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupVersionResponse) ProtoMessage()    {}
+func (*GroupVersionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{10}
+}
+func (m *GroupVersionResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GroupVersionResponse.Unmarshal(m, b)
+}
+func (m *GroupVersionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GroupVersionResponse.Marshal(b, m, deterministic)
+}
+func (dst *GroupVersionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupVersionResponse.Merge(dst, src)
+}
+func (m *GroupVersionResponse) XXX_Size() int {
+	return xxx_messageInfo_GroupVersionResponse.Size(m)
+}
+func (m *GroupVersionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupVersionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupVersionResponse proto.InternalMessageInfo
+
+func (m *GroupVersionResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupVersionResponse) GetGroupVersion() *GroupVersion {
+	if m != nil {
+		return m.GroupVersion
+	}
+	return nil
+}
+
 type VersionCreatedResponse struct {
-	GroupID              int32    `protobuf:"varint,1,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID       int32    `protobuf:"varint,2,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupVersionID       int32    `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -631,7 +702,7 @@ func (m *VersionCreatedResponse) Reset()         { *m = VersionCreatedResponse{}
 func (m *VersionCreatedResponse) String() string { return proto.CompactTextString(m) }
 func (*VersionCreatedResponse) ProtoMessage()    {}
 func (*VersionCreatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{10}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{11}
 }
 func (m *VersionCreatedResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VersionCreatedResponse.Unmarshal(m, b)
@@ -651,6 +722,13 @@ func (m *VersionCreatedResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_VersionCreatedResponse proto.InternalMessageInfo
 
+func (m *VersionCreatedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
 func (m *VersionCreatedResponse) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
@@ -668,6 +746,7 @@ func (m *VersionCreatedResponse) GetGroupVersionID() int32 {
 type DeleteGroupRequest struct {
 	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
 	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	RequesterUserID      int32    `protobuf:"varint,3,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -677,7 +756,7 @@ func (m *DeleteGroupRequest) Reset()         { *m = DeleteGroupRequest{} }
 func (m *DeleteGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGroupRequest) ProtoMessage()    {}
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{11}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{12}
 }
 func (m *DeleteGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteGroupRequest.Unmarshal(m, b)
@@ -711,6 +790,13 @@ func (m *DeleteGroupRequest) GetGroupID() int32 {
 	return 0
 }
 
+func (m *DeleteGroupRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
 type GroupDeletedResponse struct {
 	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
 	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
@@ -723,7 +809,7 @@ func (m *GroupDeletedResponse) Reset()         { *m = GroupDeletedResponse{} }
 func (m *GroupDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupDeletedResponse) ProtoMessage()    {}
 func (*GroupDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{12}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{13}
 }
 func (m *GroupDeletedResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GroupDeletedResponse.Unmarshal(m, b)
@@ -762,6 +848,7 @@ type DeleteVersionRequest struct {
 	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
 	GroupVersionID       int32    `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
 	VersionName          string   `protobuf:"bytes,4,opt,name=VersionName,proto3" json:"VersionName,omitempty"`
+	RequesterUserID      int32    `protobuf:"varint,5,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -771,7 +858,7 @@ func (m *DeleteVersionRequest) Reset()         { *m = DeleteVersionRequest{} }
 func (m *DeleteVersionRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteVersionRequest) ProtoMessage()    {}
 func (*DeleteVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{13}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{14}
 }
 func (m *DeleteVersionRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteVersionRequest.Unmarshal(m, b)
@@ -819,9 +906,17 @@ func (m *DeleteVersionRequest) GetVersionName() string {
 	return ""
 }
 
+func (m *DeleteVersionRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
 type VersionDeletedResponse struct {
-	GroupID              int32    `protobuf:"varint,1,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID       int32    `protobuf:"varint,2,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupVersionID       int32    `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -831,7 +926,7 @@ func (m *VersionDeletedResponse) Reset()         { *m = VersionDeletedResponse{}
 func (m *VersionDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*VersionDeletedResponse) ProtoMessage()    {}
 func (*VersionDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{14}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{15}
 }
 func (m *VersionDeletedResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VersionDeletedResponse.Unmarshal(m, b)
@@ -850,6 +945,13 @@ func (m *VersionDeletedResponse) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_VersionDeletedResponse proto.InternalMessageInfo
+
+func (m *VersionDeletedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
 
 func (m *VersionDeletedResponse) GetGroupID() int32 {
 	if m != nil {
@@ -878,7 +980,7 @@ func (m *GroupRequest) Reset()         { *m = GroupRequest{} }
 func (m *GroupRequest) String() string { return proto.CompactTextString(m) }
 func (*GroupRequest) ProtoMessage()    {}
 func (*GroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{15}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{16}
 }
 func (m *GroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GroupRequest.Unmarshal(m, b)
@@ -930,7 +1032,7 @@ func (m *GroupsRequest) Reset()         { *m = GroupsRequest{} }
 func (m *GroupsRequest) String() string { return proto.CompactTextString(m) }
 func (*GroupsRequest) ProtoMessage()    {}
 func (*GroupsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_1967062ae49101c2, []int{16}
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{17}
 }
 func (m *GroupsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GroupsRequest.Unmarshal(m, b)
@@ -957,17 +1059,592 @@ func (m *GroupsRequest) GetOrgID() int32 {
 	return 0
 }
 
+type GroupResponse struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	Group                *Group   `protobuf:"bytes,2,opt,name=Group,proto3" json:"Group,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GroupResponse) Reset()         { *m = GroupResponse{} }
+func (m *GroupResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupResponse) ProtoMessage()    {}
+func (*GroupResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{18}
+}
+func (m *GroupResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GroupResponse.Unmarshal(m, b)
+}
+func (m *GroupResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GroupResponse.Marshal(b, m, deterministic)
+}
+func (dst *GroupResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupResponse.Merge(dst, src)
+}
+func (m *GroupResponse) XXX_Size() int {
+	return xxx_messageInfo_GroupResponse.Size(m)
+}
+func (m *GroupResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupResponse proto.InternalMessageInfo
+
+func (m *GroupResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupResponse) GetGroup() *Group {
+	if m != nil {
+		return m.Group
+	}
+	return nil
+}
+
+type Address struct {
+	OrgID                int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	AddressID            int64                `protobuf:"varint,2,opt,name=AddressID,proto3" json:"AddressID,omitempty"`
+	GroupID              int32                `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	Address              string               `protobuf:"bytes,4,opt,name=Address,proto3" json:"Address,omitempty"`
+	Settings             *ModuleConfiguration `protobuf:"bytes,5,opt,name=Settings,proto3" json:"Settings,omitempty"`
+	AddedTime            int64                `protobuf:"varint,6,opt,name=AddedTime,proto3" json:"AddedTime,omitempty"`
+	AddedBy              string               `protobuf:"bytes,7,opt,name=AddedBy,proto3" json:"AddedBy,omitempty"`
+	Ignored              bool                 `protobuf:"varint,8,opt,name=Ignored,proto3" json:"Ignored,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Address) Reset()         { *m = Address{} }
+func (m *Address) String() string { return proto.CompactTextString(m) }
+func (*Address) ProtoMessage()    {}
+func (*Address) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{19}
+}
+func (m *Address) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Address.Unmarshal(m, b)
+}
+func (m *Address) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Address.Marshal(b, m, deterministic)
+}
+func (dst *Address) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Address.Merge(dst, src)
+}
+func (m *Address) XXX_Size() int {
+	return xxx_messageInfo_Address.Size(m)
+}
+func (m *Address) XXX_DiscardUnknown() {
+	xxx_messageInfo_Address.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Address proto.InternalMessageInfo
+
+func (m *Address) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *Address) GetAddressID() int64 {
+	if m != nil {
+		return m.AddressID
+	}
+	return 0
+}
+
+func (m *Address) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *Address) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *Address) GetSettings() *ModuleConfiguration {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+func (m *Address) GetAddedTime() int64 {
+	if m != nil {
+		return m.AddedTime
+	}
+	return 0
+}
+
+func (m *Address) GetAddedBy() string {
+	if m != nil {
+		return m.AddedBy
+	}
+	return ""
+}
+
+func (m *Address) GetIgnored() bool {
+	if m != nil {
+		return m.Ignored
+	}
+	return false
+}
+
+type AddressesRequest struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	RequesterUserID      int32    `protobuf:"varint,3,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
+	Ignore               bool     `protobuf:"varint,4,opt,name=Ignore,proto3" json:"Ignore,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AddressesRequest) Reset()         { *m = AddressesRequest{} }
+func (m *AddressesRequest) String() string { return proto.CompactTextString(m) }
+func (*AddressesRequest) ProtoMessage()    {}
+func (*AddressesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{20}
+}
+func (m *AddressesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddressesRequest.Unmarshal(m, b)
+}
+func (m *AddressesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddressesRequest.Marshal(b, m, deterministic)
+}
+func (dst *AddressesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddressesRequest.Merge(dst, src)
+}
+func (m *AddressesRequest) XXX_Size() int {
+	return xxx_messageInfo_AddressesRequest.Size(m)
+}
+func (m *AddressesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddressesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddressesRequest proto.InternalMessageInfo
+
+func (m *AddressesRequest) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *AddressesRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *AddressesRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
+func (m *AddressesRequest) GetIgnore() bool {
+	if m != nil {
+		return m.Ignore
+	}
+	return false
+}
+
+type AddressesResponse struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	Addresses            *Address `protobuf:"bytes,2,opt,name=Addresses,proto3" json:"Addresses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AddressesResponse) Reset()         { *m = AddressesResponse{} }
+func (m *AddressesResponse) String() string { return proto.CompactTextString(m) }
+func (*AddressesResponse) ProtoMessage()    {}
+func (*AddressesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{21}
+}
+func (m *AddressesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddressesResponse.Unmarshal(m, b)
+}
+func (m *AddressesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddressesResponse.Marshal(b, m, deterministic)
+}
+func (dst *AddressesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddressesResponse.Merge(dst, src)
+}
+func (m *AddressesResponse) XXX_Size() int {
+	return xxx_messageInfo_AddressesResponse.Size(m)
+}
+func (m *AddressesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddressesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddressesResponse proto.InternalMessageInfo
+
+func (m *AddressesResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *AddressesResponse) GetAddresses() *Address {
+	if m != nil {
+		return m.Addresses
+	}
+	return nil
+}
+
+type AddAddressRequest struct {
+	OrgID                int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32                `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	RequesterUserID      int32                `protobuf:"varint,3,opt,name=RequesterUserID,proto3" json:"RequesterUserID,omitempty"`
+	AddedTime            int64                `protobuf:"varint,4,opt,name=AddedTime,proto3" json:"AddedTime,omitempty"`
+	AddedBy              string               `protobuf:"bytes,5,opt,name=AddedBy,proto3" json:"AddedBy,omitempty"`
+	Address              string               `protobuf:"bytes,6,opt,name=Address,proto3" json:"Address,omitempty"`
+	Settings             *ModuleConfiguration `protobuf:"bytes,7,opt,name=Settings,proto3" json:"Settings,omitempty"`
+	Ignored              bool                 `protobuf:"varint,8,opt,name=Ignored,proto3" json:"Ignored,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *AddAddressRequest) Reset()         { *m = AddAddressRequest{} }
+func (m *AddAddressRequest) String() string { return proto.CompactTextString(m) }
+func (*AddAddressRequest) ProtoMessage()    {}
+func (*AddAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{22}
+}
+func (m *AddAddressRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddAddressRequest.Unmarshal(m, b)
+}
+func (m *AddAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddAddressRequest.Marshal(b, m, deterministic)
+}
+func (dst *AddAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddAddressRequest.Merge(dst, src)
+}
+func (m *AddAddressRequest) XXX_Size() int {
+	return xxx_messageInfo_AddAddressRequest.Size(m)
+}
+func (m *AddAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddAddressRequest proto.InternalMessageInfo
+
+func (m *AddAddressRequest) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *AddAddressRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *AddAddressRequest) GetRequesterUserID() int32 {
+	if m != nil {
+		return m.RequesterUserID
+	}
+	return 0
+}
+
+func (m *AddAddressRequest) GetAddedTime() int64 {
+	if m != nil {
+		return m.AddedTime
+	}
+	return 0
+}
+
+func (m *AddAddressRequest) GetAddedBy() string {
+	if m != nil {
+		return m.AddedBy
+	}
+	return ""
+}
+
+func (m *AddAddressRequest) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *AddAddressRequest) GetSettings() *ModuleConfiguration {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+func (m *AddAddressRequest) GetIgnored() bool {
+	if m != nil {
+		return m.Ignored
+	}
+	return false
+}
+
+type FailedAddress struct {
+	FailedAddress        string   `protobuf:"bytes,1,opt,name=FailedAddress,proto3" json:"FailedAddress,omitempty"`
+	Reason               string   `protobuf:"bytes,2,opt,name=Reason,proto3" json:"Reason,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FailedAddress) Reset()         { *m = FailedAddress{} }
+func (m *FailedAddress) String() string { return proto.CompactTextString(m) }
+func (*FailedAddress) ProtoMessage()    {}
+func (*FailedAddress) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{23}
+}
+func (m *FailedAddress) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FailedAddress.Unmarshal(m, b)
+}
+func (m *FailedAddress) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FailedAddress.Marshal(b, m, deterministic)
+}
+func (dst *FailedAddress) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FailedAddress.Merge(dst, src)
+}
+func (m *FailedAddress) XXX_Size() int {
+	return xxx_messageInfo_FailedAddress.Size(m)
+}
+func (m *FailedAddress) XXX_DiscardUnknown() {
+	xxx_messageInfo_FailedAddress.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FailedAddress proto.InternalMessageInfo
+
+func (m *FailedAddress) GetFailedAddress() string {
+	if m != nil {
+		return m.FailedAddress
+	}
+	return ""
+}
+
+func (m *FailedAddress) GetReason() string {
+	if m != nil {
+		return m.Reason
+	}
+	return ""
+}
+
+type AddAddressesResponse struct {
+	OrgID                int32            `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	CountAdded           int32            `protobuf:"varint,2,opt,name=CountAdded,proto3" json:"CountAdded,omitempty"`
+	FailedAddresses      []*FailedAddress `protobuf:"bytes,3,rep,name=FailedAddresses,proto3" json:"FailedAddresses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *AddAddressesResponse) Reset()         { *m = AddAddressesResponse{} }
+func (m *AddAddressesResponse) String() string { return proto.CompactTextString(m) }
+func (*AddAddressesResponse) ProtoMessage()    {}
+func (*AddAddressesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{24}
+}
+func (m *AddAddressesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddAddressesResponse.Unmarshal(m, b)
+}
+func (m *AddAddressesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddAddressesResponse.Marshal(b, m, deterministic)
+}
+func (dst *AddAddressesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddAddressesResponse.Merge(dst, src)
+}
+func (m *AddAddressesResponse) XXX_Size() int {
+	return xxx_messageInfo_AddAddressesResponse.Size(m)
+}
+func (m *AddAddressesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddAddressesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AddAddressesResponse proto.InternalMessageInfo
+
+func (m *AddAddressesResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *AddAddressesResponse) GetCountAdded() int32 {
+	if m != nil {
+		return m.CountAdded
+	}
+	return 0
+}
+
+func (m *AddAddressesResponse) GetFailedAddresses() []*FailedAddress {
+	if m != nil {
+		return m.FailedAddresses
+	}
+	return nil
+}
+
+type UpdateAddressRequest struct {
+	OrgID                int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32                `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	AddressID            int32                `protobuf:"varint,3,opt,name=AddressID,proto3" json:"AddressID,omitempty"`
+	Address              string               `protobuf:"bytes,4,opt,name=Address,proto3" json:"Address,omitempty"`
+	Settings             *ModuleConfiguration `protobuf:"bytes,5,opt,name=Settings,proto3" json:"Settings,omitempty"`
+	Ignored              bool                 `protobuf:"varint,6,opt,name=Ignored,proto3" json:"Ignored,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *UpdateAddressRequest) Reset()         { *m = UpdateAddressRequest{} }
+func (m *UpdateAddressRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateAddressRequest) ProtoMessage()    {}
+func (*UpdateAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{25}
+}
+func (m *UpdateAddressRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateAddressRequest.Unmarshal(m, b)
+}
+func (m *UpdateAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateAddressRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateAddressRequest.Merge(dst, src)
+}
+func (m *UpdateAddressRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateAddressRequest.Size(m)
+}
+func (m *UpdateAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateAddressRequest proto.InternalMessageInfo
+
+func (m *UpdateAddressRequest) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *UpdateAddressRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *UpdateAddressRequest) GetAddressID() int32 {
+	if m != nil {
+		return m.AddressID
+	}
+	return 0
+}
+
+func (m *UpdateAddressRequest) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *UpdateAddressRequest) GetSettings() *ModuleConfiguration {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+func (m *UpdateAddressRequest) GetIgnored() bool {
+	if m != nil {
+		return m.Ignored
+	}
+	return false
+}
+
+type UpdateAddressesResponse struct {
+	OrgID                int32            `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	CountUpdated         int32            `protobuf:"varint,2,opt,name=CountUpdated,proto3" json:"CountUpdated,omitempty"`
+	FailedAddresses      []*FailedAddress `protobuf:"bytes,3,rep,name=FailedAddresses,proto3" json:"FailedAddresses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *UpdateAddressesResponse) Reset()         { *m = UpdateAddressesResponse{} }
+func (m *UpdateAddressesResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateAddressesResponse) ProtoMessage()    {}
+func (*UpdateAddressesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_a8ebaba1b822fbae, []int{26}
+}
+func (m *UpdateAddressesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateAddressesResponse.Unmarshal(m, b)
+}
+func (m *UpdateAddressesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateAddressesResponse.Marshal(b, m, deterministic)
+}
+func (dst *UpdateAddressesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateAddressesResponse.Merge(dst, src)
+}
+func (m *UpdateAddressesResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateAddressesResponse.Size(m)
+}
+func (m *UpdateAddressesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateAddressesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateAddressesResponse proto.InternalMessageInfo
+
+func (m *UpdateAddressesResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *UpdateAddressesResponse) GetCountUpdated() int32 {
+	if m != nil {
+		return m.CountUpdated
+	}
+	return 0
+}
+
+func (m *UpdateAddressesResponse) GetFailedAddresses() []*FailedAddress {
+	if m != nil {
+		return m.FailedAddresses
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*NSModuleConfig)(nil), "NSModuleConfig")
 	proto.RegisterType((*BruteModuleConfig)(nil), "BruteModuleConfig")
 	proto.RegisterType((*PortModuleConfig)(nil), "PortModuleConfig")
 	proto.RegisterType((*WebModuleConfig)(nil), "WebModuleConfig")
-	proto.RegisterType((*GroupConfiguration)(nil), "GroupConfiguration")
+	proto.RegisterType((*ModuleConfiguration)(nil), "ModuleConfiguration")
 	proto.RegisterType((*Group)(nil), "Group")
 	proto.RegisterType((*GroupVersion)(nil), "GroupVersion")
 	proto.RegisterType((*NewGroupRequest)(nil), "NewGroupRequest")
 	proto.RegisterType((*NewVersionRequest)(nil), "NewVersionRequest")
-	proto.RegisterType((*VersionRequest)(nil), "VersionRequest")
+	proto.RegisterType((*GroupVersionRequest)(nil), "GroupVersionRequest")
+	proto.RegisterType((*GroupVersionResponse)(nil), "GroupVersionResponse")
 	proto.RegisterType((*VersionCreatedResponse)(nil), "VersionCreatedResponse")
 	proto.RegisterType((*DeleteGroupRequest)(nil), "DeleteGroupRequest")
 	proto.RegisterType((*GroupDeletedResponse)(nil), "GroupDeletedResponse")
@@ -975,6 +1652,15 @@ func init() {
 	proto.RegisterType((*VersionDeletedResponse)(nil), "VersionDeletedResponse")
 	proto.RegisterType((*GroupRequest)(nil), "GroupRequest")
 	proto.RegisterType((*GroupsRequest)(nil), "GroupsRequest")
+	proto.RegisterType((*GroupResponse)(nil), "GroupResponse")
+	proto.RegisterType((*Address)(nil), "Address")
+	proto.RegisterType((*AddressesRequest)(nil), "AddressesRequest")
+	proto.RegisterType((*AddressesResponse)(nil), "AddressesResponse")
+	proto.RegisterType((*AddAddressRequest)(nil), "AddAddressRequest")
+	proto.RegisterType((*FailedAddress)(nil), "FailedAddress")
+	proto.RegisterType((*AddAddressesResponse)(nil), "AddAddressesResponse")
+	proto.RegisterType((*UpdateAddressRequest)(nil), "UpdateAddressRequest")
+	proto.RegisterType((*UpdateAddressesResponse)(nil), "UpdateAddressesResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -989,13 +1675,16 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ScanGroupClient interface {
+	Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error)
 	Create(ctx context.Context, in *NewGroupRequest, opts ...grpc.CallOption) (*VersionCreatedResponse, error)
 	Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*GroupDeletedResponse, error)
-	GetVersion(ctx context.Context, in *VersionRequest, opts ...grpc.CallOption) (*GroupVersion, error)
+	GetVersion(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error)
 	CreateVersion(ctx context.Context, in *NewVersionRequest, opts ...grpc.CallOption) (*VersionCreatedResponse, error)
 	DeleteVersion(ctx context.Context, in *DeleteVersionRequest, opts ...grpc.CallOption) (*VersionDeletedResponse, error)
 	Groups(ctx context.Context, in *GroupsRequest, opts ...grpc.CallOption) (ScanGroup_GroupsClient, error)
-	Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*Group, error)
+	Addresses(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (ScanGroup_AddressesClient, error)
+	AddAddresses(ctx context.Context, opts ...grpc.CallOption) (ScanGroup_AddAddressesClient, error)
+	UpdatedAddresses(ctx context.Context, opts ...grpc.CallOption) (ScanGroup_UpdatedAddressesClient, error)
 }
 
 type scanGroupClient struct {
@@ -1004,6 +1693,15 @@ type scanGroupClient struct {
 
 func NewScanGroupClient(cc *grpc.ClientConn) ScanGroupClient {
 	return &scanGroupClient{cc}
+}
+
+func (c *scanGroupClient) Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error) {
+	out := new(GroupResponse)
+	err := c.cc.Invoke(ctx, "/ScanGroup/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *scanGroupClient) Create(ctx context.Context, in *NewGroupRequest, opts ...grpc.CallOption) (*VersionCreatedResponse, error) {
@@ -1024,8 +1722,8 @@ func (c *scanGroupClient) Delete(ctx context.Context, in *DeleteGroupRequest, op
 	return out, nil
 }
 
-func (c *scanGroupClient) GetVersion(ctx context.Context, in *VersionRequest, opts ...grpc.CallOption) (*GroupVersion, error) {
-	out := new(GroupVersion)
+func (c *scanGroupClient) GetVersion(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error) {
+	out := new(GroupVersionResponse)
 	err := c.cc.Invoke(ctx, "/ScanGroup/GetVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1067,7 +1765,7 @@ func (c *scanGroupClient) Groups(ctx context.Context, in *GroupsRequest, opts ..
 }
 
 type ScanGroup_GroupsClient interface {
-	Recv() (*Group, error)
+	Recv() (*GroupResponse, error)
 	grpc.ClientStream
 }
 
@@ -1075,36 +1773,148 @@ type scanGroupGroupsClient struct {
 	grpc.ClientStream
 }
 
-func (x *scanGroupGroupsClient) Recv() (*Group, error) {
-	m := new(Group)
+func (x *scanGroupGroupsClient) Recv() (*GroupResponse, error) {
+	m := new(GroupResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *scanGroupClient) Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*Group, error) {
-	out := new(Group)
-	err := c.cc.Invoke(ctx, "/ScanGroup/Get", in, out, opts...)
+func (c *scanGroupClient) Addresses(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (ScanGroup_AddressesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ScanGroup_serviceDesc.Streams[1], "/ScanGroup/Addresses", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &scanGroupAddressesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ScanGroup_AddressesClient interface {
+	Recv() (*AddressesResponse, error)
+	grpc.ClientStream
+}
+
+type scanGroupAddressesClient struct {
+	grpc.ClientStream
+}
+
+func (x *scanGroupAddressesClient) Recv() (*AddressesResponse, error) {
+	m := new(AddressesResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *scanGroupClient) AddAddresses(ctx context.Context, opts ...grpc.CallOption) (ScanGroup_AddAddressesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ScanGroup_serviceDesc.Streams[2], "/ScanGroup/AddAddresses", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &scanGroupAddAddressesClient{stream}
+	return x, nil
+}
+
+type ScanGroup_AddAddressesClient interface {
+	Send(*AddAddressRequest) error
+	CloseAndRecv() (*AddAddressesResponse, error)
+	grpc.ClientStream
+}
+
+type scanGroupAddAddressesClient struct {
+	grpc.ClientStream
+}
+
+func (x *scanGroupAddAddressesClient) Send(m *AddAddressRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *scanGroupAddAddressesClient) CloseAndRecv() (*AddAddressesResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(AddAddressesResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *scanGroupClient) UpdatedAddresses(ctx context.Context, opts ...grpc.CallOption) (ScanGroup_UpdatedAddressesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ScanGroup_serviceDesc.Streams[3], "/ScanGroup/UpdatedAddresses", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &scanGroupUpdatedAddressesClient{stream}
+	return x, nil
+}
+
+type ScanGroup_UpdatedAddressesClient interface {
+	Send(*UpdateAddressRequest) error
+	CloseAndRecv() (*UpdateAddressesResponse, error)
+	grpc.ClientStream
+}
+
+type scanGroupUpdatedAddressesClient struct {
+	grpc.ClientStream
+}
+
+func (x *scanGroupUpdatedAddressesClient) Send(m *UpdateAddressRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *scanGroupUpdatedAddressesClient) CloseAndRecv() (*UpdateAddressesResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UpdateAddressesResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // ScanGroupServer is the server API for ScanGroup service.
 type ScanGroupServer interface {
+	Get(context.Context, *GroupRequest) (*GroupResponse, error)
 	Create(context.Context, *NewGroupRequest) (*VersionCreatedResponse, error)
 	Delete(context.Context, *DeleteGroupRequest) (*GroupDeletedResponse, error)
-	GetVersion(context.Context, *VersionRequest) (*GroupVersion, error)
+	GetVersion(context.Context, *GroupVersionRequest) (*GroupVersionResponse, error)
 	CreateVersion(context.Context, *NewVersionRequest) (*VersionCreatedResponse, error)
 	DeleteVersion(context.Context, *DeleteVersionRequest) (*VersionDeletedResponse, error)
 	Groups(*GroupsRequest, ScanGroup_GroupsServer) error
-	Get(context.Context, *GroupRequest) (*Group, error)
+	Addresses(*AddressesRequest, ScanGroup_AddressesServer) error
+	AddAddresses(ScanGroup_AddAddressesServer) error
+	UpdatedAddresses(ScanGroup_UpdatedAddressesServer) error
 }
 
 func RegisterScanGroupServer(s *grpc.Server, srv ScanGroupServer) {
 	s.RegisterService(&_ScanGroup_serviceDesc, srv)
+}
+
+func _ScanGroup_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ScanGroup/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).Get(ctx, req.(*GroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ScanGroup_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1144,7 +1954,7 @@ func _ScanGroup_Delete_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _ScanGroup_GetVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VersionRequest)
+	in := new(GroupVersionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1156,7 +1966,7 @@ func _ScanGroup_GetVersion_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/ScanGroup/GetVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).GetVersion(ctx, req.(*VersionRequest))
+		return srv.(ScanGroupServer).GetVersion(ctx, req.(*GroupVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1206,7 +2016,7 @@ func _ScanGroup_Groups_Handler(srv interface{}, stream grpc.ServerStream) error 
 }
 
 type ScanGroup_GroupsServer interface {
-	Send(*Group) error
+	Send(*GroupResponse) error
 	grpc.ServerStream
 }
 
@@ -1214,32 +2024,91 @@ type scanGroupGroupsServer struct {
 	grpc.ServerStream
 }
 
-func (x *scanGroupGroupsServer) Send(m *Group) error {
+func (x *scanGroupGroupsServer) Send(m *GroupResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _ScanGroup_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GroupRequest)
-	if err := dec(in); err != nil {
+func _ScanGroup_Addresses_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AddressesRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ScanGroupServer).Addresses(m, &scanGroupAddressesServer{stream})
+}
+
+type ScanGroup_AddressesServer interface {
+	Send(*AddressesResponse) error
+	grpc.ServerStream
+}
+
+type scanGroupAddressesServer struct {
+	grpc.ServerStream
+}
+
+func (x *scanGroupAddressesServer) Send(m *AddressesResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ScanGroup_AddAddresses_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ScanGroupServer).AddAddresses(&scanGroupAddAddressesServer{stream})
+}
+
+type ScanGroup_AddAddressesServer interface {
+	SendAndClose(*AddAddressesResponse) error
+	Recv() (*AddAddressRequest, error)
+	grpc.ServerStream
+}
+
+type scanGroupAddAddressesServer struct {
+	grpc.ServerStream
+}
+
+func (x *scanGroupAddAddressesServer) SendAndClose(m *AddAddressesResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *scanGroupAddAddressesServer) Recv() (*AddAddressRequest, error) {
+	m := new(AddAddressRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).Get(ctx, in)
+	return m, nil
+}
+
+func _ScanGroup_UpdatedAddresses_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ScanGroupServer).UpdatedAddresses(&scanGroupUpdatedAddressesServer{stream})
+}
+
+type ScanGroup_UpdatedAddressesServer interface {
+	SendAndClose(*UpdateAddressesResponse) error
+	Recv() (*UpdateAddressRequest, error)
+	grpc.ServerStream
+}
+
+type scanGroupUpdatedAddressesServer struct {
+	grpc.ServerStream
+}
+
+func (x *scanGroupUpdatedAddressesServer) SendAndClose(m *UpdateAddressesResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *scanGroupUpdatedAddressesServer) Recv() (*UpdateAddressRequest, error) {
+	m := new(UpdateAddressRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
 	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ScanGroup/Get",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).Get(ctx, req.(*GroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ScanGroup",
 	HandlerType: (*ScanGroupServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _ScanGroup_Get_Handler,
+		},
 		{
 			MethodName: "Create",
 			Handler:    _ScanGroup_Create_Handler,
@@ -1260,10 +2129,6 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteVersion",
 			Handler:    _ScanGroup_DeleteVersion_Handler,
 		},
-		{
-			MethodName: "Get",
-			Handler:    _ScanGroup_Get_Handler,
-		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1271,63 +2136,103 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 			Handler:       _ScanGroup_Groups_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "Addresses",
+			Handler:       _ScanGroup_Addresses_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "AddAddresses",
+			Handler:       _ScanGroup_AddAddresses_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "UpdatedAddresses",
+			Handler:       _ScanGroup_UpdatedAddresses_Handler,
+			ClientStreams: true,
+		},
 	},
 	Metadata: "scangroupservicer.proto",
 }
 
 func init() {
-	proto.RegisterFile("scangroupservicer.proto", fileDescriptor_scangroupservicer_1967062ae49101c2)
+	proto.RegisterFile("scangroupservicer.proto", fileDescriptor_scangroupservicer_a8ebaba1b822fbae)
 }
 
-var fileDescriptor_scangroupservicer_1967062ae49101c2 = []byte{
-	// 783 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0xcd, 0x4e, 0xdb, 0x40,
-	0x10, 0x96, 0x63, 0x1c, 0x92, 0x09, 0x49, 0x60, 0x81, 0x62, 0x45, 0x1c, 0x22, 0x8b, 0xd2, 0x48,
-	0xad, 0x56, 0x6d, 0xe0, 0xd2, 0x0a, 0xa9, 0x12, 0xa4, 0xa0, 0x54, 0x25, 0x54, 0x6b, 0xd4, 0x56,
-	0xdc, 0x4c, 0x58, 0x12, 0x2b, 0x89, 0x9d, 0xae, 0xed, 0x02, 0x6f, 0xd1, 0x53, 0xaf, 0x7d, 0x94,
-	0x3e, 0x46, 0x9f, 0xa0, 0xef, 0x51, 0x79, 0xbc, 0x21, 0xfe, 0x09, 0x44, 0xa8, 0xa2, 0xa7, 0x78,
-	0xbe, 0x9d, 0x99, 0x9d, 0xf9, 0xe6, 0x9b, 0x55, 0x60, 0xc3, 0xeb, 0x5a, 0x4e, 0x4f, 0xb8, 0xc1,
-	0xd8, 0xe3, 0xe2, 0x9b, 0xdd, 0xe5, 0x82, 0x8e, 0x85, 0xeb, 0xbb, 0xc6, 0x16, 0x54, 0x3a, 0xe6,
-	0xb1, 0x7b, 0x11, 0x0c, 0xf9, 0x81, 0xeb, 0x5c, 0xda, 0x3d, 0x42, 0x60, 0xa1, 0x63, 0x8d, 0xb8,
-	0xae, 0xd4, 0x95, 0x46, 0x91, 0xe1, 0xb7, 0x31, 0x80, 0x95, 0x7d, 0x11, 0xf8, 0x7c, 0x9e, 0x23,
-	0xd9, 0x86, 0xca, 0x41, 0xe0, 0xf9, 0xee, 0xc8, 0x0c, 0xce, 0x43, 0xc0, 0xd3, 0x73, 0x75, 0xb5,
-	0x51, 0x64, 0x29, 0x94, 0xd4, 0xa0, 0x70, 0x6c, 0x5d, 0xb7, 0xf8, 0xd8, 0xef, 0xeb, 0x6a, 0x5d,
-	0x69, 0x68, 0xec, 0xd6, 0x36, 0xf6, 0x60, 0xf9, 0xa3, 0x2b, 0xfc, 0xb9, 0x77, 0xad, 0x81, 0x16,
-	0xfa, 0x45, 0x57, 0x68, 0x2c, 0x32, 0x8c, 0x5f, 0x0a, 0x54, 0x3f, 0xf3, 0xf3, 0xb9, 0xd1, 0x0d,
-	0xa8, 0x9e, 0x5a, 0x03, 0x6e, 0x76, 0x05, 0xe7, 0x8e, 0xd9, 0x77, 0x31, 0x8f, 0xd2, 0x28, 0xb0,
-	0x34, 0x2c, 0x6b, 0xfd, 0x60, 0x3b, 0x03, 0x2f, 0x56, 0x2b, 0xda, 0x64, 0x13, 0x8a, 0xef, 0xae,
-	0x7d, 0x61, 0x75, 0xfd, 0xf7, 0xa6, 0xbe, 0x80, 0xf1, 0x53, 0x80, 0xec, 0xc2, 0xfa, 0xa1, 0xed,
-	0xf4, 0xb8, 0x18, 0x0b, 0xdb, 0xf1, 0x0f, 0x85, 0x35, 0xe2, 0x57, 0xae, 0x18, 0x78, 0xba, 0x86,
-	0x9e, 0xb3, 0x0f, 0x8d, 0x1f, 0x39, 0x20, 0x47, 0xe1, 0xa8, 0xa2, 0xea, 0x03, 0x61, 0xf9, 0xb6,
-	0xeb, 0x90, 0xe7, 0x50, 0xe8, 0x98, 0x11, 0x84, 0x8d, 0x94, 0x9a, 0x55, 0x9a, 0x1c, 0x1d, 0xbb,
-	0x75, 0x20, 0xbb, 0x50, 0xc2, 0x81, 0x49, 0xff, 0x1c, 0xfa, 0x13, 0x9a, 0x19, 0x22, 0x8b, 0xbb,
-	0x91, 0x57, 0x00, 0x21, 0x89, 0x32, 0x48, 0xc5, 0xa0, 0x15, 0x9a, 0x1e, 0x06, 0x8b, 0x39, 0x91,
-	0x37, 0x19, 0xb6, 0x91, 0x86, 0x52, 0x73, 0x99, 0xa6, 0x70, 0x96, 0x19, 0x0b, 0x05, 0xd2, 0xb2,
-	0xec, 0xe1, 0x8d, 0xd9, 0xb5, 0x1c, 0xb3, 0xdb, 0xe7, 0xe1, 0x51, 0xc8, 0x8d, 0xda, 0x50, 0xd9,
-	0x8c, 0x13, 0xe3, 0xb7, 0x02, 0x1a, 0x12, 0x13, 0x8e, 0xfe, 0x44, 0xf4, 0xda, 0x2d, 0x24, 0x42,
-	0x63, 0x91, 0x41, 0x74, 0x58, 0xc4, 0xe3, 0x76, 0x0b, 0x1b, 0xd6, 0xd8, 0xc4, 0x0c, 0xc7, 0x84,
-	0x9f, 0xa8, 0x02, 0x15, 0x55, 0x30, 0x05, 0x88, 0x01, 0x4b, 0x07, 0x82, 0x23, 0xcb, 0xa7, 0xf6,
-	0x88, 0x63, 0x03, 0x2a, 0x4b, 0x60, 0x61, 0x06, 0xb4, 0xf9, 0xc5, 0xfe, 0x0d, 0x8e, 0x4f, 0x63,
-	0x53, 0x80, 0x6c, 0x41, 0xf9, 0x44, 0xd8, 0x3d, 0xdb, 0xb1, 0x86, 0x6d, 0x67, 0x1c, 0xf8, 0x7a,
-	0xbe, 0xae, 0x34, 0x96, 0x58, 0x12, 0x0c, 0xeb, 0x6b, 0xf1, 0x21, 0xf7, 0xf9, 0x85, 0xbe, 0x88,
-	0x02, 0x98, 0x98, 0xc6, 0xcf, 0x1c, 0x2c, 0x61, 0x3d, 0x9f, 0xb8, 0xf0, 0xc2, 0x61, 0x3f, 0xb4,
-	0xc1, 0x6d, 0xa8, 0xc4, 0xe3, 0xdb, 0x2d, 0xa9, 0xd4, 0x14, 0x4a, 0xea, 0x50, 0x92, 0x06, 0x52,
-	0xb1, 0x80, 0x54, 0xc4, 0xa1, 0x0c, 0x19, 0xda, 0x3c, 0x32, 0xf2, 0x69, 0x32, 0x5e, 0x43, 0x39,
-	0xa1, 0x5c, 0x6c, 0xb6, 0xd4, 0x5c, 0xa5, 0x59, 0x51, 0xb3, 0xa4, 0x67, 0x9c, 0xa1, 0x42, 0x92,
-	0xa1, 0x2f, 0x50, 0xed, 0xf0, 0x2b, 0xcc, 0xc0, 0xf8, 0xd7, 0x80, 0x7b, 0x3e, 0xd9, 0x94, 0x6a,
-	0x90, 0xdb, 0x90, 0x8f, 0xf2, 0x33, 0x29, 0x91, 0x67, 0xb0, 0x28, 0xdb, 0x92, 0xea, 0x2f, 0xd3,
-	0x38, 0x17, 0x6c, 0x72, 0x6a, 0xec, 0xc1, 0x4a, 0x87, 0x5f, 0x4d, 0x60, 0x99, 0x3b, 0x16, 0xad,
-	0xdc, 0x1b, 0xdd, 0x87, 0x4a, 0x2a, 0xf4, 0x91, 0x46, 0x67, 0x9c, 0xc1, 0x13, 0x69, 0x48, 0xaa,
-	0x19, 0xf7, 0xc6, 0xae, 0xe3, 0xf1, 0x78, 0x6e, 0x65, 0x5e, 0xee, 0xdc, 0xcc, 0xdc, 0x2d, 0x20,
-	0x11, 0xd1, 0x09, 0x82, 0x1f, 0xd8, 0x89, 0x71, 0x08, 0x6b, 0xf8, 0x29, 0x67, 0x76, 0x5b, 0xdf,
-	0x43, 0xf3, 0x7c, 0x57, 0x60, 0x2d, 0xca, 0xf1, 0x7f, 0xa8, 0x9d, 0xbf, 0x15, 0x31, 0xf2, 0xd3,
-	0xcd, 0xfd, 0x3b, 0xf9, 0x97, 0x72, 0xf7, 0x1f, 0x5b, 0x40, 0x4f, 0xa1, 0x8c, 0x88, 0x77, 0xef,
-	0x45, 0xcd, 0x3f, 0x39, 0x28, 0x86, 0xef, 0x6e, 0xb4, 0x46, 0x3b, 0x90, 0x8f, 0xe4, 0x46, 0x96,
-	0x69, 0x6a, 0x01, 0x6b, 0x1b, 0xf4, 0x0e, 0x41, 0xee, 0x42, 0x3e, 0xa2, 0x89, 0xac, 0xd2, 0xac,
-	0xae, 0x6a, 0xeb, 0x74, 0xa6, 0x4c, 0x5e, 0x00, 0x1c, 0x71, 0x7f, 0xf2, 0x02, 0x56, 0x69, 0x72,
-	0xf8, 0xb5, 0xe4, 0x06, 0x92, 0x3d, 0x28, 0x47, 0xd7, 0x4e, 0x00, 0x42, 0x33, 0x6b, 0x7c, 0x77,
-	0x85, 0x6f, 0xa1, 0x9c, 0x50, 0x18, 0x59, 0xa7, 0xb3, 0x14, 0x37, 0x4d, 0x90, 0x2e, 0xd6, 0x80,
-	0x7c, 0x44, 0x26, 0xa9, 0xd0, 0x04, 0xab, 0x35, 0xf9, 0x0e, 0xbd, 0x54, 0xc8, 0x26, 0xa8, 0x47,
-	0xdc, 0x27, 0xb2, 0xf0, 0xd4, 0xf9, 0x7e, 0xe1, 0x2c, 0x8f, 0x7f, 0xc1, 0xba, 0xe7, 0xd1, 0xef,
-	0xce, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x93, 0xaa, 0x85, 0xe7, 0xa5, 0x09, 0x00, 0x00,
+var fileDescriptor_scangroupservicer_a8ebaba1b822fbae = []byte{
+	// 1172 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcf, 0x6f, 0xe3, 0xc4,
+	0x17, 0xd7, 0xc4, 0xb1, 0x93, 0xbc, 0x34, 0xfd, 0x31, 0x4d, 0x5b, 0x2b, 0x5a, 0x7d, 0x55, 0x8d,
+	0xfa, 0x2d, 0x11, 0x48, 0xa3, 0x6e, 0xb7, 0x07, 0x58, 0x56, 0x42, 0xb4, 0xd9, 0x56, 0x45, 0xb4,
+	0x0b, 0x93, 0x5d, 0x90, 0xb8, 0x20, 0x37, 0x99, 0xa6, 0x56, 0x53, 0x3b, 0x8c, 0x1d, 0xba, 0x7b,
+	0x45, 0x88, 0x0b, 0xe2, 0xbc, 0x57, 0xfe, 0x0e, 0x84, 0xc4, 0x9d, 0x7f, 0x80, 0xbf, 0x84, 0x3b,
+	0xf2, 0x78, 0x62, 0x7b, 0x1c, 0xa7, 0x69, 0xb7, 0x94, 0x53, 0x3d, 0x6f, 0xde, 0xcc, 0x7b, 0xef,
+	0xf3, 0xf9, 0xcc, 0xcc, 0x4b, 0x61, 0x23, 0xe8, 0x39, 0xde, 0x40, 0xf8, 0xe3, 0x51, 0xc0, 0xc5,
+	0xf7, 0x6e, 0x8f, 0x0b, 0x3a, 0x12, 0x7e, 0xe8, 0x93, 0x2d, 0x58, 0x3c, 0xed, 0x9e, 0xf8, 0xfd,
+	0xf1, 0x90, 0x1f, 0xf8, 0xde, 0xb9, 0x3b, 0xc0, 0x18, 0xca, 0xa7, 0xce, 0x15, 0xb7, 0xd1, 0x26,
+	0x6a, 0xd7, 0x98, 0xfc, 0x26, 0x97, 0xb0, 0xb2, 0x2f, 0xc6, 0x21, 0x9f, 0xe7, 0x88, 0xb7, 0x61,
+	0xf1, 0x60, 0x1c, 0x84, 0xfe, 0x55, 0x77, 0x7c, 0x16, 0x19, 0x02, 0xbb, 0xb4, 0x69, 0xb4, 0x6b,
+	0x2c, 0x67, 0xc5, 0x2d, 0xa8, 0x9e, 0x38, 0xaf, 0x3b, 0x7c, 0x14, 0x5e, 0xd8, 0xc6, 0x26, 0x6a,
+	0x9b, 0x2c, 0x19, 0x93, 0x67, 0xb0, 0xfc, 0x85, 0x2f, 0xc2, 0xb9, 0xb1, 0x9a, 0x60, 0x46, 0x7e,
+	0x71, 0x08, 0x93, 0xc5, 0x03, 0xf2, 0x07, 0x82, 0xa5, 0xaf, 0xf9, 0xd9, 0xdc, 0xd5, 0x6d, 0x58,
+	0x7a, 0xe9, 0x5c, 0xf2, 0x6e, 0x4f, 0x70, 0xee, 0x75, 0x2f, 0x7c, 0xb9, 0x0f, 0x6a, 0x57, 0x59,
+	0xde, 0xac, 0x72, 0xfd, 0xdc, 0xf5, 0x2e, 0x83, 0x4c, 0xae, 0x72, 0x8c, 0x1f, 0x41, 0xed, 0xf9,
+	0xeb, 0x50, 0x38, 0xbd, 0xf0, 0xb3, 0xae, 0x5d, 0x96, 0xeb, 0x53, 0x03, 0xde, 0x83, 0xb5, 0x43,
+	0xd7, 0x1b, 0x70, 0x31, 0x12, 0xae, 0x17, 0x1e, 0x0a, 0xe7, 0x8a, 0x5f, 0xfb, 0xe2, 0x32, 0xb0,
+	0x4d, 0xe9, 0x59, 0x3c, 0x49, 0xde, 0x96, 0x60, 0x35, 0x9b, 0xfe, 0x58, 0x38, 0xa1, 0xeb, 0x7b,
+	0xf8, 0x03, 0xa8, 0x9e, 0x76, 0x63, 0x93, 0xac, 0xa4, 0xbe, 0xbb, 0x44, 0x75, 0xee, 0x58, 0xe2,
+	0x80, 0xf7, 0xa0, 0x2e, 0x19, 0x53, 0xfe, 0x25, 0xe9, 0x8f, 0xe9, 0x14, 0x8b, 0x2c, 0xeb, 0x86,
+	0x1f, 0x03, 0x44, 0x28, 0xaa, 0x45, 0x86, 0x5c, 0xb4, 0x42, 0xf3, 0x6c, 0xb0, 0x8c, 0x13, 0x7e,
+	0x3a, 0x05, 0xb7, 0xc4, 0xa1, 0xbe, 0xbb, 0x4c, 0x73, 0x76, 0x36, 0xc5, 0x0b, 0x05, 0xdc, 0x71,
+	0xdc, 0xe1, 0x9b, 0x6e, 0xcf, 0xf1, 0xba, 0xbd, 0x0b, 0x1e, 0x4d, 0x45, 0xe0, 0x18, 0x6d, 0x83,
+	0x15, 0xcc, 0x90, 0xbf, 0x10, 0x98, 0x47, 0x91, 0x88, 0x23, 0xee, 0x5f, 0x88, 0xc1, 0x71, 0x47,
+	0x02, 0x61, 0xb2, 0x78, 0x80, 0x6d, 0xa8, 0xc8, 0xe9, 0xe3, 0x8e, 0x2c, 0xd8, 0x64, 0x93, 0x61,
+	0xc4, 0x93, 0xfc, 0x94, 0x32, 0x30, 0xa4, 0x0c, 0x52, 0x03, 0x26, 0xb0, 0x70, 0x20, 0xb8, 0x44,
+	0xf9, 0xa5, 0x7b, 0xc5, 0x65, 0x01, 0x06, 0xd3, 0x6c, 0xd1, 0x0e, 0x72, 0xcc, 0xfb, 0xfb, 0x6f,
+	0x24, 0x7f, 0x26, 0x4b, 0x0d, 0x78, 0x0b, 0x1a, 0x2f, 0x84, 0x3b, 0x70, 0x3d, 0x67, 0x78, 0xec,
+	0x8d, 0xc6, 0xa1, 0x6d, 0x6d, 0xa2, 0xf6, 0x02, 0xd3, 0x8d, 0x51, 0x7e, 0x1d, 0x3e, 0xe4, 0x21,
+	0xef, 0xdb, 0x15, 0xa9, 0x80, 0xc9, 0x90, 0xfc, 0x5a, 0x82, 0x05, 0x99, 0xcf, 0x57, 0x5c, 0x04,
+	0x11, 0xd9, 0x77, 0x2d, 0x70, 0x1b, 0x16, 0xb3, 0xeb, 0x8f, 0x3b, 0x4a, 0xaa, 0x39, 0x2b, 0xde,
+	0x84, 0xba, 0x1a, 0x48, 0x28, 0xca, 0x12, 0x8a, 0xac, 0x69, 0x0a, 0x0c, 0x73, 0x1e, 0x18, 0x56,
+	0x1e, 0x8c, 0xa7, 0xd0, 0xd0, 0x94, 0x2b, 0x8b, 0xad, 0xef, 0x36, 0x69, 0x81, 0xaa, 0x99, 0xee,
+	0x9a, 0x85, 0xa8, 0xaa, 0x43, 0xf4, 0x03, 0x82, 0xa5, 0x53, 0x7e, 0x2d, 0xeb, 0x61, 0xfc, 0xbb,
+	0x31, 0x0f, 0x42, 0xfc, 0x48, 0xe9, 0x41, 0x9d, 0x07, 0x8b, 0xc6, 0xb3, 0x4a, 0x24, 0xef, 0x41,
+	0x45, 0x15, 0xa6, 0xf4, 0xdf, 0xa0, 0x59, 0x34, 0xd8, 0x64, 0x36, 0xba, 0x0b, 0xd4, 0x8e, 0x5c,
+	0xbc, 0x0a, 0xb8, 0x48, 0xd0, 0xcb, 0x9b, 0xc9, 0x39, 0xac, 0x9c, 0xf2, 0xeb, 0xc9, 0x06, 0x2a,
+	0x8b, 0x4c, 0x1c, 0x74, 0xd7, 0x38, 0xa5, 0xe2, 0x38, 0x6f, 0x11, 0xac, 0x6a, 0x7b, 0xa8, 0x50,
+	0x0f, 0x25, 0x8b, 0x82, 0xcc, 0xca, 0xc5, 0x99, 0x7d, 0x0b, 0x4d, 0x3d, 0xb1, 0x60, 0xe4, 0x7b,
+	0x01, 0x9f, 0x91, 0xd9, 0x63, 0x5d, 0xd6, 0xc5, 0x3c, 0x68, 0x2e, 0x64, 0x04, 0xeb, 0xea, 0x53,
+	0x29, 0x6a, 0x4e, 0x88, 0x7b, 0x17, 0x4f, 0x3c, 0xc0, 0xb1, 0xc8, 0x34, 0x6d, 0xdd, 0x35, 0xda,
+	0xed, 0x45, 0x74, 0xa8, 0x20, 0x54, 0xca, 0x7e, 0xd7, 0xfa, 0xc8, 0x6f, 0x08, 0x9a, 0xf1, 0x1e,
+	0xff, 0x91, 0x4a, 0xe6, 0x5f, 0x1e, 0x05, 0x20, 0x98, 0xc5, 0x20, 0xa4, 0x34, 0xdf, 0x13, 0x86,
+	0x5b, 0xd3, 0x7c, 0xae, 0xb4, 0xf8, 0xc0, 0x28, 0x91, 0xff, 0x43, 0x43, 0x5a, 0x82, 0x1b, 0x03,
+	0x91, 0x03, 0xe5, 0x36, 0xa7, 0xee, 0xe4, 0x8a, 0x2b, 0x15, 0x5c, 0x71, 0xe4, 0x6f, 0x04, 0x95,
+	0x4f, 0xfb, 0x7d, 0xc1, 0x83, 0x60, 0xe6, 0xfa, 0x9a, 0x72, 0x50, 0x15, 0x19, 0x2c, 0x35, 0x64,
+	0xab, 0x35, 0xf4, 0x6a, 0xed, 0x64, 0x63, 0xc5, 0x73, 0x12, 0x67, 0x07, 0xaa, 0x5d, 0x1e, 0x86,
+	0xae, 0x37, 0x88, 0x1b, 0x99, 0x59, 0x37, 0x7b, 0xe2, 0xa5, 0x72, 0xe0, 0x7d, 0xf9, 0x9e, 0x58,
+	0x49, 0x0e, 0xb1, 0x41, 0x45, 0x92, 0x4f, 0x49, 0x25, 0x89, 0x24, 0x1f, 0x12, 0x1b, 0x2a, 0xc7,
+	0x03, 0xcf, 0x17, 0xe9, 0x63, 0xa0, 0x86, 0xe4, 0x47, 0x04, 0xcb, 0x2a, 0x1f, 0x1e, 0x3c, 0xf8,
+	0x89, 0xc5, 0xeb, 0x60, 0xc5, 0x91, 0x55, 0x8f, 0xa7, 0x46, 0xe4, 0x4b, 0x58, 0xc9, 0x64, 0x71,
+	0x23, 0x8f, 0xdb, 0x09, 0x0f, 0x3c, 0x50, 0x5c, 0x56, 0xa9, 0xb2, 0xb0, 0x74, 0x8a, 0xfc, 0x5c,
+	0x92, 0x7b, 0x4e, 0x66, 0x1e, 0xbc, 0x34, 0x8d, 0x9b, 0xf2, 0x0d, 0xdc, 0x98, 0x53, 0xdc, 0x4c,
+	0xf4, 0x61, 0xcd, 0xd6, 0x47, 0xe5, 0x56, 0xfa, 0x98, 0xcd, 0xf3, 0x09, 0x34, 0x0e, 0x1d, 0x77,
+	0xc8, 0x27, 0x78, 0x44, 0x8d, 0x96, 0x66, 0x50, 0x3d, 0x7d, 0xce, 0x6b, 0x1d, 0x2c, 0xc6, 0x9d,
+	0x40, 0x3d, 0x38, 0x35, 0xa6, 0x46, 0xe4, 0x27, 0x04, 0xcd, 0x14, 0xdc, 0xb9, 0x9c, 0xfd, 0x0f,
+	0xe0, 0xc0, 0x1f, 0x7b, 0xa1, 0xac, 0x59, 0x41, 0x9c, 0xb1, 0xe0, 0x0f, 0x61, 0x49, 0x8b, 0xcb,
+	0xa3, 0x1f, 0x08, 0x46, 0xbb, 0xbe, 0xbb, 0x48, 0x35, 0x3b, 0xcb, 0xbb, 0x91, 0x3f, 0x11, 0x34,
+	0x5f, 0x8d, 0xfa, 0x4e, 0xc8, 0xef, 0x49, 0xb4, 0x76, 0xbc, 0x63, 0x8a, 0xf5, 0xe3, 0xfd, 0xaf,
+	0x1d, 0xe2, 0x0c, 0x49, 0x96, 0x4e, 0xd2, 0x2f, 0x08, 0x36, 0xb4, 0x62, 0xe6, 0x02, 0x1b, 0xf5,
+	0x98, 0x11, 0x8c, 0xf1, 0xaa, 0x09, 0xb4, 0x9a, 0xed, 0xdd, 0xc1, 0xdd, 0xfd, 0xbd, 0x0c, 0xb5,
+	0xe8, 0x87, 0x43, 0xdc, 0x05, 0x6e, 0x81, 0x71, 0xc4, 0x43, 0xac, 0x7a, 0x0e, 0x85, 0x73, 0x6b,
+	0x91, 0xea, 0x97, 0xef, 0x13, 0xb0, 0xe2, 0x76, 0x03, 0x2f, 0xd3, 0x5c, 0x97, 0xd9, 0xda, 0xa0,
+	0x33, 0x1a, 0x92, 0x3d, 0xb0, 0xe2, 0xc7, 0x0b, 0xaf, 0xd2, 0xe9, 0x0e, 0xa2, 0xb5, 0x46, 0x0b,
+	0x9f, 0xf9, 0x8f, 0x00, 0x8e, 0x78, 0x98, 0x34, 0xfa, 0xb4, 0xa0, 0xcf, 0x9b, 0x2c, 0xcd, 0x37,
+	0x59, 0xcf, 0xa0, 0x11, 0xe7, 0x30, 0x59, 0x8d, 0xe9, 0x54, 0x3b, 0x3a, 0x3b, 0xdd, 0x4f, 0xa0,
+	0xa1, 0xb5, 0x0b, 0x78, 0x8d, 0x16, 0xb5, 0x0f, 0xe9, 0x06, 0xf9, 0xcc, 0xdf, 0x07, 0x2b, 0x7e,
+	0xd9, 0xb0, 0x82, 0x2f, 0x98, 0x01, 0xe7, 0x0e, 0xc2, 0x7b, 0x99, 0xfb, 0x0e, 0xaf, 0xd0, 0xfc,
+	0x65, 0xdd, 0xc2, 0x74, 0x4a, 0x2c, 0x3b, 0x08, 0x7f, 0x0c, 0x0b, 0xd9, 0xf3, 0x89, 0xa5, 0x97,
+	0x7e, 0x44, 0x5a, 0x6b, 0xb4, 0xe8, 0x08, 0xb7, 0x11, 0x7e, 0x0e, 0xcb, 0x4a, 0x3c, 0xe9, 0x06,
+	0x6b, 0xb4, 0xe8, 0x98, 0xb5, 0x6c, 0x3a, 0x43, 0xb0, 0x6d, 0xb4, 0x5f, 0xfd, 0xc6, 0x92, 0xff,
+	0x1b, 0xe9, 0x9d, 0xc5, 0x7f, 0x9f, 0xfc, 0x13, 0x00, 0x00, 0xff, 0xff, 0x66, 0x5a, 0x35, 0x3e,
+	0x3e, 0x11, 0x00, 0x00,
 }
