@@ -2,10 +2,16 @@ package scangroup
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"gopkg.linkai.io/v1/repos/am/am"
 
 	"gopkg.linkai.io/v1/repos/am/services/scangroup/store"
+)
+
+var (
+	ErrOrgIDMisMatch = errors.New("org_id does not match input")
 )
 
 // Service implements the logic of the ScanGroupService. It manages adding new scan groups
@@ -29,8 +35,16 @@ func (s *Service) Get(ctx context.Context, orgID, requesterUserID, groupID int32
 	return oid, group, err
 }
 
-// Create a new scan group, returning orgID and groupID on success, error otherwise
-func (s *Service) Create(ctx context.Context, orgID, requesterUserID int32, newGroup *am.ScanGroup) (oid int32, gid int32, err error) {
+// Create a new scan group and initial scan group version, returning orgID and groupID on success, error otherwise
+func (s *Service) Create(ctx context.Context, orgID, requesterUserID int32, newGroup *am.ScanGroup, newVersion *am.ScanGroupVersion) (oid int32, gid int32, err error) {
+	if orgID != newGroup.OrgID && orgID != newVersion.OrgID {
+		log.Printf("scan group creation failure, new group had mismatching org_id expected %d got group_id %d version_group_id: %d requester %d\n", orgID, newGroup.OrgID, newVersion.OrgID, requesterUserID)
+		return oid, gid, ErrOrgIDMisMatch
+	}
+	oid, gid, err = s.store.Create(ctx, newGroup, newVersion)
+	if err == nil && oid != orgID {
+		log.Printf("critical error, scan group service created a new group with mismatching org_id expected %d got %d requester %d, created group %d\n", orgID, oid, requesterUserID, gid)
+	}
 	return oid, gid, err
 }
 

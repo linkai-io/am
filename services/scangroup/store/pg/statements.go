@@ -1,10 +1,11 @@
 package pg
 
-var queries = map[string]string{
+var queryMap = map[string]string{
 	// user related
 	"userRole": "select role_id from am.users where organization_id=$1 and user_id=$2",
 
 	// am.scan_group related
+	"scanGroupIDByName": "select scan_group_id from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false",
 	"scanGroupByName":   "select * from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false",
 	"scanGroupByID":     "select * from am.scan_group where organization_id=$1 and scan_group_id=$2 and deleted=false",
 	"scanGroupsByOrgID": "select * from am.scan_group where organization_id=$1 and deleted=false",

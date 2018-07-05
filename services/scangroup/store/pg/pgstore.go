@@ -10,10 +10,12 @@ import (
 )
 
 var (
-	ErrEmptyDBAddr = errors.New("empty db_addr field")
-	ErrEmptyDBUser = errors.New("empty db_user field")
-	ErrEmptyDBPass = errors.New("empty db_pass field")
-	ErrEmptyDBName = errors.New("empty db_name field")
+	ErrEmptyDBAddr       = errors.New("empty db_addr field")
+	ErrEmptyDBUser       = errors.New("empty db_user field")
+	ErrEmptyDBPass       = errors.New("empty db_pass field")
+	ErrEmptyDBName       = errors.New("empty db_name field")
+	ErrScanGroupExists   = errors.New("scan group name already exists")
+	ErrUserNotAuthorized = errors.New("user is not authorized to perform this action")
 )
 
 // Config represents this modules configuration data to be passed in on
@@ -45,9 +47,11 @@ func (s *Store) Init(config []byte) error {
 	if err != nil {
 		return err
 	}
+
 	if s.pool, err = pgx.NewConnPool(*s.config); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -91,7 +95,25 @@ func (s *Store) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 
 // afterConnect will iterate over prepared statements with keywords
 func (s *Store) afterConnect(conn *pgx.Conn) error {
+	for k, v := range queryMap {
+		if _, err := conn.Prepare(k, v); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// IsAuthorized checks if an action is allowed by a particular user
+func (s *Store) IsAuthorized(ctx context.Context, orgID, requesterUserID, action am.ScanGroupAction) bool {
+	var roleID am.Role
+	if err := s.pool.QueryRow("userRole", orgID, requesterUserID).Scan(&roleID); err != nil {
+		return false
+	}
+	if roleID == 0 {
+		return false
+	}
+
+	return false
 }
 
 // Get returns a scan group identified by scangroup id
@@ -99,8 +121,39 @@ func (s *Store) Get(ctx context.Context, orgID, requesterUserID, groupID int32) 
 	return oid, group, err
 }
 
-// Create a new scan group, returning orgID and groupID on success, error otherwise
-func (s *Store) Create(ctx context.Context, orgID, requesterUserID int32, newGroup *am.ScanGroup) (oid int32, gid int32, err error) {
+// Create a new scan group and initial scan group version, returning orgID and groupID on success, error otherwise
+func (s *Store) Create(ctx context.Context, newGroup *am.ScanGroup, newVersion *am.ScanGroupVersion) (oid int32, gid int32, err error) {
+	var tx *pgx.Tx
+
+	oid = newGroup.OrgID
+	// TODO: Do auth check
+	err = s.pool.QueryRow("scanGroupIDByName", newGroup.OrgID, newGroup.GroupName).Scan(&gid)
+	if err != pgx.ErrNoRows {
+		return 0, 0, ErrScanGroupExists
+	}
+
+	tx, err = s.pool.Begin()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	_, err = tx.Exec("createScanGroup", newGroup.OrgID, newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.OriginalInput)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	err = tx.QueryRow("scanGroupIDByName", newVersion.OrgID, newGroup.GroupName).Scan(&gid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	_, err = tx.Exec("createScanGroupVersion", newVersion.OrgID, gid, newVersion.VersionName, newVersion.CreationTime, newVersion.ModuleConfigurations, newVersion.GroupVersionID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	err = tx.Commit()
 	return oid, gid, err
 }
 

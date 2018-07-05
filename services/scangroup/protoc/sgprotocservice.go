@@ -1,8 +1,14 @@
 package protoc
 
 import (
+	"errors"
+
 	context "golang.org/x/net/context"
 	"gopkg.linkai.io/v1/repos/am/am"
+)
+
+var (
+	ErrOrgIDNonMatch = errors.New("error organization id's did not match")
 )
 
 type SGProtocService struct {
@@ -18,7 +24,7 @@ func (s *SGProtocService) Get(ctx context.Context, in *GroupRequest) (*GroupResp
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *NewGroupRequest) (*VersionCreatedResponse, error) {
-	groupID, versionID, err := s.sgs.Create(ctx, in.Group.OrgID, in.RequesterUserID, groupToDomain(in.Group))
+	groupID, versionID, err := s.sgs.Create(ctx, in.Group.OrgID, in.RequesterUserID, groupToDomain(in.Group), groupVersionToDomain(in.Version))
 	if err != nil {
 		return nil, err
 	}
@@ -34,18 +40,46 @@ func (s *SGProtocService) Delete(ctx context.Context, in *DeleteGroupRequest) (*
 }
 
 func (s *SGProtocService) GetVersion(ctx context.Context, in *GroupVersionRequest) (*GroupVersionResponse, error) {
-	return &GroupVersionResponse{}, nil
+	orgID, groupVersion, err := s.sgs.GetVersion(ctx, in.OrgID, in.RequesterUserID, in.GroupID, in.GroupVersionID)
+	if err != nil {
+		return nil, err
+	}
+	return &GroupVersionResponse{OrgID: orgID, GroupVersion: domainToGroupVersion(groupVersion)}, nil
 }
 
 func (s *SGProtocService) CreateVersion(ctx context.Context, in *NewVersionRequest) (*VersionCreatedResponse, error) {
-	return &VersionCreatedResponse{GroupID: 1, GroupVersionID: 1}, nil
+	oid, gid, gvid, err := s.sgs.CreateVersion(ctx, in.Version.OrgID, in.RequesterUserID, groupVersionToDomain(in.Version))
+	if err != nil {
+		return nil, err
+	}
+	return &VersionCreatedResponse{OrgID: oid, GroupID: gid, GroupVersionID: gvid}, nil
 }
 
 func (s *SGProtocService) DeleteVersion(ctx context.Context, in *DeleteVersionRequest) (*VersionDeletedResponse, error) {
-	return &VersionDeletedResponse{GroupID: 1, GroupVersionID: 1}, nil
+	oid, gid, gvid, err := s.sgs.DeleteVersion(ctx, in.OrgID, in.RequesterUserID, in.GroupID, in.GroupVersionID, in.VersionName)
+	if err != nil {
+		return nil, err
+	}
+	return &VersionDeletedResponse{OrgID: oid, GroupID: gid, GroupVersionID: gvid}, nil
 }
 
 func (s *SGProtocService) Groups(in *GroupsRequest, stream ScanGroup_GroupsServer) error {
+	ctx := context.Background()
+
+	oid, groups, err := s.sgs.Groups(ctx, in.OrgID)
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		if oid != g.OrgID {
+			return ErrOrgIDNonMatch
+		}
+
+		if err := stream.Send(&GroupResponse{Group: domainToGroup(g)}); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -59,6 +93,32 @@ func (s *SGProtocService) AddAddresses(stream ScanGroup_AddAddressesServer) erro
 
 func (s *SGProtocService) UpdatedAddresses(stream ScanGroup_UpdatedAddressesServer) error {
 	return nil
+}
+
+func domainToGroupVersion(in *am.ScanGroupVersion) *GroupVersion {
+	return &GroupVersion{
+		OrgID:          in.OrgID,
+		GroupID:        in.GroupID,
+		GroupVersionID: in.GroupVersionID,
+		VersionName:    in.VersionName,
+		CreationTime:   in.CreationTime,
+		CreatedBy:      in.CreatedBy,
+		Configuration:  domainToModule(in.ModuleConfigurations),
+		Deleted:        in.Deleted,
+	}
+}
+
+func groupVersionToDomain(in *GroupVersion) *am.ScanGroupVersion {
+	return &am.ScanGroupVersion{
+		OrgID:                in.OrgID,
+		GroupID:              in.GroupID,
+		GroupVersionID:       in.GroupVersionID,
+		VersionName:          in.VersionName,
+		CreationTime:         in.CreationTime,
+		CreatedBy:            in.CreatedBy,
+		ModuleConfigurations: moduleToDomain(in.Configuration),
+		Deleted:              in.Deleted,
+	}
 }
 
 func addressToDomain(in *Address) *am.ScanGroupAddress {
@@ -81,6 +141,15 @@ func moduleToDomain(in *ModuleConfiguration) *am.ModuleConfiguration {
 		BruteModule: &am.BruteModuleConfig{Name: in.BruteConfig.Name, CustomSubNames: in.BruteConfig.CustomSubNames, MaxDepth: in.BruteConfig.MaxDepth},
 		PortModule:  &am.PortModuleConfig{Name: in.PortConfig.Name, Ports: in.PortConfig.Ports},
 		WebModule:   &am.WebModuleConfig{Name: in.WebModuleConfig.Name, TakeScreenShots: in.WebModuleConfig.TakeScreenShots, MaxLinks: in.WebModuleConfig.MaxLinks, ExtractJS: in.WebModuleConfig.ExtractJS, FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks},
+	}
+}
+
+func domainToModule(in *am.ModuleConfiguration) *ModuleConfiguration {
+	return &ModuleConfiguration{
+		NSConfig:        &NSModuleConfig{Name: in.NSModule.Name},
+		BruteConfig:     &BruteModuleConfig{Name: in.BruteModule.Name, CustomSubNames: in.BruteModule.CustomSubNames, MaxDepth: in.BruteModule.MaxDepth},
+		PortConfig:      &PortModuleConfig{Name: in.PortModule.Name, Ports: in.PortModule.Ports},
+		WebModuleConfig: &WebModuleConfig{Name: in.WebModule.Name, TakeScreenShots: in.WebModule.TakeScreenShots, MaxLinks: in.WebModule.MaxLinks, ExtractJS: in.WebModule.ExtractJS, FingerprintFrameworks: in.WebModule.FingerprintFrameworks},
 	}
 }
 
