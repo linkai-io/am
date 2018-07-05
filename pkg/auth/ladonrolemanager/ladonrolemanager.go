@@ -1,9 +1,12 @@
 package ladonrolemanager
 
 import (
+	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	uuid "github.com/satori/go.uuid"
 	"gopkg.linkai.io/v1/repos/am/am"
 )
@@ -57,53 +60,62 @@ func (r *LadonRoleManager) CreateRole(g *am.Role) (string, error) {
 	return g.ID, r.AddMembers(g.OrgID, g.ID, g.Members)
 }
 
+// DeleteRole from the system
+func (r *LadonRoleManager) DeleteRole(orgID int32, roleID string) {
+	r.db.Exec(r.stmts.QueryDeleteRole, orgID, roleID)
+}
+
 // AddMembers iterates over every member for the group/roleid and adds it to the ladon_role_members table
-func (r *LadonRoleManager) AddMembers(orgID int32, roleID string, members []string) error {
-	tx, err := r.db.Begin()
+func (r *LadonRoleManager) AddMembers(orgID int32, roleID string, members []int32) error {
+	if members == nil || len(members) == 0 {
+		return nil
+	}
+
+	b := r.db.BeginBatch()
+
+	for _, member := range members {
+		b.Queue(r.stmts.QueryAddMembers, []interface{}{orgID, roleID, member}, []pgtype.OID{pgtype.Int4OID, pgtype.VarcharOID, pgtype.Int4OID}, nil)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := b.Send(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	for _, member := range members {
-		if _, err := tx.Exec(r.stmts.QueryAddMembers, orgID, roleID, member); err != nil {
-			if err := tx.Rollback(); err != nil {
-				return err
-			}
-			return err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		if err := tx.Rollback(); err != nil {
-			return err
-		}
+	if _, err := b.ExecResults(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // RemoveMembers iterates over every member for the group/roleid and removes it from the ladon_role_members table
-func (r *LadonRoleManager) RemoveMembers(orgID int32, roleID string, members []string) error {
-	tx, err := r.db.Begin()
+func (r *LadonRoleManager) RemoveMembers(orgID int32, roleID string, members []int32) error {
+	if members == nil || len(members) == 0 {
+		return nil
+	}
+
+	b := r.db.BeginBatch()
+
+	for _, member := range members {
+		b.Queue(r.stmts.QueryDeleteMembers, []interface{}{orgID, roleID, member}, []pgtype.OID{pgtype.Int4OID, pgtype.VarcharOID, pgtype.Int4OID}, nil)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := b.Send(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	for _, member := range members {
-		if _, err := tx.Exec(r.stmts.QueryDeleteMembers, orgID, roleID, member); err != nil {
-			if err := tx.Rollback(); err != nil {
-				return err
-			}
-			return err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		if err := tx.Rollback(); err != nil {
-			return err
-		}
+	if _, err := b.ExecResults(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -167,10 +179,10 @@ func (r *LadonRoleManager) Get(orgID int32, roleID string) (*am.Role, error) {
 	}
 	defer rows.Close()
 
-	members := make([]string, 0)
+	members := make([]int32, 0)
 
 	for rows.Next() {
-		var member string
+		var member int32
 
 		if err := rows.Scan(&rOrgID, &member); err != nil {
 			return nil, err
