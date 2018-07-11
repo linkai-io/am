@@ -4,20 +4,10 @@ import (
 	"context"
 )
 
-type ScanGroupAction int
-
-// List of possible action types for the scan group service for authorization purposes
 const (
-	GetGroup ScanGroupAction = iota
-	GetGroups
-	CreateGroup
-	DeleteGroup
-	GetVersion
-	CreateVersion
-	DeleteVersion
-	GetAddresses
-	AddAddresses
-	UpdatedAddresses
+	RNScanGroupGroups    = "lrn:service:scangroup:feature:groups"
+	RNScanGroupVersions  = "lrn:service:scangroup:feature:versions"
+	RNScanGroupAddresses = "lrn:service:scangroup:feature:addresses"
 )
 
 // ModuleConfiguration contains all the module configurations
@@ -79,16 +69,17 @@ type Input map[string]interface{}
 // always be returned for ensuring data integrity for requesters
 type ScanGroupService interface {
 	Init(config []byte) error
-	Get(ctx context.Context, orgID, requesterUserID, groupID int32) (oid int32, group *ScanGroup, err error)
-	Create(ctx context.Context, orgID, requesterUserID int32, newGroup *ScanGroup, newVersion *ScanGroupVersion) (oid int32, gid int32, err error)
-	Delete(ctx context.Context, orgID, requesterUserID, groupID int32) (oid int32, gid int32, err error)
-	GetVersion(ctx context.Context, orgID, requesterUserID, groupID, groupVersionID int32) (oid int32, groupVersion *ScanGroupVersion, err error)
-	CreateVersion(ctx context.Context, orgID, requesterUserID int32, scanGroupVersion *ScanGroupVersion) (oid int32, gid int32, gvid int32, err error)
-	DeleteVersion(ctx context.Context, orgID, requesterUserID, groupID, groupVersionID int32, versionName string) (oid int32, gid int32, gvid int32, err error)
-	Groups(ctx context.Context, orgID int32) (oid int32, groups []*ScanGroup, err error)
-	Addresses(ctx context.Context, orgID, requesterUserID, groupID int32) (oid int32, addresses []*ScanGroupAddress, err error)
-	AddAddresses(ctx context.Context, orgID, requesterUserID int32, addresses []*ScanGroupAddress) (oid int32, failed []*FailedAddress, err error)
-	UpdateAddresses(ctx context.Context, orgID, requesterUserID int32, addresses []*ScanGroupAddress) (oid int32, failed []*FailedAddress, err error)
+	IsAuthorized(ctx context.Context, userContext UserContext, resource, action string)
+	Get(ctx context.Context, userContext UserContext, groupID int32) (oid int32, group *ScanGroup, err error)
+	Groups(ctx context.Context, userContext UserContext) (oid int32, groups []*ScanGroup, err error)
+	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup, newVersion *ScanGroupVersion) (oid int32, gid int32, err error)
+	Delete(ctx context.Context, userContext UserContext, groupID int32) (oid int32, gid int32, err error)
+	GetVersion(ctx context.Context, userContext UserContext, groupID, groupVersionID int32) (oid int32, v *ScanGroupVersion, err error)
+	CreateVersion(ctx context.Context, userContext UserContext, v *ScanGroupVersion) (oid int32, gid int32, gvid int32, err error)
+	DeleteVersion(ctx context.Context, userContext UserContext, groupID, groupVersionID int32, versionName string) (oid int32, gid int32, gvid int32, err error)
+	Addresses(ctx context.Context, userContext UserContext, groupID int32) (oid int32, addresses []*ScanGroupAddress, err error)
+	AddAddresses(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int32, failed []*FailedAddress, err error)
+	UpdateAddresses(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int32, failed []*FailedAddress, err error)
 }
 
 // ScanGroupReaderService read only implementation acquiring input lists and scan configs

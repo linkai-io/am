@@ -2,6 +2,10 @@ package am
 
 import "context"
 
+const (
+	RNJobService = "lrn:service:jobservice:feature:service"
+)
+
 // Job represents a unit of work
 type Job struct {
 	ID        []byte

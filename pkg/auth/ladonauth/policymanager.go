@@ -1,4 +1,4 @@
-package ladonsqlmanager
+package ladonauth
 
 import (
 	"crypto/sha256"
@@ -18,30 +18,30 @@ var (
 	ErrInvalidDriver = errors.New("invalid drivername specified, must be mysql or postgres, pg, pgx")
 )
 
-// SQLManager implements the ladon/Manager without requiring sqlx or migrations packages
-type SQLManager struct {
+// LadonPolicyManager implements the ladon/Manager without requiring sqlx or migrations packages
+type LadonPolicyManager struct {
 	db         *pgx.ConnPool
 	driverName string
-	stmts      *Statements
+	stmts      *PolicyStatements
 }
 
-// New creates a new, uninitialized SQLManager
-func New(db *pgx.ConnPool, driverName string) *SQLManager {
-	return &SQLManager{db: db, driverName: driverName}
+// NewPolicyManager creates a new, uninitialized LadonPolicyManager
+func NewPolicyManager(db *pgx.ConnPool, driverName string) *LadonPolicyManager {
+	return &LadonPolicyManager{db: db, driverName: driverName}
 }
 
 // SetStatements allows callers to just provide their own statements if they
 // want to support something other than postgres/mysql
 // Note you must call this before Init() if you wish to override the driver specific
 // statements.
-func (s *SQLManager) SetStatements(statements *Statements) {
+func (s *LadonPolicyManager) SetStatements(statements *PolicyStatements) {
 	s.stmts = statements
 }
 
 // Init ensures statements are properly mapped
-func (s *SQLManager) Init() error {
+func (s *LadonPolicyManager) Init() error {
 	if s.stmts == nil {
-		s.stmts = GetStatements(s.driverName)
+		s.stmts = GetPolicyStatements(s.driverName)
 		if s.stmts == nil {
 			return ErrInvalidDriver
 		}
@@ -50,7 +50,7 @@ func (s *SQLManager) Init() error {
 }
 
 // Update updates a policy in the database by deleting original and re-creating
-func (s *SQLManager) Update(policy ladon.Policy) error {
+func (s *LadonPolicyManager) Update(policy ladon.Policy) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return errors.WithStack(err)
@@ -81,7 +81,8 @@ func (s *SQLManager) Update(policy ladon.Policy) error {
 }
 
 // Create inserts a new policy
-func (s *SQLManager) Create(policy ladon.Policy) (err error) {
+func (s *LadonPolicyManager) Create(policy ladon.Policy) (err error) {
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return errors.WithStack(err)
@@ -104,7 +105,7 @@ func (s *SQLManager) Create(policy ladon.Policy) (err error) {
 	return nil
 }
 
-func (s *SQLManager) create(policy ladon.Policy, tx *pgx.Tx) (err error) {
+func (s *LadonPolicyManager) create(policy ladon.Policy, tx *pgx.Tx) (err error) {
 	conditions := []byte("{}")
 	if policy.GetConditions() != nil {
 		cs := policy.GetConditions()
@@ -172,7 +173,7 @@ func (s *SQLManager) create(policy ladon.Policy, tx *pgx.Tx) (err error) {
 }
 
 // FindRequestCandidates returns policies that potentially match a ladon.Request
-func (s *SQLManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies, error) {
+func (s *LadonPolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies, error) {
 	rows, err := s.db.Query(s.stmts.QueryRequestCandidates, r.Subject, r.Subject)
 	if err == sql.ErrNoRows {
 		return nil, ladon.NewErrResourceNotFound(err)
@@ -249,7 +250,7 @@ func scanRows(rows *pgx.Rows) (ladon.Policies, error) {
 }
 
 // GetAll returns all policies
-func (s *SQLManager) GetAll(limit, offset int64) (ladon.Policies, error) {
+func (s *LadonPolicyManager) GetAll(limit, offset int64) (ladon.Policies, error) {
 	rows, err := s.db.Query(s.stmts.GetAllQuery, limit, offset)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -260,7 +261,7 @@ func (s *SQLManager) GetAll(limit, offset int64) (ladon.Policies, error) {
 }
 
 // Get retrieves a policy.
-func (s *SQLManager) Get(id string) (ladon.Policy, error) {
+func (s *LadonPolicyManager) Get(id string) (ladon.Policy, error) {
 	rows, err := s.db.Query(s.stmts.GetQuery, id)
 	if err == sql.ErrNoRows {
 		return nil, ladon.NewErrResourceNotFound(err)
@@ -280,7 +281,7 @@ func (s *SQLManager) Get(id string) (ladon.Policy, error) {
 }
 
 // Delete removes a policy.
-func (s *SQLManager) Delete(id string) error {
+func (s *LadonPolicyManager) Delete(id string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return errors.WithStack(err)
@@ -304,7 +305,7 @@ func (s *SQLManager) Delete(id string) error {
 }
 
 // Delete removes a policy.
-func (s *SQLManager) delete(id string, tx *pgx.Tx) error {
+func (s *LadonPolicyManager) delete(id string, tx *pgx.Tx) error {
 	_, err := tx.Exec(s.stmts.DeletePolicy, id)
 	return errors.WithStack(err)
 }

@@ -1,0 +1,2 @@
+# auth
+This package is for defining roles and policies for groups of users. It ensures that users who belong to roles are allowed to access specific resources. The actual roles are defined in the database repository.

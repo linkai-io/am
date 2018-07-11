@@ -1,7 +1,7 @@
-package ladonsqlmanager
+package ladonauth
 
-// Statements contains all policy related DB statements
-type Statements struct {
+// PolicyStatements contains all policy related DB statements
+type PolicyStatements struct {
 	QueryInsertPolicy             string
 	QueryInsertPolicyActions      string
 	QueryInsertPolicyActionsRel   string
@@ -16,9 +16,9 @@ type Statements struct {
 	DeletePolicy string
 }
 
-// GetStatements returns statements specific to the db driver type
-func GetStatements(driverName string) *Statements {
-	stmts := &Statements{}
+// GetPolicyStatements returns statements specific to the db driver type
+func GetPolicyStatements(driverName string) *PolicyStatements {
+	stmts := &PolicyStatements{}
 	switch driverName {
 	case "postgres", "pg", "pgx":
 		stmts.QueryInsertPolicy = `INSERT INTO am.ladon_policy(id, description, effect, conditions, meta) SELECT $1::varchar, $2, $3, $4, $5 WHERE NOT EXISTS (SELECT 1 FROM am.ladon_policy WHERE id = $1)`

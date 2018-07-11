@@ -2,19 +2,14 @@ package am
 
 import "context"
 
-type PolicyEffect int
-
-const (
-	Allow PolicyEffect = 1
-	Deny  PolicyEffect = 2
-)
-
+// Policy to be applied to a role via policy service/role service
 type Policy struct {
-	Subjects []string
-	Actions  []string
-	Effect   PolicyEffect
+	Subjects  []string
+	Actions   []string
+	Resources []string
 }
 
+// PolicyService is for managing policies that can be applied to roles
 type PolicyService interface {
 	AddPolicy(ctx context.Context, orgID, requesterUserID int32, policy Policy) error    // creates a new policy
 	UpdatePolicy(ctx context.Context, orgID, requesterUserID int32, policy Policy) error // updates a policy
