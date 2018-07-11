@@ -3,6 +3,7 @@ package scangroup
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/jackc/pgx"
 	"gopkg.linkai.io/v1/repos/am/am"
@@ -144,42 +145,41 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 }
 
 // Create a new scan group and initial scan group version, returning orgID and groupID on success, error otherwise
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGroup *am.ScanGroup, newVersion *am.ScanGroupVersion) (oid int32, gid int32, err error) {
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGroup *am.ScanGroup, newVersion *am.ScanGroupVersion) (oid int32, gid int32, gvid int32, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "create") {
-		return 0, 0, ErrUserNotAuthorized
+		return 0, 0, 0, ErrUserNotAuthorized
 	}
 
 	var tx *pgx.Tx
 	oid = newGroup.OrgID
 
-	err = s.pool.QueryRow("scanGroupIDByName", newGroup.OrgID, newGroup.GroupName).Scan(&gid)
-	if err != pgx.ErrNoRows {
-		return 0, 0, ErrScanGroupExists
+	err = s.pool.QueryRow("scanGroupIDByName", userContext.GetOrgID(), newGroup.GroupName).Scan(&oid, &gid)
+	if err != nil && err != pgx.ErrNoRows {
+		return 0, 0, 0, err
+	}
+
+	if gid != 0 {
+		return 0, 0, 0, ErrScanGroupExists
 	}
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 	defer tx.Rollback() // safe to call as no-op on success
 
-	_, err = tx.Exec("createScanGroup", newGroup.OrgID, newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.OriginalInput)
+	err = tx.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.OriginalInput).Scan(&gid)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
-	err = tx.QueryRow("scanGroupIDByName", newVersion.OrgID, newGroup.GroupName).Scan(&gid)
+	err = tx.QueryRow("createScanGroupVersion", userContext.GetOrgID(), gid, newVersion.VersionName, newVersion.CreationTime, userContext.GetUserID(), newVersion.ModuleConfigurations).Scan(&gvid)
 	if err != nil {
-		return 0, 0, err
-	}
-
-	_, err = tx.Exec("createScanGroupVersion", newVersion.OrgID, gid, newVersion.VersionName, newVersion.CreationTime, newVersion.ModuleConfigurations, newVersion.GroupVersionID)
-	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
 	err = tx.Commit()
-	return oid, gid, err
+	return oid, gid, gvid, err
 }
 
 // Delete a scan group, also deletes all scan group versions which reference this scan group returning orgID and groupID on success, error otherwise
@@ -188,7 +188,8 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 		return 0, 0, ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
-	var rows *pgx.Rows
+	var row *pgx.Row
+	versionID := 0
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -197,11 +198,13 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	defer tx.Rollback() // safe to call as no-op on success
 
 	// ensure that we have no rows for this scan group version linked to the group id we are about to delete
-	rows, err = tx.Query("scanGroupVersion", userContext.GetOrgID(), groupID)
-	if err != pgx.ErrNoRows {
-		return 0, 0, err
+	row = tx.QueryRow("scanGroupVersionExists", userContext.GetOrgID(), groupID)
+
+	err = row.Scan(&oid, &versionID)
+	log.Printf("%d %d\n", oid, versionID)
+	if versionID != 0 {
+		return 0, 0, ErrScanGroupVersionLinked
 	}
-	rows.Close()
 
 	_, err = tx.Exec("deleteScanGroup", userContext.GetOrgID(), groupID)
 	if err != nil {
@@ -209,9 +212,7 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	}
 
 	err = tx.Commit()
-	oid = userContext.GetOrgID()
-	gid = groupID
-	return oid, gid, err
+	return userContext.GetOrgID(), groupID, err
 }
 
 // GetVersion returns the configuration of the requested version.
@@ -222,7 +223,22 @@ func (s *Service) GetVersion(ctx context.Context, userContext am.UserContext, gr
 	var row *pgx.Row
 
 	row = s.pool.QueryRow("scanGroupVersionByID", userContext.GetOrgID(), groupID, groupVersionID)
-	err = row.Scan(&v.OrgID, &v.GroupID, &v.VersionName, &v.CreationTime, &v.CreatedBy, &v.ModuleConfigurations, &v.Deleted)
+	err = row.Scan(&v.OrgID, &v.GroupID, &v.GroupVersionID, &v.VersionName, &v.CreationTime, &v.CreatedBy, &v.ModuleConfigurations, &v.Deleted)
+
+	return v.OrgID, v, err
+}
+
+// GetVersionByName returns the configuration of the requested version.
+func (s *Service) GetVersionByName(ctx context.Context, userContext am.UserContext, groupID int32, versionName string) (oid int32, v *am.ScanGroupVersion, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "read") {
+		return 0, nil, ErrUserNotAuthorized
+	}
+	var row *pgx.Row
+	v = &am.ScanGroupVersion{}
+
+	//organization_id, scan_group_id, version_name, creation_time, created_by, configuration, config_version, deleted
+	row = s.pool.QueryRow("scanGroupVersionByName", userContext.GetOrgID(), groupID, versionName)
+	err = row.Scan(&v.OrgID, &v.GroupID, &v.GroupVersionID, &v.VersionName, &v.CreationTime, &v.CreatedBy, &v.ModuleConfigurations, &v.Deleted)
 
 	return v.OrgID, v, err
 }
@@ -234,7 +250,7 @@ func (s *Service) CreateVersion(ctx context.Context, userContext am.UserContext,
 	}
 	var row *pgx.Row
 	var returned am.ScanGroupVersion
-
+	//organization_id, scan_group_id, version_name, creation_time, created_by, configuration, deleted
 	_, err = s.pool.Exec("createScanGroupVersion", v.OrgID, v.GroupID, v.VersionName, v.CreationTime, v.CreatedBy, v.ModuleConfigurations)
 	if err != nil {
 		return 0, 0, 0, err
@@ -253,10 +269,11 @@ func (s *Service) DeleteVersion(ctx context.Context, userContext am.UserContext,
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "delete") {
 		return 0, 0, 0, ErrUserNotAuthorized
 	}
-
-	_, err = s.pool.Exec("deleteScanGroupVersion", userContext.GetOrgID(), groupID, groupVersionID)
-	if err != nil {
+	log.Printf("deleteScanGroupVersion %d %d %d\n", userContext.GetOrgID(), groupID, groupVersionID)
+	if t, err := s.pool.Exec("deleteScanGroupVersion", userContext.GetOrgID(), groupID, groupVersionID); err != nil {
 		return 0, 0, 0, err
+	} else {
+		log.Printf("%s\n", t)
 	}
 
 	return userContext.GetOrgID(), groupID, groupVersionID, err

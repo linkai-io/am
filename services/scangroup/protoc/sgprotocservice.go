@@ -22,15 +22,27 @@ func New(implementation am.ScanGroupService) *SGProtocService {
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	return &scangroup.GroupResponse{}, nil
-}
-
-func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
-	orgID, groupID, err := s.sgs.Create(ctx, in.UserContext, groupToDomain(in.Group), groupVersionToDomain(in.Version))
+	oid, group, err := s.sgs.Get(ctx, in.UserContext, in.GroupID)
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupCreatedResponse{OrgID: orgID, GroupID: groupID}, nil
+	return &scangroup.GroupResponse{OrgID: oid, Group: domainToGroup(group)}, err
+}
+
+func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
+	oid, group, err := s.sgs.GetByName(ctx, in.UserContext, in.GroupName)
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupResponse{OrgID: oid, Group: domainToGroup(group)}, err
+}
+
+func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
+	orgID, groupID, groupVersionID, err := s.sgs.Create(ctx, in.UserContext, groupToDomain(in.Group), groupVersionToDomain(in.Version))
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupCreatedResponse{OrgID: orgID, GroupID: groupID, GroupVersionID: groupVersionID}, nil
 }
 
 func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupRequest) (*scangroup.GroupDeletedResponse, error) {
@@ -43,6 +55,14 @@ func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupR
 
 func (s *SGProtocService) GetVersion(ctx context.Context, in *scangroup.GroupVersionRequest) (*scangroup.GroupVersionResponse, error) {
 	orgID, groupVersion, err := s.sgs.GetVersion(ctx, in.UserContext, in.GroupID, in.GroupVersionID)
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupVersionResponse{OrgID: orgID, GroupVersion: domainToGroupVersion(groupVersion)}, nil
+}
+
+func (s *SGProtocService) GetVersionByName(ctx context.Context, in *scangroup.GroupVersionRequest) (*scangroup.GroupVersionResponse, error) {
+	orgID, groupVersion, err := s.sgs.GetVersionByName(ctx, in.UserContext, in.GroupID, in.GroupVersionName)
 	if err != nil {
 		return nil, err
 	}

@@ -71,10 +71,12 @@ type ScanGroupService interface {
 	Init(config []byte) error
 	IsAuthorized(ctx context.Context, userContext UserContext, resource, action string)
 	Get(ctx context.Context, userContext UserContext, groupID int32) (oid int32, group *ScanGroup, err error)
+	GetByName(ctx context.Context, userContext UserContext, groupName string) (oid int32, group *ScanGroup, err error)
 	Groups(ctx context.Context, userContext UserContext) (oid int32, groups []*ScanGroup, err error)
-	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup, newVersion *ScanGroupVersion) (oid int32, gid int32, err error)
+	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup, newVersion *ScanGroupVersion) (oid int32, gid int32, gvid int32, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int32) (oid int32, gid int32, err error)
 	GetVersion(ctx context.Context, userContext UserContext, groupID, groupVersionID int32) (oid int32, v *ScanGroupVersion, err error)
+	GetVersionByName(ctx context.Context, userContext UserContext, groupID int32, versionName string) (oid int32, v *ScanGroupVersion, err error)
 	CreateVersion(ctx context.Context, userContext UserContext, v *ScanGroupVersion) (oid int32, gid int32, gvid int32, err error)
 	DeleteVersion(ctx context.Context, userContext UserContext, groupID, groupVersionID int32, versionName string) (oid int32, gid int32, gvid int32, err error)
 	Addresses(ctx context.Context, userContext UserContext, groupID int32) (oid int32, addresses []*ScanGroupAddress, err error)
