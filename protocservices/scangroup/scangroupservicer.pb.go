@@ -14,17 +14,12 @@
 		WebModuleConfig
 		ModuleConfiguration
 		Group
-		GroupVersion
 		NewGroupRequest
 		GroupCreatedResponse
-		NewVersionRequest
-		GroupVersionRequest
-		GroupVersionResponse
-		VersionCreatedResponse
+		UpdateGroupRequest
+		GroupUpdatedResponse
 		DeleteGroupRequest
 		GroupDeletedResponse
-		DeleteVersionRequest
-		VersionDeletedResponse
 		GroupRequest
 		GroupsRequest
 		GroupResponse
@@ -235,13 +230,14 @@ func (m *ModuleConfiguration) GetDailyScanSchedules() []int64 {
 }
 
 type Group struct {
-	OrgID         int32  `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID       int32  `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupName     string `protobuf:"bytes,3,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
-	CreationTime  int64  `protobuf:"varint,4,opt,name=CreationTime,proto3" json:"CreationTime,omitempty"`
-	CreatedBy     int32  `protobuf:"varint,5,opt,name=CreatedBy,proto3" json:"CreatedBy,omitempty"`
-	OriginalInput []byte `protobuf:"bytes,6,opt,name=OriginalInput,proto3" json:"OriginalInput,omitempty"`
-	Deleted       bool   `protobuf:"varint,7,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
+	OrgID               int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID             int32                `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupName           string               `protobuf:"bytes,3,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
+	CreationTime        int64                `protobuf:"varint,4,opt,name=CreationTime,proto3" json:"CreationTime,omitempty"`
+	CreatedBy           int32                `protobuf:"varint,5,opt,name=CreatedBy,proto3" json:"CreatedBy,omitempty"`
+	OriginalInput       []byte               `protobuf:"bytes,6,opt,name=OriginalInput,proto3" json:"OriginalInput,omitempty"`
+	ModuleConfiguration *ModuleConfiguration `protobuf:"bytes,7,opt,name=ModuleConfiguration" json:"ModuleConfiguration,omitempty"`
+	Deleted             bool                 `protobuf:"varint,8,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
 }
 
 func (m *Group) Reset()                    { *m = Group{} }
@@ -291,79 +287,14 @@ func (m *Group) GetOriginalInput() []byte {
 	return nil
 }
 
-func (m *Group) GetDeleted() bool {
+func (m *Group) GetModuleConfiguration() *ModuleConfiguration {
 	if m != nil {
-		return m.Deleted
-	}
-	return false
-}
-
-type GroupVersion struct {
-	OrgID          int32                `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID        int32                `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32                `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-	VersionName    string               `protobuf:"bytes,4,opt,name=VersionName,proto3" json:"VersionName,omitempty"`
-	CreationTime   int64                `protobuf:"varint,5,opt,name=CreationTime,proto3" json:"CreationTime,omitempty"`
-	CreatedBy      int32                `protobuf:"varint,6,opt,name=CreatedBy,proto3" json:"CreatedBy,omitempty"`
-	Configuration  *ModuleConfiguration `protobuf:"bytes,7,opt,name=Configuration" json:"Configuration,omitempty"`
-	Deleted        bool                 `protobuf:"varint,8,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
-}
-
-func (m *GroupVersion) Reset()                    { *m = GroupVersion{} }
-func (m *GroupVersion) String() string            { return proto.CompactTextString(m) }
-func (*GroupVersion) ProtoMessage()               {}
-func (*GroupVersion) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{6} }
-
-func (m *GroupVersion) GetOrgID() int32 {
-	if m != nil {
-		return m.OrgID
-	}
-	return 0
-}
-
-func (m *GroupVersion) GetGroupID() int32 {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *GroupVersion) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
-	}
-	return 0
-}
-
-func (m *GroupVersion) GetVersionName() string {
-	if m != nil {
-		return m.VersionName
-	}
-	return ""
-}
-
-func (m *GroupVersion) GetCreationTime() int64 {
-	if m != nil {
-		return m.CreationTime
-	}
-	return 0
-}
-
-func (m *GroupVersion) GetCreatedBy() int32 {
-	if m != nil {
-		return m.CreatedBy
-	}
-	return 0
-}
-
-func (m *GroupVersion) GetConfiguration() *ModuleConfiguration {
-	if m != nil {
-		return m.Configuration
+		return m.ModuleConfiguration
 	}
 	return nil
 }
 
-func (m *GroupVersion) GetDeleted() bool {
+func (m *Group) GetDeleted() bool {
 	if m != nil {
 		return m.Deleted
 	}
@@ -373,13 +304,12 @@ func (m *GroupVersion) GetDeleted() bool {
 type NewGroupRequest struct {
 	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Group       *Group            `protobuf:"bytes,2,opt,name=Group" json:"Group,omitempty"`
-	Version     *GroupVersion     `protobuf:"bytes,3,opt,name=Version" json:"Version,omitempty"`
 }
 
 func (m *NewGroupRequest) Reset()                    { *m = NewGroupRequest{} }
 func (m *NewGroupRequest) String() string            { return proto.CompactTextString(m) }
 func (*NewGroupRequest) ProtoMessage()               {}
-func (*NewGroupRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{7} }
+func (*NewGroupRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{6} }
 
 func (m *NewGroupRequest) GetUserContext() *user.UserContext {
 	if m != nil {
@@ -395,24 +325,16 @@ func (m *NewGroupRequest) GetGroup() *Group {
 	return nil
 }
 
-func (m *NewGroupRequest) GetVersion() *GroupVersion {
-	if m != nil {
-		return m.Version
-	}
-	return nil
-}
-
 type GroupCreatedResponse struct {
-	OrgID          int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID        int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32 `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
+	OrgID   int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
 }
 
 func (m *GroupCreatedResponse) Reset()         { *m = GroupCreatedResponse{} }
 func (m *GroupCreatedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupCreatedResponse) ProtoMessage()    {}
 func (*GroupCreatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{8}
+	return fileDescriptorScangroupservicer, []int{7}
 }
 
 func (m *GroupCreatedResponse) GetOrgID() int32 {
@@ -429,137 +351,70 @@ func (m *GroupCreatedResponse) GetGroupID() int32 {
 	return 0
 }
 
-func (m *GroupCreatedResponse) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
-	}
-	return 0
-}
-
-type NewVersionRequest struct {
+type UpdateGroupRequest struct {
 	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	Version     *GroupVersion     `protobuf:"bytes,2,opt,name=Version" json:"Version,omitempty"`
+	Group       *Group            `protobuf:"bytes,2,opt,name=Group" json:"Group,omitempty"`
+	GroupID     int32             `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupName   string            `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
 }
 
-func (m *NewVersionRequest) Reset()         { *m = NewVersionRequest{} }
-func (m *NewVersionRequest) String() string { return proto.CompactTextString(m) }
-func (*NewVersionRequest) ProtoMessage()    {}
-func (*NewVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{9}
+func (m *UpdateGroupRequest) Reset()         { *m = UpdateGroupRequest{} }
+func (m *UpdateGroupRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateGroupRequest) ProtoMessage()    {}
+func (*UpdateGroupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{8}
 }
 
-func (m *NewVersionRequest) GetUserContext() *user.UserContext {
+func (m *UpdateGroupRequest) GetUserContext() *user.UserContext {
 	if m != nil {
 		return m.UserContext
 	}
 	return nil
 }
 
-func (m *NewVersionRequest) GetVersion() *GroupVersion {
+func (m *UpdateGroupRequest) GetGroup() *Group {
 	if m != nil {
-		return m.Version
+		return m.Group
 	}
 	return nil
 }
 
-type GroupVersionRequest struct {
-	UserContext      *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	GroupID          int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID   int32             `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-	GroupVersionName string            `protobuf:"bytes,4,opt,name=GroupVersionName,proto3" json:"GroupVersionName,omitempty"`
-}
-
-func (m *GroupVersionRequest) Reset()         { *m = GroupVersionRequest{} }
-func (m *GroupVersionRequest) String() string { return proto.CompactTextString(m) }
-func (*GroupVersionRequest) ProtoMessage()    {}
-func (*GroupVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{10}
-}
-
-func (m *GroupVersionRequest) GetUserContext() *user.UserContext {
-	if m != nil {
-		return m.UserContext
-	}
-	return nil
-}
-
-func (m *GroupVersionRequest) GetGroupID() int32 {
+func (m *UpdateGroupRequest) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
 	}
 	return 0
 }
 
-func (m *GroupVersionRequest) GetGroupVersionID() int32 {
+func (m *UpdateGroupRequest) GetGroupName() string {
 	if m != nil {
-		return m.GroupVersionID
-	}
-	return 0
-}
-
-func (m *GroupVersionRequest) GetGroupVersionName() string {
-	if m != nil {
-		return m.GroupVersionName
+		return m.GroupName
 	}
 	return ""
 }
 
-type GroupVersionResponse struct {
-	OrgID        int32         `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupVersion *GroupVersion `protobuf:"bytes,2,opt,name=GroupVersion" json:"GroupVersion,omitempty"`
+type GroupUpdatedResponse struct {
+	OrgID   int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
 }
 
-func (m *GroupVersionResponse) Reset()         { *m = GroupVersionResponse{} }
-func (m *GroupVersionResponse) String() string { return proto.CompactTextString(m) }
-func (*GroupVersionResponse) ProtoMessage()    {}
-func (*GroupVersionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{11}
+func (m *GroupUpdatedResponse) Reset()         { *m = GroupUpdatedResponse{} }
+func (m *GroupUpdatedResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupUpdatedResponse) ProtoMessage()    {}
+func (*GroupUpdatedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{9}
 }
 
-func (m *GroupVersionResponse) GetOrgID() int32 {
+func (m *GroupUpdatedResponse) GetOrgID() int32 {
 	if m != nil {
 		return m.OrgID
 	}
 	return 0
 }
 
-func (m *GroupVersionResponse) GetGroupVersion() *GroupVersion {
-	if m != nil {
-		return m.GroupVersion
-	}
-	return nil
-}
-
-type VersionCreatedResponse struct {
-	OrgID          int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID        int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32 `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-}
-
-func (m *VersionCreatedResponse) Reset()         { *m = VersionCreatedResponse{} }
-func (m *VersionCreatedResponse) String() string { return proto.CompactTextString(m) }
-func (*VersionCreatedResponse) ProtoMessage()    {}
-func (*VersionCreatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{12}
-}
-
-func (m *VersionCreatedResponse) GetOrgID() int32 {
-	if m != nil {
-		return m.OrgID
-	}
-	return 0
-}
-
-func (m *VersionCreatedResponse) GetGroupID() int32 {
+func (m *GroupUpdatedResponse) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
-	}
-	return 0
-}
-
-func (m *VersionCreatedResponse) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
 	}
 	return 0
 }
@@ -573,7 +428,7 @@ func (m *DeleteGroupRequest) Reset()         { *m = DeleteGroupRequest{} }
 func (m *DeleteGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGroupRequest) ProtoMessage()    {}
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{13}
+	return fileDescriptorScangroupservicer, []int{10}
 }
 
 func (m *DeleteGroupRequest) GetUserContext() *user.UserContext {
@@ -599,7 +454,7 @@ func (m *GroupDeletedResponse) Reset()         { *m = GroupDeletedResponse{} }
 func (m *GroupDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupDeletedResponse) ProtoMessage()    {}
 func (*GroupDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{14}
+	return fileDescriptorScangroupservicer, []int{11}
 }
 
 func (m *GroupDeletedResponse) GetOrgID() int32 {
@@ -616,93 +471,16 @@ func (m *GroupDeletedResponse) GetGroupID() int32 {
 	return 0
 }
 
-type DeleteVersionRequest struct {
-	UserContext    *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	GroupID        int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32             `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-	VersionName    string            `protobuf:"bytes,4,opt,name=VersionName,proto3" json:"VersionName,omitempty"`
-}
-
-func (m *DeleteVersionRequest) Reset()         { *m = DeleteVersionRequest{} }
-func (m *DeleteVersionRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteVersionRequest) ProtoMessage()    {}
-func (*DeleteVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{15}
-}
-
-func (m *DeleteVersionRequest) GetUserContext() *user.UserContext {
-	if m != nil {
-		return m.UserContext
-	}
-	return nil
-}
-
-func (m *DeleteVersionRequest) GetGroupID() int32 {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *DeleteVersionRequest) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
-	}
-	return 0
-}
-
-func (m *DeleteVersionRequest) GetVersionName() string {
-	if m != nil {
-		return m.VersionName
-	}
-	return ""
-}
-
-type VersionDeletedResponse struct {
-	OrgID          int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID        int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32 `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-}
-
-func (m *VersionDeletedResponse) Reset()         { *m = VersionDeletedResponse{} }
-func (m *VersionDeletedResponse) String() string { return proto.CompactTextString(m) }
-func (*VersionDeletedResponse) ProtoMessage()    {}
-func (*VersionDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{16}
-}
-
-func (m *VersionDeletedResponse) GetOrgID() int32 {
-	if m != nil {
-		return m.OrgID
-	}
-	return 0
-}
-
-func (m *VersionDeletedResponse) GetGroupID() int32 {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *VersionDeletedResponse) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
-	}
-	return 0
-}
-
 type GroupRequest struct {
-	UserContext    *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	GroupID        int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupVersionID int32             `protobuf:"varint,3,opt,name=GroupVersionID,proto3" json:"GroupVersionID,omitempty"`
-	GroupName      string            `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
+	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	GroupID     int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupName   string            `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
 }
 
 func (m *GroupRequest) Reset()                    { *m = GroupRequest{} }
 func (m *GroupRequest) String() string            { return proto.CompactTextString(m) }
 func (*GroupRequest) ProtoMessage()               {}
-func (*GroupRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{17} }
+func (*GroupRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{12} }
 
 func (m *GroupRequest) GetUserContext() *user.UserContext {
 	if m != nil {
@@ -714,13 +492,6 @@ func (m *GroupRequest) GetUserContext() *user.UserContext {
 func (m *GroupRequest) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
-	}
-	return 0
-}
-
-func (m *GroupRequest) GetGroupVersionID() int32 {
-	if m != nil {
-		return m.GroupVersionID
 	}
 	return 0
 }
@@ -739,7 +510,7 @@ type GroupsRequest struct {
 func (m *GroupsRequest) Reset()                    { *m = GroupsRequest{} }
 func (m *GroupsRequest) String() string            { return proto.CompactTextString(m) }
 func (*GroupsRequest) ProtoMessage()               {}
-func (*GroupsRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{18} }
+func (*GroupsRequest) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{13} }
 
 func (m *GroupsRequest) GetUserContext() *user.UserContext {
 	if m != nil {
@@ -756,7 +527,7 @@ type GroupResponse struct {
 func (m *GroupResponse) Reset()                    { *m = GroupResponse{} }
 func (m *GroupResponse) String() string            { return proto.CompactTextString(m) }
 func (*GroupResponse) ProtoMessage()               {}
-func (*GroupResponse) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{19} }
+func (*GroupResponse) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{14} }
 
 func (m *GroupResponse) GetOrgID() int32 {
 	if m != nil {
@@ -786,7 +557,7 @@ type Address struct {
 func (m *Address) Reset()                    { *m = Address{} }
 func (m *Address) String() string            { return proto.CompactTextString(m) }
 func (*Address) ProtoMessage()               {}
-func (*Address) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{20} }
+func (*Address) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{15} }
 
 func (m *Address) GetOrgID() int32 {
 	if m != nil {
@@ -854,7 +625,7 @@ func (m *AddressesRequest) Reset()         { *m = AddressesRequest{} }
 func (m *AddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*AddressesRequest) ProtoMessage()    {}
 func (*AddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{21}
+	return fileDescriptorScangroupservicer, []int{16}
 }
 
 func (m *AddressesRequest) GetUserContext() *user.UserContext {
@@ -887,7 +658,7 @@ func (m *AddressesResponse) Reset()         { *m = AddressesResponse{} }
 func (m *AddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*AddressesResponse) ProtoMessage()    {}
 func (*AddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{22}
+	return fileDescriptorScangroupservicer, []int{17}
 }
 
 func (m *AddressesResponse) GetOrgID() int32 {
@@ -918,7 +689,7 @@ func (m *AddAddressRequest) Reset()         { *m = AddAddressRequest{} }
 func (m *AddAddressRequest) String() string { return proto.CompactTextString(m) }
 func (*AddAddressRequest) ProtoMessage()    {}
 func (*AddAddressRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{23}
+	return fileDescriptorScangroupservicer, []int{18}
 }
 
 func (m *AddAddressRequest) GetUserContext() *user.UserContext {
@@ -978,7 +749,7 @@ type FailedAddress struct {
 func (m *FailedAddress) Reset()                    { *m = FailedAddress{} }
 func (m *FailedAddress) String() string            { return proto.CompactTextString(m) }
 func (*FailedAddress) ProtoMessage()               {}
-func (*FailedAddress) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{24} }
+func (*FailedAddress) Descriptor() ([]byte, []int) { return fileDescriptorScangroupservicer, []int{19} }
 
 func (m *FailedAddress) GetFailedAddress() string {
 	if m != nil {
@@ -1004,7 +775,7 @@ func (m *AddAddressesResponse) Reset()         { *m = AddAddressesResponse{} }
 func (m *AddAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*AddAddressesResponse) ProtoMessage()    {}
 func (*AddAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{25}
+	return fileDescriptorScangroupservicer, []int{20}
 }
 
 func (m *AddAddressesResponse) GetOrgID() int32 {
@@ -1041,7 +812,7 @@ func (m *UpdateAddressRequest) Reset()         { *m = UpdateAddressRequest{} }
 func (m *UpdateAddressRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateAddressRequest) ProtoMessage()    {}
 func (*UpdateAddressRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{26}
+	return fileDescriptorScangroupservicer, []int{21}
 }
 
 func (m *UpdateAddressRequest) GetOrgID() int32 {
@@ -1096,7 +867,7 @@ func (m *UpdateAddressesResponse) Reset()         { *m = UpdateAddressesResponse
 func (m *UpdateAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateAddressesResponse) ProtoMessage()    {}
 func (*UpdateAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptorScangroupservicer, []int{27}
+	return fileDescriptorScangroupservicer, []int{22}
 }
 
 func (m *UpdateAddressesResponse) GetOrgID() int32 {
@@ -1127,17 +898,12 @@ func init() {
 	proto.RegisterType((*WebModuleConfig)(nil), "scangroup.WebModuleConfig")
 	proto.RegisterType((*ModuleConfiguration)(nil), "scangroup.ModuleConfiguration")
 	proto.RegisterType((*Group)(nil), "scangroup.Group")
-	proto.RegisterType((*GroupVersion)(nil), "scangroup.GroupVersion")
 	proto.RegisterType((*NewGroupRequest)(nil), "scangroup.NewGroupRequest")
 	proto.RegisterType((*GroupCreatedResponse)(nil), "scangroup.GroupCreatedResponse")
-	proto.RegisterType((*NewVersionRequest)(nil), "scangroup.NewVersionRequest")
-	proto.RegisterType((*GroupVersionRequest)(nil), "scangroup.GroupVersionRequest")
-	proto.RegisterType((*GroupVersionResponse)(nil), "scangroup.GroupVersionResponse")
-	proto.RegisterType((*VersionCreatedResponse)(nil), "scangroup.VersionCreatedResponse")
+	proto.RegisterType((*UpdateGroupRequest)(nil), "scangroup.UpdateGroupRequest")
+	proto.RegisterType((*GroupUpdatedResponse)(nil), "scangroup.GroupUpdatedResponse")
 	proto.RegisterType((*DeleteGroupRequest)(nil), "scangroup.DeleteGroupRequest")
 	proto.RegisterType((*GroupDeletedResponse)(nil), "scangroup.GroupDeletedResponse")
-	proto.RegisterType((*DeleteVersionRequest)(nil), "scangroup.DeleteVersionRequest")
-	proto.RegisterType((*VersionDeletedResponse)(nil), "scangroup.VersionDeletedResponse")
 	proto.RegisterType((*GroupRequest)(nil), "scangroup.GroupRequest")
 	proto.RegisterType((*GroupsRequest)(nil), "scangroup.GroupsRequest")
 	proto.RegisterType((*GroupResponse)(nil), "scangroup.GroupResponse")
@@ -1165,11 +931,8 @@ type ScanGroupClient interface {
 	Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error)
 	GetByName(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error)
 	Create(ctx context.Context, in *NewGroupRequest, opts ...grpc.CallOption) (*GroupCreatedResponse, error)
+	Update(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*GroupUpdatedResponse, error)
 	Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*GroupDeletedResponse, error)
-	GetVersion(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error)
-	GetVersionByName(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error)
-	CreateVersion(ctx context.Context, in *NewVersionRequest, opts ...grpc.CallOption) (*VersionCreatedResponse, error)
-	DeleteVersion(ctx context.Context, in *DeleteVersionRequest, opts ...grpc.CallOption) (*VersionDeletedResponse, error)
 	Groups(ctx context.Context, in *GroupsRequest, opts ...grpc.CallOption) (ScanGroup_GroupsClient, error)
 	Addresses(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (ScanGroup_AddressesClient, error)
 	AddAddresses(ctx context.Context, opts ...grpc.CallOption) (ScanGroup_AddAddressesClient, error)
@@ -1211,45 +974,18 @@ func (c *scanGroupClient) Create(ctx context.Context, in *NewGroupRequest, opts 
 	return out, nil
 }
 
+func (c *scanGroupClient) Update(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*GroupUpdatedResponse, error) {
+	out := new(GroupUpdatedResponse)
+	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *scanGroupClient) Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*GroupDeletedResponse, error) {
 	out := new(GroupDeletedResponse)
 	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/Delete", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *scanGroupClient) GetVersion(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error) {
-	out := new(GroupVersionResponse)
-	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/GetVersion", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *scanGroupClient) GetVersionByName(ctx context.Context, in *GroupVersionRequest, opts ...grpc.CallOption) (*GroupVersionResponse, error) {
-	out := new(GroupVersionResponse)
-	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/GetVersionByName", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *scanGroupClient) CreateVersion(ctx context.Context, in *NewVersionRequest, opts ...grpc.CallOption) (*VersionCreatedResponse, error) {
-	out := new(VersionCreatedResponse)
-	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/CreateVersion", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *scanGroupClient) DeleteVersion(ctx context.Context, in *DeleteVersionRequest, opts ...grpc.CallOption) (*VersionDeletedResponse, error) {
-	out := new(VersionDeletedResponse)
-	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/DeleteVersion", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1394,11 +1130,8 @@ type ScanGroupServer interface {
 	Get(context.Context, *GroupRequest) (*GroupResponse, error)
 	GetByName(context.Context, *GroupRequest) (*GroupResponse, error)
 	Create(context.Context, *NewGroupRequest) (*GroupCreatedResponse, error)
+	Update(context.Context, *UpdateGroupRequest) (*GroupUpdatedResponse, error)
 	Delete(context.Context, *DeleteGroupRequest) (*GroupDeletedResponse, error)
-	GetVersion(context.Context, *GroupVersionRequest) (*GroupVersionResponse, error)
-	GetVersionByName(context.Context, *GroupVersionRequest) (*GroupVersionResponse, error)
-	CreateVersion(context.Context, *NewVersionRequest) (*VersionCreatedResponse, error)
-	DeleteVersion(context.Context, *DeleteVersionRequest) (*VersionDeletedResponse, error)
 	Groups(*GroupsRequest, ScanGroup_GroupsServer) error
 	Addresses(*AddressesRequest, ScanGroup_AddressesServer) error
 	AddAddresses(ScanGroup_AddAddressesServer) error
@@ -1463,6 +1196,24 @@ func _ScanGroup_Create_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ScanGroup_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/scangroup.ScanGroup/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).Update(ctx, req.(*UpdateGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ScanGroup_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteGroupRequest)
 	if err := dec(in); err != nil {
@@ -1477,78 +1228,6 @@ func _ScanGroup_Delete_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ScanGroupServer).Delete(ctx, req.(*DeleteGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ScanGroup_GetVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GroupVersionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).GetVersion(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/scangroup.ScanGroup/GetVersion",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).GetVersion(ctx, req.(*GroupVersionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ScanGroup_GetVersionByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GroupVersionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).GetVersionByName(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/scangroup.ScanGroup/GetVersionByName",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).GetVersionByName(ctx, req.(*GroupVersionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ScanGroup_CreateVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NewVersionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).CreateVersion(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/scangroup.ScanGroup/CreateVersion",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).CreateVersion(ctx, req.(*NewVersionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ScanGroup_DeleteVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteVersionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).DeleteVersion(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/scangroup.ScanGroup/DeleteVersion",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).DeleteVersion(ctx, req.(*DeleteVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1664,24 +1343,12 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ScanGroup_Create_Handler,
 		},
 		{
+			MethodName: "Update",
+			Handler:    _ScanGroup_Update_Handler,
+		},
+		{
 			MethodName: "Delete",
 			Handler:    _ScanGroup_Delete_Handler,
-		},
-		{
-			MethodName: "GetVersion",
-			Handler:    _ScanGroup_GetVersion_Handler,
-		},
-		{
-			MethodName: "GetVersionByName",
-			Handler:    _ScanGroup_GetVersionByName_Handler,
-		},
-		{
-			MethodName: "CreateVersion",
-			Handler:    _ScanGroup_CreateVersion_Handler,
-		},
-		{
-			MethodName: "DeleteVersion",
-			Handler:    _ScanGroup_DeleteVersion_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -2001,70 +1668,11 @@ func (m *Group) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.OriginalInput)))
 		i += copy(dAtA[i:], m.OriginalInput)
 	}
-	if m.Deleted {
-		dAtA[i] = 0x38
-		i++
-		if m.Deleted {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	return i, nil
-}
-
-func (m *GroupVersion) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GroupVersion) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
-	}
-	if m.GroupID != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
-	}
-	if len(m.VersionName) > 0 {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.VersionName)))
-		i += copy(dAtA[i:], m.VersionName)
-	}
-	if m.CreationTime != 0 {
-		dAtA[i] = 0x28
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.CreationTime))
-	}
-	if m.CreatedBy != 0 {
-		dAtA[i] = 0x30
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.CreatedBy))
-	}
-	if m.Configuration != nil {
+	if m.ModuleConfiguration != nil {
 		dAtA[i] = 0x3a
 		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Configuration.Size()))
-		n9, err := m.Configuration.MarshalTo(dAtA[i:])
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.ModuleConfiguration.Size()))
+		n9, err := m.ModuleConfiguration.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
@@ -2118,16 +1726,6 @@ func (m *NewGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i += n11
 	}
-	if m.Version != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Version.Size()))
-		n12, err := m.Version.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n12
-	}
 	return i, nil
 }
 
@@ -2156,15 +1754,10 @@ func (m *GroupCreatedResponse) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
 	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
-	}
 	return i, nil
 }
 
-func (m *NewVersionRequest) Marshal() (dAtA []byte, err error) {
+func (m *UpdateGroupRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2174,7 +1767,7 @@ func (m *NewVersionRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *NewVersionRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *UpdateGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2183,70 +1776,37 @@ func (m *NewVersionRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n13, err := m.UserContext.MarshalTo(dAtA[i:])
+		n12, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n12
+	}
+	if m.Group != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Group.Size()))
+		n13, err := m.Group.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n13
 	}
-	if m.Version != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Version.Size()))
-		n14, err := m.Version.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n14
-	}
-	return i, nil
-}
-
-func (m *GroupVersionRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GroupVersionRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.UserContext != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n15, err := m.UserContext.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n15
-	}
 	if m.GroupID != 0 {
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
 	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
-	}
-	if len(m.GroupVersionName) > 0 {
+	if len(m.GroupName) > 0 {
 		dAtA[i] = 0x22
 		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.GroupVersionName)))
-		i += copy(dAtA[i:], m.GroupVersionName)
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.GroupName)))
+		i += copy(dAtA[i:], m.GroupName)
 	}
 	return i, nil
 }
 
-func (m *GroupVersionResponse) Marshal() (dAtA []byte, err error) {
+func (m *GroupUpdatedResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -2256,40 +1816,7 @@ func (m *GroupVersionResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GroupVersionResponse) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
-	}
-	if m.GroupVersion != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersion.Size()))
-		n16, err := m.GroupVersion.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n16
-	}
-	return i, nil
-}
-
-func (m *VersionCreatedResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *VersionCreatedResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *GroupUpdatedResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -2303,11 +1830,6 @@ func (m *VersionCreatedResponse) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
 	}
 	return i, nil
 }
@@ -2331,11 +1853,11 @@ func (m *DeleteGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n17, err := m.UserContext.MarshalTo(dAtA[i:])
+		n14, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n17
+		i += n14
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -2373,83 +1895,6 @@ func (m *GroupDeletedResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *DeleteVersionRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *DeleteVersionRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.UserContext != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n18, err := m.UserContext.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n18
-	}
-	if m.GroupID != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
-	}
-	if len(m.VersionName) > 0 {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.VersionName)))
-		i += copy(dAtA[i:], m.VersionName)
-	}
-	return i, nil
-}
-
-func (m *VersionDeletedResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *VersionDeletedResponse) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
-	}
-	if m.GroupID != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
-	}
-	return i, nil
-}
-
 func (m *GroupRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2469,21 +1914,16 @@ func (m *GroupRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n19, err := m.UserContext.MarshalTo(dAtA[i:])
+		n15, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n19
+		i += n15
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupVersionID))
 	}
 	if len(m.GroupName) > 0 {
 		dAtA[i] = 0x22
@@ -2513,11 +1953,11 @@ func (m *GroupsRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n20, err := m.UserContext.MarshalTo(dAtA[i:])
+		n16, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n20
+		i += n16
 	}
 	return i, nil
 }
@@ -2546,11 +1986,11 @@ func (m *GroupResponse) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Group.Size()))
-		n21, err := m.Group.MarshalTo(dAtA[i:])
+		n17, err := m.Group.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n21
+		i += n17
 	}
 	return i, nil
 }
@@ -2595,11 +2035,11 @@ func (m *Address) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Settings.Size()))
-		n22, err := m.Settings.MarshalTo(dAtA[i:])
+		n18, err := m.Settings.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n22
+		i += n18
 	}
 	if m.AddedTime != 0 {
 		dAtA[i] = 0x30
@@ -2644,11 +2084,11 @@ func (m *AddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n23, err := m.UserContext.MarshalTo(dAtA[i:])
+		n19, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n23
+		i += n19
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -2692,11 +2132,11 @@ func (m *AddressesResponse) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Addresses.Size()))
-		n24, err := m.Addresses.MarshalTo(dAtA[i:])
+		n20, err := m.Addresses.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n24
+		i += n20
 	}
 	return i, nil
 }
@@ -2720,11 +2160,11 @@ func (m *AddAddressRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n25, err := m.UserContext.MarshalTo(dAtA[i:])
+		n21, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n25
+		i += n21
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -2752,11 +2192,11 @@ func (m *AddAddressRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x32
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Settings.Size()))
-		n26, err := m.Settings.MarshalTo(dAtA[i:])
+		n22, err := m.Settings.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n26
+		i += n22
 	}
 	if m.Ignored {
 		dAtA[i] = 0x38
@@ -2881,11 +2321,11 @@ func (m *UpdateAddressRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Settings.Size()))
-		n27, err := m.Settings.MarshalTo(dAtA[i:])
+		n23, err := m.Settings.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n27
+		i += n23
 	}
 	if m.Ignored {
 		dAtA[i] = 0x30
@@ -3069,36 +2509,8 @@ func (m *Group) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
-	if m.Deleted {
-		n += 2
-	}
-	return n
-}
-
-func (m *GroupVersion) Size() (n int) {
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.OrgID))
-	}
-	if m.GroupID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
-	}
-	l = len(m.VersionName)
-	if l > 0 {
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	if m.CreationTime != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.CreationTime))
-	}
-	if m.CreatedBy != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.CreatedBy))
-	}
-	if m.Configuration != nil {
-		l = m.Configuration.Size()
+	if m.ModuleConfiguration != nil {
+		l = m.ModuleConfiguration.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
 	if m.Deleted {
@@ -3118,10 +2530,6 @@ func (m *NewGroupRequest) Size() (n int) {
 		l = m.Group.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
-	if m.Version != nil {
-		l = m.Version.Size()
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
 	return n
 }
 
@@ -3134,60 +2542,31 @@ func (m *GroupCreatedResponse) Size() (n int) {
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
 	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
-	}
 	return n
 }
 
-func (m *NewVersionRequest) Size() (n int) {
+func (m *UpdateGroupRequest) Size() (n int) {
 	var l int
 	_ = l
 	if m.UserContext != nil {
 		l = m.UserContext.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
-	if m.Version != nil {
-		l = m.Version.Size()
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	return n
-}
-
-func (m *GroupVersionRequest) Size() (n int) {
-	var l int
-	_ = l
-	if m.UserContext != nil {
-		l = m.UserContext.Size()
+	if m.Group != nil {
+		l = m.Group.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
 	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
-	}
-	l = len(m.GroupVersionName)
+	l = len(m.GroupName)
 	if l > 0 {
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
 	return n
 }
 
-func (m *GroupVersionResponse) Size() (n int) {
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.OrgID))
-	}
-	if m.GroupVersion != nil {
-		l = m.GroupVersion.Size()
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	return n
-}
-
-func (m *VersionCreatedResponse) Size() (n int) {
+func (m *GroupUpdatedResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.OrgID != 0 {
@@ -3195,9 +2574,6 @@ func (m *VersionCreatedResponse) Size() (n int) {
 	}
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
 	}
 	return n
 }
@@ -3227,41 +2603,6 @@ func (m *GroupDeletedResponse) Size() (n int) {
 	return n
 }
 
-func (m *DeleteVersionRequest) Size() (n int) {
-	var l int
-	_ = l
-	if m.UserContext != nil {
-		l = m.UserContext.Size()
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	if m.GroupID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
-	}
-	l = len(m.VersionName)
-	if l > 0 {
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	return n
-}
-
-func (m *VersionDeletedResponse) Size() (n int) {
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.OrgID))
-	}
-	if m.GroupID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
-	}
-	return n
-}
-
 func (m *GroupRequest) Size() (n int) {
 	var l int
 	_ = l
@@ -3271,9 +2612,6 @@ func (m *GroupRequest) Size() (n int) {
 	}
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	if m.GroupVersionID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupVersionID))
 	}
 	l = len(m.GroupName)
 	if l > 0 {
@@ -4402,202 +3740,8 @@ func (m *Group) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Deleted", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Deleted = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GroupVersion) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GroupVersion: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GroupVersion: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
-			}
-			m.OrgID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OrgID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
-			}
-			m.GroupID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VersionName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.VersionName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreationTime", wireType)
-			}
-			m.CreationTime = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CreationTime |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreatedBy", wireType)
-			}
-			m.CreatedBy = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CreatedBy |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Configuration", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ModuleConfiguration", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -4621,10 +3765,10 @@ func (m *GroupVersion) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Configuration == nil {
-				m.Configuration = &ModuleConfiguration{}
+			if m.ModuleConfiguration == nil {
+				m.ModuleConfiguration = &ModuleConfiguration{}
 			}
-			if err := m.Configuration.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ModuleConfiguration.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -4764,39 +3908,6 @@ func (m *NewGroupRequest) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Version == nil {
-				m.Version = &GroupVersion{}
-			}
-			if err := m.Version.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
@@ -4885,225 +3996,123 @@ func (m *GroupCreatedResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateGroupRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateGroupRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &user.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Group", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Group == nil {
+				m.Group = &Group{}
+			}
+			if err := m.Group.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *NewVersionRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: NewVersionRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: NewVersionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.UserContext == nil {
-				m.UserContext = &user.UserContext{}
-			}
-			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Version == nil {
-				m.Version = &GroupVersion{}
-			}
-			if err := m.Version.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GroupVersionRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GroupVersionRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GroupVersionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.UserContext == nil {
-				m.UserContext = &user.UserContext{}
-			}
-			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
 			}
@@ -5122,28 +4131,9 @@ func (m *GroupVersionRequest) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5168,7 +4158,7 @@ func (m *GroupVersionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.GroupVersionName = string(dAtA[iNdEx:postIndex])
+			m.GroupName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -5191,7 +4181,7 @@ func (m *GroupVersionRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GroupVersionResponse) Unmarshal(dAtA []byte) error {
+func (m *GroupUpdatedResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5214,112 +4204,10 @@ func (m *GroupVersionResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GroupVersionResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GroupUpdatedResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GroupVersionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
-			}
-			m.OrgID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OrgID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersion", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.GroupVersion == nil {
-				m.GroupVersion = &GroupVersion{}
-			}
-			if err := m.GroupVersion.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *VersionCreatedResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: VersionCreatedResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: VersionCreatedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GroupUpdatedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5356,25 +4244,6 @@ func (m *VersionCreatedResponse) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -5590,263 +4459,6 @@ func (m *GroupDeletedResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DeleteVersionRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: DeleteVersionRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeleteVersionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.UserContext == nil {
-				m.UserContext = &user.UserContext{}
-			}
-			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
-			}
-			m.GroupID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VersionName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.VersionName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *VersionDeletedResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowScangroupservicer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: VersionDeletedResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: VersionDeletedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
-			}
-			m.OrgID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OrgID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
-			}
-			m.GroupID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *GroupRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -5924,25 +4536,6 @@ func (m *GroupRequest) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupVersionID", wireType)
-			}
-			m.GroupVersionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupVersionID |= (int32(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -7518,87 +6111,76 @@ var (
 func init() { proto.RegisterFile("scangroup/scangroupservicer.proto", fileDescriptorScangroupservicer) }
 
 var fileDescriptorScangroupservicer = []byte{
-	// 1304 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x58, 0x4f, 0x6f, 0x1b, 0x45,
-	0x14, 0x67, 0xbd, 0xb1, 0x1d, 0x3f, 0xc7, 0x8d, 0x3b, 0x4d, 0xd3, 0xc5, 0x0d, 0x6e, 0x3a, 0xaa,
-	0x22, 0x8b, 0x83, 0xdd, 0x86, 0x22, 0x21, 0x8a, 0x82, 0x48, 0xdc, 0xa4, 0x41, 0x24, 0xa9, 0xc6,
-	0x2d, 0x08, 0x90, 0x90, 0x36, 0xf6, 0xe0, 0xac, 0xec, 0xec, 0x9a, 0xdd, 0x71, 0xfe, 0x7c, 0x00,
-	0xee, 0xdc, 0xca, 0x01, 0xf1, 0x01, 0x7a, 0xe5, 0x03, 0xf4, 0xca, 0x91, 0x03, 0x12, 0x57, 0x14,
-	0x3e, 0x08, 0x68, 0x67, 0xc7, 0xbb, 0x33, 0xbb, 0x76, 0x36, 0x75, 0x52, 0x7a, 0xdb, 0x79, 0xff,
-	0xe6, 0xbd, 0xdf, 0xef, 0xcd, 0xce, 0xdb, 0x85, 0xbb, 0x5e, 0xdb, 0xb4, 0xbb, 0xae, 0x33, 0x1c,
-	0x34, 0xc2, 0x27, 0x8f, 0xba, 0x47, 0x56, 0x9b, 0xba, 0xf5, 0x81, 0xeb, 0x30, 0x07, 0x15, 0x42,
-	0x45, 0xe5, 0x26, 0x97, 0xb0, 0xd3, 0x01, 0xf5, 0x1a, 0x43, 0x6f, 0x64, 0x81, 0xef, 0xc1, 0xb5,
-	0xdd, 0xd6, 0x8e, 0xd3, 0x19, 0xf6, 0xe9, 0x86, 0x63, 0x7f, 0x6f, 0x75, 0x11, 0x82, 0x99, 0x5d,
-	0xf3, 0x90, 0x1a, 0xda, 0xb2, 0x56, 0x2b, 0x10, 0xfe, 0x8c, 0x7b, 0x70, 0x7d, 0xdd, 0x1d, 0x32,
-	0x9a, 0x66, 0x88, 0x56, 0xe0, 0xda, 0xc6, 0xd0, 0x63, 0xce, 0x61, 0x6b, 0xb8, 0xef, 0x0b, 0x3c,
-	0x23, 0xb3, 0xac, 0xd7, 0x0a, 0x24, 0x26, 0x45, 0x15, 0x98, 0xdd, 0x31, 0x4f, 0x9a, 0x74, 0xc0,
-	0x0e, 0x0c, 0x7d, 0x59, 0xab, 0x65, 0x49, 0xb8, 0xc6, 0x9f, 0x40, 0xf9, 0xa9, 0xe3, 0xb2, 0xd4,
-	0xbd, 0x16, 0x20, 0xeb, 0xdb, 0x05, 0x5b, 0x64, 0x49, 0xb0, 0xc0, 0xaf, 0x34, 0x98, 0xff, 0x8a,
-	0xee, 0xa7, 0x7a, 0xd7, 0x60, 0xfe, 0x99, 0xd9, 0xa3, 0xad, 0xb6, 0x4b, 0xa9, 0xdd, 0x3a, 0x70,
-	0x78, 0x1c, 0xad, 0x36, 0x4b, 0xe2, 0x62, 0x91, 0xeb, 0x17, 0x96, 0xdd, 0xf3, 0xa4, 0x5c, 0xf9,
-	0x1a, 0x2d, 0x41, 0xe1, 0xf1, 0x09, 0x73, 0xcd, 0x36, 0xfb, 0xbc, 0x65, 0xcc, 0x70, 0xff, 0x48,
-	0x80, 0x1e, 0xc2, 0xcd, 0x4d, 0xcb, 0xee, 0x52, 0x77, 0xe0, 0x5a, 0x36, 0xdb, 0x74, 0xcd, 0x43,
-	0x7a, 0xec, 0xb8, 0x3d, 0xcf, 0xc8, 0x72, 0xcb, 0xf1, 0x4a, 0xfc, 0x2a, 0x03, 0x37, 0xe4, 0xf4,
-	0x87, 0xae, 0xc9, 0x2c, 0xc7, 0x46, 0x1f, 0xc2, 0xec, 0x6e, 0x2b, 0x10, 0xf1, 0x4a, 0x8a, 0xab,
-	0xef, 0xd6, 0x43, 0x7e, 0xeb, 0x2a, 0x8b, 0x24, 0x34, 0x45, 0x6b, 0x50, 0xe4, 0xdc, 0x09, 0xcf,
-	0x0c, 0xf7, 0x5c, 0x92, 0x3c, 0x13, 0xcc, 0x12, 0xd9, 0x01, 0x3d, 0x02, 0xf0, 0x91, 0x15, 0xee,
-	0x3a, 0x77, 0xbf, 0x2d, 0xb9, 0xc7, 0xb9, 0x22, 0x92, 0x39, 0x6a, 0x26, 0xc8, 0xe0, 0x28, 0x15,
-	0x57, 0x2b, 0x52, 0x84, 0x98, 0x05, 0x49, 0xf0, 0x57, 0x07, 0xd4, 0x34, 0xad, 0xfe, 0x69, 0xab,
-	0x6d, 0xda, 0xad, 0xf6, 0x01, 0xf5, 0x55, 0x3e, 0x88, 0x7a, 0x4d, 0x27, 0x63, 0x34, 0xf8, 0x2f,
-	0x0d, 0xb2, 0x5b, 0x7e, 0x68, 0xbf, 0x47, 0xf6, 0xdc, 0xee, 0x76, 0x93, 0x03, 0x96, 0x25, 0xc1,
-	0x02, 0x19, 0x90, 0xe7, 0xea, 0xed, 0x26, 0x87, 0x23, 0x4b, 0x46, 0x4b, 0x9f, 0x4f, 0xfe, 0xc8,
-	0xdb, 0x45, 0xe7, 0xed, 0x12, 0x09, 0x10, 0x86, 0xb9, 0x0d, 0x97, 0x72, 0x36, 0x9e, 0x59, 0x87,
-	0x94, 0x97, 0xa2, 0x13, 0x45, 0xe6, 0x47, 0xe0, 0x6b, 0xda, 0x59, 0x3f, 0xe5, 0x3c, 0x67, 0x49,
-	0x24, 0x40, 0xf7, 0xa0, 0xb4, 0xe7, 0x5a, 0x5d, 0xcb, 0x36, 0xfb, 0xdb, 0xf6, 0x60, 0xc8, 0x8c,
-	0xdc, 0xb2, 0x56, 0x9b, 0x23, 0xaa, 0xd0, 0xcf, 0xaf, 0x49, 0xfb, 0x94, 0xd1, 0x8e, 0x91, 0xe7,
-	0x9d, 0x32, 0x5a, 0xe2, 0x97, 0x19, 0x98, 0xe3, 0xf9, 0x7c, 0x49, 0x5d, 0xcf, 0x6f, 0x8a, 0xd7,
-	0x2d, 0x70, 0x05, 0xae, 0xc9, 0xfe, 0xdb, 0x4d, 0xd1, 0xd2, 0x31, 0x29, 0x5a, 0x86, 0xa2, 0x58,
-	0x70, 0x28, 0x66, 0x38, 0x14, 0xb2, 0x28, 0x01, 0x46, 0x36, 0x0d, 0x8c, 0x5c, 0x1c, 0x8c, 0x26,
-	0x94, 0x94, 0x0e, 0xe7, 0xc5, 0x16, 0x57, 0xab, 0x52, 0x6b, 0x8c, 0x39, 0x07, 0x44, 0x75, 0x92,
-	0xc1, 0x9a, 0x55, 0xc1, 0xfa, 0x45, 0x83, 0xf9, 0x5d, 0x7a, 0xcc, 0x2b, 0x23, 0xf4, 0x87, 0x21,
-	0xf5, 0x18, 0xaa, 0x43, 0xf1, 0xb9, 0x47, 0xdd, 0x0d, 0xc7, 0x66, 0xf4, 0x84, 0x89, 0x73, 0x34,
-	0x57, 0x97, 0x64, 0x44, 0x36, 0x40, 0x2b, 0xa2, 0x93, 0xc4, 0xb9, 0x29, 0x4b, 0xb9, 0x05, 0x71,
-	0x45, 0xa3, 0x3d, 0x80, 0xbc, 0x00, 0x47, 0x1c, 0x91, 0x5b, 0x71, 0x4b, 0xa1, 0x26, 0x23, 0x3b,
-	0x6c, 0xc3, 0x02, 0x57, 0x08, 0x40, 0x08, 0xf5, 0x06, 0x8e, 0xed, 0xd1, 0x37, 0x45, 0x29, 0x3e,
-	0x82, 0xeb, 0xbb, 0xf4, 0x78, 0x94, 0xc6, 0x94, 0x78, 0x48, 0x75, 0x66, 0x2e, 0x58, 0xe7, 0x6f,
-	0x1a, 0xdc, 0x50, 0x34, 0x53, 0x6e, 0x7d, 0xf9, 0xa6, 0x7e, 0x1f, 0xca, 0xb2, 0x44, 0xea, 0xec,
-	0x84, 0x1c, 0x5b, 0x82, 0x9d, 0x30, 0xe9, 0x73, 0xd9, 0x79, 0xa4, 0x1e, 0xcb, 0x34, 0x6c, 0x14,
-	0x63, 0x3c, 0x80, 0x45, 0xf1, 0xf8, 0x7f, 0xb5, 0xc2, 0x77, 0x80, 0x82, 0x43, 0x72, 0xa9, 0xb3,
-	0x31, 0x31, 0x0f, 0xbc, 0x29, 0xc0, 0x13, 0x27, 0x71, 0xda, 0x7a, 0xf0, 0x4b, 0x0d, 0x16, 0x82,
-	0x18, 0x6f, 0xbd, 0x77, 0x52, 0x5f, 0x88, 0x12, 0x8d, 0x97, 0x2c, 0xfb, 0xc2, 0x34, 0xfe, 0xaa,
-	0x89, 0xb6, 0x7b, 0x7b, 0xb0, 0x28, 0x17, 0xe6, 0x4c, 0xec, 0xc2, 0xc4, 0x9f, 0x42, 0x89, 0x2f,
-	0xbc, 0x29, 0x13, 0xc4, 0x3b, 0x22, 0x40, 0x0a, 0x94, 0x17, 0x7c, 0x4b, 0xe3, 0x7f, 0x35, 0xc8,
-	0x7f, 0xd6, 0xe9, 0xb8, 0xd4, 0xf3, 0x26, 0x44, 0x5a, 0x82, 0x82, 0x30, 0x10, 0x98, 0xe8, 0x24,
-	0x12, 0xc8, 0x78, 0xe9, 0x2a, 0x5e, 0x46, 0x18, 0x58, 0xa0, 0x10, 0xee, 0xf3, 0x31, 0xcc, 0xb6,
-	0x28, 0x63, 0x96, 0xdd, 0x0d, 0xe6, 0xbe, 0xf4, 0x0b, 0x2e, 0xb4, 0x17, 0xd9, 0xd0, 0x0e, 0xbf,
-	0x60, 0x73, 0x61, 0x36, 0x81, 0x40, 0xec, 0xc9, 0xef, 0xd6, 0x7c, 0xb8, 0x27, 0xbf, 0x59, 0x0d,
-	0xc8, 0x6f, 0x77, 0x6d, 0xc7, 0x8d, 0xee, 0x44, 0xb1, 0xc4, 0x0c, 0xca, 0x22, 0x31, 0xea, 0x5d,
-	0x7d, 0xd7, 0x2c, 0x42, 0x2e, 0xd8, 0x48, 0xcc, 0xc2, 0x62, 0x85, 0xbf, 0x85, 0xeb, 0xd2, 0xae,
-	0xe7, 0x52, 0x79, 0x3f, 0x24, 0x80, 0x7a, 0x82, 0x4e, 0x24, 0xe1, 0x25, 0x74, 0x24, 0x32, 0xc2,
-	0x3f, 0x66, 0x78, 0xf4, 0x91, 0xe6, 0xca, 0x8b, 0x52, 0x48, 0xd0, 0xcf, 0x21, 0x61, 0x26, 0x41,
-	0xc2, 0xa8, 0x25, 0xb2, 0x93, 0x5b, 0x22, 0xf7, 0x9a, 0x2d, 0x21, 0x51, 0x9b, 0x57, 0xa9, 0xdd,
-	0x81, 0xd2, 0xa6, 0x69, 0xf5, 0xe9, 0x08, 0x09, 0x7f, 0xd8, 0x54, 0x04, 0xe2, 0xfb, 0x27, 0x66,
-	0xb5, 0x08, 0x39, 0x42, 0x4d, 0x4f, 0x5c, 0x5a, 0x05, 0x22, 0x56, 0xf8, 0x27, 0x0d, 0x16, 0x22,
-	0x58, 0x53, 0x79, 0xab, 0x02, 0x6c, 0x38, 0x43, 0x9b, 0xf1, 0xea, 0x05, 0x84, 0x92, 0x04, 0xad,
-	0xc3, 0xbc, 0xb2, 0x2f, 0xf5, 0x3f, 0xa6, 0xf4, 0x5a, 0x71, 0xd5, 0x90, 0x4a, 0x57, 0x2c, 0x48,
-	0xdc, 0x01, 0xff, 0xa9, 0xc1, 0xc2, 0xf3, 0x41, 0xc7, 0x64, 0x34, 0x46, 0xf6, 0x14, 0x63, 0x7e,
-	0x74, 0xca, 0x83, 0x93, 0xac, 0x9e, 0xf2, 0x37, 0x70, 0x96, 0x25, 0xe2, 0x72, 0x2a, 0x71, 0x2f,
-	0x34, 0xb8, 0xa5, 0x94, 0x95, 0x0a, 0xb6, 0x3f, 0x7b, 0xfb, 0xd0, 0x06, 0x5e, 0x23, 0xb8, 0x15,
-	0xd9, 0x55, 0x00, 0xbe, 0xfa, 0x22, 0x0f, 0x05, 0xff, 0xd3, 0x2a, 0x98, 0x71, 0x3f, 0x02, 0x7d,
-	0x8b, 0x32, 0x94, 0x98, 0x6a, 0x04, 0x0b, 0x15, 0x23, 0xa9, 0x10, 0x55, 0xac, 0x41, 0x61, 0x8b,
-	0xb2, 0xf5, 0x53, 0xfe, 0xe1, 0x30, 0x85, 0xff, 0x63, 0xc8, 0x05, 0xa3, 0x11, 0x92, 0xbf, 0x1b,
-	0x63, 0xb3, 0x7d, 0xe5, 0x4e, 0xdc, 0x3f, 0x3e, 0x4e, 0x3d, 0x81, 0x5c, 0x70, 0x35, 0xa3, 0xf7,
-	0x24, 0xd3, 0xe4, 0x24, 0x94, 0x8c, 0x14, 0xbf, 0xd1, 0x77, 0x00, 0xb6, 0x28, 0x1b, 0x7d, 0x84,
-	0x55, 0x27, 0xcd, 0x79, 0x93, 0xc2, 0xc5, 0x87, 0xca, 0x16, 0x94, 0xa3, 0x70, 0x02, 0xa6, 0x4b,
-	0x07, 0x7d, 0x0a, 0xa5, 0x00, 0x80, 0x51, 0x9a, 0x4b, 0x2a, 0x76, 0xb1, 0x78, 0x77, 0x25, 0xed,
-	0x84, 0x71, 0xb4, 0x05, 0x25, 0x65, 0x1a, 0x43, 0x77, 0x12, 0x30, 0xa6, 0x07, 0x8d, 0x43, 0xb9,
-	0x06, 0xb9, 0x60, 0x46, 0x40, 0x09, 0xfe, 0xbd, 0xd4, 0xce, 0xb8, 0xaf, 0xa1, 0x27, 0xd2, 0x85,
-	0x81, 0x6e, 0x27, 0xaf, 0x8a, 0xf0, 0x9e, 0xab, 0x2c, 0x8d, 0x57, 0x86, 0x91, 0xf6, 0x60, 0x4e,
-	0x7e, 0xe1, 0xa1, 0x98, 0xbd, 0xfa, 0xce, 0x51, 0xf0, 0x1f, 0xf7, 0x9e, 0xac, 0x69, 0xe8, 0x6b,
-	0x28, 0x8b, 0xd3, 0x18, 0x05, 0x95, 0xdd, 0xc6, 0xbd, 0xcb, 0x2a, 0x78, 0x92, 0x81, 0x1c, 0x7a,
-	0x7d, 0xf3, 0xf7, 0xb3, 0xaa, 0xf6, 0xc7, 0x59, 0x55, 0xfb, 0xfb, 0xac, 0xaa, 0xfd, 0xfc, 0x4f,
-	0xf5, 0x9d, 0x6f, 0x1e, 0x76, 0x9d, 0x41, 0xaf, 0x5b, 0xef, 0x5b, 0x76, 0xcf, 0xb4, 0xea, 0x96,
-	0xd3, 0x38, 0x7a, 0xd0, 0x70, 0xe9, 0xc0, 0xf1, 0x1a, 0xe6, 0x61, 0x83, 0xff, 0xec, 0x6b, 0x8b,
-	0xbf, 0x83, 0x5e, 0xf4, 0xbf, 0x70, 0x3f, 0xc7, 0x35, 0x1f, 0xfc, 0x17, 0x00, 0x00, 0xff, 0xff,
-	0x93, 0x2b, 0xba, 0x55, 0x4d, 0x14, 0x00, 0x00,
+	// 1129 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x57, 0x51, 0x73, 0xdb, 0x44,
+	0x10, 0x46, 0x51, 0x24, 0xc7, 0x1b, 0xb7, 0x49, 0x8f, 0xb4, 0x15, 0x6e, 0x70, 0x83, 0xa6, 0xd3,
+	0xf1, 0x93, 0x5d, 0x42, 0x99, 0x61, 0x80, 0x09, 0x83, 0xed, 0x3a, 0x09, 0x43, 0x92, 0xce, 0xb9,
+	0x1d, 0x06, 0x98, 0x61, 0x46, 0xb1, 0x0f, 0x47, 0x63, 0x5b, 0x12, 0x77, 0xa7, 0x34, 0xf9, 0x01,
+	0xbc, 0xf3, 0x04, 0xfc, 0x00, 0x5e, 0xf8, 0x15, 0x7d, 0xe5, 0x91, 0x07, 0x7e, 0x00, 0x13, 0x7e,
+	0x08, 0x8c, 0x4e, 0x67, 0xe9, 0x24, 0x39, 0x31, 0x35, 0x0d, 0x6f, 0xba, 0xbd, 0xdd, 0xbd, 0xdd,
+	0xef, 0xdb, 0xdb, 0x5b, 0xc1, 0x3b, 0xac, 0xef, 0x78, 0x43, 0xea, 0x87, 0x41, 0x33, 0xf9, 0x62,
+	0x84, 0x9e, 0xba, 0x7d, 0x42, 0x1b, 0x01, 0xf5, 0xb9, 0x8f, 0xca, 0xc9, 0x46, 0xf5, 0xb6, 0x90,
+	0xf0, 0xf3, 0x80, 0xb0, 0x66, 0xc8, 0xa6, 0x1a, 0xf6, 0x03, 0xb8, 0x79, 0xd8, 0x3b, 0xf0, 0x07,
+	0xe1, 0x98, 0xb4, 0x7d, 0xef, 0x5b, 0x77, 0x88, 0x10, 0x2c, 0x1f, 0x3a, 0x13, 0x62, 0x69, 0x5b,
+	0x5a, 0xbd, 0x8c, 0xc5, 0xb7, 0x3d, 0x82, 0x5b, 0x2d, 0x1a, 0x72, 0x32, 0x4f, 0x11, 0x3d, 0x84,
+	0x9b, 0xed, 0x90, 0x71, 0x7f, 0xd2, 0x0b, 0x8f, 0x23, 0x01, 0xb3, 0x96, 0xb6, 0xf4, 0x7a, 0x19,
+	0xe7, 0xa4, 0xa8, 0x0a, 0x2b, 0x07, 0xce, 0x59, 0x87, 0x04, 0xfc, 0xc4, 0xd2, 0xb7, 0xb4, 0xba,
+	0x81, 0x93, 0xb5, 0xfd, 0x31, 0xac, 0x3f, 0xf5, 0x29, 0x9f, 0x7b, 0xd6, 0x06, 0x18, 0x91, 0x5e,
+	0x7c, 0x84, 0x81, 0xe3, 0x85, 0xfd, 0x52, 0x83, 0xb5, 0x2f, 0xc8, 0xf1, 0x5c, 0xeb, 0x3a, 0xac,
+	0x3d, 0x73, 0x46, 0xa4, 0xd7, 0xa7, 0x84, 0x78, 0xbd, 0x13, 0x5f, 0xf8, 0xd1, 0xea, 0x2b, 0x38,
+	0x2f, 0x96, 0xb1, 0x7e, 0xee, 0x7a, 0x23, 0xa6, 0xc4, 0x2a, 0xd6, 0x68, 0x13, 0xca, 0x4f, 0xce,
+	0x38, 0x75, 0xfa, 0xfc, 0xb3, 0x9e, 0xb5, 0x2c, 0xec, 0x53, 0x01, 0x7a, 0x0c, 0xb7, 0xbb, 0xae,
+	0x37, 0x24, 0x34, 0xa0, 0xae, 0xc7, 0xbb, 0xd4, 0x99, 0x90, 0x17, 0x3e, 0x1d, 0x31, 0xcb, 0x10,
+	0x9a, 0xb3, 0x37, 0xed, 0x97, 0x4b, 0xf0, 0xa6, 0x1a, 0x7e, 0x48, 0x1d, 0xee, 0xfa, 0x1e, 0x7a,
+	0x1f, 0x56, 0x0e, 0x7b, 0xb1, 0x48, 0x64, 0xb2, 0xba, 0xfd, 0x56, 0x23, 0xe1, 0xb7, 0x91, 0x65,
+	0x11, 0x27, 0xaa, 0x68, 0x07, 0x56, 0x05, 0x77, 0xd2, 0x72, 0x49, 0x58, 0x6e, 0x2a, 0x96, 0x05,
+	0x66, 0xb1, 0x6a, 0x80, 0x3e, 0x02, 0x88, 0x90, 0x95, 0xe6, 0xba, 0x30, 0xbf, 0xa7, 0x98, 0xe7,
+	0xb9, 0xc2, 0x8a, 0x3a, 0xea, 0x14, 0xc8, 0x10, 0x28, 0xad, 0x6e, 0x57, 0x15, 0x0f, 0x39, 0x0d,
+	0x5c, 0xe0, 0xaf, 0x01, 0xa8, 0xe3, 0xb8, 0xe3, 0xf3, 0x5e, 0xdf, 0xf1, 0x7a, 0xfd, 0x13, 0x12,
+	0x6d, 0x45, 0x20, 0xea, 0x75, 0x1d, 0xcf, 0xd8, 0xb1, 0x7f, 0x5d, 0x02, 0x63, 0x37, 0x72, 0x1d,
+	0xd5, 0xc8, 0x11, 0x1d, 0xee, 0x77, 0x04, 0x60, 0x06, 0x8e, 0x17, 0xc8, 0x82, 0x92, 0xd8, 0xde,
+	0xef, 0x08, 0x38, 0x0c, 0x3c, 0x5d, 0x46, 0x7c, 0x8a, 0x4f, 0x51, 0x2e, 0xba, 0x28, 0x97, 0x54,
+	0x80, 0x6c, 0xa8, 0xb4, 0x29, 0x11, 0x6c, 0x3c, 0x73, 0x27, 0x44, 0xa4, 0xa2, 0xe3, 0x8c, 0x2c,
+	0xf2, 0x20, 0xd6, 0x64, 0xd0, 0x3a, 0x17, 0x3c, 0x1b, 0x38, 0x15, 0xa0, 0x07, 0x70, 0xe3, 0x88,
+	0xba, 0x43, 0xd7, 0x73, 0xc6, 0xfb, 0x5e, 0x10, 0x72, 0xcb, 0xdc, 0xd2, 0xea, 0x15, 0x9c, 0x15,
+	0xa2, 0xa7, 0x33, 0x0b, 0xc0, 0x2a, 0x09, 0xe4, 0x6a, 0x0a, 0x72, 0x33, 0xb4, 0xf0, 0xcc, 0xda,
+	0xb1, 0xa0, 0xd4, 0x21, 0x63, 0xc2, 0xc9, 0xc0, 0x5a, 0x11, 0xb5, 0x37, 0x5d, 0xda, 0x2e, 0xac,
+	0x1d, 0x92, 0x17, 0x22, 0x47, 0x4c, 0xbe, 0x0b, 0x09, 0xe3, 0xa8, 0x01, 0xab, 0xcf, 0x19, 0xa1,
+	0x6d, 0xdf, 0xe3, 0xe4, 0x8c, 0xcb, 0x5a, 0xab, 0x34, 0x14, 0x19, 0x56, 0x15, 0xd0, 0x43, 0x89,
+	0xb6, 0xac, 0xad, 0x75, 0x25, 0xc0, 0xd8, 0x6f, 0xbc, 0x6d, 0x77, 0x61, 0x43, 0x7c, 0x48, 0x38,
+	0x30, 0x61, 0x81, 0xef, 0x31, 0xf2, 0xaa, 0x24, 0xd9, 0xbf, 0x68, 0x80, 0x9e, 0x07, 0x03, 0x87,
+	0x93, 0xff, 0x23, 0x6c, 0x35, 0x10, 0xfd, 0x8a, 0x6a, 0x59, 0xce, 0x55, 0x4b, 0x92, 0x6e, 0x1c,
+	0xea, 0xe2, 0xe9, 0x7e, 0x03, 0x28, 0x26, 0xeb, 0x3f, 0x65, 0x7b, 0xb9, 0xff, 0x69, 0x9c, 0xb2,
+	0x22, 0x16, 0x8e, 0xf3, 0x14, 0x2a, 0xd7, 0x13, 0xe1, 0x1c, 0x9c, 0x3f, 0x81, 0x1b, 0x62, 0xc1,
+	0x16, 0x3c, 0xd8, 0x3e, 0x90, 0x0e, 0xe6, 0x64, 0xfe, 0x6f, 0xcb, 0xfc, 0x6f, 0x0d, 0x4a, 0x9f,
+	0x0e, 0x06, 0x94, 0x30, 0x76, 0x89, 0xa7, 0x4d, 0x28, 0x4b, 0x05, 0x99, 0xab, 0x8e, 0x53, 0xc1,
+	0x15, 0xf5, 0x66, 0x25, 0x8e, 0x25, 0x0a, 0xc9, 0x39, 0x1f, 0xc2, 0x4a, 0x8f, 0x70, 0xee, 0x7a,
+	0xc3, 0xf8, 0x71, 0x99, 0xdf, 0x26, 0x12, 0x7d, 0x19, 0x0d, 0x19, 0x88, 0x96, 0x66, 0x26, 0xd1,
+	0xc4, 0x02, 0x79, 0xa6, 0xe8, 0x66, 0xa5, 0xe4, 0x4c, 0xd1, 0xcb, 0x2c, 0x28, 0xed, 0x0f, 0x3d,
+	0x9f, 0xa6, 0x3d, 0x45, 0x2e, 0x6d, 0x0e, 0xeb, 0x32, 0x30, 0xc2, 0x5e, 0x7f, 0x35, 0xdc, 0x01,
+	0x33, 0x3e, 0x48, 0x3e, 0xb8, 0x72, 0x65, 0x7f, 0x0d, 0xb7, 0x94, 0x53, 0xaf, 0xa4, 0xf2, 0x51,
+	0x42, 0x00, 0x61, 0x92, 0x4e, 0xa4, 0xe0, 0x25, 0xf7, 0x70, 0xaa, 0x64, 0x7f, 0xbf, 0x24, 0xbc,
+	0x4f, 0x77, 0xae, 0xa3, 0xc4, 0x53, 0x12, 0xf4, 0x2b, 0x48, 0x58, 0x2e, 0x90, 0x30, 0x2d, 0x09,
+	0xe3, 0xf2, 0x92, 0x30, 0x5f, 0xb1, 0x24, 0x14, 0x6a, 0x4b, 0x59, 0x6a, 0x0f, 0xe0, 0x46, 0xd7,
+	0x71, 0xc7, 0x64, 0x8a, 0x44, 0xf4, 0xa2, 0x65, 0x04, 0x72, 0xc8, 0xca, 0x69, 0xdd, 0x01, 0x13,
+	0x13, 0x87, 0xf9, 0x9e, 0xc8, 0xbb, 0x8c, 0xe5, 0xca, 0xfe, 0x41, 0x83, 0x8d, 0x14, 0xd6, 0xb9,
+	0xbc, 0xd5, 0x00, 0xda, 0x7e, 0xe8, 0x71, 0x91, 0xbd, 0x84, 0x50, 0x91, 0xa0, 0x16, 0xac, 0x65,
+	0xce, 0x25, 0xd1, 0xc4, 0xa6, 0xd7, 0x57, 0xb7, 0x2d, 0x25, 0xf5, 0x8c, 0x06, 0xce, 0x1b, 0xd8,
+	0x7f, 0x68, 0xb0, 0x11, 0xb7, 0xec, 0x1c, 0xd9, 0x0b, 0xcc, 0x12, 0xe9, 0x2d, 0x8f, 0x6f, 0x72,
+	0xf6, 0x96, 0x5f, 0xc3, 0x5d, 0x56, 0x88, 0x33, 0xb3, 0xc4, 0xfd, 0xa4, 0xc1, 0xdd, 0x4c, 0x5a,
+	0x73, 0xc1, 0x8e, 0xa6, 0x9d, 0x08, 0x5a, 0xf9, 0x7e, 0xc9, 0xf4, 0x32, 0xb2, 0xd7, 0x01, 0xf8,
+	0xf6, 0x8f, 0x06, 0x94, 0xa3, 0xf9, 0x2d, 0x7e, 0x6d, 0x3f, 0x00, 0x7d, 0x97, 0x70, 0x74, 0xb7,
+	0xd0, 0x5d, 0x63, 0x16, 0xaa, 0x56, 0x71, 0x43, 0x66, 0xb1, 0x03, 0xe5, 0x5d, 0xc2, 0x5b, 0xe7,
+	0x62, 0x54, 0x5b, 0xc0, 0xfe, 0x09, 0x98, 0xf1, 0x64, 0x82, 0xd4, 0xe1, 0x34, 0x37, 0x1c, 0x55,
+	0xef, 0xe7, 0xed, 0xf3, 0xd3, 0xcc, 0x1e, 0x98, 0x31, 0x3a, 0xe8, 0x6d, 0x45, 0xb5, 0x38, 0xaf,
+	0x14, 0x3d, 0xe5, 0x07, 0x85, 0x3d, 0x30, 0xe3, 0x37, 0x39, 0xe3, 0xa9, 0x38, 0x0b, 0x14, 0x3d,
+	0xe5, 0x9f, 0xf2, 0x1d, 0x30, 0xe3, 0x27, 0x12, 0x15, 0xd2, 0x67, 0x73, 0x81, 0x79, 0xa4, 0xa1,
+	0x3d, 0xa5, 0x5f, 0xa2, 0x7b, 0xc5, 0x4e, 0x99, 0xb4, 0xf9, 0xea, 0xe6, 0xec, 0xcd, 0xc4, 0xd3,
+	0x11, 0x54, 0xd4, 0xfb, 0x8e, 0x72, 0xfa, 0xd9, 0x2b, 0x97, 0x49, 0x6c, 0x56, 0x9b, 0xa8, 0x6b,
+	0xe8, 0x4b, 0x58, 0x97, 0xb8, 0xa5, 0x4e, 0xef, 0x17, 0x80, 0xcf, 0xf9, 0xb5, 0x2f, 0x53, 0x50,
+	0x5d, 0xb7, 0xba, 0xbf, 0x5d, 0xd4, 0xb4, 0xdf, 0x2f, 0x6a, 0xda, 0x9f, 0x17, 0x35, 0xed, 0xe7,
+	0xbf, 0x6a, 0x6f, 0x7c, 0xf5, 0x78, 0xe8, 0x07, 0xa3, 0x61, 0x63, 0xec, 0x7a, 0x23, 0xc7, 0x6d,
+	0xb8, 0x7e, 0xf3, 0xf4, 0xdd, 0x26, 0x25, 0x81, 0xcf, 0x9a, 0xce, 0xa4, 0x29, 0x7e, 0xa8, 0xfb,
+	0xf2, 0x0f, 0x9c, 0xa5, 0xff, 0xe4, 0xc7, 0xa6, 0xd8, 0x79, 0xef, 0x9f, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x49, 0xd3, 0x66, 0xc9, 0xb1, 0x0f, 0x00, 0x00,
 }

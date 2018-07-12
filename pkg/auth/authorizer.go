@@ -6,6 +6,6 @@ import "gopkg.linkai.io/v1/repos/am/am"
 // note it does not determine authorization of organization data, that is done at the datastore access level.
 type Authorizer interface {
 	IsAllowed(subject, resource, action string) error
-	IsUserAllowed(orgID, userID int32, resource, action string) error
-	GetRoles(orgID, userID int32) ([]*am.Role, error)
+	IsUserAllowed(orgID, userID int, resource, action string) error
+	GetRoles(orgID, userID int) ([]*am.Role, error)
 }

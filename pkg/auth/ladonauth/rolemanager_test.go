@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/authtest"
+	"gopkg.linkai.io/v1/repos/am/amtest"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
 )
 
 func TestNew(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	//testCreateOrg(db, "role_test", t)
 	manager := ladonauth.NewRoleManager(db, "pgx")
 	//defer testDeleteOrg(db, "role_test", t)
@@ -19,17 +19,17 @@ func TestNew(t *testing.T) {
 }
 
 func TestRole(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 
-	authtest.CreateOrg(db, "create_test1", t)
-	defer authtest.DeleteOrg(db, "create_test1", t)
+	amtest.CreateOrg(db, "create_test1", t)
+	defer amtest.DeleteOrg(db, "create_test1", t)
 
-	orgID1 := authtest.GetOrgID(db, "create_test1", t)
+	orgID1 := amtest.GetOrgID(db, "create_test1", t)
 
-	authtest.CreateOrg(db, "create_test2", t)
-	defer authtest.DeleteOrg(db, "create_test2", t)
+	amtest.CreateOrg(db, "create_test2", t)
+	defer amtest.DeleteOrg(db, "create_test2", t)
 
-	orgID2 := authtest.GetOrgID(db, "create_test2", t)
+	orgID2 := amtest.GetOrgID(db, "create_test2", t)
 
 	manager := ladonauth.NewRoleManager(db, "pgx")
 
@@ -128,17 +128,17 @@ func TestMembers(t *testing.T) {
 	member1 := "members_test1"
 	member2 := "members_test2"
 
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 
-	authtest.CreateOrg(db, member1, t)
-	defer authtest.DeleteOrg(db, member1, t)
+	amtest.CreateOrg(db, member1, t)
+	defer amtest.DeleteOrg(db, member1, t)
 
-	orgID1 := authtest.GetOrgID(db, member1, t)
+	orgID1 := amtest.GetOrgID(db, member1, t)
 
-	authtest.CreateOrg(db, member2, t)
-	defer authtest.DeleteOrg(db, member2, t)
+	amtest.CreateOrg(db, member2, t)
+	defer amtest.DeleteOrg(db, member2, t)
 
-	orgID2 := authtest.GetOrgID(db, member2, t)
+	orgID2 := amtest.GetOrgID(db, member2, t)
 
 	manager := ladonauth.NewRoleManager(db, "pgx")
 
@@ -146,8 +146,8 @@ func TestMembers(t *testing.T) {
 		t.Fatalf("error init manager: %s\n", err)
 	}
 
-	userID1 := authtest.GetUserId(db, orgID1, member1, t)
-	userID2 := authtest.GetUserId(db, orgID2, member2, t)
+	userID1 := amtest.GetUserId(db, orgID1, member1, t)
+	userID2 := amtest.GetUserId(db, orgID2, member2, t)
 	if userID1 == 0 || userID2 == 0 {
 		t.Fatalf("userID's were not retrieved successfully: %d %d\n", userID1, userID2)
 	}
@@ -157,8 +157,8 @@ func TestMembers(t *testing.T) {
 		t.Fatalf("FindByMembers did not return error where the member had no roles assigned")
 	}
 
-	expected1 := &am.Role{OrgID: orgID1, Members: []int32{userID1}, RoleName: am.AdminRole}
-	expected2 := &am.Role{OrgID: orgID2, Members: []int32{userID2}, RoleName: am.AdminRole}
+	expected1 := &am.Role{OrgID: orgID1, Members: []int{userID1}, RoleName: am.AdminRole}
+	expected2 := &am.Role{OrgID: orgID2, Members: []int{userID2}, RoleName: am.AdminRole}
 
 	roleID1, err := manager.CreateRole(expected1)
 	if err != nil {
@@ -232,17 +232,17 @@ func TestGetByName(t *testing.T) {
 	name1 := "byname_test1"
 	name2 := "byname_test2"
 
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 
-	authtest.CreateOrg(db, name1, t)
-	defer authtest.DeleteOrg(db, name1, t)
+	amtest.CreateOrg(db, name1, t)
+	defer amtest.DeleteOrg(db, name1, t)
 
-	orgID1 := authtest.GetOrgID(db, name1, t)
+	orgID1 := amtest.GetOrgID(db, name1, t)
 
-	authtest.CreateOrg(db, name2, t)
-	defer authtest.DeleteOrg(db, name2, t)
+	amtest.CreateOrg(db, name2, t)
+	defer amtest.DeleteOrg(db, name2, t)
 
-	orgID2 := authtest.GetOrgID(db, name2, t)
+	orgID2 := amtest.GetOrgID(db, name2, t)
 
 	manager := ladonauth.NewRoleManager(db, "pgx")
 
@@ -250,14 +250,14 @@ func TestGetByName(t *testing.T) {
 		t.Fatalf("error init manager: %s\n", err)
 	}
 
-	userID1 := authtest.GetUserId(db, orgID1, name1, t)
-	userID2 := authtest.GetUserId(db, orgID2, name2, t)
+	userID1 := amtest.GetUserId(db, orgID1, name1, t)
+	userID2 := amtest.GetUserId(db, orgID2, name2, t)
 	if userID1 == 0 || userID2 == 0 {
 		t.Fatalf("userID's were not retrieved successfully: %d %d\n", userID1, userID2)
 	}
 
-	expected1 := &am.Role{OrgID: orgID1, Members: []int32{userID1}, RoleName: am.AdminRole}
-	expected2 := &am.Role{OrgID: orgID2, Members: []int32{userID2}, RoleName: am.AdminRole}
+	expected1 := &am.Role{OrgID: orgID1, Members: []int{userID1}, RoleName: am.AdminRole}
+	expected2 := &am.Role{OrgID: orgID2, Members: []int{userID2}, RoleName: am.AdminRole}
 
 	roleID1, err := manager.CreateRole(expected1)
 	if err != nil {

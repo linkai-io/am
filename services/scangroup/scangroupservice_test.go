@@ -2,6 +2,7 @@ package scangroup_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -32,13 +33,12 @@ func TestCreate(t *testing.T) {
 
 	orgName := "sgcreate"
 	groupName := "sgcreategroup"
-	versionName := "sgcreateversion"
 
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
 	}
-	auth.IsUserAllowedFn = func(orgID, userID int32, resource, action string) error {
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
 		return nil
 	}
 	service := scangroup.New(auth)
@@ -58,9 +58,9 @@ func TestCreate(t *testing.T) {
 	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
 
 	userContext := testUserContext(orgID, ownerUserID)
-	group, version := testCreateNewGroup(orgID, ownerUserID, groupName, versionName)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
 
-	oid, gid, gvid, err := service.Create(ctx, userContext, group, version)
+	oid, gid, err := service.Create(ctx, userContext, group)
 	if err != nil {
 		t.Fatalf("error creating group: %s\n", err)
 	}
@@ -69,41 +69,16 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("error orgID did not match expected: %d got: %d\n", orgID, oid)
 	}
 
-	if gid == 0 || gvid == 0 {
-		t.Fatalf("groupid/gvid returned was 0, gid:%d gvid:%d\n", gid, gvid)
+	if gid == 0 {
+		t.Fatalf("groupid returned was 0, gid:%d\n", gid)
 	}
 
-	goid, gversion, err := service.GetVersionByName(ctx, userContext, gid, versionName)
-	if err != nil {
-		t.Fatalf("error getting version by name: %s\n", err)
+	// test create same group/version returns error
+	if _, _, err = service.Create(ctx, userContext, group); err == nil {
+		t.Fatalf("did not get error recreating same group")
 	}
-
-	if orgID != goid {
-		t.Fatalf("orgid does not match get version orgID: expected: %d got %d\n", orgID, goid)
-	}
-
-	if versionName != gversion.VersionName {
-		t.Fatalf("version name does not match: expected %s got %s\n", versionName, gversion.VersionName)
-	}
-
-	if gvid != gversion.GroupVersionID {
-		t.Fatalf("group version id returned incorrect expected: %d got: %d\n", gvid, gversion.GroupVersionID)
-	}
-
-	t.Logf("ORGID: %d GROUPID: %d GROUPVERSIONID: %d\n", orgID, gid, gvid)
 
 	doid, dgid, err := service.Delete(ctx, userContext, gid)
-	if err == nil {
-		t.Fatalf("did not get error deleting a scangroup that was referenced from a version\n")
-	}
-
-	t.Logf("version id: %d\n", gversion.GroupVersionID)
-
-	if _, _, _, err = service.DeleteVersion(ctx, userContext, gversion.GroupID, gversion.GroupVersionID, gversion.VersionName); err != nil {
-		t.Fatalf("error deleting version: %s\n", err)
-	}
-
-	doid, dgid, err = service.Delete(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error deleting scan group: %s\n", err)
 	}
@@ -115,39 +90,194 @@ func TestCreate(t *testing.T) {
 	if gid != dgid {
 		t.Fatalf("deleted group id did not match: expected: %d got: %d\n", gid, dgid)
 	}
+
+	if _, gid, err = service.Create(ctx, userContext, group); err != nil {
+		t.Fatalf("error re-creating same group after delete: %s\n", err)
+	}
+
+	_, returned, err := service.Get(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting group: %s\n", err)
+	}
+
+	_, returnedName, err := service.GetByName(ctx, userContext, returned.GroupName)
+	if err != nil {
+		t.Fatalf("error getting group by name: %s\n", err)
+	}
+
+	testCompareGroups(returned, returnedName, t)
+
+	// test update
+	t.Logf("%#v\n", returned)
+	returned.ModifiedTime = time.Now().UnixNano()
+	returned.GroupName = "modified group"
+	returned.ModuleConfigurations = &am.ModuleConfiguration{NSModule: &am.NSModuleConfig{Name: "NS"}}
+	t.Logf("%#v\n", returned)
+
+	_, ugid, err := service.Update(ctx, userContext, returned)
+	if err != nil {
+		t.Fatalf("error updating returned group: %s\n", err)
+	}
+
+	if gid != ugid {
+		t.Fatalf("error groupid changed expected %d got %d\n", gid, ugid)
+	}
+
+	// test we can't access by old name
+	if _, _, err = service.GetByName(ctx, userContext, returnedName.GroupName); err == nil {
+		t.Fatalf("should have got error getting group by old name: %s\n", returnedName.GroupName)
+	}
+
+	_, mod, err := service.GetByName(ctx, userContext, "modified group")
+	if err != nil {
+		t.Fatalf("error getting modified group by name: %s\n", err)
+	}
+
+	if returnedName.ModifiedTime == mod.ModifiedTime {
+		t.Fatalf("modified time was not updated, expected %d got %d\n", mod.ModifiedTime, returned.ModifiedTime)
+	}
+
+	if mod.ModuleConfigurations == nil || mod.ModuleConfigurations.NSModule == nil || mod.ModuleConfigurations.NSModule.Name != "NS" {
+		t.Fatalf("module configurations was not returned properly: %#v\n", mod.ModuleConfigurations)
+	}
 }
 
-func testForceCleanUp(db *pgx.ConnPool, orgID int32, orgName string, t *testing.T) {
-	db.Exec("delete from am.scan_group_versions where organization_id=$1", orgID)
+func TestGetGroups(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "sggetgroups"
+	groupName := "sggetgroupsgroup"
+	count := 10
+
+	auth := &mock.Authorizer{}
+	auth.IsAllowedFn = func(subject, resource, action string) error {
+		return nil
+	}
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
+		return nil
+	}
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+	userContext := testUserContext(orgID, ownerUserID)
+
+	GIDs := make([]int, count)
+
+	for i := 0; i < count; i++ {
+		groupName = fmt.Sprintf("%s%d", groupName, i)
+
+		group := testCreateNewGroup(orgID, ownerUserID, groupName)
+		oid, gid, err := service.Create(ctx, userContext, group)
+		if err != nil {
+			t.Fatalf("error creating new group for %d: %s\n", i, err)
+		}
+		if orgID != oid {
+			t.Fatalf("error mismatched orgID: expected %d got %d\n", orgID, oid)
+		}
+
+		GIDs[i] = int(gid)
+	}
+
+	_, groups, err := service.Groups(ctx, userContext)
+	if err != nil {
+		t.Fatalf("error getting groups: %s\n", err)
+	}
+
+	groupGIDs := make([]int, count)
+	for i, group := range groups {
+		groupGIDs[i] = int(group.GroupID)
+	}
+	amtest.SortEqualInt(GIDs, groupGIDs, t)
+
+	for i := 0; i < count; i++ {
+		if _, _, err := service.Get(ctx, userContext, int(GIDs[i])); err != nil {
+			t.Fatalf("error getting group %d: %s\n", GIDs[i], err)
+		}
+	}
+
+	// test getting invalid group id returns error
+	if _, _, err := service.Get(ctx, userContext, -1); err == nil {
+		t.Fatalf("expected error getting invalid group id\n")
+	} else {
+		if err != scangroup.ErrScanGroupNotExists {
+			t.Fatalf("expected errscangroupnotexists got: %s\n", err)
+		}
+	}
+}
+
+func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {
+	if group1.CreatedBy != group2.CreatedBy {
+		t.Fatalf("created by was different, %d and %d\n", group1.CreatedBy, group2.CreatedBy)
+	}
+
+	if group1.ModifiedBy != group2.ModifiedBy {
+		t.Fatalf("modified by was different, %d and %d\n", group1.ModifiedBy, group2.ModifiedBy)
+	}
+
+	if group1.CreationTime != group2.CreationTime {
+		t.Fatalf("creation time by was different, %d and %d\n", group1.CreationTime, group2.CreationTime)
+	}
+
+	if group1.ModifiedTime != group2.ModifiedTime {
+		t.Fatalf("ModifiedTime by was different, %d and %d\n", group1.CreationTime, group2.CreationTime)
+	}
+
+	if group1.GroupID != group2.GroupID {
+		t.Fatalf("GroupID by was different, %d and %d\n", group1.GroupID, group2.GroupID)
+	}
+
+	if group1.OrgID != group2.OrgID {
+		t.Fatalf("OrgID by was different, %d and %d\n", group1.OrgID, group2.OrgID)
+	}
+
+	if group1.GroupName != group2.GroupName {
+		t.Fatalf("GroupName by was different, %s and %s\n", group1.GroupName, group2.GroupName)
+	}
+
+	if string(group1.OriginalInput) != string(group2.OriginalInput) {
+		t.Fatalf("OriginalInput by was different, %s and %s\n", string(group1.OriginalInput), string(group2.OriginalInput))
+	}
+}
+
+func testForceCleanUp(db *pgx.ConnPool, orgID int, orgName string, t *testing.T) {
 	db.Exec("delete from am.scan_group where organization_id=$1", orgID)
 	amtest.DeleteOrg(db, orgName, t)
 }
 
-func testCreateNewGroup(orgID, userID int32, groupName, versionName string) (*am.ScanGroup, *am.ScanGroupVersion) {
+func testCreateNewGroup(orgID, userID int, groupName string) *am.ScanGroup {
+	now := time.Now().UnixNano()
 	group := &am.ScanGroup{
-		OrgID:         orgID,
-		GroupName:     groupName,
-		CreationTime:  time.Now().UnixNano(),
-		CreatedBy:     userID,
-		OriginalInput: []byte("192.168.0.1"),
-	}
-	version := &am.ScanGroupVersion{
 		OrgID:                orgID,
-		VersionName:          versionName,
-		CreationTime:         time.Now().UnixNano(),
+		GroupName:            groupName,
+		CreationTime:         now,
 		CreatedBy:            userID,
+		ModifiedTime:         now,
+		ModifiedBy:           userID,
 		ModuleConfigurations: &am.ModuleConfiguration{},
+		OriginalInput:        []byte("192.168.0.1"),
 	}
-	return group, version
+
+	return group
 }
 
-func testUserContext(orgID, userID int32) *mock.UserContext {
+func testUserContext(orgID, userID int) *mock.UserContext {
 	userContext := &mock.UserContext{}
-	userContext.GetOrgIDFn = func() int32 {
+	userContext.GetOrgIDFn = func() int {
 		return orgID
 	}
 
-	userContext.GetUserIDFn = func() int32 {
+	userContext.GetUserIDFn = func() int {
 		return userID
 	}
 

@@ -11,7 +11,7 @@ type Policy struct {
 
 // PolicyService is for managing policies that can be applied to roles
 type PolicyService interface {
-	AddPolicy(ctx context.Context, orgID, requesterUserID int32, policy Policy) error    // creates a new policy
-	UpdatePolicy(ctx context.Context, orgID, requesterUserID int32, policy Policy) error // updates a policy
-	NewOrgPolicies(ctx context.Context, orgID int32) error                               // creates the initial set of policies for different groups
+	AddPolicy(ctx context.Context, orgID, requesterUserID int, policy Policy) error    // creates a new policy
+	UpdatePolicy(ctx context.Context, orgID, requesterUserID int, policy Policy) error // updates a policy
+	NewOrgPolicies(ctx context.Context, orgID int) error                               // creates the initial set of policies for different groups
 }

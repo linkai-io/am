@@ -11,8 +11,8 @@ const (
 
 // Role represents roles to have policies applied to them
 type Role struct {
-	OrgID    int32   `json:"org_id"`    // Organization ID
-	RoleName string  `json:"role_name"` // Friendly name of the role
-	ID       string  `json:"role_id"`   // ID is the role's unique id.
-	Members  []int32 `json:"member_id"` // Members who belong to the role.
+	OrgID    int    `json:"org_id"`    // Organization ID
+	RoleName string `json:"role_name"` // Friendly name of the role
+	ID       string `json:"role_id"`   // ID is the role's unique id.
+	Members  []int  `json:"member_id"` // Members who belong to the role.
 }

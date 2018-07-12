@@ -4,10 +4,10 @@ type UserContext struct {
 	GetTraceIDFn        func() string
 	GetTradeIDFnInvoked bool
 
-	GetOrgIDFn        func() int32
+	GetOrgIDFn        func() int
 	GetOrgIDFnInvoked bool
 
-	GetUserIDFn        func() int32
+	GetUserIDFn        func() int
 	GetUserIDFnInvoked bool
 
 	GetRolesFn        func() []string
@@ -22,12 +22,12 @@ func (u *UserContext) GetTraceID() string {
 	return u.GetTraceIDFn()
 }
 
-func (u *UserContext) GetOrgID() int32 {
+func (u *UserContext) GetOrgID() int {
 	u.GetOrgIDFnInvoked = true
 	return u.GetOrgIDFn()
 }
 
-func (u *UserContext) GetUserID() int32 {
+func (u *UserContext) GetUserID() int {
 	u.GetUserIDFnInvoked = true
 	return u.GetUserIDFn()
 }

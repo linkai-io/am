@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"gopkg.linkai.io/v1/repos/am/am"
+	"gopkg.linkai.io/v1/repos/am/amtest"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/auth"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/authtest"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
 )
 
 func TestNewLadonAuthorizer(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	sqlManager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := sqlManager.Init(); err != nil {
 		t.Fatalf("error initializing sql manager: %s\n", err)
@@ -22,7 +21,7 @@ func TestNewLadonAuthorizer(t *testing.T) {
 		t.Fatalf("error initialzing role manager: %s\n", err)
 	}
 
-	authorizer := auth.NewLadonAuthorizer(sqlManager, roleManager)
+	authorizer := ladonauth.NewLadonAuthorizer(sqlManager, roleManager)
 
 	if err := authorizer.IsAllowed(am.EditorRole, am.RNScanGroupGroups, "create"); err == nil {
 		t.Fatalf("editor role should not be allowed to create groups")

@@ -2,7 +2,7 @@ package am
 
 // Organization represents an organization that has subscriped to our service
 type Organization struct {
-	OrgID           int32  `json:"org_id"`
+	OrgID           int    `json:"org_id"`
 	OrgName         string `json:"org_name"`
 	OwnerEmail      string `json:"owner_email"`
 	FirstName       string `json:"first_name"`

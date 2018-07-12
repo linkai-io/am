@@ -2,6 +2,8 @@ package amtest
 
 import (
 	"os"
+	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -65,8 +67,8 @@ func DeleteOrg(p *pgx.ConnPool, name string, t *testing.T) {
 	p.Exec(DeleteOrgStmt, name)
 }
 
-func GetOrgID(p *pgx.ConnPool, name string, t *testing.T) int32 {
-	var orgID int32
+func GetOrgID(p *pgx.ConnPool, name string, t *testing.T) int {
+	var orgID int
 	err := p.QueryRow(GetOrgIDStmt, name).Scan(&orgID)
 	if err != nil {
 		t.Fatalf("error finding org id for %s: %s\n", name, err)
@@ -74,11 +76,43 @@ func GetOrgID(p *pgx.ConnPool, name string, t *testing.T) int32 {
 	return orgID
 }
 
-func GetUserId(p *pgx.ConnPool, orgID int32, name string, t *testing.T) int32 {
-	var userID int32
+func GetUserId(p *pgx.ConnPool, orgID int, name string, t *testing.T) int {
+	var userID int
 	err := p.QueryRow(GetUserIDStmt, orgID, name+"email@email.com").Scan(&userID)
 	if err != nil {
 		t.Fatalf("error finding user id for %s: %s\n", name, err)
 	}
 	return userID
+}
+
+func SortEqualString(expected, returned []string, t *testing.T) bool {
+	if len(expected) != len(returned) {
+		t.Fatalf("slice did not match size: %#v, %#v\n", expected, returned)
+	}
+	expectedCopy := make([]string, len(expected))
+	returnedCopy := make([]string, len(returned))
+
+	copy(expectedCopy, expected)
+	copy(returnedCopy, returned)
+
+	sort.Strings(expectedCopy)
+	sort.Strings(returnedCopy)
+
+	return reflect.DeepEqual(expectedCopy, returnedCopy)
+}
+
+func SortEqualInt(expected, returned []int, t *testing.T) bool {
+	if len(expected) != len(returned) {
+		t.Fatalf("slice did not match size: %#v, %#v\n", expected, returned)
+	}
+	expectedCopy := make([]int, len(expected))
+	returnedCopy := make([]int, len(returned))
+
+	copy(expectedCopy, expected)
+	copy(returnedCopy, returned)
+
+	sort.Ints(expectedCopy)
+	sort.Ints(returnedCopy)
+
+	return reflect.DeepEqual(expectedCopy, returnedCopy)
 }

@@ -3,6 +3,8 @@ package protoc
 import (
 	"errors"
 
+	"gopkg.linkai.io/v1/repos/am/protocservices/prototypes"
+
 	context "golang.org/x/net/context"
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
@@ -22,71 +24,47 @@ func New(implementation am.ScanGroupService) *SGProtocService {
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.Get(ctx, in.UserContext, in.GroupID)
+	oid, group, err := s.sgs.Get(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupResponse{OrgID: oid, Group: domainToGroup(group)}, err
+	return &scangroup.GroupResponse{OrgID: int32(oid), Group: domainToGroup(group)}, err
 }
 
 func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.GetByName(ctx, in.UserContext, in.GroupName)
+	oid, group, err := s.sgs.GetByName(ctx, userContextToDomain(in.UserContext), in.GroupName)
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupResponse{OrgID: oid, Group: domainToGroup(group)}, err
+	return &scangroup.GroupResponse{OrgID: int32(oid), Group: domainToGroup(group)}, err
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
-	orgID, groupID, groupVersionID, err := s.sgs.Create(ctx, in.UserContext, groupToDomain(in.Group), groupVersionToDomain(in.Version))
+	orgID, groupID, err := s.sgs.Create(ctx, userContextToDomain(in.UserContext), groupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupCreatedResponse{OrgID: orgID, GroupID: groupID, GroupVersionID: groupVersionID}, nil
+	return &scangroup.GroupCreatedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
+}
+
+func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupRequest) (*scangroup.GroupUpdatedResponse, error) {
+	orgID, groupID, err := s.sgs.Update(ctx, userContextToDomain(in.UserContext), groupToDomain(in.Group))
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupUpdatedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
 }
 
 func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupRequest) (*scangroup.GroupDeletedResponse, error) {
-	orgID, groupID, err := s.sgs.Delete(ctx, in.UserContext, in.GroupID)
+	orgID, groupID, err := s.sgs.Delete(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupDeletedResponse{OrgID: orgID, GroupID: groupID}, nil
-}
-
-func (s *SGProtocService) GetVersion(ctx context.Context, in *scangroup.GroupVersionRequest) (*scangroup.GroupVersionResponse, error) {
-	orgID, groupVersion, err := s.sgs.GetVersion(ctx, in.UserContext, in.GroupID, in.GroupVersionID)
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.GroupVersionResponse{OrgID: orgID, GroupVersion: domainToGroupVersion(groupVersion)}, nil
-}
-
-func (s *SGProtocService) GetVersionByName(ctx context.Context, in *scangroup.GroupVersionRequest) (*scangroup.GroupVersionResponse, error) {
-	orgID, groupVersion, err := s.sgs.GetVersionByName(ctx, in.UserContext, in.GroupID, in.GroupVersionName)
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.GroupVersionResponse{OrgID: orgID, GroupVersion: domainToGroupVersion(groupVersion)}, nil
-}
-
-func (s *SGProtocService) CreateVersion(ctx context.Context, in *scangroup.NewVersionRequest) (*scangroup.VersionCreatedResponse, error) {
-	oid, gid, gvid, err := s.sgs.CreateVersion(ctx, in.UserContext, groupVersionToDomain(in.Version))
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.VersionCreatedResponse{OrgID: oid, GroupID: gid, GroupVersionID: gvid}, nil
-}
-
-func (s *SGProtocService) DeleteVersion(ctx context.Context, in *scangroup.DeleteVersionRequest) (*scangroup.VersionDeletedResponse, error) {
-	oid, gid, gvid, err := s.sgs.DeleteVersion(ctx, in.UserContext, in.GroupID, in.GroupVersionID, in.VersionName)
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.VersionDeletedResponse{OrgID: oid, GroupID: gid, GroupVersionID: gvid}, nil
+	return &scangroup.GroupDeletedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
 }
 
 func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.ScanGroup_GroupsServer) error {
-	oid, groups, err := s.sgs.Groups(stream.Context(), in.UserContext)
+	oid, groups, err := s.sgs.Groups(stream.Context(), userContextToDomain(in.UserContext))
 	if err != nil {
 		return err
 	}
@@ -115,39 +93,23 @@ func (s *SGProtocService) UpdatedAddresses(stream scangroup.ScanGroup_UpdatedAdd
 	return nil
 }
 
-func domainToGroupVersion(in *am.ScanGroupVersion) *scangroup.GroupVersion {
-	return &scangroup.GroupVersion{
-		OrgID:          in.OrgID,
-		GroupID:        in.GroupID,
-		GroupVersionID: in.GroupVersionID,
-		VersionName:    in.VersionName,
-		CreationTime:   in.CreationTime,
-		CreatedBy:      in.CreatedBy,
-		Configuration:  domainToModule(in.ModuleConfigurations),
-		Deleted:        in.Deleted,
-	}
-}
-
-func groupVersionToDomain(in *scangroup.GroupVersion) *am.ScanGroupVersion {
-	return &am.ScanGroupVersion{
-		OrgID:                in.OrgID,
-		GroupID:              in.GroupID,
-		GroupVersionID:       in.GroupVersionID,
-		VersionName:          in.VersionName,
-		CreationTime:         in.CreationTime,
-		CreatedBy:            in.CreatedBy,
-		ModuleConfigurations: moduleToDomain(in.Configuration),
-		Deleted:              in.Deleted,
+func userContextToDomain(in *prototypes.UserContext) am.UserContext {
+	return &am.UserContextData{
+		TraceID:   in.TraceID,
+		OrgID:     int(in.OrgID),
+		UserID:    int(in.UserID),
+		Roles:     in.Roles,
+		IPAddress: in.IPAddress,
 	}
 }
 
 func addressToDomain(in *scangroup.Address) *am.ScanGroupAddress {
 	return &am.ScanGroupAddress{
-		OrgID:     in.OrgID,
+		OrgID:     int(in.OrgID),
 		AddressID: in.AddressID,
-		GroupID:   in.GroupID,
+		GroupID:   int(in.GroupID),
 		Address:   in.Address,
-		Settings:  moduleToDomain(in.Settings),
+		//Settings:  moduleToDomain(in.Settings),
 		AddedTime: in.AddedTime,
 		AddedBy:   in.AddedBy,
 		Ignored:   in.Ignored,
@@ -176,25 +138,27 @@ func domainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
 // groupToDomain convert protoc group to domain type ScanGroup
 func groupToDomain(in *scangroup.Group) *am.ScanGroup {
 	return &am.ScanGroup{
-		OrgID:         in.OrgID,
-		GroupID:       in.GroupID,
-		GroupName:     in.GroupName,
-		CreationTime:  in.CreationTime,
-		CreatedBy:     in.CreatedBy,
-		OriginalInput: in.OriginalInput,
-		Deleted:       in.Deleted,
+		OrgID:                int(in.OrgID),
+		GroupID:              int(in.GroupID),
+		GroupName:            in.GroupName,
+		CreationTime:         in.CreationTime,
+		CreatedBy:            int(in.CreatedBy),
+		OriginalInput:        in.OriginalInput,
+		ModuleConfigurations: moduleToDomain(in.ModuleConfiguration),
+		Deleted:              in.Deleted,
 	}
 }
 
 // domainToGroup convert domain type SdcanGroup to protoc Group
 func domainToGroup(in *am.ScanGroup) *scangroup.Group {
 	return &scangroup.Group{
-		OrgID:         in.OrgID,
-		GroupID:       in.GroupID,
-		GroupName:     in.GroupName,
-		CreationTime:  in.CreationTime,
-		CreatedBy:     in.CreatedBy,
-		OriginalInput: in.OriginalInput,
-		Deleted:       in.Deleted,
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		GroupName:           in.GroupName,
+		CreationTime:        in.CreationTime,
+		CreatedBy:           int32(in.CreatedBy),
+		OriginalInput:       in.OriginalInput,
+		ModuleConfiguration: domainToModule(in.ModuleConfigurations),
+		Deleted:             in.Deleted,
 	}
 }

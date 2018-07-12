@@ -43,7 +43,7 @@ func (a *LadonAuthorizer) IsAllowed(subject, resource, action string) error {
 // IsUserAllowed iterates over all roles this user has applied to them and checks that their
 // role is allowed to acces the resource. If isAllowed never returns nil, that means at least
 // one role is allowed access. Otherwise return the last error seen.
-func (a *LadonAuthorizer) IsUserAllowed(orgID, userID int32, resource, action string) error {
+func (a *LadonAuthorizer) IsUserAllowed(orgID, userID int, resource, action string) error {
 	var err error
 	memberRoles, err := a.GetRoles(orgID, userID)
 	if err != nil {
@@ -64,6 +64,6 @@ func (a *LadonAuthorizer) IsUserAllowed(orgID, userID int32, resource, action st
 }
 
 // GetRoles looks up all roles applied to the userID of orgID
-func (a *LadonAuthorizer) GetRoles(orgID, userID int32) ([]*am.Role, error) {
+func (a *LadonAuthorizer) GetRoles(orgID, userID int) ([]*am.Role, error) {
 	return a.roleManager.FindByMember(orgID, userID, math.MaxInt32, 0)
 }

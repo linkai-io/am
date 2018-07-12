@@ -74,13 +74,13 @@ func (r *LadonRoleManager) CreateRole(g *am.Role) (string, error) {
 }
 
 // DeleteRole from the system, will return non-error if orgID and roleID are invalid
-func (r *LadonRoleManager) DeleteRole(orgID int32, roleID string) error {
+func (r *LadonRoleManager) DeleteRole(orgID int, roleID string) error {
 	_, err := r.db.Exec(r.stmts.QueryDeleteRole, orgID, roleID)
 	return err
 }
 
 // AddMembers iterates over every member for the group/roleid and adds it to the ladon_role_members table
-func (r *LadonRoleManager) AddMembers(orgID int32, roleID string, members []int32) error {
+func (r *LadonRoleManager) AddMembers(orgID int, roleID string, members []int) error {
 	if members == nil || len(members) == 0 {
 		return nil
 	}
@@ -107,7 +107,7 @@ func (r *LadonRoleManager) AddMembers(orgID int32, roleID string, members []int3
 }
 
 // RemoveMembers iterates over every member for the group/roleid and removes it from the ladon_role_members table
-func (r *LadonRoleManager) RemoveMembers(orgID int32, roleID string, members []int32) error {
+func (r *LadonRoleManager) RemoveMembers(orgID int, roleID string, members []int) error {
 	if members == nil || len(members) == 0 {
 		return nil
 	}
@@ -134,7 +134,7 @@ func (r *LadonRoleManager) RemoveMembers(orgID int32, roleID string, members []i
 }
 
 // FindByMember returns roles that a member belongs to
-func (r *LadonRoleManager) FindByMember(orgID int32, member int32, limit, offset int) ([]*am.Role, error) {
+func (r *LadonRoleManager) FindByMember(orgID int, member int, limit, offset int) ([]*am.Role, error) {
 	var roleIDs []string
 	rows, err := r.db.Query(r.stmts.QueryFindByMember, orgID, member, limit, offset)
 	if err != nil {
@@ -144,7 +144,7 @@ func (r *LadonRoleManager) FindByMember(orgID int32, member int32, limit, offset
 
 	for rows.Next() {
 		var id string
-		var rOrgID int32
+		var rOrgID int
 
 		if err := rows.Scan(&rOrgID, &id); err != nil {
 			return nil, err
@@ -175,17 +175,17 @@ func (r *LadonRoleManager) FindByMember(orgID int32, member int32, limit, offset
 }
 
 // Get a role specified by roleID for the orgID
-func (r *LadonRoleManager) Get(orgID int32, roleID string) (*am.Role, error) {
+func (r *LadonRoleManager) Get(orgID int, roleID string) (*am.Role, error) {
 	return r.getBy(orgID, roleID, "")
 }
 
 // GetByName a role specified by roleName for the orgID
-func (r *LadonRoleManager) GetByName(orgID int32, roleName string) (*am.Role, error) {
+func (r *LadonRoleManager) GetByName(orgID int, roleName string) (*am.Role, error) {
 	return r.getBy(orgID, "", roleName)
 }
 
 // List all roles for an organization
-func (r *LadonRoleManager) List(orgID int32, limit, offset int) ([]*am.Role, error) {
+func (r *LadonRoleManager) List(orgID int, limit, offset int) ([]*am.Role, error) {
 	var roleIDs []string
 	rows, err := r.db.Query(r.stmts.QueryList, orgID, limit, offset)
 	if err != nil {
@@ -196,7 +196,7 @@ func (r *LadonRoleManager) List(orgID int32, limit, offset int) ([]*am.Role, err
 	for rows.Next() {
 		var id string
 		var roleName string
-		var rOrgID int32
+		var rOrgID int
 
 		if err := rows.Scan(&rOrgID, &id, &roleName); err != nil {
 			return nil, err
@@ -222,10 +222,10 @@ func (r *LadonRoleManager) List(orgID int32, limit, offset int) ([]*am.Role, err
 	return groups, nil
 }
 
-func (r *LadonRoleManager) getBy(orgID int32, roleID, roleName string) (*am.Role, error) {
+func (r *LadonRoleManager) getBy(orgID int, roleID, roleName string) (*am.Role, error) {
 	var found string
 	var foundName string
-	var rOrgID int32
+	var rOrgID int
 
 	if roleID == "" && roleName == "" {
 		return nil, ErrRoleNotFound
@@ -255,10 +255,10 @@ func (r *LadonRoleManager) getBy(orgID int32, roleID, roleName string) (*am.Role
 	}
 	defer rows.Close()
 
-	members := make([]int32, 0)
+	members := make([]int, 0)
 
 	for rows.Next() {
-		var member int32
+		var member int
 
 		if err := rows.Scan(&rOrgID, &member); err != nil {
 			return nil, err

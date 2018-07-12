@@ -10,12 +10,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/authtest"
+	"gopkg.linkai.io/v1/repos/am/amtest"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
 )
 
 func TestNewPolicy(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -23,7 +23,7 @@ func TestNewPolicy(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -94,7 +94,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateDefaultPolicy(t *testing.T) {
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -141,7 +141,7 @@ const defaultPolicyCount = 7
 func TestGetAll(t *testing.T) {
 	start := 10
 	end := 60
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -183,7 +183,7 @@ func TestGetAll(t *testing.T) {
 func TestFind(t *testing.T) {
 	start := 8
 	end := 12
-	db := authtest.InitDB(t)
+	db := amtest.InitDB(t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)

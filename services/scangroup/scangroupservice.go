@@ -3,7 +3,9 @@ package scangroup
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/jackc/pgx"
 	"gopkg.linkai.io/v1/repos/am/am"
@@ -19,16 +21,6 @@ var (
 	ErrUserNotAuthorized      = errors.New("user is not authorized to perform this action")
 	ErrScanGroupVersionLinked = errors.New("scan group version is linked to this scan group")
 )
-
-// Config represents this modules configuration data to be passed in on
-// initialization.
-type Config struct {
-	Addr           string `json:"db_addr"`
-	User           string `json:"db_user"`
-	Pass           string `json:"db_pass"`
-	Database       string `json:"db_name"`
-	MaxConnections int    `json:"db_max_conn"`
-}
 
 // Service for interfacing with postgresql/rds
 type Service struct {
@@ -96,13 +88,44 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 }
 
 // Get returns a scan group identified by scangroup id
-func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID int32) (oid int32, group *am.ScanGroup, err error) {
+func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID int) (oid int, group *am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
 		return 0, nil, ErrUserNotAuthorized
 	}
+	group = &am.ScanGroup{}
 
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
-	err = s.pool.QueryRow("scanGroupIDByName", userContext.GetOrgID(), groupID).Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.Deleted)
+	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
+		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
+		&group.OriginalInput, &group.ModuleConfigurations, &group.Deleted,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil, ErrScanGroupNotExists
+		}
+		return 0, nil, err
+	}
+
+	if group.OrgID != userContext.GetOrgID() {
+		return 0, nil, ErrOrgIDMismatch
+	}
+
+	return group.OrgID, group, err
+}
+
+// GetByName returns the scan group identified by scangroup name
+func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
+		return 0, nil, ErrUserNotAuthorized
+	}
+	group = &am.ScanGroup{}
+
+	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
+		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
+		&group.OriginalInput, &group.ModuleConfigurations, &group.Deleted,
+	)
+
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return 0, nil, ErrScanGroupNotExists
@@ -118,7 +141,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 }
 
 // Groups returns all groups for an organization.
-func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid int32, groups []*am.ScanGroup, err error) {
+func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
 		return 0, nil, ErrUserNotAuthorized
 	}
@@ -131,7 +154,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInput, &group.ModuleConfigurations, &group.Deleted); err != nil {
 			return 0, nil, err
 		}
 
@@ -144,52 +167,51 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	return userContext.GetOrgID(), groups, err
 }
 
-// Create a new scan group and initial scan group version, returning orgID and groupID on success, error otherwise
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGroup *am.ScanGroup, newVersion *am.ScanGroupVersion) (oid int32, gid int32, gvid int32, err error) {
+// Create a new scan group, returning orgID and groupID on success, error otherwise
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGroup *am.ScanGroup) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "create") {
-		return 0, 0, 0, ErrUserNotAuthorized
+		return 0, 0, ErrUserNotAuthorized
 	}
-
-	var tx *pgx.Tx
-	oid = newGroup.OrgID
 
 	err = s.pool.QueryRow("scanGroupIDByName", userContext.GetOrgID(), newGroup.GroupName).Scan(&oid, &gid)
 	if err != nil && err != pgx.ErrNoRows {
-		return 0, 0, 0, err
+		return 0, 0, err
 	}
 
 	if gid != 0 {
-		return 0, 0, 0, ErrScanGroupExists
+		return 0, 0, ErrScanGroupExists
 	}
-
-	tx, err = s.pool.BeginEx(ctx, nil)
+	log.Printf("%#v\n", newGroup)
+	// creates and sets oid/gid
+	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.ModifiedTime, newGroup.ModifiedBy, newGroup.OriginalInput, newGroup.ModuleConfigurations).Scan(&oid, &gid)
 	if err != nil {
-		return 0, 0, 0, err
+		return 0, 0, err
 	}
-	defer tx.Rollback() // safe to call as no-op on success
 
-	err = tx.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.OriginalInput).Scan(&gid)
+	return oid, gid, err
+}
+
+// Update a scan group, returning orgID and groupID on success, error otherwise
+func (s *Service) Update(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) (oid int, gid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
+		return 0, 0, ErrUserNotAuthorized
+	}
+
+	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedBy, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
-		return 0, 0, 0, err
+		return 0, 0, err
 	}
 
-	err = tx.QueryRow("createScanGroupVersion", userContext.GetOrgID(), gid, newVersion.VersionName, newVersion.CreationTime, userContext.GetUserID(), newVersion.ModuleConfigurations).Scan(&gvid)
-	if err != nil {
-		return 0, 0, 0, err
-	}
-
-	err = tx.Commit()
-	return oid, gid, gvid, err
+	return oid, gid, err
 }
 
 // Delete a scan group, also deletes all scan group versions which reference this scan group returning orgID and groupID on success, error otherwise
-func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupID int32) (oid int32, gid int32, err error) {
+func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "delete") {
 		return 0, 0, ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
-	var row *pgx.Row
-	versionID := 0
+	var name string
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -197,16 +219,19 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	}
 	defer tx.Rollback() // safe to call as no-op on success
 
-	// ensure that we have no rows for this scan group version linked to the group id we are about to delete
-	row = tx.QueryRow("scanGroupVersionExists", userContext.GetOrgID(), groupID)
-
-	err = row.Scan(&oid, &versionID)
-	log.Printf("%d %d\n", oid, versionID)
-	if versionID != 0 {
-		return 0, 0, ErrScanGroupVersionLinked
+	// get the current group name so we can change it on delete.
+	err = tx.QueryRow("scanGroupName", userContext.GetOrgID(), groupID).Scan(&oid, &name)
+	if err != nil {
+		return 0, 0, err
 	}
 
-	_, err = tx.Exec("deleteScanGroup", userContext.GetOrgID(), groupID)
+	// ensure room for timestamp
+	if len(name) > 200 {
+		name = name[:200]
+	}
+
+	name = fmt.Sprintf("%s_%d", name, time.Now().UnixNano())
+	_, err = tx.Exec("deleteScanGroup", name, userContext.GetOrgID(), groupID)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -215,86 +240,22 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	return userContext.GetOrgID(), groupID, err
 }
 
-// GetVersion returns the configuration of the requested version.
-func (s *Service) GetVersion(ctx context.Context, userContext am.UserContext, groupID, groupVersionID int32) (oid int32, v *am.ScanGroupVersion, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "read") {
-		return 0, nil, ErrUserNotAuthorized
-	}
-	var row *pgx.Row
-
-	row = s.pool.QueryRow("scanGroupVersionByID", userContext.GetOrgID(), groupID, groupVersionID)
-	err = row.Scan(&v.OrgID, &v.GroupID, &v.GroupVersionID, &v.VersionName, &v.CreationTime, &v.CreatedBy, &v.ModuleConfigurations, &v.Deleted)
-
-	return v.OrgID, v, err
-}
-
-// GetVersionByName returns the configuration of the requested version.
-func (s *Service) GetVersionByName(ctx context.Context, userContext am.UserContext, groupID int32, versionName string) (oid int32, v *am.ScanGroupVersion, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "read") {
-		return 0, nil, ErrUserNotAuthorized
-	}
-	var row *pgx.Row
-	v = &am.ScanGroupVersion{}
-
-	//organization_id, scan_group_id, version_name, creation_time, created_by, configuration, config_version, deleted
-	row = s.pool.QueryRow("scanGroupVersionByName", userContext.GetOrgID(), groupID, versionName)
-	err = row.Scan(&v.OrgID, &v.GroupID, &v.GroupVersionID, &v.VersionName, &v.CreationTime, &v.CreatedBy, &v.ModuleConfigurations, &v.Deleted)
-
-	return v.OrgID, v, err
-}
-
-// CreateVersion for a scan group, allowing modification of module configurations
-func (s *Service) CreateVersion(ctx context.Context, userContext am.UserContext, v *am.ScanGroupVersion) (oid int32, gid int32, gvid int32, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "create") {
-		return 0, 0, 0, ErrUserNotAuthorized
-	}
-	var row *pgx.Row
-	var returned am.ScanGroupVersion
-	//organization_id, scan_group_id, version_name, creation_time, created_by, configuration, deleted
-	_, err = s.pool.Exec("createScanGroupVersion", v.OrgID, v.GroupID, v.VersionName, v.CreationTime, v.CreatedBy, v.ModuleConfigurations)
-	if err != nil {
-		return 0, 0, 0, err
-	}
-
-	row = s.pool.QueryRow("scanGroupVersionIDs", v.OrgID, v.GroupID)
-	err = row.Scan(&returned.OrgID, &returned.GroupID, &returned.GroupVersionID)
-	if err != nil {
-		return 0, 0, 0, err
-	}
-	return returned.OrgID, returned.GroupID, returned.GroupVersionID, err
-}
-
-// DeleteVersion requires orgID, groupVersionID and one of groupID or versionName. returning orgID, groupID and groupVersionID if success
-func (s *Service) DeleteVersion(ctx context.Context, userContext am.UserContext, groupID, groupVersionID int32, versionName string) (oid int32, gid int32, gvid int32, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupVersions, "delete") {
-		return 0, 0, 0, ErrUserNotAuthorized
-	}
-	log.Printf("deleteScanGroupVersion %d %d %d\n", userContext.GetOrgID(), groupID, groupVersionID)
-	if t, err := s.pool.Exec("deleteScanGroupVersion", userContext.GetOrgID(), groupID, groupVersionID); err != nil {
-		return 0, 0, 0, err
-	} else {
-		log.Printf("%s\n", t)
-	}
-
-	return userContext.GetOrgID(), groupID, groupVersionID, err
-}
-
 // Addresses returns all addresses for a scan group
-func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, groupID int32) (oid int32, addresses []*am.ScanGroupAddress, err error) {
+func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, groupID int) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
 		return 0, nil, ErrUserNotAuthorized
 	}
 	return oid, addresses, err
 }
 
-func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int32, failed []*am.FailedAddress, err error) {
+func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, failed []*am.FailedAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "create") {
 		return 0, nil, ErrUserNotAuthorized
 	}
 	return oid, failed, err
 }
 
-func (s *Service) UpdateAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int32, failed []*am.FailedAddress, err error) {
+func (s *Service) UpdateAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, failed []*am.FailedAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "update") {
 		return 0, nil, ErrUserNotAuthorized
 	}
