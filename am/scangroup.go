@@ -43,6 +43,23 @@ type ScanGroupAddress struct {
 	AddedTime       int64  `json:"added_time"`
 	AddedBy         string `json:"added_by"`
 	Ignored         bool   `json:"ignored"`
+	Deleted         bool   `json:"deleted"`
+}
+
+// ScanGroupAddressHeader contains metadata for adding multiple addresses
+type ScanGroupAddressHeader struct {
+	GroupID int    `json:"group_id"`
+	AddedBy string `json:"added_by"`
+	Ignored bool   `json:"ignored"`
+}
+
+// ScanGroupAddressFilter filters the results of an Addresses search
+type ScanGroupAddressFilter struct {
+	GroupID int  `json:"group_id`
+	Ignored bool `json:"ignored"`
+	Deleted bool `json:"deleted"`
+	Start   int  `json:"start"`
+	Limit   int  `json:"limit"`
 }
 
 // FailedAddress is used when we are unable to add or update addresses
@@ -62,7 +79,9 @@ type ScanGroupService interface {
 	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup) (oid int, gid int, err error)
 	Update(ctx context.Context, userContext UserContext, group *ScanGroup) (oid int, gid int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
-	Addresses(ctx context.Context, userContext UserContext, groupID int) (oid int, addresses []*ScanGroupAddress, err error)
-	AddAddresses(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int, failed []*FailedAddress, err error)
-	UpdateAddresses(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int, failed []*FailedAddress, err error)
+	Addresses(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
+	AddressCount(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
+	AddAddresses(ctx context.Context, userContext UserContext, header *ScanGroupAddressHeader, addresses []string) (oid int, err error)
+	IgnoreAddresses(ctx context.Context, userContext UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error)
+	DeleteAddresses(ctx context.Context, userContext UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error)
 }

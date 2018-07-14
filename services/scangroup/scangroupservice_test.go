@@ -92,6 +92,10 @@ func TestCreate(t *testing.T) {
 	}
 
 	if _, gid, err = service.Create(ctx, userContext, group); err != nil {
+		_, groups, _ := service.Groups(ctx, userContext)
+		for g := range groups {
+			t.Logf("%#v\n", g)
+		}
 		t.Fatalf("error re-creating same group after delete: %s\n", err)
 	}
 
@@ -216,6 +220,208 @@ func TestGetGroups(t *testing.T) {
 	}
 }
 
+func TestAddAddresses(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "sgaddaddress"
+	groupName := "sgaddaddressgroup"
+
+	auth := &mock.Authorizer{}
+	auth.IsAllowedFn = func(subject, resource, action string) error {
+		return nil
+	}
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
+		return nil
+	}
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+	userContext := testUserContext(orgID, ownerUserID)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	_, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	header := &am.ScanGroupAddressHeader{Ignored: false, GroupID: gid, AddedBy: "ns_queries"}
+	count := 200
+	ips := make([]string, count)
+	for i := 0; i < count; i++ {
+		ips[i] = fmt.Sprintf("192.168.1.%d", i)
+	}
+
+	if _, err := service.AddAddresses(ctx, userContext, header, ips); err != nil {
+		t.Fatalf("error adding addresses: %s\n", err)
+	}
+
+	orgName2 := "sgaddaddress2"
+
+	amtest.CreateOrg(db, orgName2, t)
+	orgID2 := amtest.GetOrgID(db, orgName2, t)
+	defer testForceCleanUp(db, orgID2, orgName2, t)
+
+	ownerUserID2 := amtest.GetUserId(db, orgID2, orgName2, t)
+	userContext2 := testUserContext(orgID2, ownerUserID2)
+	group2 := testCreateNewGroup(orgID2, ownerUserID2, groupName)
+
+	_, gid2, err := service.Create(ctx, userContext2, group2)
+	if err != nil {
+		t.Fatalf("error creating 2nd group: %s\n", err)
+	}
+
+	header2 := &am.ScanGroupAddressHeader{Ignored: false, GroupID: gid2, AddedBy: "ns_queries"}
+	count2 := 200
+	ips2 := make([]string, count2)
+	for i := 0; i < count2; i++ {
+		ips2[i] = fmt.Sprintf("192.168.1.%d", i)
+	}
+
+	if _, err := service.AddAddresses(ctx, userContext2, header2, ips2); err != nil {
+		t.Fatalf("error adding addresses: %s\n", err)
+	}
+
+	// Test address count/ Addresses
+	_, returnedCount, err := service.AddressCount(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting address count: %s\n", err)
+	}
+	if count != returnedCount {
+		t.Fatalf("expected %d got %d addresses\n", count, returnedCount)
+	}
+
+	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 100, Deleted: false, Ignored: false}
+
+	_, addresses, err := service.Addresses(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses for first group: %s\n", err)
+	}
+
+	if len(addresses) != 100 {
+		t.Fatalf("expected 100 addresses got: %d\n", len(addresses))
+	}
+
+	_, returnedCount, err = service.AddressCount(ctx, userContext2, gid2)
+	if err != nil {
+		t.Fatalf("error getting address count: %s\n", err)
+	}
+	if count != returnedCount {
+		t.Fatalf("expected %d got %d addresses\n", count, returnedCount)
+	}
+
+	filter2 := &am.ScanGroupAddressFilter{GroupID: gid2, Start: 0, Limit: 100, Deleted: false, Ignored: false}
+	_, addresses, err = service.Addresses(ctx, userContext2, filter2)
+	if err != nil {
+		t.Fatalf("error getting addresses for second group: %s\n", err)
+	}
+	if len(addresses) != 100 {
+		t.Fatalf("expected 100 addresses got: %d\n", len(addresses))
+	}
+}
+
+func TestUpdateAddresses(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "sgupdateaddress"
+	groupName := "sgupdateaddressgroup"
+
+	auth := &mock.Authorizer{}
+	auth.IsAllowedFn = func(subject, resource, action string) error {
+		return nil
+	}
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
+		return nil
+	}
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+	userContext := testUserContext(orgID, ownerUserID)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	_, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	header := &am.ScanGroupAddressHeader{Ignored: false, GroupID: gid, AddedBy: "ns_queries"}
+	count := 20
+	ips := make([]string, count)
+	for i := 0; i < count; i++ {
+		ips[i] = fmt.Sprintf("192.168.1.%d", i)
+	}
+
+	if _, err := service.AddAddresses(ctx, userContext, header, ips); err != nil {
+		t.Fatalf("error adding addresses: %s\n", err)
+	}
+
+	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 10, Deleted: false, Ignored: false}
+	_, addresses, err := service.Addresses(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %s\n", err)
+	}
+
+	// test ignoring
+	addressIDs := make(map[int64]bool, 10)
+	for i := 0; i < 10; i++ {
+		id := addresses[i].AddressID
+		addressIDs[id] = true
+	}
+
+	if _, err := service.IgnoreAddresses(ctx, userContext, gid, addressIDs); err != nil {
+		t.Fatalf("error ignoring addresses: %s\n", err)
+	}
+
+	filter.Ignored = true
+	_, addresses, err = service.Addresses(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %s\n", err)
+	}
+
+	if len(addresses) != 10 {
+		t.Fatalf("expected 10 ignored addresses got: %d\n", len(addresses))
+	}
+
+	// delete ignored addresses
+	if _, err := service.DeleteAddresses(ctx, userContext, gid, addressIDs); err != nil {
+		t.Fatalf("error deleting ignored addresses: %s\n", err)
+	}
+
+	filter.Deleted = true
+	_, addresses, err = service.Addresses(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %s\n", err)
+	}
+
+	if len(addresses) != 10 {
+		t.Fatalf("expected 10 deleted addresses got: %d\n", len(addresses))
+	}
+	for _, v := range addresses {
+		t.Logf("%#v\n", v)
+	}
+}
+
 func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {
 	if group1.CreatedBy != group2.CreatedBy {
 		t.Fatalf("created by was different, %d and %d\n", group1.CreatedBy, group2.CreatedBy)
@@ -251,6 +457,7 @@ func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {
 }
 
 func testForceCleanUp(db *pgx.ConnPool, orgID int, orgName string, t *testing.T) {
+	db.Exec("delete from am.scan_group_addresses where organization_id=$1", orgID)
 	db.Exec("delete from am.scan_group where organization_id=$1", orgID)
 	amtest.DeleteOrg(db, orgName, t)
 }

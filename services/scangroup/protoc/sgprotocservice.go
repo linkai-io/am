@@ -16,11 +16,12 @@ var (
 )
 
 type SGProtocService struct {
-	sgs am.ScanGroupService
+	sgs              am.ScanGroupService
+	MaxAddressStream int32
 }
 
 func New(implementation am.ScanGroupService) *SGProtocService {
-	return &SGProtocService{sgs: implementation}
+	return &SGProtocService{sgs: implementation, MaxAddressStream: 200}
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
@@ -82,15 +83,53 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 }
 
 func (s *SGProtocService) Addresses(in *scangroup.AddressesRequest, stream scangroup.ScanGroup_AddressesServer) error {
+	filter := &am.ScanGroupAddressFilter{GroupID: int(in.GroupID), Start: int(in.Start), Limit: int(in.Limit), Deleted: in.Deleted, Ignored: in.Ignored}
+	oid, addresses, err := s.sgs.Addresses(stream.Context(), userContextToDomain(in.UserContext), filter)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range addresses {
+		if oid != a.OrgID {
+			return ErrOrgIDNonMatch
+		}
+
+		if err := stream.Send(&scangroup.AddressesResponse{Addresses: domainToAddress(a)}); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (s *SGProtocService) AddAddresses(stream scangroup.ScanGroup_AddAddressesServer) error {
-	return nil
+func (s *SGProtocService) AddressCount(ctx context.Context, in *scangroup.CountAddressesRequest) (*scangroup.CountAddressesResponse, error) {
+	oid, count, err := s.sgs.AddressCount(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.CountAddressesResponse{OrgID: int32(oid), GroupID: in.GroupID, Count: int32(count)}, nil
 }
 
-func (s *SGProtocService) UpdatedAddresses(stream scangroup.ScanGroup_UpdatedAddressesServer) error {
-	return nil
+func (s *SGProtocService) AddAddresses(ctx context.Context, in *scangroup.AddAddressRequest) (*scangroup.AddAddressesResponse, error) {
+
+	header := &am.ScanGroupAddressHeader{GroupID: int(in.GroupID), AddedBy: in.AddedBy, Ignored: in.Ignored}
+
+	oid, err := s.sgs.AddAddresses(ctx, userContextToDomain(in.UserContext), header, in.Address)
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.AddAddressesResponse{OrgID: int32(oid)}, nil
+}
+
+func (s *SGProtocService) UpdatedAddresses(ctx context.Context, in *scangroup.UpdateAddressRequest) (*scangroup.UpdateAddressesResponse, error) {
+	var oid int
+	var err error
+
+	if in.Delete {
+		oid, err = s.sgs.DeleteAddresses(ctx, userContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
+	} else {
+		oid, err = s.sgs.IgnoreAddresses(ctx, userContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
+	}
+	return &scangroup.UpdateAddressesResponse{OrgID: int32(oid)}, err
 }
 
 func userContextToDomain(in *prototypes.UserContext) am.UserContext {
@@ -113,6 +152,20 @@ func addressToDomain(in *scangroup.Address) *am.ScanGroupAddress {
 		AddedTime: in.AddedTime,
 		AddedBy:   in.AddedBy,
 		Ignored:   in.Ignored,
+		Deleted:   in.Deleted,
+	}
+}
+
+func domainToAddress(in *am.ScanGroupAddress) *scangroup.Address {
+	return &scangroup.Address{
+		OrgID:     int32(in.OrgID),
+		AddressID: in.AddressID,
+		GroupID:   int32(in.GroupID),
+		Address:   in.Address,
+		AddedTime: in.AddedTime,
+		AddedBy:   in.AddedBy,
+		Ignored:   in.Ignored,
+		Deleted:   in.Deleted,
 	}
 }
 

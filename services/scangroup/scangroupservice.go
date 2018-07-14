@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -20,6 +19,8 @@ var (
 	ErrScanGroupExists        = errors.New("scan group name already exists")
 	ErrUserNotAuthorized      = errors.New("user is not authorized to perform this action")
 	ErrScanGroupVersionLinked = errors.New("scan group version is linked to this scan group")
+	ErrAddressCopyCount       = errors.New("copy count of addresses did not match expected amount")
+	ErrLimitTooLarge          = errors.New("requested number of records too large")
 )
 
 // Service for interfacing with postgresql/rds
@@ -181,7 +182,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 	if gid != 0 {
 		return 0, 0, ErrScanGroupExists
 	}
-	log.Printf("%#v\n", newGroup)
+
 	// creates and sets oid/gid
 	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.ModifiedTime, newGroup.ModifiedBy, newGroup.OriginalInput, newGroup.ModuleConfigurations).Scan(&oid, &gid)
 	if err != nil {
@@ -230,7 +231,8 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 		name = name[:200]
 	}
 
-	name = fmt.Sprintf("%s_%d", name, time.Now().UnixNano())
+	name = fmt.Sprintf("%s_%d\n", name, time.Now().UnixNano())
+
 	_, err = tx.Exec("deleteScanGroup", name, userContext.GetOrgID(), groupID)
 	if err != nil {
 		return 0, 0, err
@@ -241,23 +243,200 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 }
 
 // Addresses returns all addresses for a scan group
-func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, groupID int) (oid int, addresses []*am.ScanGroupAddress, err error) {
+func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
 		return 0, nil, ErrUserNotAuthorized
 	}
-	return oid, addresses, err
+
+	if filter.Limit > 10000 {
+		return 0, nil, ErrLimitTooLarge
+	}
+
+	query := "scanGroupAddresses"
+	if filter.Deleted == true && filter.Ignored == true {
+		query = "scanGroupAddressesDeletedIgnored"
+	} else if filter.Deleted == true {
+		query = "scanGroupAddressesDeleted"
+	} else {
+		query = "scanGroupAddressesIgnored"
+	}
+
+	rows, err := s.pool.Query(query, userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	addresses = make([]*am.ScanGroupAddress, 0)
+
+	for i := 0; rows.Next(); i++ {
+		a := &am.ScanGroupAddress{}
+		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.Address, &a.AddedTime, &a.AddedBy, &a.Ignored, &a.Deleted); err != nil {
+			return 0, nil, err
+		}
+
+		if a.OrgID != userContext.GetOrgID() {
+			return 0, nil, ErrOrgIDMismatch
+		}
+
+		addresses = append(addresses, a)
+	}
+
+	return userContext.GetOrgID(), addresses, err
 }
 
-func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, failed []*am.FailedAddress, err error) {
+// AddAddresses to the scan_group_addresses table for a scan_group
+func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, header *am.ScanGroupAddressHeader, addresses []string) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "create") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, ErrUserNotAuthorized
 	}
-	return oid, failed, err
+	var tx *pgx.Tx
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.Exec(AddAddressesTempTable); err != nil {
+		return 0, err
+	}
+
+	numAddresses := len(addresses)
+
+	addressRows := make([][]interface{}, numAddresses)
+	orgID := userContext.GetOrgID()
+
+	for i := 0; i < numAddresses; i++ {
+		addressRows[i] = []interface{}{int32(orgID), int32(header.GroupID), addresses[i], int64(time.Now().UnixNano()), header.AddedBy, false, header.Ignored}
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{AddAddressesTempTableKey}, AddAddressesTempTableColumns, pgx.CopyFromRows(addressRows))
+	if err != nil {
+		return 0, err
+	}
+
+	if copyCount != numAddresses {
+		return 0, ErrAddressCopyCount
+	}
+
+	if _, err := tx.Exec(AddAddressesTempToAddress); err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
+
+	return orgID, err
 }
 
-func (s *Service) UpdateAddresses(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, failed []*am.FailedAddress, err error) {
+func (s *Service) IgnoreAddresses(ctx context.Context, userContext am.UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "update") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, ErrUserNotAuthorized
 	}
-	return oid, failed, err
+	var tx *pgx.Tx
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	table := IgnoreAddressesTempTable
+	columns := IgnoreAddressesTempTableColumns
+	key := IgnoreAddressesTempTableKey
+	tempToTable := IgnoreAddressesTempToAddress
+	if _, err := tx.Exec(table); err != nil {
+		return 0, err
+	}
+
+	numAddresses := len(addressIDs)
+
+	addressRows := make([][]interface{}, numAddresses)
+	orgID := userContext.GetOrgID()
+
+	i := 0
+	for addressID, value := range addressIDs {
+		addressRows[i] = []interface{}{int32(orgID), groupID, addressID, value}
+		i++
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{key}, columns, pgx.CopyFromRows(addressRows))
+	if err != nil {
+		return 0, err
+	}
+
+	if copyCount != numAddresses {
+		return 0, ErrAddressCopyCount
+	}
+
+	if _, err := tx.Exec(tempToTable); err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
+
+	return orgID, err
+}
+
+func (s *Service) DeleteAddresses(ctx context.Context, userContext am.UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "delete") {
+		return 0, ErrUserNotAuthorized
+	}
+	var tx *pgx.Tx
+
+	table := DeleteAddressesTempTable
+	key := DeleteAddressesTempTableKey
+	columns := DeleteAddressesTempTableColumns
+	tempToTable := DeleteAddressesTempToAddress
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.Exec(table); err != nil {
+		return 0, err
+	}
+
+	numAddresses := len(addressIDs)
+
+	addressRows := make([][]interface{}, numAddresses)
+	orgID := userContext.GetOrgID()
+
+	i := 0
+	for addressID, value := range addressIDs {
+		addressRows[i] = []interface{}{int32(orgID), groupID, addressID, value}
+		i++
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{key}, columns, pgx.CopyFromRows(addressRows))
+	if err != nil {
+		return 0, err
+	}
+
+	if copyCount != numAddresses {
+		return 0, ErrAddressCopyCount
+	}
+
+	deleteTime := fmt.Sprintf("_%d", time.Now().UnixNano())
+	if _, err := tx.Exec(tempToTable, deleteTime); err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
+	return orgID, err
+}
+
+// AddressCount returns the number of addresses for a specified scan group by id
+func (s *Service) AddressCount(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
+		return 0, 0, ErrUserNotAuthorized
+	}
+
+	err = s.pool.QueryRow("scanGroupAddressesCount", userContext.GetOrgID(), groupID).Scan(&count)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return userContext.GetOrgID(), count, err
 }
