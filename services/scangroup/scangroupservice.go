@@ -242,26 +242,27 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	return userContext.GetOrgID(), groupID, err
 }
 
-// Addresses returns all addresses for a scan group
+// Addresses returns all addresses for a scan group that match the supplied filter
 func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
 		return 0, nil, ErrUserNotAuthorized
 	}
 
+	var rows *pgx.Rows
 	if filter.Limit > 10000 {
 		return 0, nil, ErrLimitTooLarge
 	}
 
-	query := "scanGroupAddresses"
-	if filter.Deleted == true && filter.Ignored == true {
-		query = "scanGroupAddressesDeletedIgnored"
-	} else if filter.Deleted == true {
-		query = "scanGroupAddressesDeleted"
+	if filter.WithIgnored && filter.WithDeleted {
+		rows, err = s.pool.Query("scanGroupAddressesIgnoredDeleted", userContext.GetOrgID(), filter.GroupID, filter.IgnoredValue, filter.DeletedValue, filter.Start, filter.Limit)
+	} else if filter.WithDeleted {
+		rows, err = s.pool.Query("scanGroupAddressesDeleted", userContext.GetOrgID(), filter.GroupID, filter.DeletedValue, filter.Start, filter.Limit)
+	} else if filter.WithIgnored {
+		rows, err = s.pool.Query("scanGroupAddressesIgnored", userContext.GetOrgID(), filter.GroupID, filter.IgnoredValue, filter.Start, filter.Limit)
 	} else {
-		query = "scanGroupAddressesIgnored"
+		rows, err = s.pool.Query("scanGroupAddressesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	}
 
-	rows, err := s.pool.Query(query, userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	if err != nil {
 		return 0, nil, err
 	}

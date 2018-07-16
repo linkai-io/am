@@ -83,7 +83,14 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 }
 
 func (s *SGProtocService) Addresses(in *scangroup.AddressesRequest, stream scangroup.ScanGroup_AddressesServer) error {
-	filter := &am.ScanGroupAddressFilter{GroupID: int(in.GroupID), Start: int(in.Start), Limit: int(in.Limit), Deleted: in.Deleted, Ignored: in.Ignored}
+	filter := &am.ScanGroupAddressFilter{
+		GroupID:     int(in.GroupID),
+		Start:       int(in.Start),
+		Limit:       int(in.Limit),
+		WithIgnored: in.WithIgnored, IgnoredValue: in.IgnoredValue,
+		WithDeleted: in.WithDeleted, DeletedValue: in.DeletedValue,
+	}
+
 	oid, addresses, err := s.sgs.Addresses(stream.Context(), userContextToDomain(in.UserContext), filter)
 	if err != nil {
 		return err

@@ -1,8 +1,9 @@
 package am
 
-// Organization represents an organization that has subscriped to our service
+// Organization represents an organization that has subscribed to our service
 type Organization struct {
 	OrgID           int    `json:"org_id"`
+	OrgCID          string `json:"org_customer_id"`
 	OrgName         string `json:"org_name"`
 	OwnerEmail      string `json:"owner_email"`
 	FirstName       string `json:"first_name"`
@@ -17,4 +18,7 @@ type Organization struct {
 	PostalCode      string `json:"postal_code"`
 	CreationTime    int64  `json:"creation_time"`
 	SubscriptionID  int    `json:"subscription_id"`
+}
+
+type OrganizationService interface {
 }

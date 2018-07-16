@@ -22,16 +22,18 @@ type UserContext interface {
 type UserContextData struct {
 	TraceID   string   `json:"trace_id"`
 	OrgID     int      `json:"org_id"`
+	OrgCID    string   `json:"org_customer_id"`
 	UserID    int      `json:"user_id"`
 	Roles     []string `json:"roles"`
 	IPAddress string   `json:"ip_address"`
 }
 
 // NewUserContext creates user contextual data
-func NewUserContext(orgID, userID int, traceID, ipAddress string, roles []string) *UserContextData {
+func NewUserContext(orgID, userID int, orgCID, traceID, ipAddress string, roles []string) *UserContextData {
 	return &UserContextData{
 		TraceID:   traceID,
 		OrgID:     orgID,
+		OrgCID:    orgCID,
 		UserID:    userID,
 		Roles:     roles,
 		IPAddress: ipAddress,
@@ -61,4 +63,7 @@ func (u *UserContextData) GetRoles() []string {
 // GetIPAddress returns this context's user ip address
 func (u *UserContextData) GetIPAddress() string {
 	return u.IPAddress
+}
+
+type UserService interface {
 }

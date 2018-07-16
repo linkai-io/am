@@ -301,7 +301,7 @@ func TestAddAddresses(t *testing.T) {
 		t.Fatalf("expected %d got %d addresses\n", count, returnedCount)
 	}
 
-	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 100, Deleted: false, Ignored: false}
+	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 100, WithDeleted: true, DeletedValue: false, WithIgnored: false}
 
 	_, addresses, err := service.Addresses(ctx, userContext, filter)
 	if err != nil {
@@ -320,7 +320,7 @@ func TestAddAddresses(t *testing.T) {
 		t.Fatalf("expected %d got %d addresses\n", count, returnedCount)
 	}
 
-	filter2 := &am.ScanGroupAddressFilter{GroupID: gid2, Start: 0, Limit: 100, Deleted: false, Ignored: false}
+	filter2 := &am.ScanGroupAddressFilter{GroupID: gid2, Start: 0, Limit: 100, WithDeleted: true, DeletedValue: false, WithIgnored: false}
 	_, addresses, err = service.Addresses(ctx, userContext2, filter2)
 	if err != nil {
 		t.Fatalf("error getting addresses for second group: %s\n", err)
@@ -376,7 +376,7 @@ func TestUpdateAddresses(t *testing.T) {
 		t.Fatalf("error adding addresses: %s\n", err)
 	}
 
-	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 10, Deleted: false, Ignored: false}
+	filter := &am.ScanGroupAddressFilter{GroupID: gid, Start: 0, Limit: 10, WithDeleted: true, DeletedValue: false}
 	_, addresses, err := service.Addresses(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("error getting addresses: %s\n", err)
@@ -393,7 +393,9 @@ func TestUpdateAddresses(t *testing.T) {
 		t.Fatalf("error ignoring addresses: %s\n", err)
 	}
 
-	filter.Ignored = true
+	filter.WithDeleted = false
+	filter.WithIgnored = true
+	filter.IgnoredValue = true
 	_, addresses, err = service.Addresses(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("error getting addresses: %s\n", err)
@@ -408,7 +410,8 @@ func TestUpdateAddresses(t *testing.T) {
 		t.Fatalf("error deleting ignored addresses: %s\n", err)
 	}
 
-	filter.Deleted = true
+	filter.WithDeleted = true
+	filter.DeletedValue = true
 	_, addresses, err = service.Addresses(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("error getting addresses: %s\n", err)
@@ -417,8 +420,17 @@ func TestUpdateAddresses(t *testing.T) {
 	if len(addresses) != 10 {
 		t.Fatalf("expected 10 deleted addresses got: %d\n", len(addresses))
 	}
-	for _, v := range addresses {
-		t.Logf("%#v\n", v)
+
+	filter.WithDeleted = false
+	filter.WithIgnored = false
+	filter.Limit = 20
+	_, addresses, err = service.Addresses(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %s\n", err)
+	}
+
+	if len(addresses) != 20 {
+		t.Fatalf("expected 20 deleted addresses got: %d\n", len(addresses))
 	}
 }
 

@@ -55,11 +55,13 @@ type ScanGroupAddressHeader struct {
 
 // ScanGroupAddressFilter filters the results of an Addresses search
 type ScanGroupAddressFilter struct {
-	GroupID int  `json:"group_id`
-	Ignored bool `json:"ignored"`
-	Deleted bool `json:"deleted"`
-	Start   int  `json:"start"`
-	Limit   int  `json:"limit"`
+	GroupID      int  `json:"group_id`
+	WithIgnored  bool `json:"with_ignored"`
+	IgnoredValue bool `json:"ignored_value"`
+	WithDeleted  bool `json:"with_deleted"`
+	DeletedValue bool `json:"deleted_value"`
+	Start        int  `json:"start"`
+	Limit        int  `json:"limit"`
 }
 
 // FailedAddress is used when we are unable to add or update addresses

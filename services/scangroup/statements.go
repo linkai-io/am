@@ -28,7 +28,7 @@ var queryMap = map[string]string{
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 and scan_group_id=$2 and deleted=false`,
 
 	// returns
-	"scanGroupAddressesFilterIgnoredDeleted": `select 
+	"scanGroupAddressesIgnoredDeleted": `select 
 		organization_id, 
 		address_id, 
 		scan_group_id, 
@@ -37,9 +37,9 @@ var queryMap = map[string]string{
 		(select added_by from am.scan_address_added_by where scan_address_added_id=sga.scan_address_added_id),
 		ignored,
 		deleted
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and ignored=false and deleted=true and address_id > $5 order by address_id limit $6`,
+		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and ignored=$3 and deleted=$4 and address_id > $5 order by address_id limit $6`,
 
-	"scanGroupAddresses": `select 
+	"scanGroupAddressesAll": `select 
 		organization_id, 
 		address_id, 
 		scan_group_id, 
@@ -48,7 +48,7 @@ var queryMap = map[string]string{
 		(select added_by from am.scan_address_added_by where scan_address_added_id=sga.scan_address_added_id),
 		ignored,
 		deleted
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and deleted=false and address_id > $3 order by address_id limit $4`,
+		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and address_id > $3 order by address_id limit $4`,
 
 	"scanGroupAddressesIgnored": `select 
 		organization_id, 
@@ -59,7 +59,7 @@ var queryMap = map[string]string{
 		(select added_by from am.scan_address_added_by where scan_address_added_id=sga.scan_address_added_id),
 		ignored,
 		deleted
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and ignored=true and address_id > $3 order by address_id limit $4`,
+		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and ignored=$3 and address_id > $4 order by address_id limit $5`,
 
 	"scanGroupAddressesDeleted": `select 
 		organization_id, 
@@ -70,7 +70,7 @@ var queryMap = map[string]string{
 		(select added_by from am.scan_address_added_by where scan_address_added_id=sga.scan_address_added_id),
 		ignored,
 		deleted
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and deleted=true and address_id > $3 order by address_id limit $4`,
+		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and deleted=$3 and address_id > $4 order by address_id limit $5`,
 }
 
 var (
@@ -115,12 +115,6 @@ var (
 		ignored boolean
 		) on commit drop;`
 
-	/*
-				UPDATE tableone
-		SET field1 = tabletwo.fieldx
-		FROM tabletwo
-		WHERE tableone.commonid = tabletwo.commonid;
-	*/
 	IgnoreAddressesTempToAddress = `update am.scan_group_addresses as sga
 		set ignored=sga_ignored_temp.ignored 
 		from sga_ignored_temp where sga.address_id=sga_ignored_temp.address_id;`

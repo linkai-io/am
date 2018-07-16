@@ -12,10 +12,15 @@ import (
 )
 
 const (
-	CreateOrgStmt = `insert into am.organizations 
-	(organization_name, owner_email, first_name, last_name, phone, country, state_prefecture, street, city, postal_code, creation_time, subscription_id)
-	values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 1);`
-	CreateUserStmt = `insert into am.users (organization_id, email, first_name, last_name) values ($1, $2, $3, $4)`
+	CreateOrgStmt = `insert into am.organizations (
+		organization_name, organization_custom_id, user_pool_id, identity_pool_id, 
+		owner_email, first_name, last_name, phone, country, state_prefecture, street, 
+		city, postal_code, creation_time, status_id, subscription_id
+	)
+	values 
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 1000, 1);`
+
+	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name) values ($1, $2, $3, $4, $5)`
 	DeleteOrgStmt  = "delete from am.organizations where organization_name=$1"
 	DeleteUserStmt = "delete from am.users where email=$1"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
@@ -48,14 +53,14 @@ func InitDB(t *testing.T) *pgx.ConnPool {
 }
 
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
-	tag, err := p.Exec(CreateOrgStmt, name, name+"email@email.com", "r", "r", "1-111-111-1111", "usa", "ca", "1 fake lane", "sf", "90210", time.Now().UnixNano())
+	tag, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "identity_pool_id.blah", name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "sf", "90210", time.Now().UnixNano())
 	if err != nil {
 		t.Fatalf("error creating organization %s: %s\n", name, err)
 	}
 
 	orgID := GetOrgID(p, name, t)
 
-	tag, err = p.Exec(CreateUserStmt, orgID, name+"email@email.com", "r", "r")
+	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "r", "r")
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
 	}
