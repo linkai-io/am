@@ -2,12 +2,17 @@ package am
 
 // Definition of roles
 const (
-	OwnerRole    = "role:owner"
-	AdminRole    = "role:administrator"
-	AuditorRole  = "role:auditor"
-	EditorRole   = "role:editor"
-	ReviewerRole = "role:reviewer"
+	SystemRole        = "role:system"
+	SystemSupportRole = "role:system_support"
+	OwnerRole         = "role:owner"
+	AdminRole         = "role:administrator"
+	AuditorRole       = "role:auditor"
+	EditorRole        = "role:editor"
+	ReviewerRole      = "role:reviewer"
 )
+
+// RNSystem System Resource Name for allowing system/support access to all services
+var RNSystem = "lrn:service:<.*>"
 
 // Role represents roles to have policies applied to them
 type Role struct {

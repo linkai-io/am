@@ -214,7 +214,7 @@ func TestGetGroups(t *testing.T) {
 	if _, _, err := service.Get(ctx, userContext, -1); err == nil {
 		t.Fatalf("expected error getting invalid group id\n")
 	} else {
-		if err != scangroup.ErrScanGroupNotExists {
+		if err != am.ErrScanGroupNotExists {
 			t.Fatalf("expected errscangroupnotexists got: %s\n", err)
 		}
 	}

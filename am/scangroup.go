@@ -55,7 +55,7 @@ type ScanGroupAddressHeader struct {
 
 // ScanGroupAddressFilter filters the results of an Addresses search
 type ScanGroupAddressFilter struct {
-	GroupID      int  `json:"group_id`
+	GroupID      int  `json:"group_id"`
 	WithIgnored  bool `json:"with_ignored"`
 	IgnoredValue bool `json:"ignored_value"`
 	WithDeleted  bool `json:"with_deleted"`

@@ -1,8 +1,12 @@
 package am
 
+import "context"
+
 // User represents a user of an organization that has subscribed to our service
 type User struct {
 	OrgID     int    `json:"org_id"`
+	OrgCID    string `json:"org_customer_id"`
+	UserCID   string `json:"user_customer_id"`
 	UserID    int    `json:"user_id"`
 	UserEmail string `json:"user_email"`
 	FirstName string `json:"first_name"`
@@ -45,6 +49,11 @@ func (u *UserContextData) GetTraceID() string {
 	return u.TraceID
 }
 
+// GetOrgCID returns this context's org customer id (facing)
+func (u *UserContextData) GetOrgCID() string {
+	return u.OrgCID
+}
+
 // GetOrgID returns this context's org id
 func (u *UserContextData) GetOrgID() int {
 	return u.OrgID
@@ -65,5 +74,18 @@ func (u *UserContextData) GetIPAddress() string {
 	return u.IPAddress
 }
 
+// UserFilter for limiting results from User List
+type UserFilter struct {
+	Start int
+	Limit int
+}
+
+// UserService for managing access to users
 type UserService interface {
+	Get(ctx context.Context, userContext UserContext, userID int) (*User, error)
+	GetByCUID(ctx context.Context, userContext UserContext, userCID string) (*User, error)
+	List(ctx context.Context, userContext UserContext, filter *UserFilter) ([]*User, error)
+	Delete(ctx context.Context, userContext UserContext, userID int) error
+	Create(ctx context.Context, userContext UserContext, user *User) (string, error)
+	Update(ctx context.Context, userContext UserContext, user *User) error
 }

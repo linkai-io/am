@@ -3,10 +3,9 @@ package protoc
 import (
 	"errors"
 
-	"gopkg.linkai.io/v1/repos/am/protocservices/prototypes"
-
 	context "golang.org/x/net/context"
 	"gopkg.linkai.io/v1/repos/am/am"
+	"gopkg.linkai.io/v1/repos/am/pkg/convert"
 	"gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
 )
 
@@ -25,7 +24,7 @@ func New(implementation am.ScanGroupService) *SGProtocService {
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.Get(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
+	oid, group, err := s.sgs.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (
 }
 
 func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.GetByName(ctx, userContextToDomain(in.UserContext), in.GroupName)
+	oid, group, err := s.sgs.GetByName(ctx, convert.UserContextToDomain(in.UserContext), in.GroupName)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +40,7 @@ func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequ
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
-	orgID, groupID, err := s.sgs.Create(ctx, userContextToDomain(in.UserContext), groupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), groupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +48,7 @@ func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequ
 }
 
 func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupRequest) (*scangroup.GroupUpdatedResponse, error) {
-	orgID, groupID, err := s.sgs.Update(ctx, userContextToDomain(in.UserContext), groupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), groupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupR
 }
 
 func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupRequest) (*scangroup.GroupDeletedResponse, error) {
-	orgID, groupID, err := s.sgs.Delete(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
+	orgID, groupID, err := s.sgs.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +64,7 @@ func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupR
 }
 
 func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.ScanGroup_GroupsServer) error {
-	oid, groups, err := s.sgs.Groups(stream.Context(), userContextToDomain(in.UserContext))
+	oid, groups, err := s.sgs.Groups(stream.Context(), convert.UserContextToDomain(in.UserContext))
 	if err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func (s *SGProtocService) Addresses(in *scangroup.AddressesRequest, stream scang
 		WithDeleted: in.WithDeleted, DeletedValue: in.DeletedValue,
 	}
 
-	oid, addresses, err := s.sgs.Addresses(stream.Context(), userContextToDomain(in.UserContext), filter)
+	oid, addresses, err := s.sgs.Addresses(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
 	if err != nil {
 		return err
 	}
@@ -109,7 +108,7 @@ func (s *SGProtocService) Addresses(in *scangroup.AddressesRequest, stream scang
 }
 
 func (s *SGProtocService) AddressCount(ctx context.Context, in *scangroup.CountAddressesRequest) (*scangroup.CountAddressesResponse, error) {
-	oid, count, err := s.sgs.AddressCount(ctx, userContextToDomain(in.UserContext), int(in.GroupID))
+	oid, count, err := s.sgs.AddressCount(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +119,7 @@ func (s *SGProtocService) AddAddresses(ctx context.Context, in *scangroup.AddAdd
 
 	header := &am.ScanGroupAddressHeader{GroupID: int(in.GroupID), AddedBy: in.AddedBy, Ignored: in.Ignored}
 
-	oid, err := s.sgs.AddAddresses(ctx, userContextToDomain(in.UserContext), header, in.Address)
+	oid, err := s.sgs.AddAddresses(ctx, convert.UserContextToDomain(in.UserContext), header, in.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -132,21 +131,11 @@ func (s *SGProtocService) UpdatedAddresses(ctx context.Context, in *scangroup.Up
 	var err error
 
 	if in.Delete {
-		oid, err = s.sgs.DeleteAddresses(ctx, userContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
+		oid, err = s.sgs.DeleteAddresses(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
 	} else {
-		oid, err = s.sgs.IgnoreAddresses(ctx, userContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
+		oid, err = s.sgs.IgnoreAddresses(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
 	}
 	return &scangroup.UpdateAddressesResponse{OrgID: int32(oid)}, err
-}
-
-func userContextToDomain(in *prototypes.UserContext) am.UserContext {
-	return &am.UserContextData{
-		TraceID:   in.TraceID,
-		OrgID:     int(in.OrgID),
-		UserID:    int(in.UserID),
-		Roles:     in.Roles,
-		IPAddress: in.IPAddress,
-	}
 }
 
 func addressToDomain(in *scangroup.Address) *am.ScanGroupAddress {

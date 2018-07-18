@@ -2,25 +2,12 @@ package scangroup
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/jackc/pgx"
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth"
-)
-
-var (
-	ErrEmptyDBConfig          = errors.New("empty database connection string")
-	ErrInvalidDBString        = errors.New("invalid db connection string")
-	ErrOrgIDMismatch          = errors.New("org id does not user context")
-	ErrScanGroupNotExists     = errors.New("scan group name does not exist")
-	ErrScanGroupExists        = errors.New("scan group name already exists")
-	ErrUserNotAuthorized      = errors.New("user is not authorized to perform this action")
-	ErrScanGroupVersionLinked = errors.New("scan group version is linked to this scan group")
-	ErrAddressCopyCount       = errors.New("copy count of addresses did not match expected amount")
-	ErrLimitTooLarge          = errors.New("requested number of records too large")
 )
 
 // Service for interfacing with postgresql/rds
@@ -55,12 +42,12 @@ func (s *Service) Init(config []byte) error {
 func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 	dbstring := string(config)
 	if dbstring == "" {
-		return nil, ErrEmptyDBConfig
+		return nil, am.ErrEmptyDBConfig
 	}
 
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
-		return nil, ErrInvalidDBString
+		return nil, am.ErrInvalidDBString
 	}
 
 	return &pgx.ConnPoolConfig{
@@ -91,7 +78,7 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 // Get returns a scan group identified by scangroup id
 func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID int) (oid int, group *am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	group = &am.ScanGroup{}
 
@@ -103,13 +90,13 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, nil, ErrScanGroupNotExists
+			return 0, nil, am.ErrScanGroupNotExists
 		}
 		return 0, nil, err
 	}
 
 	if group.OrgID != userContext.GetOrgID() {
-		return 0, nil, ErrOrgIDMismatch
+		return 0, nil, am.ErrOrgIDMismatch
 	}
 
 	return group.OrgID, group, err
@@ -118,7 +105,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 // GetByName returns the scan group identified by scangroup name
 func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	group = &am.ScanGroup{}
 
@@ -129,13 +116,13 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, nil, ErrScanGroupNotExists
+			return 0, nil, am.ErrScanGroupNotExists
 		}
 		return 0, nil, err
 	}
 
 	if group.OrgID != userContext.GetOrgID() {
-		return 0, nil, ErrOrgIDMismatch
+		return 0, nil, am.ErrOrgIDMismatch
 	}
 
 	return group.OrgID, group, err
@@ -144,7 +131,7 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 // Groups returns all groups for an organization.
 func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	rows, err := s.pool.Query("scanGroupsByOrgID", userContext.GetOrgID())
 	if err != nil {
@@ -160,7 +147,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 		}
 
 		if group.OrgID != userContext.GetOrgID() {
-			return 0, nil, ErrOrgIDMismatch
+			return 0, nil, am.ErrOrgIDMismatch
 		}
 
 		groups = append(groups, group)
@@ -171,7 +158,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 // Create a new scan group, returning orgID and groupID on success, error otherwise
 func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGroup *am.ScanGroup) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "create") {
-		return 0, 0, ErrUserNotAuthorized
+		return 0, 0, am.ErrUserNotAuthorized
 	}
 
 	err = s.pool.QueryRow("scanGroupIDByName", userContext.GetOrgID(), newGroup.GroupName).Scan(&oid, &gid)
@@ -180,7 +167,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 	}
 
 	if gid != 0 {
-		return 0, 0, ErrScanGroupExists
+		return 0, 0, am.ErrScanGroupExists
 	}
 
 	// creates and sets oid/gid
@@ -195,7 +182,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 // Update a scan group, returning orgID and groupID on success, error otherwise
 func (s *Service) Update(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
-		return 0, 0, ErrUserNotAuthorized
+		return 0, 0, am.ErrUserNotAuthorized
 	}
 
 	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedBy, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
@@ -209,7 +196,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 // Delete a scan group, also deletes all scan group versions which reference this scan group returning orgID and groupID on success, error otherwise
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "delete") {
-		return 0, 0, ErrUserNotAuthorized
+		return 0, 0, am.ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
 	var name string
@@ -245,12 +232,12 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 // Addresses returns all addresses for a scan group that match the supplied filter
 func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
-		return 0, nil, ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 
 	var rows *pgx.Rows
 	if filter.Limit > 10000 {
-		return 0, nil, ErrLimitTooLarge
+		return 0, nil, am.ErrLimitTooLarge
 	}
 
 	if filter.WithIgnored && filter.WithDeleted {
@@ -276,7 +263,7 @@ func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, fil
 		}
 
 		if a.OrgID != userContext.GetOrgID() {
-			return 0, nil, ErrOrgIDMismatch
+			return 0, nil, am.ErrOrgIDMismatch
 		}
 
 		addresses = append(addresses, a)
@@ -288,7 +275,7 @@ func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, fil
 // AddAddresses to the scan_group_addresses table for a scan_group
 func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, header *am.ScanGroupAddressHeader, addresses []string) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "create") {
-		return 0, ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
 
@@ -317,7 +304,7 @@ func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, 
 	}
 
 	if copyCount != numAddresses {
-		return 0, ErrAddressCopyCount
+		return 0, am.ErrAddressCopyCount
 	}
 
 	if _, err := tx.Exec(AddAddressesTempToAddress); err != nil {
@@ -331,7 +318,7 @@ func (s *Service) AddAddresses(ctx context.Context, userContext am.UserContext, 
 
 func (s *Service) IgnoreAddresses(ctx context.Context, userContext am.UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "update") {
-		return 0, ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
 
@@ -366,7 +353,7 @@ func (s *Service) IgnoreAddresses(ctx context.Context, userContext am.UserContex
 	}
 
 	if copyCount != numAddresses {
-		return 0, ErrAddressCopyCount
+		return 0, am.ErrAddressCopyCount
 	}
 
 	if _, err := tx.Exec(tempToTable); err != nil {
@@ -380,7 +367,7 @@ func (s *Service) IgnoreAddresses(ctx context.Context, userContext am.UserContex
 
 func (s *Service) DeleteAddresses(ctx context.Context, userContext am.UserContext, groupID int, addressIDs map[int64]bool) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "delete") {
-		return 0, ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
 
@@ -416,7 +403,7 @@ func (s *Service) DeleteAddresses(ctx context.Context, userContext am.UserContex
 	}
 
 	if copyCount != numAddresses {
-		return 0, ErrAddressCopyCount
+		return 0, am.ErrAddressCopyCount
 	}
 
 	deleteTime := fmt.Sprintf("_%d", time.Now().UnixNano())
@@ -431,7 +418,7 @@ func (s *Service) DeleteAddresses(ctx context.Context, userContext am.UserContex
 // AddressCount returns the number of addresses for a specified scan group by id
 func (s *Service) AddressCount(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAddresses, "read") {
-		return 0, 0, ErrUserNotAuthorized
+		return 0, 0, am.ErrUserNotAuthorized
 	}
 
 	err = s.pool.QueryRow("scanGroupAddressesCount", userContext.GetOrgID(), groupID).Scan(&count)
