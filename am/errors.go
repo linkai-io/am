@@ -17,4 +17,7 @@ var (
 
 	// Organization Specific
 	ErrOrganizationExists = errors.New("organization already exists")
+
+	// User Specific
+	ErrUserExists = errors.New("user already exists")
 )

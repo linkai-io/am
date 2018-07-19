@@ -2,6 +2,13 @@ package am
 
 import "context"
 
+const (
+	// RNUserSystem system only access
+	RNUserSystem = "lrn:service:user:feature:system"
+	// RNUserManage organization specific management
+	RNUserManage = "lrn:service:user:feature:manage"
+)
+
 // User represents a user of an organization that has subscribed to our service
 type User struct {
 	OrgID     int    `json:"org_id"`
@@ -11,6 +18,7 @@ type User struct {
 	UserEmail string `json:"user_email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+	Deleted   bool   `json:"deleted"`
 }
 
 // UserContext interface for passing contextual data about a request for tracking & auth
@@ -76,16 +84,22 @@ func (u *UserContextData) GetIPAddress() string {
 
 // UserFilter for limiting results from User List
 type UserFilter struct {
-	Start int
-	Limit int
+	Start             int   `json:"start"`
+	Limit             int   `json:"limit"`
+	OrgID             int   `json:"org_id"`
+	SinceCreationTime int64 `json:"since_creation_time"`
+	WithStatus        bool  `json:"with_status"`
+	StatusValue       bool  `json:"status_value"`
+	WithDeleted       bool  `json:"with_deleted"`
+	DeletedValue      bool  `json:"deleted_value"`
 }
 
 // UserService for managing access to users
 type UserService interface {
 	Get(ctx context.Context, userContext UserContext, userID int) (*User, error)
-	GetByCUID(ctx context.Context, userContext UserContext, userCID string) (*User, error)
+	GetByCID(ctx context.Context, userContext UserContext, userCID string) (*User, error)
 	List(ctx context.Context, userContext UserContext, filter *UserFilter) ([]*User, error)
-	Delete(ctx context.Context, userContext UserContext, userID int) error
 	Create(ctx context.Context, userContext UserContext, user *User) (string, error)
+	Delete(ctx context.Context, userContext UserContext, userID int) error
 	Update(ctx context.Context, userContext UserContext, user *User) error
 }

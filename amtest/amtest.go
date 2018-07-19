@@ -9,20 +9,21 @@ import (
 
 	"github.com/jackc/pgx"
 	uuid "github.com/satori/go.uuid"
+	"gopkg.linkai.io/v1/repos/am/mock"
 )
 
 const (
 	CreateOrgStmt = `insert into am.organizations (
 		organization_name, organization_custom_id, user_pool_id, identity_pool_id, 
 		owner_email, first_name, last_name, phone, country, state_prefecture, street, 
-		city, postal_code, creation_time, status_id, subscription_id
+		address1, address2, city, postal_code, creation_time, deleted, status_id, subscription_id
 	)
 	values 
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 1000, 1);`
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false, 1000, 1000);`
 
-	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name) values ($1, $2, $3, $4, $5)`
+	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, deleted) values ($1, $2, $3, $4, $5, false)`
 	DeleteOrgStmt  = "delete from am.organizations where organization_name=$1"
-	DeleteUserStmt = "delete from am.users where email=$1"
+	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
 	GetUserIDStmt  = "select user_id from am.users where organization_id=$1 and email=$2"
 )
@@ -33,6 +34,19 @@ func GenerateID(t *testing.T) string {
 		t.Fatalf("error generating ID: %s\n", err)
 	}
 	return id.String()
+}
+
+func CreateUserContext(orgID, userID int) *mock.UserContext {
+	userContext := &mock.UserContext{}
+	userContext.GetOrgIDFn = func() int {
+		return orgID
+	}
+
+	userContext.GetUserIDFn = func() int {
+		return userID
+	}
+
+	return userContext
 }
 
 func InitDB(t *testing.T) *pgx.ConnPool {
@@ -53,14 +67,17 @@ func InitDB(t *testing.T) *pgx.ConnPool {
 }
 
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
-	tag, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "identity_pool_id.blah", name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "sf", "90210", time.Now().UnixNano())
+	tag, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "identity_pool_id.blah",
+		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "", "",
+		"sf", "90210", time.Now().UnixNano())
+
 	if err != nil {
 		t.Fatalf("error creating organization %s: %s\n", name, err)
 	}
 
 	orgID := GetOrgID(p, name, t)
 
-	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "r", "r")
+	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last")
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
 	}
@@ -68,7 +85,7 @@ func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 }
 
 func DeleteOrg(p *pgx.ConnPool, name string, t *testing.T) {
-	p.Exec(DeleteUserStmt, name+"email@email.com")
+	p.Exec(DeleteUserStmt, name)
 	p.Exec(DeleteOrgStmt, name)
 }
 

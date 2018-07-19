@@ -147,7 +147,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	oid := 0
 	name := ""
 	cid := ""
-	err = tx.QueryRow("orgExists", org.OrgName, -1, "dummy").Scan(&oid, &name, &cid)
+	err = tx.QueryRow("orgExists", org.OrgName, -1, "").Scan(&oid, &name, &cid)
 	if err != nil && err != pgx.ErrNoRows {
 		return "", "", err
 	}

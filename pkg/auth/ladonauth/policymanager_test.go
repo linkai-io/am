@@ -136,7 +136,7 @@ func testCreatePolicy(description string, meta []byte, subjects, actions, resour
 	}
 }
 
-const defaultPolicyCount = 7
+const defaultPolicyCount = 9
 
 func TestGetAll(t *testing.T) {
 	start := 10

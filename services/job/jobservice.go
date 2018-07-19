@@ -9,9 +9,8 @@ import (
 // Service is the job service which manages both the backend data store
 // and the job state via a state manager
 type Service struct {
-	store  store.Storer              // store handles any job related data as well as lifecycle events pertinent to the front end
-	state  state.Stater              // state handles job lifecycle events and data
-	sgroup am.ScanGroupReaderService // for accessing the org/group/job input list
+	store store.Storer // store handles any job related data as well as lifecycle events pertinent to the front end
+	state state.Stater // state handles job lifecycle events and data
 }
 
 // New creates a new Job Service.
@@ -29,9 +28,6 @@ func (s *Service) Init(config []byte) error {
 		return err
 	}
 
-	if err := s.sgroup.Init(config); err != nil {
-		return err
-	}
 	return nil
 }
 
