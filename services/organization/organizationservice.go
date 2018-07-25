@@ -78,43 +78,43 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 }
 
 // Get organization by organization name, system user only.
-func (s *Service) Get(ctx context.Context, userContext am.UserContext, orgName string) (*am.Organization, error) {
+func (s *Service) Get(ctx context.Context, userContext am.UserContext, orgName string) (oid int, org *am.Organization, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByName", orgName))
 }
 
 // GetByCID organization by organization customer id
-func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, orgCID string) (*am.Organization, error) {
+func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, orgCID string) (oid int, org *am.Organization, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationManage, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByCID", orgCID))
 }
 
 // GetByID organization by ID, system user only.
-func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, orgID int) (*am.Organization, error) {
+func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, orgID int) (oid int, org *am.Organization, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByID", orgID))
 }
 
 // get executes the scan against the previously created queryrow
-func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (*am.Organization, error) {
-	org := &am.Organization{}
-	err := row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.IdentityPoolID, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
+func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, org *am.Organization, err error) {
+	org = &am.Organization{}
+	err = row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.IdentityPoolID, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
-	return org, err
+	return org.OrgID, org, err
 }
 
 // List all organizations that match the supplied filter, system users only.
-func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) ([]*am.Organization, error) {
+func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) (orgs []*am.Organization, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
 		return nil, am.ErrUserNotAuthorized
 	}
-	organizations := make([]*am.Organization, 0)
+	orgs = make([]*am.Organization, 0)
 
 	rows, err := s.pool.Query("orgList", filter.Start, filter.Limit)
 	if err != nil {
@@ -130,71 +130,143 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 			return nil, err
 		}
 
-		organizations = append(organizations, org)
+		orgs = append(orgs, org)
 	}
 
-	return organizations, nil
+	return orgs, nil
 }
 
 // Create a new organization, and intialize the user + roles, system users only.
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (orgCID string, userCID string, err error) {
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "create") {
-		return "", "", am.ErrUserNotAuthorized
+		return 0, 0, "", "", am.ErrUserNotAuthorized
 	}
 	tx, err := s.pool.Begin()
 	defer tx.Rollback()
 
-	oid := 0
 	name := ""
-	cid := ""
-	err = tx.QueryRow("orgExists", org.OrgName, -1, "").Scan(&oid, &name, &cid)
+	err = tx.QueryRow("orgExists", "", userContext.GetOrgID(), "").Scan(&oid, &name, &ocid)
 	if err != nil && err != pgx.ErrNoRows {
-		return "", "", err
+		return 0, 0, "", "", err
 	}
 
 	if oid != 0 {
-		return "", "", am.ErrOrganizationExists
+		return 0, 0, "", "", am.ErrOrganizationExists
 	}
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		return "", "", err
+		return 0, 0, "", "", err
 	}
-	orgCID = id.String()
+	ocid = id.String()
 
 	id, err = uuid.NewV4()
 	if err != nil {
-		return "", "", err
+		return 0, 0, "", "", err
 	}
-	userCID = id.String()
+	ucid = id.String()
 
 	now := time.Now().UnixNano()
-	if _, err = tx.Exec("orgCreate", org.OrgName, orgCID, org.UserPoolID, org.IdentityPoolID, org.OwnerEmail,
+	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.IdentityPoolID, org.OwnerEmail,
 		org.FirstName, org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
-		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, userCID, org.OwnerEmail,
-		org.FirstName, org.LastName); err != nil {
+		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, ucid, org.OwnerEmail,
+		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&uid); err != nil {
 
-		return "", "", err
+		return 0, 0, "", "", err
 	}
 
 	err = tx.Commit()
-	return orgCID, userCID, err
+	return oid, uid, ocid, ucid, err
 }
 
 // Update allows the customer to update the details of their organization
-func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *am.Organization) error {
+func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationManage, "update") {
-		return am.ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
-	return nil
+	tx, err := s.pool.Begin()
+	defer tx.Rollback()
+
+	oid, update, err := s.get(ctx, userContext, tx.QueryRow("orgByID", userContext.GetOrgID()))
+	if err != nil {
+		return 0, err
+	}
+
+	if org.UserPoolID != "" && org.UserPoolID != update.UserPoolID {
+		update.UserPoolID = org.UserPoolID
+	}
+
+	if org.IdentityPoolID != "" && org.IdentityPoolID != update.IdentityPoolID {
+		update.IdentityPoolID = org.IdentityPoolID
+	}
+
+	if org.OwnerEmail != "" && org.OwnerEmail != update.OwnerEmail {
+		update.OwnerEmail = org.OwnerEmail
+	}
+
+	if org.FirstName != "" && org.FirstName != update.FirstName {
+		update.FirstName = org.FirstName
+	}
+
+	if org.LastName != "" && org.LastName != update.LastName {
+		update.LastName = org.LastName
+	}
+
+	if org.Phone != "" && org.Phone != update.Phone {
+		update.Phone = org.Phone
+	}
+
+	if org.Country != "" && org.Country != update.Country {
+		update.Country = org.Country
+	}
+
+	if org.StatePrefecture != "" && org.StatePrefecture != update.StatePrefecture {
+		update.StatePrefecture = org.StatePrefecture
+	}
+
+	if org.Street != "" && org.Street != update.Street {
+		update.Street = org.Street
+	}
+
+	if org.Address1 != "" && org.Address1 != update.Address1 {
+		update.Address1 = org.Address1
+	}
+
+	if org.Address2 != "" && org.Address2 != update.Address2 {
+		update.Address2 = org.Address2
+	}
+
+	if org.City != "" && org.City != update.City {
+		update.City = org.City
+	}
+
+	if org.PostalCode != "" && org.PostalCode != update.PostalCode {
+		update.PostalCode = org.PostalCode
+	}
+
+	if org.StatusID != 0 && org.StatusID != update.StatusID {
+		update.StatusID = org.StatusID
+	}
+
+	if org.SubscriptionID != 0 && org.SubscriptionID != update.SubscriptionID {
+		update.SubscriptionID = org.SubscriptionID
+	}
+
+	_, err = tx.Exec("orgUpdate", update.UserPoolID, update.IdentityPoolID, update.OwnerEmail, update.FirstName,
+		update.LastName, update.Phone, update.Country, update.StatePrefecture, update.Street,
+		update.Address1, update.Address2, update.City, update.PostalCode, update.StatusID, update.SubscriptionID, oid)
+	if err != nil {
+		return 0, err
+	}
+	return oid, tx.Commit()
 }
 
 // Delete the organization
-func (s *Service) Delete(ctx context.Context, userContext am.UserContext, orgID int) error {
+func (s *Service) Delete(ctx context.Context, userContext am.UserContext, orgID int) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "delete") {
-		return am.ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
 
-	_, err := s.pool.Exec("orgDelete", orgID)
-	return err
+	err = s.pool.QueryRow("orgDelete", orgID).Scan(&oid)
+	return oid, err
 }

@@ -48,11 +48,11 @@ type OrgFilter struct {
 
 // OrganizationService manages access to organizations
 type OrganizationService interface {
-	Get(ctx context.Context, userContext UserContext, orgName string) (*Organization, error)
-	GetByCID(ctx context.Context, userContext UserContext, orgCID string) (*Organization, error)
-	GetByID(ctx context.Context, userContext UserContext, orgID int) (*Organization, error)
-	List(ctx context.Context, userContext UserContext, filter *OrgFilter) ([]*Organization, error)
-	Create(ctx context.Context, userContext UserContext, org *Organization) (orgCID string, userCID string, err error)
-	Update(ctx context.Context, userContext UserContext, org *Organization) error
-	Delete(ctx context.Context, userContext UserContext, orgID int) error
+	Get(ctx context.Context, userContext UserContext, orgName string) (oid int, org *Organization, err error)
+	GetByCID(ctx context.Context, userContext UserContext, orgCID string) (oid int, org *Organization, err error)
+	GetByID(ctx context.Context, userContext UserContext, orgID int) (oid int, org *Organization, err error)
+	List(ctx context.Context, userContext UserContext, filter *OrgFilter) (orgs []*Organization, err error)
+	Create(ctx context.Context, userContext UserContext, org *Organization) (oid int, uid int, ocid string, ucid string, err error)
+	Update(ctx context.Context, userContext UserContext, org *Organization) (oid int, err error)
+	Delete(ctx context.Context, userContext UserContext, orgID int) (oid int, err error)
 }

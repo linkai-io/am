@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"gopkg.linkai.io/v1/repos/am/am"
+
 	"github.com/jackc/pgx"
 	uuid "github.com/satori/go.uuid"
 	"gopkg.linkai.io/v1/repos/am/mock"
@@ -21,7 +23,7 @@ const (
 	values 
 		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false, 1000, 1000);`
 
-	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, deleted) values ($1, $2, $3, $4, $5, false)`
+	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
 	DeleteOrgStmt  = "delete from am.organizations where organization_name=$1"
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
@@ -77,7 +79,7 @@ func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 
 	orgID := GetOrgID(p, name, t)
 
-	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last")
+	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now().UnixNano())
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
 	}

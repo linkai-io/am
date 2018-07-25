@@ -2,6 +2,7 @@ package user_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -51,14 +52,14 @@ func TestCreate(t *testing.T) {
 	userContext := amtest.CreateUserContext(orgID, 1)
 	expected := &am.User{}
 
-	_, err := service.Create(ctx, userContext, expected)
+	_, _, _, err := service.Create(ctx, userContext, expected)
 	if err == nil {
 		t.Fatalf("did not get error creating invalid user\n")
 	}
 
 	expected = testCreateUser(orgName+"testuser@test.local", orgID)
 
-	ucid, err := service.Create(ctx, userContext, expected)
+	_, _, ucid, err := service.Create(ctx, userContext, expected)
 	if err != nil {
 		t.Fatalf("error creating organization: %s\n", err)
 	}
@@ -67,19 +68,144 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("invalid ucid returned, was empty\n")
 	}
 
-	returned, err := service.GetByCID(ctx, userContext, ucid)
+	_, returned, err := service.GetByCID(ctx, userContext, ucid)
 	if err != nil {
 		t.Fatalf("error getting user by cid: %s\n", err)
 	}
 
 	testCompareUsers(expected, returned, t)
 
-	returned, err = service.Get(ctx, userContext, returned.UserID)
+	_, returned, err = service.Get(ctx, userContext, returned.UserID)
 	if err != nil {
 		t.Fatalf("error getting user by id: %s\n", err)
 	}
 
 	testCompareUsers(expected, returned, t)
+
+	count := 20
+	users := make([]*am.User, count)
+	for i := 0; i < count; i++ {
+		users[i] = testCreateUser(fmt.Sprintf("%d%s@email.com", i, orgName), orgID)
+		users[i].OrgID, users[i].UserID, users[i].UserCID, err = service.Create(ctx, userContext, users[i])
+		if err != nil {
+			t.Fatalf("error creating user %d: %s\n", i, err)
+		}
+	}
+
+	filter := &am.UserFilter{Start: 0, Limit: 10}
+	_, userList, err := service.List(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("got error listing users: %s\n", err)
+	}
+	if len(userList) != 10 {
+		t.Fatalf("expected 10 users got: %d\n", len(userList))
+	}
+
+	for i := 0; i < 5; i++ {
+		if _, err := service.Delete(ctx, userContext, userList[i].UserID); err != nil {
+			t.Fatalf("error deleting user (%d): %s\n", userList[i].UserID, err)
+		}
+	}
+	filter.WithDeleted = true
+	filter.DeletedValue = true
+	_, userList, err = service.List(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("got error listing users: %s\n", err)
+	}
+	if len(userList) != 5 {
+		t.Fatalf("expected 5 deleted users users got: %d\n", len(userList))
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "userupdate"
+
+	auth := &mock.Authorizer{}
+	auth.IsAllowedFn = func(subject, resource, action string) error {
+		return nil
+	}
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
+		return nil
+	}
+
+	db := amtest.InitDB(t)
+	defer db.Close()
+
+	service := user.New(auth)
+	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+		t.Fatalf("error initalizing organization service: %s\n", err)
+	}
+
+	amtest.CreateOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+
+	userContext := amtest.CreateUserContext(orgID, 1)
+	expected := testCreateUser(orgName+"testuser@test.local", orgID)
+
+	_, _, ucid, err := service.Create(ctx, userContext, expected)
+	if err != nil {
+		t.Fatalf("error creating organization: %s\n", err)
+	}
+
+	if ucid == "" {
+		t.Fatalf("invalid ucid returned, was empty\n")
+	}
+
+	_, returned, err := service.GetByCID(ctx, userContext, ucid)
+	if err != nil {
+		t.Fatalf("error getting user by cid: %s\n", err)
+	}
+
+	update := &am.User{
+		FirstName: "first1",
+		LastName:  "last1",
+	}
+
+	if _, _, err := service.Update(ctx, userContext, update, returned.UserID); err != nil {
+		t.Fatalf("error updating user: %s\n", err)
+	}
+
+	_, new, err := service.Get(ctx, userContext, returned.UserID)
+	if err != nil {
+		t.Fatalf("error getting user after update: %s\n", err)
+	}
+
+	if new.FirstName != "first1" {
+		t.Fatalf("expected name to be updated to first1 got: %s\n", new.FirstName)
+	}
+
+	if new.LastName != "last1" {
+		t.Fatalf("expected name to be updated to last1 got: %s\n", new.FirstName)
+	}
+	//manually update returned names, so we can compare everything else:
+	returned.FirstName = new.FirstName
+	returned.LastName = new.LastName
+	testCompareUsers(returned, new, t)
+
+	// test updating status only:
+	if _, _, err := service.Update(ctx, userContext, &am.User{StatusID: 1000}, new.UserID); err != nil {
+		t.Fatalf("error updating statusid: %s\n", err)
+	}
+
+	_, statusUser, err := service.Get(ctx, userContext, returned.UserID)
+	if err != nil {
+		t.Fatalf("error getting user after update: %s\n", err)
+	}
+
+	if statusUser.FirstName != "first1" {
+		t.Fatalf("expected name to be updated to first1 got: %s\n", statusUser.FirstName)
+	}
+
+	if statusUser.LastName != "last1" {
+		t.Fatalf("expected name to be updated to last1 got: %s\n", statusUser.FirstName)
+	}
+
+	if statusUser.StatusID != 1000 {
+		t.Fatalf("expected status id to be updated to 1000 got: %d\n", statusUser.StatusID)
+	}
 }
 
 func testCompareUsers(e, r *am.User, t *testing.T) {

@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"log"
+	"time"
 
 	"github.com/jackc/pgx"
 	uuid "github.com/satori/go.uuid"
@@ -61,7 +61,6 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
-			log.Printf("%s\n", k)
 			return err
 		}
 	}
@@ -77,107 +76,145 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 }
 
 // Get organization by organization name, system user only.
-func (s *Service) Get(ctx context.Context, userContext am.UserContext, userID int) (*am.User, error) {
+func (s *Service) Get(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("userByID", userContext.GetOrgID(), userID))
 }
 
 // GetByCID user by user custom id
-func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, userCID string) (*am.User, error) {
+func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, userCID string) (oid int, user *am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("userByCID", userContext.GetOrgID(), userCID))
 }
 
 // get executes the scan against the previously created queryrow
-func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (*am.User, error) {
-	user := &am.User{}
-	err := row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.Deleted)
-	return user, err
+func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, user *am.User, err error) {
+	user = &am.User{}
+	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &user.CreationTime, &user.Deleted)
+	return user.OrgID, user, err
 }
 
 // List all users that match the supplied filter
-func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) ([]*am.User, error) {
+func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) (oid int, users []*am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
-		return nil, am.ErrUserNotAuthorized
+		return 0, nil, am.ErrUserNotAuthorized
 	}
-	users := make([]*am.User, 0)
+	var rows *pgx.Rows
 
-	rows, err := s.pool.Query("userList", userContext.GetOrgID(), filter.Start, filter.Limit)
+	users = make([]*am.User, 0)
+	oid = userContext.GetOrgID()
+
+	if filter.WithDeleted {
+		rows, err = s.pool.Query("userListWithDelete", oid, filter.DeletedValue, filter.Start, filter.Limit)
+	} else {
+		rows, err = s.pool.Query("userList", oid, filter.Start, filter.Limit)
+	}
+
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	defer rows.Close()
 
 	for i := 0; rows.Next(); i++ {
 		user := &am.User{}
 
-		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.Deleted); err != nil {
-			return nil, err
+		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &user.CreationTime, &user.Deleted); err != nil {
+			return 0, nil, err
 		}
 
-		if user.OrgID != userContext.GetOrgID() {
-			return nil, am.ErrOrgIDMismatch
+		if user.OrgID != oid {
+			return 0, nil, am.ErrOrgIDMismatch
 		}
 
 		users = append(users, user)
 	}
 
-	return users, nil
+	return oid, users, nil
 }
 
-// Create a new user.
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *am.User) (userCID string, err error) {
+// Create a new user, set status to awaiting activation.
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *am.User) (oid int, uid int, ucid string, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "create") {
-		return "", am.ErrUserNotAuthorized
+		return 0, 0, "", am.ErrUserNotAuthorized
 	}
+	oid = userContext.GetOrgID()
+
 	tx, err := s.pool.Begin()
 	defer tx.Rollback()
 
-	oid := 0
-	uid := 0
-	cid := ""
-	err = tx.QueryRow("userExists", user.OrgID, -1, user.UserEmail).Scan(&oid, &uid, &cid)
+	err = tx.QueryRow("userExists", oid, -1, user.UserEmail).Scan(&oid, &uid, &ucid)
 	if err != nil && err != pgx.ErrNoRows {
-		return "", err
+		return 0, 0, "", err
 	}
 
 	if uid != 0 {
-		return "", am.ErrUserExists
+		return 0, 0, "", am.ErrUserExists
 	}
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		return "", err
+		return 0, 0, "", err
 	}
-	userCID = id.String()
+	ucid = id.String()
+	now := time.Now().UnixNano()
 
-	if _, err = tx.Exec("userCreate", user.OrgID, userCID, user.UserEmail, user.FirstName, user.LastName); err != nil {
-
-		return "", err
+	row := tx.QueryRow("userCreate", oid, ucid, user.UserEmail, user.FirstName, user.LastName, am.UserStatusAwaitActivation, now)
+	if err := row.Scan(&oid, &uid, &ucid); err != nil {
+		return 0, 0, "", err
 	}
 
-	err = tx.Commit()
-	return userCID, err
+	return oid, uid, ucid, tx.Commit()
 }
 
-// Update allows the customer to update the details of their organization
-func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *am.User) error {
+// Update allows the customer to update the details of their user
+func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *am.User, userID int) (oid int, uid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "update") {
-		return am.ErrUserNotAuthorized
+		return 0, 0, am.ErrUserNotAuthorized
 	}
-	return nil
+	var tx *pgx.Tx
+
+	tx, err = s.pool.Begin()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+
+	oid, current, err := s.get(ctx, userContext, tx.QueryRow("userByID", userContext.GetOrgID(), userID))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	fname := current.FirstName
+	if user.FirstName != "" && user.FirstName != current.FirstName {
+		fname = user.FirstName
+	}
+
+	lname := current.LastName
+	if user.LastName != "" && user.LastName != current.LastName {
+		lname = user.LastName
+	}
+
+	userStatusID := current.StatusID
+	if user.StatusID != 0 && user.StatusID != current.StatusID {
+		userStatusID = user.StatusID
+	}
+	row := tx.QueryRow("userUpdate", fname, lname, userStatusID, userContext.GetOrgID(), userID)
+	if err := row.Scan(&oid, &uid); err != nil {
+		return 0, 0, err
+	}
+	return oid, uid, tx.Commit()
 }
 
 // Delete the organization
-func (s *Service) Delete(ctx context.Context, userContext am.UserContext, userID int) error {
+func (s *Service) Delete(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "delete") {
-		return am.ErrUserNotAuthorized
+		return 0, am.ErrUserNotAuthorized
 	}
 
-	_, err := s.pool.Exec("userDelete", userID)
-	return err
+	err = s.pool.QueryRow("userDelete", userContext.GetOrgID(), userID).Scan(&oid)
+	return oid, err
 }

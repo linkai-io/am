@@ -9,16 +9,24 @@ const (
 	RNUserManage = "lrn:service:user:feature:manage"
 )
 
+const (
+	UserStatusDisabled        = 1
+	UserStatusAwaitActivation = 100
+	UserStatusActive          = 1000
+)
+
 // User represents a user of an organization that has subscribed to our service
 type User struct {
-	OrgID     int    `json:"org_id"`
-	OrgCID    string `json:"org_customer_id"`
-	UserCID   string `json:"user_customer_id"`
-	UserID    int    `json:"user_id"`
-	UserEmail string `json:"user_email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Deleted   bool   `json:"deleted"`
+	OrgID        int    `json:"org_id"`
+	OrgCID       string `json:"org_customer_id"`
+	UserCID      string `json:"user_customer_id"`
+	UserID       int    `json:"user_id"`
+	UserEmail    string `json:"user_email"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	StatusID     int    `json:"status_id"`
+	CreationTime int64  `json:"creation_time"`
+	Deleted      bool   `json:"deleted"`
 }
 
 // UserContext interface for passing contextual data about a request for tracking & auth
@@ -89,17 +97,17 @@ type UserFilter struct {
 	OrgID             int   `json:"org_id"`
 	SinceCreationTime int64 `json:"since_creation_time"`
 	WithStatus        bool  `json:"with_status"`
-	StatusValue       bool  `json:"status_value"`
+	StatusValue       int   `json:"status_value"`
 	WithDeleted       bool  `json:"with_deleted"`
 	DeletedValue      bool  `json:"deleted_value"`
 }
 
 // UserService for managing access to users
 type UserService interface {
-	Get(ctx context.Context, userContext UserContext, userID int) (*User, error)
-	GetByCID(ctx context.Context, userContext UserContext, userCID string) (*User, error)
-	List(ctx context.Context, userContext UserContext, filter *UserFilter) ([]*User, error)
-	Create(ctx context.Context, userContext UserContext, user *User) (string, error)
-	Delete(ctx context.Context, userContext UserContext, userID int) error
-	Update(ctx context.Context, userContext UserContext, user *User) error
+	Get(ctx context.Context, userContext UserContext, userID int) (oid int, user *User, err error)
+	GetByCID(ctx context.Context, userContext UserContext, userCID string) (oid int, user *User, err error)
+	List(ctx context.Context, userContext UserContext, filter *UserFilter) (oid int, users []*User, err error)
+	Create(ctx context.Context, userContext UserContext, user *User) (oid int, uid int, ucid string, err error)
+	Update(ctx context.Context, userContext UserContext, user *User, userID int) (oid int, uid int, err error)
+	Delete(ctx context.Context, userContext UserContext, userID int) (oid int, err error)
 }

@@ -19,16 +19,17 @@ func New(implementation am.OrganizationService) *OrgProtocService {
 func (o *OrgProtocService) Get(ctx context.Context, in *organization.OrgRequest) (*organization.OrgResponse, error) {
 	var err error
 	var org *am.Organization
+	var oid int
 
 	switch in.By {
 	case organization.OrgRequest_ORGNAME:
-		org, err = o.orgservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.OrgName)
+		oid, org, err = o.orgservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.OrgName)
 	case organization.OrgRequest_ORGCID:
-		org, err = o.orgservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgCID)
+		oid, org, err = o.orgservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgCID)
 	case organization.OrgRequest_ORGID:
-		org, err = o.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
+		oid, org, err = o.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
 	}
-	return &organization.OrgResponse{Org: convert.DomainToOrganization(org)}, err
+	return &organization.OrgResponse{OrgID: int32(oid), Org: convert.DomainToOrganization(org)}, err
 }
 
 func (o *OrgProtocService) List(in *organization.OrgListRequest, stream organization.Organization_ListServer) error {
@@ -47,26 +48,26 @@ func (o *OrgProtocService) List(in *organization.OrgListRequest, stream organiza
 }
 
 func (o *OrgProtocService) Create(ctx context.Context, in *organization.CreateOrgRequest) (*organization.OrgCreatedResponse, error) {
-	orgCID, userCID, err := o.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+	orgID, userID, orgCID, userCID, err := o.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
 	if err != nil {
 		return nil, err
 	}
-	return &organization.OrgCreatedResponse{OrgCID: orgCID, UserCID: userCID}, nil
+	return &organization.OrgCreatedResponse{OrgID: int32(orgID), UserID: int32(userID), OrgCID: orgCID, UserCID: userCID}, nil
 }
 
 func (o *OrgProtocService) Update(ctx context.Context, in *organization.UpdateOrgRequest) (*organization.OrgUpdatedResponse, error) {
-	err := o.orgservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+	oid, err := o.orgservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
 	if err != nil {
 		return nil, err
 	}
 	// TODO: Fix get orgid
-	return &organization.OrgUpdatedResponse{OrgID: in.Org.OrgID}, nil
+	return &organization.OrgUpdatedResponse{OrgID: int32(oid)}, nil
 }
 
 func (o *OrgProtocService) Delete(ctx context.Context, in *organization.DeleteOrgRequest) (*organization.OrgDeletedResponse, error) {
-	err := o.orgservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
+	oid, err := o.orgservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
 	if err != nil {
 		return nil, err
 	}
-	return &organization.OrgDeletedResponse{OrgID: in.OrgID}, nil
+	return &organization.OrgDeletedResponse{OrgID: int32(oid)}, nil
 }
