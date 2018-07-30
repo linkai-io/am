@@ -20,7 +20,7 @@ func New() *Client {
 }
 
 func (c *Client) Init(config []byte) error {
-	conn, err := grpc.Dial(string(config))
+	conn, err := grpc.Dial(string(config), grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (c *Client) GetByCID(ctx context.Context, userContext am.UserContext, orgCI
 
 func (c *Client) GetByID(ctx context.Context, userContext am.UserContext, orgID int) (oid int, org *am.Organization, err error) {
 	in := &service.OrgRequest{
-		By:          service.OrgRequest_ORGCID,
+		By:          service.OrgRequest_ORGID,
 		UserContext: convert.DomainToUserContext(userContext),
 		OrgID:       int32(orgID),
 	}

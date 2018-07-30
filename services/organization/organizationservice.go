@@ -13,14 +13,15 @@ import (
 
 // Service for interfacing with postgresql/rds
 type Service struct {
-	pool       *pgx.ConnPool
-	config     *pgx.ConnPoolConfig
-	authorizer auth.Authorizer
+	pool        *pgx.ConnPool
+	config      *pgx.ConnPoolConfig
+	authorizer  auth.Authorizer
+	roleManager auth.RoleManager
 }
 
-// New returns an empty Service
-func New(authorizer auth.Authorizer) *Service {
-	return &Service{authorizer: authorizer}
+// New returns an Organization Service with a role manager and authorizer
+func New(roleManager auth.RoleManager, authorizer auth.Authorizer) *Service {
+	return &Service{authorizer: authorizer, roleManager: roleManager}
 }
 
 // Init by parsing the config and initializing the database pool
@@ -145,7 +146,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	defer tx.Rollback()
 
 	name := ""
-	err = tx.QueryRow("orgExists", "", userContext.GetOrgID(), "").Scan(&oid, &name, &ocid)
+	err = tx.QueryRow("orgExists", org.OrgName, -1, "").Scan(&oid, &name, &ocid)
 	if err != nil && err != pgx.ErrNoRows {
 		return 0, 0, "", "", err
 	}
@@ -170,13 +171,49 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.IdentityPoolID, org.OwnerEmail,
 		org.FirstName, org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
 		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, ucid, org.OwnerEmail,
-		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&uid); err != nil {
+		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
 
 		return 0, 0, "", "", err
 	}
 
 	err = tx.Commit()
+	if err != nil {
+		return 0, 0, "", "", err
+	}
+
+	err = s.addRoles(oid, uid)
+	if err != nil {
+		// must clean up this org since we committed the transaction
+		s.forceDelete(ctx, oid)
+		return 0, 0, "", "", err
+	}
+
 	return oid, uid, ocid, ucid, err
+}
+
+// addRoles will add each role necessary for the organization.
+// We extract the ownerRoleID and add the supplied userID as a
+// member to only the owner role.
+func (s *Service) addRoles(orgID, userID int) error {
+	ownerRoleID := ""
+	for _, roleName := range am.DefaultOrgRoles {
+
+		role := &am.Role{
+			OrgID:    orgID,
+			RoleName: roleName,
+		}
+
+		roleID, err := s.roleManager.CreateRole(role)
+		if err != nil {
+			return err
+		}
+
+		if roleName == am.OwnerRole {
+			ownerRoleID = roleID
+		}
+	}
+
+	return s.roleManager.AddMembers(orgID, ownerRoleID, []int{userID})
 }
 
 // Update allows the customer to update the details of their organization
@@ -269,4 +306,13 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, orgID 
 
 	err = s.pool.QueryRow("orgDelete", orgID).Scan(&oid)
 	return oid, err
+}
+
+// forceDelete must only be called when a critical error occurs while
+// creating an organization. While most failures will be caught
+// in the transaction rollback, adding roles can not, so we must
+// be able to remove the faulty organization.
+func (s *Service) forceDelete(ctx context.Context, orgID int) error {
+	_, err := s.pool.Exec("orgForceDelete", orgID)
+	return err
 }

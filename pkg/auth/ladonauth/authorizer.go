@@ -55,7 +55,7 @@ func (a *LadonAuthorizer) IsUserAllowed(orgID, userID int, resource, action stri
 	}
 
 	for _, role := range memberRoles {
-		err := a.IsAllowed(role.RoleName, resource, action)
+		err = a.IsAllowed(role.RoleName, resource, action)
 		if err == nil {
 			return nil
 		}

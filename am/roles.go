@@ -11,6 +11,9 @@ const (
 	ReviewerRole      = "role:reviewer"
 )
 
+// DefaultOrgRoles is a slice of all roles an organiation has
+var DefaultOrgRoles = []string{OwnerRole, AdminRole, AuditorRole, EditorRole, ReviewerRole}
+
 // RNSystem System Resource Name for allowing system/support access to all services
 var RNSystem = "lrn:service:<.*>"
 

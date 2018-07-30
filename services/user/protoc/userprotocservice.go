@@ -41,7 +41,6 @@ func (u *UserProtocService) List(in *user.UserListRequest, stream user.UserServi
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -58,7 +57,6 @@ func (u *UserProtocService) Update(ctx context.Context, in *user.UpdateUserReque
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Fix get orgid
 	return &user.UserUpdatedResponse{OrgID: int32(oid), UserID: int32(uid)}, nil
 }
 

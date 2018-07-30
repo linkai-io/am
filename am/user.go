@@ -13,6 +13,7 @@ const (
 	UserStatusDisabled        = 1
 	UserStatusAwaitActivation = 100
 	UserStatusActive          = 1000
+	UserStatusSystem          = 9999
 )
 
 // User represents a user of an organization that has subscribed to our service

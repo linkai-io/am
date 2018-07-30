@@ -9,6 +9,20 @@ const (
 	RNOrganizationManage = "lrn:service:organization:feature:manage"
 )
 
+const (
+	OrgStatusDisabledPendingPayment = 1
+	OrgStatusDisabledClosed         = 2
+	OrgStatusDisabledLocked         = 3
+	OrgStatusAwaitActivation        = 100
+	OrgStatusActive                 = 1000
+
+	SubscriptionPending    = 1
+	SubscriptionOneTime    = 10
+	SubscriptionMonthly    = 100
+	SubscriptionEnterprise = 1000
+	SubscriptionSystem     = 9999
+)
+
 // Organization represents an organization that has subscribed to our service
 type Organization struct {
 	OrgID           int    `json:"org_id"`

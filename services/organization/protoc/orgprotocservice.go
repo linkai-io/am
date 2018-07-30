@@ -29,6 +29,9 @@ func (o *OrgProtocService) Get(ctx context.Context, in *organization.OrgRequest)
 	case organization.OrgRequest_ORGID:
 		oid, org, err = o.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
 	}
+	if err != nil {
+		return nil, err
+	}
 	return &organization.OrgResponse{OrgID: int32(oid), Org: convert.DomainToOrganization(org)}, err
 }
 
@@ -60,7 +63,6 @@ func (o *OrgProtocService) Update(ctx context.Context, in *organization.UpdateOr
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Fix get orgid
 	return &organization.OrgUpdatedResponse{OrgID: int32(oid)}, nil
 }
 

@@ -45,12 +45,13 @@ var queryMap = map[string]string{
 						organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted
 					) 
 					values
-						( (select org.organization_id from org), $19, $20, $21, $22, $23, $24, false) returning user_id;`,
+						( (select org.organization_id from org), $19, $20, $21, $22, $23, $24, false) returning organization_id,user_id;`,
 
 	// note this will call owner_user trigger to update am.users to keep in sync if email/first/last name changes.
 	"orgUpdate": `update am.organizations set user_pool_id=$1, identity_pool_id=$2, owner_email=$3, first_name=$4, 
 			last_name=$5, phone=$6, country=$7, state_prefecture=$8, street=$9, address1=$10, address2=$11,
 			city=$12, postal_code=$13, status_id=$14, subscription_id=$15 where organization_id=$16`,
 
-	"orgDelete": `update am.organizations set deleted=true, status_id=1 where organization_id=$1 returning organization_id`,
+	"orgDelete":      `update am.organizations set deleted=true, status_id=1 where organization_id=$1 returning organization_id`,
+	"orgForceDelete": `select am.delete_org($1);`,
 }
