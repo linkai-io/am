@@ -18,11 +18,11 @@ import (
 var dbstring string
 
 func init() {
-	dbstring = os.Getenv("TEST_GOOSE_AM_DB_STRING")
+	dbstring = os.Getenv("ORGSERVICE_DB_STRING")
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -31,7 +31,7 @@ func main() {
 	roleManager := ladonauth.NewRoleManager(db, "pgx")
 	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
 
-	service := organization.New(authorizer)
+	service := organization.New(roleManager, authorizer)
 	if err := service.Init([]byte(dbstring)); err != nil {
 		log.Fatalf("error initialzing service: %s\n", err)
 	}

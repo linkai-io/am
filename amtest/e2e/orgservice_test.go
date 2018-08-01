@@ -23,7 +23,7 @@ import (
 
 var s *grpc.Server
 var orgServerAddr = ":50052"
-var dbstring = os.Getenv("TEST_GOOSE_AM_DB_STRING")
+var dbstring = os.Getenv("ORGSERVICE_DB_STRING")
 var roleManager *ladonauth.LadonRoleManager
 
 func TestOrganization(t *testing.T) {

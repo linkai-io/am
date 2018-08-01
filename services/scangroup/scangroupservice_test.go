@@ -16,6 +16,8 @@ import (
 	"gopkg.linkai.io/v1/repos/am/services/scangroup"
 )
 
+var dbstring = os.Getenv("SCANGROUPSERVICE_DB_STRING")
+
 func TestNew(t *testing.T) {
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
@@ -23,7 +25,7 @@ func TestNew(t *testing.T) {
 	}
 	service := scangroup.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 }
@@ -43,7 +45,7 @@ func TestCreate(t *testing.T) {
 	}
 	service := scangroup.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
@@ -162,7 +164,7 @@ func TestGetGroups(t *testing.T) {
 	}
 	service := scangroup.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
@@ -235,7 +237,7 @@ func TestAddAddresses(t *testing.T) {
 	}
 	service := scangroup.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
@@ -345,7 +347,7 @@ func TestUpdateAddresses(t *testing.T) {
 	}
 	service := scangroup.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 

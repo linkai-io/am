@@ -14,12 +14,14 @@ import (
 	"gopkg.linkai.io/v1/repos/am/services/organization"
 )
 
+var dbstring = os.Getenv("ORGSERVICE_DB_STRING")
+
 func TestNew(t *testing.T) {
 	auth := amtest.MockAuthorizer()
 	roleManager := amtest.MockRoleManager()
 	service := organization.New(roleManager, auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 }
@@ -36,7 +38,7 @@ func TestCreate(t *testing.T) {
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 
@@ -109,7 +111,7 @@ func TestCreateRoleFail(t *testing.T) {
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 
@@ -139,7 +141,7 @@ func TestDelete(t *testing.T) {
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 
@@ -174,7 +176,7 @@ func TestUpdate(t *testing.T) {
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 

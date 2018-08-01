@@ -12,6 +12,8 @@ import (
 	"gopkg.linkai.io/v1/repos/am/services/user"
 )
 
+var dbstring = os.Getenv("USERSERVICE_DB_STRING")
+
 func TestNew(t *testing.T) {
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
@@ -19,7 +21,7 @@ func TestNew(t *testing.T) {
 	}
 	service := user.New(auth)
 
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 }
@@ -41,7 +43,7 @@ func TestCreate(t *testing.T) {
 	defer db.Close()
 
 	service := user.New(auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 
@@ -134,7 +136,7 @@ func TestUpdate(t *testing.T) {
 	defer db.Close()
 
 	service := user.New(auth)
-	if err := service.Init([]byte(os.Getenv("TEST_GOOSE_AM_DB_STRING"))); err != nil {
+	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 

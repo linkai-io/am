@@ -18,7 +18,7 @@ import (
 var dbstring string
 
 func init() {
-	dbstring = os.Getenv("TEST_GOOSE_AM_DB_STRING")
+	dbstring = os.Getenv("SCANGROUPSERVICE_DB_STRING")
 }
 
 func main() {

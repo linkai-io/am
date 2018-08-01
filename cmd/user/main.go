@@ -18,11 +18,11 @@ import (
 var dbstring string
 
 func init() {
-	dbstring = os.Getenv("TEST_GOOSE_AM_DB_STRING")
+	dbstring = os.Getenv("USERSERVICE_DB_STRING")
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
