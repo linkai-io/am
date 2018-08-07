@@ -5,5 +5,19 @@ protoc:
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/organization/organizationservicer.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/user/userservicer.proto
 
+orgservice:
+	docker build -t linkai_orgservice -f Dockerfile.orgservice .
+
+userservice:
+	docker build -t linkai_userservice -f Dockerfile.userservice .
+	
+jobservice:
+	docker build -t linkai_jobservice -f Dockerfile.jobservice .
+	
+scangroupservice:
+	docker build -t linkai_scangroupservice -f Dockerfile.scangroupservice .
+
+services: orgservice userservice scangroupservice
+
 test:
 	go test -v ./...

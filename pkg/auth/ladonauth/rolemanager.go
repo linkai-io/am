@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
-	uuid "github.com/satori/go.uuid"
 	"gopkg.linkai.io/v1/repos/am/am"
 )
 

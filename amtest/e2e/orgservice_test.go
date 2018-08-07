@@ -22,14 +22,14 @@ import (
 )
 
 var s *grpc.Server
-var orgServerAddr = ":50052"
+var orgServerAddr = ":50051"
 var dbstring = os.Getenv("ORGSERVICE_DB_STRING")
 var roleManager *ladonauth.LadonRoleManager
 
 func TestOrganization(t *testing.T) {
 	orgName := "orge2etest"
 	db := initDB()
-	go organizationServer(db, t)
+	//go organizationServer(db, t)
 	time.Sleep(1 * time.Second)
 	c := client.New()
 	if err := c.Init([]byte(orgServerAddr)); err != nil {
@@ -99,7 +99,7 @@ func TestOrganization(t *testing.T) {
 		t.Fatalf("error deleting org: %s\n", err)
 	}
 
-	s.Stop()
+	//s.Stop()
 
 }
 

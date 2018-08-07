@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"gopkg.linkai.io/v1/repos/libraries/redisclient"
+	"gopkg.linkai.io/v1/repos/am/pkg/redisclient"
 )
 
 var (

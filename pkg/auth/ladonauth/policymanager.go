@@ -172,9 +172,8 @@ func (s *LadonPolicyManager) create(policy ladon.Policy, tx *pgx.Tx) (err error)
 	return nil
 }
 
-// FindRequestCandidates returns policies that potentially match a ladon.Request
-func (s *LadonPolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies, error) {
-	rows, err := s.db.Query(s.stmts.QueryRequestCandidates, r.Subject, r.Subject)
+func (s *LadonPolicyManager) findPolicies(query string, args ...interface{}) (ladon.Policies, error) {
+	rows, err := s.db.Query(query, args...)
 	if err == sql.ErrNoRows {
 		return nil, ladon.NewErrResourceNotFound(err)
 	} else if err != nil {
@@ -183,6 +182,19 @@ func (s *LadonPolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Poli
 	defer rows.Close()
 
 	return scanRows(rows)
+}
+
+// FindRequestCandidates returns policies that potentially match a ladon.Request
+func (s *LadonPolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies, error) {
+	return s.FindPoliciesForSubject(r.Subject)
+}
+
+func (s *LadonPolicyManager) FindPoliciesForSubject(subject string) (ladon.Policies, error) {
+	return s.findPolicies(s.stmts.QueryPoliciesForSubject, subject, subject)
+}
+
+func (s *LadonPolicyManager) FindPoliciesForResource(resource string) (ladon.Policies, error) {
+	return s.findPolicies(s.stmts.QueryPoliciesForResource, resource, resource)
 }
 
 func scanRows(rows *pgx.Rows) (ladon.Policies, error) {

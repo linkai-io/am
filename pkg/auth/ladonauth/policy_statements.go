@@ -10,6 +10,8 @@ type PolicyStatements struct {
 	QueryInsertPolicySubjects     string
 	QueryInsertPolicySubjectsRel  string
 	QueryRequestCandidates        string
+	QueryPoliciesForSubject       string
+	QueryPoliciesForResource      string
 	// internal queries
 	GetQuery     string
 	GetAllQuery  string
@@ -81,6 +83,50 @@ LEFT JOIN am.ladon_subject as subject ON rs.subject = subject.id
 LEFT JOIN am.ladon_action as action ON ra.action = action.id
 LEFT JOIN am.ladon_resource as resource ON rr.resource = resource.id`
 		stmts.DeletePolicy = "DELETE FROM am.ladon_policy WHERE id=$1"
+		stmts.QueryPoliciesForSubject = `
+		SELECT
+			p.id,
+			p.effect,
+			p.conditions,
+			p.description,
+			p.meta,
+			subject.template AS subject,
+			resource.template AS resource,
+			action.template AS action
+		FROM
+			am.ladon_policy AS p
+			INNER JOIN am.ladon_policy_subject_rel AS rs ON rs.policy = p.id
+			LEFT JOIN am.ladon_policy_action_rel AS ra ON ra.policy = p.id
+			LEFT JOIN am.ladon_policy_resource_rel AS rr ON rr.policy = p.id
+			INNER JOIN am.ladon_subject AS subject ON rs.subject = subject.id
+			LEFT JOIN am.ladon_action AS action ON ra.action = action.id
+			LEFT JOIN am.ladon_resource AS resource ON rr.resource = resource.id
+		WHERE
+			(subject.has_regex IS NOT TRUE AND subject.template = $1)
+			OR
+			(subject.has_regex IS TRUE AND $2 ~ subject.compiled)`
+		stmts.QueryPoliciesForResource = `
+		SELECT
+			p.id,
+			p.effect,
+			p.conditions,
+			p.description,
+			p.meta,
+			subject.template AS subject,
+			resource.template AS resource,
+			action.template AS action
+		FROM
+		am.ladon_policy AS p
+			INNER JOIN am.ladon_policy_subject_rel AS rs ON rs.policy = p.id
+			LEFT JOIN am.ladon_policy_action_rel AS ra ON ra.policy = p.id
+			LEFT JOIN am.ladon_policy_resource_rel AS rr ON rr.policy = p.id
+			INNER JOIN am.ladon_subject AS subject ON rs.subject = subject.id
+			LEFT JOIN am.ladon_action AS action ON ra.action = action.id
+			LEFT JOIN am.ladon_resource AS resource ON rr.resource = resource.id
+		WHERE
+			(resource.has_regex IS NOT TRUE AND resource.template = $1)
+			OR
+			(resource.has_regex IS TRUE AND $2 ~ resource.compiled)`
 	case "mysql":
 		stmts.QueryInsertPolicy = `INSERT IGNORE INTO am.ladon_policy (id, description, effect, conditions, meta) VALUES(?,?,?,?,?)`
 		stmts.QueryInsertPolicyActions = `INSERT IGNORE INTO am.ladon_action (id, template, compiled, has_regex) VALUES(?,?,?,?)`
@@ -142,6 +188,8 @@ LEFT JOIN am.ladon_subject as subject ON rs.subject = subject.id
 LEFT JOIN am.ladon_action as action ON ra.action = action.id
 LEFT JOIN am.ladon_resource as resource ON rr.resource = resource.id`
 		stmts.DeletePolicy = "DELETE FROM am.ladon_policy WHERE id=?"
+		stmts.QueryPoliciesForSubject = ``
+		stmts.QueryPoliciesForResource = ``
 	default:
 		return nil
 	}

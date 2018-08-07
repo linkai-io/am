@@ -9,8 +9,8 @@ import (
 
 	"gopkg.linkai.io/v1/repos/am/am"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
-	uuid "github.com/satori/go.uuid"
 	"gopkg.linkai.io/v1/repos/am/mock"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/modules/ns/state"
-	"gopkg.linkai.io/v1/repos/libraries/dnsclient"
+	"gopkg.linkai.io/v1/repos/am/pkg/dnsclient"
 )
 
 var (
