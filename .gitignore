@@ -1,4 +1,5 @@
 cmd/scangroup/scangroup
 cmd/organization/organization
 cmd/services/services
+cmd/user/user
 .vscode/*
