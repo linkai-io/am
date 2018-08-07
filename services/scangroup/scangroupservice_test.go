@@ -2,13 +2,14 @@ package scangroup_test
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx"
 	"gopkg.linkai.io/v1/repos/am/am"
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 
 	"gopkg.linkai.io/v1/repos/am/amtest"
 
@@ -16,7 +17,21 @@ import (
 	"gopkg.linkai.io/v1/repos/am/services/scangroup"
 )
 
-var dbstring = os.Getenv("SCANGROUPSERVICE_DB_STRING")
+var env string
+var dbstring string
+
+const serviceKey = "scangroupservice"
+
+func init() {
+	var err error
+	flag.StringVar(&env, "env", "local", "environment we are running tests in")
+	flag.Parse()
+	sec := secrets.NewDBSecrets(env, "")
+	dbstring, err = sec.DBString(serviceKey)
+	if err != nil {
+		panic("error getting dbstring secret")
+	}
+}
 
 func TestNew(t *testing.T) {
 	auth := &mock.Authorizer{}
@@ -49,7 +64,7 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	amtest.CreateOrg(db, orgName, t)
@@ -168,7 +183,7 @@ func TestGetGroups(t *testing.T) {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	amtest.CreateOrg(db, orgName, t)
@@ -241,7 +256,7 @@ func TestAddAddresses(t *testing.T) {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	amtest.CreateOrg(db, orgName, t)
@@ -351,7 +366,7 @@ func TestUpdateAddresses(t *testing.T) {
 		t.Fatalf("error initalizing scangroup service: %s\n", err)
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	amtest.CreateOrg(db, orgName, t)

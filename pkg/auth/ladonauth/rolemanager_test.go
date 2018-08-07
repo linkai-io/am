@@ -9,7 +9,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	//testCreateOrg(db, "role_test", t)
 	manager := ladonauth.NewRoleManager(db, "pgx")
 	//defer testDeleteOrg(db, "role_test", t)
@@ -19,7 +19,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestRole(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 
 	amtest.CreateOrg(db, "create_test1", t)
 	defer amtest.DeleteOrg(db, "create_test1", t)
@@ -128,7 +128,7 @@ func TestMembers(t *testing.T) {
 	member1 := "members_test1"
 	member2 := "members_test2"
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 
 	amtest.CreateOrg(db, member1, t)
 	defer amtest.DeleteOrg(db, member1, t)
@@ -232,7 +232,7 @@ func TestGetByName(t *testing.T) {
 	name1 := "byname_test1"
 	name2 := "byname_test2"
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 
 	amtest.CreateOrg(db, name1, t)
 	defer amtest.DeleteOrg(db, name1, t)

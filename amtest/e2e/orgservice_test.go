@@ -13,6 +13,7 @@ import (
 	"gopkg.linkai.io/v1/repos/am/amtest"
 	client "gopkg.linkai.io/v1/repos/am/clients/organization"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 	"gopkg.linkai.io/v1/repos/am/services/organization"
 	"gopkg.linkai.io/v1/repos/am/services/organization/protoc"
 
@@ -21,15 +22,21 @@ import (
 	protoservice "gopkg.linkai.io/v1/repos/am/protocservices/organization"
 )
 
+const serviceKey = "orgservice"
+
 var s *grpc.Server
 var orgServerAddr = ":50051"
-var dbstring = os.Getenv("ORGSERVICE_DB_STRING")
+var region = os.Getenv("REGION")
+var env = os.Getenv("APP_ENV")
 var roleManager *ladonauth.LadonRoleManager
 
 func TestOrganization(t *testing.T) {
+	if !enableTests {
+		return
+	}
 	orgName := "orge2etest"
-	db := initDB()
-	//go organizationServer(db, t)
+	dbstring, db := initDB()
+	go organizationServer(db, dbstring, t)
 	time.Sleep(1 * time.Second)
 	c := client.New()
 	if err := c.Init([]byte(orgServerAddr)); err != nil {
@@ -99,11 +106,11 @@ func TestOrganization(t *testing.T) {
 		t.Fatalf("error deleting org: %s\n", err)
 	}
 
-	//s.Stop()
+	s.Stop()
 
 }
 
-func organizationServer(db *pgx.ConnPool, t *testing.T) {
+func organizationServer(db *pgx.ConnPool, dbstring string, t *testing.T) {
 	lis, err := net.Listen("tcp", orgServerAddr)
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
@@ -137,19 +144,24 @@ func initAuthorizer(db *pgx.ConnPool, t *testing.T) *ladonauth.LadonAuthorizer {
 	return ladonauth.NewLadonAuthorizer(policyManager, roleManager)
 }
 
-func initDB() *pgx.ConnPool {
-
-	if dbstring == "" {
-		log.Fatalf("dbstring is not set")
+func initDB() (string, *pgx.ConnPool) {
+	sec := secrets.NewDBSecrets(env, region)
+	dbstring, err := sec.DBString(serviceKey)
+	if err != nil {
+		log.Fatalf("unable to get dbstring: %s\n", err)
 	}
+
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
 		log.Fatalf("error parsing connection string")
 	}
-	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{ConnConfig: conf})
+	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     conf,
+		MaxConnections: 5,
+	})
 	if err != nil {
 		log.Fatalf("error connecting to db: %s\n", err)
 	}
 
-	return p
+	return dbstring, p
 }

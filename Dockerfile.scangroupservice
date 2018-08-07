@@ -7,6 +7,9 @@ RUN adduser -D -g '' appuser
 COPY . $GOPATH/src/gopkg.linkai.io/v1/repos/am/
 WORKDIR $GOPATH/src/gopkg.linkai.io/v1/repos/am/
 
+# get dependencies
+RUN go get ./...
+
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/scangroupservice cmd/scangroup/main.go
 
 # STEP 2 build a small image

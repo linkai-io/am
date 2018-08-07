@@ -9,15 +9,20 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 	orgprotoservice "gopkg.linkai.io/v1/repos/am/protocservices/organization"
 	"gopkg.linkai.io/v1/repos/am/services/organization"
 	orgprotoc "gopkg.linkai.io/v1/repos/am/services/organization/protoc"
 )
 
-var dbstring string
+var region string
+var env string
+
+const serviceKey = "orgservice"
 
 func init() {
-	dbstring = os.Getenv("DB_STRING")
+	region = os.Getenv("REGION")
+	env = os.Getenv("APP_ENV")
 }
 
 func main() {
@@ -25,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	db := initDB()
+	dbstring, db := initDB()
 
 	policyManager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := policyManager.Init(); err != nil {
@@ -55,22 +60,24 @@ func main() {
 	}
 }
 
-func initDB() *pgx.ConnPool {
-
-	if dbstring == "" {
-		log.Fatalf("dbstring is not set")
+func initDB() (string, *pgx.ConnPool) {
+	sec := secrets.NewDBSecrets(env, region)
+	dbstring, err := sec.DBString(serviceKey)
+	if err != nil {
+		log.Fatalf("unable to get dbstring: %s\n", err)
 	}
+
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
 		log.Fatalf("error parsing connection string")
 	}
 	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{
 		ConnConfig:     conf,
-		MaxConnections: 10,
+		MaxConnections: 5,
 	})
 	if err != nil {
 		log.Fatalf("error connecting to db: %s\n", err)
 	}
 
-	return p
+	return dbstring, p
 }

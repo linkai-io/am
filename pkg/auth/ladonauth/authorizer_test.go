@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewLadonAuthorizer(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	sqlManager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := sqlManager.Init(); err != nil {
 		t.Fatalf("error initializing sql manager: %s\n", err)

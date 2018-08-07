@@ -3,8 +3,10 @@ package organization_test
 import (
 	"context"
 	"errors"
-	"os"
+	"flag"
 	"testing"
+
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 
 	"gopkg.linkai.io/v1/repos/am/amtest"
 
@@ -14,7 +16,21 @@ import (
 	"gopkg.linkai.io/v1/repos/am/services/organization"
 )
 
-var dbstring = os.Getenv("ORGSERVICE_DB_STRING")
+var env string
+var dbstring string
+
+const serviceKey = "orgservice"
+
+func init() {
+	var err error
+	flag.StringVar(&env, "env", "local", "environment we are running tests in")
+	flag.Parse()
+	sec := secrets.NewDBSecrets(env, "")
+	dbstring, err = sec.DBString(serviceKey)
+	if err != nil {
+		panic("error getting dbstring secret")
+	}
+}
 
 func TestNew(t *testing.T) {
 	auth := amtest.MockAuthorizer()
@@ -34,7 +50,7 @@ func TestCreate(t *testing.T) {
 	auth := amtest.MockAuthorizer()
 	roleManager := amtest.MockRoleManager()
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
@@ -107,7 +123,7 @@ func TestCreateRoleFail(t *testing.T) {
 		return "", errors.New("unable to add role")
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
@@ -121,6 +137,7 @@ func TestCreateRoleFail(t *testing.T) {
 	if _, _, _, _, err := service.Create(ctx, userContext, org); err == nil {
 		t.Fatalf("role manager did not throw error\n")
 	}
+
 	_, _, err := service.Get(ctx, userContext, orgName)
 	if err == nil {
 		t.Fatalf("error role manager failure did not cause org to be deleted")
@@ -137,7 +154,7 @@ func TestDelete(t *testing.T) {
 	auth := amtest.MockAuthorizer()
 	roleManager := amtest.MockRoleManager()
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)
@@ -172,7 +189,7 @@ func TestUpdate(t *testing.T) {
 	auth := amtest.MockAuthorizer()
 	roleManager := amtest.MockRoleManager()
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := organization.New(roleManager, auth)

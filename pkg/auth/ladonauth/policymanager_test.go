@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewPolicy(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -23,7 +23,7 @@ func TestNewPolicy(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -94,7 +94,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateDefaultPolicy(t *testing.T) {
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -141,7 +141,7 @@ const defaultPolicyCount = 9
 func TestGetAll(t *testing.T) {
 	start := 10
 	end := 60
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)
@@ -183,7 +183,7 @@ func TestGetAll(t *testing.T) {
 func TestFind(t *testing.T) {
 	start := 8
 	end := 12
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
 		t.Fatalf("error init manager: %s\n", err)

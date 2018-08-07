@@ -2,17 +2,32 @@ package user_test
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"os"
 	"testing"
 
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/amtest"
 	"gopkg.linkai.io/v1/repos/am/mock"
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 	"gopkg.linkai.io/v1/repos/am/services/user"
 )
 
-var dbstring = os.Getenv("USERSERVICE_DB_STRING")
+var env string
+var dbstring string
+
+const serviceKey = "userservice"
+
+func init() {
+	var err error
+	flag.StringVar(&env, "env", "local", "environment we are running tests in")
+	flag.Parse()
+	sec := secrets.NewDBSecrets(env, "")
+	dbstring, err = sec.DBString(serviceKey)
+	if err != nil {
+		panic("error getting dbstring secret")
+	}
+}
 
 func TestNew(t *testing.T) {
 	auth := &mock.Authorizer{}
@@ -39,7 +54,7 @@ func TestCreate(t *testing.T) {
 		return nil
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := user.New(auth)
@@ -132,7 +147,7 @@ func TestUpdate(t *testing.T) {
 		return nil
 	}
 
-	db := amtest.InitDB(t)
+	db := amtest.InitDB(env, t)
 	defer db.Close()
 
 	service := user.New(auth)

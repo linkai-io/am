@@ -1,11 +1,12 @@
 package amtest
 
 import (
-	"os"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
 
 	"gopkg.linkai.io/v1/repos/am/am"
 
@@ -73,11 +74,13 @@ func MockRoleManager() *mock.RoleManager {
 	return roleManager
 }
 
-func InitDB(t *testing.T) *pgx.ConnPool {
-	dbstring := os.Getenv("TEST_GOOSE_AM_DB_STRING")
-	if dbstring == "" {
-		t.Fatalf("dbstring is not set")
+func InitDB(env string, t *testing.T) *pgx.ConnPool {
+	sec := secrets.NewDBSecrets(env, "")
+	dbstring, err := sec.DBString("linkai_admin")
+	if err != nil {
+		t.Fatalf("unable to get dbstring: %s\n", err)
 	}
+
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
 		t.Fatalf("error parsing connection string")
