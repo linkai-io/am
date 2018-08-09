@@ -184,7 +184,10 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	err = s.addRoles(oid, uid)
 	if err != nil {
 		// must clean up this org since we committed the transaction
-		s.forceDelete(ctx, oid)
+		deleteErr := s.forceDelete(ctx, oid)
+		if deleteErr != nil {
+			log.Printf("unable to delete organization: %s\n", err)
+		}
 		return 0, 0, "", "", err
 	}
 

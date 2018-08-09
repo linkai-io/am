@@ -57,9 +57,11 @@ func (ns *NS) Analyze(zone string) *am.Zone {
 	if !ns.st.IsValid(zone) {
 		return nil
 	}
+
 	if ns.dc.IsWildcard(zone) {
 		return nil
 	}
+
 	return nil
 }
 

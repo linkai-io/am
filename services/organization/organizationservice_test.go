@@ -131,14 +131,18 @@ func TestCreateRoleFail(t *testing.T) {
 		t.Fatalf("error initalizing organization service: %s\n", err)
 	}
 
+	// create an invalid context, which causes roles to not be added (and an error should occur)
 	userContext := testUserContext(0, 0)
 	org := amtest.CreateOrgInstance(orgName)
 
-	if _, _, _, _, err := service.Create(ctx, userContext, org); err == nil {
+	_, _, _, _, err := service.Create(ctx, userContext, org)
+	if err == nil {
 		t.Fatalf("role manager did not throw error\n")
 	}
 
-	_, _, err := service.Get(ctx, userContext, orgName)
+	// if we can still get the org, but the role wasn't added, that means it's busted
+	// most likely a permission error when deleting.
+	_, _, err = service.Get(ctx, userContext, orgName)
 	if err == nil {
 		t.Fatalf("error role manager failure did not cause org to be deleted")
 	}
