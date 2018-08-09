@@ -139,13 +139,7 @@ func TestUpdate(t *testing.T) {
 
 	orgName := "userupdate"
 
-	auth := &mock.Authorizer{}
-	auth.IsAllowedFn = func(subject, resource, action string) error {
-		return nil
-	}
-	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
-		return nil
-	}
+	auth := amtest.MockEmptyAuthorizer()
 
 	db := amtest.InitDB(env, t)
 	defer db.Close()

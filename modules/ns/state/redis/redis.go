@@ -18,7 +18,7 @@ var (
 // initialization.
 type Config struct {
 	OrgID  int64  `json:"org_id"`
-	JobID  []byte `json:"job_id"`
+	JobID  int64  `json:"job_id"`
 	RCAddr string `json:"rc_addr"`
 	RCPass string `json:"rc_pass"`
 }
@@ -62,8 +62,9 @@ func (rs *State) parseConfig(config []byte) (*Config, error) {
 	return v, nil
 }
 
-// IsNew checks if the zone has been analyzed before.
-func (rs *State) IsNew(zone string) bool {
+// IsValid checks if the zone is valid for testing (not done before)
+// and not an ignored zone (aws, etc).
+func (rs *State) IsValid(zone string) bool {
 	conn := rs.rc.Get()
 	rs.rc.Return(conn)
 	return true

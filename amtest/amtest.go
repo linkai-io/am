@@ -24,7 +24,9 @@ const (
 	values 
 		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false, 1000, 1000);`
 
-	CreateUserStmt = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
+	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
+	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration, deleted) values 
+	($1, $2, $3, $4, $5, $6, $7, $8, false) returning scan_group_id`
 	DeleteOrgStmt  = "select am.delete_org((select organization_id from am.organizations where organization_name=$1))"
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
@@ -72,6 +74,17 @@ func MockRoleManager() *mock.RoleManager {
 		return nil
 	}
 	return roleManager
+}
+
+func MockEmptyAuthorizer() *mock.Authorizer {
+	auth := &mock.Authorizer{}
+	auth.IsAllowedFn = func(subject, resource, action string) error {
+		return nil
+	}
+	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
+		return nil
+	}
+	return auth
 }
 
 func InitDB(env string, t *testing.T) *pgx.ConnPool {
@@ -150,6 +163,18 @@ func GetUserId(p *pgx.ConnPool, orgID int, name string, t *testing.T) int {
 		t.Fatalf("error finding user id for %s: %s\n", name, err)
 	}
 	return userID
+}
+
+func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) int {
+	var groupID int
+	orgID := GetOrgID(p, orgName, t)
+	userID := GetUserId(p, orgID, orgName, t)
+	//organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration
+	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, 0, userID, 0, userID, "", nil).Scan(&groupID)
+	if err != nil {
+		t.Fatalf("error creating scan group: %s\n", err)
+	}
+	return groupID
 }
 
 // TestCompareOrganizations does not compare fields that are unknown prior to creation

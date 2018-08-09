@@ -17,7 +17,8 @@ var (
 // Config represents this modules configuration data to be passed in on
 // initialization.
 type Config struct {
-	OrgID     string `json:"org_id"`
+	OrgID     int32  `json:"org_id"`
+	JobID     int64  `json:"job_id"`
 	DNSServer string `json:"dns_server"`
 }
 
@@ -53,7 +54,10 @@ func (ns *NS) Name() string {
 
 // Analyze a domain zone, extracts NS, MX, A, AAAA, CNAME records
 func (ns *NS) Analyze(zone string) *am.Zone {
-	if !ns.st.IsNew(zone) {
+	if !ns.st.IsValid(zone) {
+		return nil
+	}
+	if ns.dc.IsWildcard(zone) {
 		return nil
 	}
 	return nil

@@ -2,7 +2,9 @@ package convert
 
 import (
 	"gopkg.linkai.io/v1/repos/am/am"
+	"gopkg.linkai.io/v1/repos/am/protocservices/address"
 	"gopkg.linkai.io/v1/repos/am/protocservices/prototypes"
+	"gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
 )
 
 // DomainToUser convert domain user type to protobuf user type
@@ -163,5 +165,112 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 		WithSubcription:   in.WithSubcription,
 		SubValue:          in.SubValue,
 		SinceCreationTime: in.SinceCreationTime,
+	}
+}
+
+func AddressToDomain(in *address.AddressData) *am.ScanGroupAddress {
+	return &am.ScanGroupAddress{
+		AddressID:       in.AddressID,
+		OrgID:           int(in.OrgID),
+		GroupID:         int(in.GroupID),
+		HostAddress:     in.HostAddress,
+		IPAddress:       in.IPAddress,
+		DiscoveryTime:   in.DiscoveryTime,
+		DiscoveredBy:    in.DiscoveredBy,
+		LastSeenTime:    in.LastSeenTime,
+		LastJobID:       in.LastJobID,
+		IsSOA:           in.IsSOA,
+		IsWildcardZone:  in.IsWildcardZone,
+		IsHostedService: in.IsHostedService,
+		Ignored:         in.Ignored,
+	}
+}
+
+func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
+	return &address.AddressData{
+		AddressID:       in.AddressID,
+		OrgID:           int32(in.OrgID),
+		GroupID:         int32(in.GroupID),
+		HostAddress:     in.HostAddress,
+		IPAddress:       in.IPAddress,
+		DiscoveryTime:   in.DiscoveryTime,
+		DiscoveredBy:    in.DiscoveredBy,
+		LastSeenTime:    in.LastSeenTime,
+		LastJobID:       in.LastJobID,
+		IsSOA:           in.IsSOA,
+		IsWildcardZone:  in.IsWildcardZone,
+		IsHostedService: in.IsHostedService,
+		Ignored:         in.Ignored,
+	}
+}
+
+func AddressFilterToDomain(in *address.AddressFilter) *am.ScanGroupAddressFilter {
+	return &am.ScanGroupAddressFilter{
+		GroupID:      int(in.GroupID),
+		WithIgnored:  in.WithIgnored,
+		IgnoredValue: in.IgnoredValue,
+		Start:        int(in.Start),
+		Limit:        int(in.Limit),
+	}
+}
+
+func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *address.AddressFilter {
+	return &address.AddressFilter{
+		GroupID:      int32(in.GroupID),
+		WithIgnored:  in.WithIgnored,
+		IgnoredValue: in.IgnoredValue,
+		Start:        int32(in.Start),
+		Limit:        int32(in.Limit),
+	}
+}
+
+// ModuleToDomain converts protoc ModuleConfiguration to am.ModuleConfiguration
+func ModuleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
+	return &am.ModuleConfiguration{
+		NSModule:    &am.NSModuleConfig{Name: in.NSConfig.Name},
+		BruteModule: &am.BruteModuleConfig{Name: in.BruteConfig.Name, CustomSubNames: in.BruteConfig.CustomSubNames, MaxDepth: in.BruteConfig.MaxDepth},
+		PortModule:  &am.PortModuleConfig{Name: in.PortConfig.Name, Ports: in.PortConfig.Ports},
+		WebModule:   &am.WebModuleConfig{Name: in.WebModuleConfig.Name, TakeScreenShots: in.WebModuleConfig.TakeScreenShots, MaxLinks: in.WebModuleConfig.MaxLinks, ExtractJS: in.WebModuleConfig.ExtractJS, FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks},
+	}
+}
+
+func DomainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
+	return &scangroup.ModuleConfiguration{
+		NSConfig:        &scangroup.NSModuleConfig{Name: in.NSModule.Name},
+		BruteConfig:     &scangroup.BruteModuleConfig{Name: in.BruteModule.Name, CustomSubNames: in.BruteModule.CustomSubNames, MaxDepth: in.BruteModule.MaxDepth},
+		PortConfig:      &scangroup.PortModuleConfig{Name: in.PortModule.Name, Ports: in.PortModule.Ports},
+		WebModuleConfig: &scangroup.WebModuleConfig{Name: in.WebModule.Name, TakeScreenShots: in.WebModule.TakeScreenShots, MaxLinks: in.WebModule.MaxLinks, ExtractJS: in.WebModule.ExtractJS, FingerprintFrameworks: in.WebModule.FingerprintFrameworks},
+	}
+}
+
+// GroupToDomain convert protoc group to domain type ScanGroup
+func GroupToDomain(in *scangroup.Group) *am.ScanGroup {
+	return &am.ScanGroup{
+		OrgID:                int(in.OrgID),
+		GroupID:              int(in.GroupID),
+		GroupName:            in.GroupName,
+		CreationTime:         in.CreationTime,
+		CreatedBy:            int(in.CreatedBy),
+		OriginalInput:        in.OriginalInput,
+		ModifiedBy:           int(in.ModifiedBy),
+		ModifiedTime:         in.ModifiedTime,
+		ModuleConfigurations: ModuleToDomain(in.ModuleConfiguration),
+		Deleted:              in.Deleted,
+	}
+}
+
+// DomainToGroup convert domain type SdcanGroup to protoc Group
+func DomainToGroup(in *am.ScanGroup) *scangroup.Group {
+	return &scangroup.Group{
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		GroupName:           in.GroupName,
+		CreationTime:        in.CreationTime,
+		CreatedBy:           int32(in.CreatedBy),
+		OriginalInput:       in.OriginalInput,
+		ModifiedBy:          int32(in.ModifiedBy),
+		ModifiedTime:        in.ModifiedTime,
+		ModuleConfiguration: DomainToModule(in.ModuleConfigurations),
+		Deleted:             in.Deleted,
 	}
 }

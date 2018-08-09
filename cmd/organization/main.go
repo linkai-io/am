@@ -21,7 +21,7 @@ var env string
 const serviceKey = "orgservice"
 
 func init() {
-	region = os.Getenv("REGION")
+	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 }
 

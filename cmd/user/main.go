@@ -22,7 +22,7 @@ var env string
 const serviceKey = "userservice"
 
 func init() {
-	region = os.Getenv("REGION")
+	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 }
 

@@ -26,7 +26,7 @@ const serviceKey = "orgservice"
 
 var s *grpc.Server
 var orgServerAddr = ":50051"
-var region = os.Getenv("REGION")
+var region = os.Getenv("APP_REGION")
 var env = os.Getenv("APP_ENV")
 var roleManager *ladonauth.LadonRoleManager
 

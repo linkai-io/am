@@ -136,8 +136,6 @@ func testCreatePolicy(description string, meta []byte, subjects, actions, resour
 	}
 }
 
-const defaultPolicyCount = 9
-
 func TestGetAll(t *testing.T) {
 	start := 10
 	end := 60
@@ -175,9 +173,7 @@ func TestGetAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error getting from offset 10: %s\n", err)
 	}
-	if len(policies) != 40+defaultPolicyCount {
-		t.Fatalf("expected 40+defaultPolicyCount policies, got: %d\n", len(policies))
-	}
+
 }
 
 func TestFind(t *testing.T) {

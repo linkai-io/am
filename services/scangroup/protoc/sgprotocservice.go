@@ -28,7 +28,7 @@ func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupResponse{OrgID: int32(oid), Group: domainToGroup(group)}, err
+	return &scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToGroup(group)}, err
 }
 
 func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
@@ -36,11 +36,11 @@ func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequ
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupResponse{OrgID: int32(oid), Group: domainToGroup(group)}, err
+	return &scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToGroup(group)}, err
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
-	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), groupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.GroupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequ
 }
 
 func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupRequest) (*scangroup.GroupUpdatedResponse, error) {
-	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), groupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.GroupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -74,140 +74,9 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 			return ErrOrgIDNonMatch
 		}
 
-		if err := stream.Send(&scangroup.GroupResponse{Group: domainToGroup(g)}); err != nil {
+		if err := stream.Send(&scangroup.GroupResponse{Group: convert.DomainToGroup(g)}); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (s *SGProtocService) Addresses(in *scangroup.AddressesRequest, stream scangroup.ScanGroup_AddressesServer) error {
-	filter := &am.ScanGroupAddressFilter{
-		GroupID:     int(in.GroupID),
-		Start:       int(in.Start),
-		Limit:       int(in.Limit),
-		WithIgnored: in.WithIgnored, IgnoredValue: in.IgnoredValue,
-		WithDeleted: in.WithDeleted, DeletedValue: in.DeletedValue,
-	}
-
-	oid, addresses, err := s.sgs.Addresses(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
-	if err != nil {
-		return err
-	}
-
-	for _, a := range addresses {
-		if oid != a.OrgID {
-			return ErrOrgIDNonMatch
-		}
-
-		if err := stream.Send(&scangroup.AddressesResponse{Addresses: domainToAddress(a)}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *SGProtocService) AddressCount(ctx context.Context, in *scangroup.CountAddressesRequest) (*scangroup.CountAddressesResponse, error) {
-	oid, count, err := s.sgs.AddressCount(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.CountAddressesResponse{OrgID: int32(oid), GroupID: in.GroupID, Count: int32(count)}, nil
-}
-
-func (s *SGProtocService) AddAddresses(ctx context.Context, in *scangroup.AddAddressRequest) (*scangroup.AddAddressesResponse, error) {
-
-	header := &am.ScanGroupAddressHeader{GroupID: int(in.GroupID), AddedBy: in.AddedBy, Ignored: in.Ignored}
-
-	oid, err := s.sgs.AddAddresses(ctx, convert.UserContextToDomain(in.UserContext), header, in.Address)
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.AddAddressesResponse{OrgID: int32(oid)}, nil
-}
-
-func (s *SGProtocService) UpdatedAddresses(ctx context.Context, in *scangroup.UpdateAddressRequest) (*scangroup.UpdateAddressesResponse, error) {
-	var oid int
-	var err error
-
-	if in.Delete {
-		oid, err = s.sgs.DeleteAddresses(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
-	} else {
-		oid, err = s.sgs.IgnoreAddresses(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressMap)
-	}
-	return &scangroup.UpdateAddressesResponse{OrgID: int32(oid)}, err
-}
-
-func addressToDomain(in *scangroup.Address) *am.ScanGroupAddress {
-	return &am.ScanGroupAddress{
-		OrgID:     int(in.OrgID),
-		AddressID: in.AddressID,
-		GroupID:   int(in.GroupID),
-		Address:   in.Address,
-		//Settings:  moduleToDomain(in.Settings),
-		AddedTime: in.AddedTime,
-		AddedBy:   in.AddedBy,
-		Ignored:   in.Ignored,
-		Deleted:   in.Deleted,
-	}
-}
-
-func domainToAddress(in *am.ScanGroupAddress) *scangroup.Address {
-	return &scangroup.Address{
-		OrgID:     int32(in.OrgID),
-		AddressID: in.AddressID,
-		GroupID:   int32(in.GroupID),
-		Address:   in.Address,
-		AddedTime: in.AddedTime,
-		AddedBy:   in.AddedBy,
-		Ignored:   in.Ignored,
-		Deleted:   in.Deleted,
-	}
-}
-
-// moduleToDomain converts protoc ModuleConfiguration to am.ModuleConfiguration
-func moduleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
-	return &am.ModuleConfiguration{
-		NSModule:    &am.NSModuleConfig{Name: in.NSConfig.Name},
-		BruteModule: &am.BruteModuleConfig{Name: in.BruteConfig.Name, CustomSubNames: in.BruteConfig.CustomSubNames, MaxDepth: in.BruteConfig.MaxDepth},
-		PortModule:  &am.PortModuleConfig{Name: in.PortConfig.Name, Ports: in.PortConfig.Ports},
-		WebModule:   &am.WebModuleConfig{Name: in.WebModuleConfig.Name, TakeScreenShots: in.WebModuleConfig.TakeScreenShots, MaxLinks: in.WebModuleConfig.MaxLinks, ExtractJS: in.WebModuleConfig.ExtractJS, FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks},
-	}
-}
-
-func domainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
-	return &scangroup.ModuleConfiguration{
-		NSConfig:        &scangroup.NSModuleConfig{Name: in.NSModule.Name},
-		BruteConfig:     &scangroup.BruteModuleConfig{Name: in.BruteModule.Name, CustomSubNames: in.BruteModule.CustomSubNames, MaxDepth: in.BruteModule.MaxDepth},
-		PortConfig:      &scangroup.PortModuleConfig{Name: in.PortModule.Name, Ports: in.PortModule.Ports},
-		WebModuleConfig: &scangroup.WebModuleConfig{Name: in.WebModule.Name, TakeScreenShots: in.WebModule.TakeScreenShots, MaxLinks: in.WebModule.MaxLinks, ExtractJS: in.WebModule.ExtractJS, FingerprintFrameworks: in.WebModule.FingerprintFrameworks},
-	}
-}
-
-// groupToDomain convert protoc group to domain type ScanGroup
-func groupToDomain(in *scangroup.Group) *am.ScanGroup {
-	return &am.ScanGroup{
-		OrgID:                int(in.OrgID),
-		GroupID:              int(in.GroupID),
-		GroupName:            in.GroupName,
-		CreationTime:         in.CreationTime,
-		CreatedBy:            int(in.CreatedBy),
-		OriginalInput:        in.OriginalInput,
-		ModuleConfigurations: moduleToDomain(in.ModuleConfiguration),
-		Deleted:              in.Deleted,
-	}
-}
-
-// domainToGroup convert domain type SdcanGroup to protoc Group
-func domainToGroup(in *am.ScanGroup) *scangroup.Group {
-	return &scangroup.Group{
-		OrgID:               int32(in.OrgID),
-		GroupID:             int32(in.GroupID),
-		GroupName:           in.GroupName,
-		CreationTime:        in.CreationTime,
-		CreatedBy:           int32(in.CreatedBy),
-		OriginalInput:       in.OriginalInput,
-		ModuleConfiguration: domainToModule(in.ModuleConfigurations),
-		Deleted:             in.Deleted,
-	}
 }
