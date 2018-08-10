@@ -69,7 +69,7 @@ func TestAdd(t *testing.T) {
 	userContext := amtest.CreateUserContext(orgID, 1)
 
 	// test empty count first
-	_, count, err := service.AddressCount(ctx, userContext, groupID)
+	_, count, err := service.Count(ctx, userContext, groupID)
 	if err != nil {
 		t.Fatalf("error getting empty count: %s\n", err)
 	}
@@ -94,6 +94,7 @@ func TestAdd(t *testing.T) {
 			IsHostedService: false,
 			Ignored:         false,
 		}
+
 		addresses = append(addresses, a)
 	}
 
@@ -103,6 +104,195 @@ func TestAdd(t *testing.T) {
 	}
 	if count != 100 {
 		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+	// test invalid (missing groupID) filter first
+	filter := &am.ScanGroupAddressFilter{
+		Start: 0,
+		Limit: 10,
+	}
+
+	_, _, err = service.Get(ctx, userContext, filter)
+	if err == nil {
+		t.Fatalf("addresses did not return error with filter missing groupID")
+	}
+
+	filter.GroupID = groupID
+	_, addrs, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %s\n", err)
+	}
+
+	if filter.Limit != len(addrs) {
+		t.Fatalf("expected %d addresses with limit, got %d\n", filter.Limit, len(addrs))
+	}
+
+	filter.Limit = 100
+	_, allAddresses, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting all addresses: %s\n", err)
+	}
+
+	// make list of all addressIDs for deletion
+	addressIDs := make([]int64, len(allAddresses))
+	for i := 0; i < len(allAddresses); i++ {
+		addressIDs[i] = allAddresses[i].AddressID
+	}
+
+	if _, err := service.Delete(ctx, userContext, groupID, addressIDs); err != nil {
+		t.Fatalf("error deleting all addresses: %s\n", err)
+	}
+
+	_, count, err = service.Count(ctx, userContext, groupID)
+	if err != nil {
+		t.Fatalf("error getting count: %s\n", err)
+	}
+
+	if count != 0 {
+		t.Fatalf("error not all addresses were deleted got %d\n", count)
+	}
+
+}
+
+func TestUpdate(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "updateaddress"
+	groupName := "updateaddressgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	now := time.Now().UnixNano()
+
+	emptyAddress := &am.ScanGroupAddress{
+		OrgID:           orgID,
+		GroupID:         groupID,
+		HostAddress:     "",
+		IPAddress:       "",
+		DiscoveryTime:   now,
+		DiscoveredBy:    "input_list",
+		LastSeenTime:    0,
+		IsSOA:           false,
+		IsWildcardZone:  false,
+		IsHostedService: false,
+		Ignored:         false,
+	}
+	emptyAddresses := make([]*am.ScanGroupAddress, 1)
+	emptyAddresses[0] = emptyAddress
+	if _, _, err := service.Update(ctx, userContext, emptyAddresses); err != address.ErrAddressMissing {
+		t.Fatalf("did not get ErrAddressMissing when host/ip not set")
+	}
+
+	// test updating addresses
+	updateAddress := &am.ScanGroupAddress{
+		OrgID:           orgID,
+		GroupID:         groupID,
+		HostAddress:     "example.com",
+		IPAddress:       "",
+		DiscoveryTime:   now,
+		DiscoveredBy:    "input_list",
+		LastSeenTime:    0,
+		IsSOA:           false,
+		IsWildcardZone:  false,
+		IsHostedService: false,
+		Ignored:         false,
+	}
+
+	updateAddresses := make([]*am.ScanGroupAddress, 1)
+	updateAddresses[0] = updateAddress
+	if _, _, err := service.Update(ctx, userContext, updateAddresses); err != nil {
+		t.Fatalf("error creating address: %s\n", err)
+	}
+
+	filter := &am.ScanGroupAddressFilter{
+		GroupID: groupID,
+		Start:   0,
+		Limit:   10,
+	}
+
+	_, returned, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting returned addresses")
+	}
+	compareAddresses(updateAddress, returned[0], t)
+
+	// test updating last seen time
+	now = time.Now().UnixNano()
+	returned[0].LastSeenTime = now
+	// various field updates:
+	returned[0].IsSOA = true
+	returned[0].IsWildcardZone = true
+	returned[0].IsHostedService = true
+
+	if _, _, err := service.Update(ctx, userContext, returned); err != nil {
+		t.Fatalf("error updating time for address: %s\n", err)
+	}
+
+	_, returned2, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting returned addresses after updating time")
+	}
+	compareAddresses(returned[0], returned2[0], t)
+}
+
+func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
+	if e.OrgID != r.OrgID {
+		t.Fatalf("OrgID did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
+	}
+
+	if e.GroupID != r.GroupID {
+		t.Fatalf("GroupID did not match expected: %v got: %v\n", e.GroupID, r.GroupID)
+	}
+
+	if e.HostAddress != r.HostAddress {
+		t.Fatalf("HostAddress did not match expected: %v got: %v\n", e.HostAddress, r.HostAddress)
+	}
+
+	if e.IPAddress != r.IPAddress {
+		t.Fatalf("IPAddress did not match expected: %v got: %v\n", e.IPAddress, r.IPAddress)
+	}
+
+	if e.DiscoveryTime != r.DiscoveryTime {
+		t.Fatalf("DiscoveryTime did not match expected: %v got: %v\n", e.DiscoveryTime, r.DiscoveryTime)
+	}
+
+	if e.DiscoveredBy != r.DiscoveredBy {
+		t.Fatalf("DiscoveredBy did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
+	}
+
+	if e.LastSeenTime != r.LastSeenTime {
+		t.Fatalf("LastSeenTime did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
+	}
+
+	if e.IsSOA != r.IsSOA {
+		t.Fatalf("IsSOA did not match expected: %v got: %v\n", e.IsSOA, r.IsSOA)
+	}
+
+	if e.IsWildcardZone != r.IsWildcardZone {
+		t.Fatalf("IsWildcardZone did not match expected: %v got: %v\n", e.IsWildcardZone, r.IsWildcardZone)
+	}
+
+	if e.IsHostedService != r.IsHostedService {
+		t.Fatalf("IsHostedService did not match expected: %v got: %v\n", e.IsHostedService, r.IsHostedService)
+	}
+
+	if e.Ignored != r.Ignored {
+		t.Fatalf("Ignored did not match expected: %v got: %v\n", e.Ignored, r.Ignored)
 	}
 
 }

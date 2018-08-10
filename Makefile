@@ -18,7 +18,10 @@ jobservice:
 scangroupservice:
 	docker build -t linkai_scangroupservice -f Dockerfile.scangroupservice .
 
-services: orgservice userservice scangroupservice
+addressservice:
+	docker build -t linkai_addressservice -f Dockerfile.addressservice .
+
+services: orgservice userservice scangroupservice addressservice
 
 test:
 	go test -v ./...

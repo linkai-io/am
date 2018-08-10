@@ -53,16 +53,12 @@ func (ns *NS) Name() string {
 }
 
 // Analyze a domain zone, extracts NS, MX, A, AAAA, CNAME records
-func (ns *NS) Analyze(zone string) *am.Zone {
-	if !ns.st.IsValid(zone) {
-		return nil
+func (ns *NS) Analyze(address *am.ScanGroupAddress) {
+	if address.HostAddress == "" {
+
 	}
 
-	if ns.dc.IsWildcard(zone) {
-		return nil
-	}
-
-	return nil
+	return
 }
 
 // parseConfig parses the configuration options and validates they are sane.

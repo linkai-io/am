@@ -1,64 +1,76 @@
 package job
 
 import (
+	"context"
+
+	"github.com/jackc/pgx"
 	"gopkg.linkai.io/v1/repos/am/am"
+	"gopkg.linkai.io/v1/repos/am/pkg/auth"
 	"gopkg.linkai.io/v1/repos/am/services/job/state"
-	"gopkg.linkai.io/v1/repos/am/services/job/store"
 )
 
-// Service is the job service which manages both the backend data store
-// and the job state via a state manager
+// Service for interfacing with postgresql/rds
 type Service struct {
-	store store.Storer // store handles any job related data as well as lifecycle events pertinent to the front end
-	state state.Stater // state handles job lifecycle events and data
+	state      state.Stater
+	pool       *pgx.ConnPool
+	config     *pgx.ConnPoolConfig
+	authorizer auth.Authorizer
 }
 
-// New creates a new Job Service.
-func New(dataStore store.Storer, stateManager state.Stater) *Service {
-	return &Service{store: dataStore, state: stateManager}
+// New returns an empty Service
+func New(state state.Stater, authorizer auth.Authorizer) *Service {
+	return &Service{state: state, authorizer: authorizer}
 }
 
-// Init the job service by initializing the dependent services.
+// Init by parsing the config and initializing the database pool
 func (s *Service) Init(config []byte) error {
-	if err := s.state.Init(config); err != nil {
+	var err error
+
+	s.config, err = s.parseConfig(config)
+	if err != nil {
 		return err
 	}
 
-	if err := s.store.Init(config); err != nil {
+	if s.pool, err = pgx.NewConnPool(*s.config); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Service) Jobs(orgID int64) ([]*am.Job, error) {
-	return nil, nil
+// parseConfig parses the configuration options and validates they are sane.
+func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
+	dbstring := string(config)
+	if dbstring == "" {
+		return nil, am.ErrEmptyDBConfig
+	}
+
+	conf, err := pgx.ParseConnectionString(dbstring)
+	if err != nil {
+		return nil, am.ErrInvalidDBString
+	}
+
+	return &pgx.ConnPoolConfig{
+		ConnConfig:     conf,
+		MaxConnections: 50,
+		AfterConnect:   s.afterConnect,
+	}, nil
 }
 
-func (s *Service) Add(orgID, userID int64, name string, inputID int64) ([]byte, error) {
-	return nil, nil
-}
-
-func (s *Service) Get(orgID int64, jobID []byte) *am.Job {
+// afterConnect will iterate over prepared statements with keywords
+func (s *Service) afterConnect(conn *pgx.Conn) error {
+	for k, v := range queryMap {
+		if _, err := conn.Prepare(k, v); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (s *Service) GetByName(orgID int64, name string) (*am.Job, error) {
-	return nil, nil
-}
-
-func (s *Service) Status(orgID int64, jobID []byte) (*am.JobStatus, error) {
-	return nil, nil
-}
-
-func (s *Service) Stop(orgID int64, jobID []byte) error {
-	return nil
-}
-
-func (s *Service) Start(orgID int64, jobID []byte) error {
-	return nil
-}
-
-func (s *Service) UpdateStatus(job *am.Job, jobStatus *am.JobStatus) error {
-	return nil
+// IsAuthorized checks if an action is allowed by a particular user
+func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, resource, action string) bool {
+	if err := s.authorizer.IsUserAllowed(userContext.GetOrgID(), userContext.GetUserID(), resource, action); err != nil {
+		return false
+	}
+	return true
 }

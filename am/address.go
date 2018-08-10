@@ -34,8 +34,8 @@ type ScanGroupAddressFilter struct {
 }
 
 type AddressService interface {
-	Addresses(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
-	AddressCount(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
+	Get(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
+	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
 	Update(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int, count int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64) (oid int, err error)
 }

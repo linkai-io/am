@@ -3,32 +3,51 @@ package am
 import "context"
 
 const (
-	RNJobService = "lrn:service:jobservice:feature:service"
+	RNJobService          = "lrn:service:jobservice:feature:service"
+	RNJobServiceLifeCycle = "lrn:service:jobservice:feature:lifecycle"
+	RNJobServiceEvents    = "lrn:service:jobservice:feature:events"
 )
 
 // Job represents a unit of work
 type Job struct {
-	ID        int64
-	Config    *JobConfig
-	StartTime int64
-	EndTime   int64
+	OrgID        int   `json:"org_id"`
+	JobID        int64 `json:"job_id"`
+	JobTimestamp int64 `json:"job_timestamp"`
+	JobStatus    int   `json:"job_status"`
 }
 
-type JobStatus struct {
-	ID          int64
-	Status      int32
-	ModuleStats *ModuleStats
-	Running     bool
+type JobEvent struct {
+	EventID          int64  `json:"event_id"`
+	OrgID            int    `json:"org_id"`
+	JobID            int64  `json:"job_id"`
+	EventUserID      int    `json:"event_user_id"`
+	EventTime        int64  `json:"event_time"`
+	EventDescription string `json:"event_description"`
+	EventFrom        string `json:"event_from"`
+}
+
+type JobFilter struct {
+	Start    int   `json:"start"`
+	Limit    int   `json:"limit"`
+	ByJobID  bool  `json:"by_job_id"`
+	JobID    int64 `json:"job_id,omitempty"`
+	ByStatus bool  `json:"by_status"`
+	StatusID int   `json:"status_id"`
+}
+
+type JobEventFilter struct {
+	Start int `json:"start"`
+	Limit int `json:"limit"`
 }
 
 // JobService interfaces with data store to manage jobs
 type JobService interface {
-	Jobs(ctx context.Context, orgID int64) ([]*Job, error)
-	Add(ctx context.Context, orgID, userID int64, scanGroupID int64, name string) (int64, error)
-	Get(ctx context.Context, orgID int64, jobID int64) *Job
-	GetByName(ctx context.Context, orgID int64, name string) (*Job, error)
-	Status(ctx context.Context, orgID int64, jobID int64) (*JobStatus, error)
-	Stop(ctx context.Context, orgID int64, jobID int64) error
-	Start(ctx context.Context, orgID int64, jobID int64) error
-	UpdateStatus(ctx context.Context, orgID int64, jobID int64, jobStatus *JobStatus) error
+	Start(ctx context.Context, userContext UserContext, scanGroupID int) (oid int, jobID int64, err error)
+	Stop(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
+	Pause(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
+	Cancel(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
+	Get(ctx context.Context, userContext UserContext, jobID int64) (oid int, job *Job, err error)                               // config
+	List(ctx context.Context, userContext UserContext, filter *JobFilter) (oid int, jobs []*Job, err error)                     // list jobs via filter
+	CreateEvent(ctx context.Context, userContext UserContext, scanGroupID int) (oid int, eventID int64, err error)              //
+	GetEvents(ctx context.Context, userContext UserContext, filter *JobEventFilter) (oid int, jobEvents []*JobEvent, err error) //
 }

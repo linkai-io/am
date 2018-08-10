@@ -25,10 +25,10 @@ func New(implementation am.AddressService) *AddressProtocService {
 	return &AddressProtocService{as: implementation, MaxAddressStream: 10000}
 }
 
-func (s *AddressProtocService) Addresses(in *address.AddressesRequest, stream address.Address_AddressesServer) error {
+func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.Address_GetServer) error {
 	filter := convert.AddressFilterToDomain(in.Filter)
 
-	oid, addresses, err := s.as.Addresses(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
+	oid, addresses, err := s.as.Get(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (s *AddressProtocService) Addresses(in *address.AddressesRequest, stream ad
 	return nil
 }
 
-func (s *AddressProtocService) UpdatedAddresses(stream address.Address_UpdateAddressesServer) error {
+func (s *AddressProtocService) Update(stream address.Address_UpdateServer) error {
 	var oid int
 	var updateCount int
 	var count int32
@@ -86,8 +86,16 @@ func (s *AddressProtocService) UpdatedAddresses(stream address.Address_UpdateAdd
 	return nil
 }
 
-func (s *AddressProtocService) AddressCount(ctx context.Context, in *address.CountAddressesRequest) (*address.CountAddressesResponse, error) {
-	oid, count, err := s.as.AddressCount(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+func (s *AddressProtocService) Delete(ctx context.Context, in *address.DeleteAddressesRequest) (*address.DeleteAddressesResponse, error) {
+	oid, err := s.as.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &address.DeleteAddressesResponse{OrgID: int32(oid)}, nil
+}
+
+func (s *AddressProtocService) Count(ctx context.Context, in *address.CountAddressesRequest) (*address.CountAddressesResponse, error) {
+	oid, count, err := s.as.Count(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	if err != nil {
 		return nil, err
 	}

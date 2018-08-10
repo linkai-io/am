@@ -2,10 +2,17 @@ package address
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth"
+)
+
+var (
+	ErrFilterMissingGroupID = errors.New("address filter missing GroupID")
+	ErrAddressMissing       = errors.New("address did not have IPAddress or HostAddress set")
 )
 
 // Service for interfacing with postgresql/rds
@@ -73,8 +80,8 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
-// Addresses returns all addresses for a scan group that match the supplied filter
-func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
+// Get returns all addresses for a scan group that match the supplied filter
+func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
@@ -82,6 +89,10 @@ func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, fil
 	var rows *pgx.Rows
 	if filter.Limit > 10000 {
 		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
 	}
 
 	if filter.WithIgnored {
@@ -98,8 +109,17 @@ func (s *Service) Addresses(ctx context.Context, userContext am.UserContext, fil
 
 	for i := 0; rows.Next(); i++ {
 		a := &am.ScanGroupAddress{}
-		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.HostAddress, &a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &a.LastJobID, &a.LastSeenTime, &a.IsSOA, &a.IsWildcardZone, &a.IsHostedService, &a.Ignored); err != nil {
+		var jobID pgtype.Int8
+		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.HostAddress,
+			&a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &jobID,
+			&a.LastSeenTime, &a.IsSOA, &a.IsWildcardZone, &a.IsHostedService, &a.Ignored); err != nil {
 			return 0, nil, err
+		}
+
+		// handle nil for empty/unassigned job ids
+		err := jobID.AssignTo(a.LastJobID)
+		if err != nil {
+			a.LastJobID = 0
 		}
 
 		if a.OrgID != userContext.GetOrgID() {
@@ -137,6 +157,11 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 	for i := 0; i < numAddresses; i++ {
 		a := addresses[i]
+
+		if a.HostAddress == "" && a.IPAddress == "" {
+			return 0, 0, ErrAddressMissing
+		}
+
 		if a.LastJobID != 0 {
 			addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
 				a.DiscoveryTime, a.DiscoveredBy, a.LastJobID, a.LastSeenTime, a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored}
@@ -209,8 +234,8 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	return orgID, err
 }
 
-// AddressCount returns the number of addresses for a specified scan group by id
-func (s *Service) AddressCount(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
+// Count returns the number of addresses for a specified scan group by id
+func (s *Service) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
 		return 0, 0, am.ErrUserNotAuthorized
 	}
