@@ -85,7 +85,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
-		&group.OriginalInput, &group.ModuleConfigurations, &group.Deleted,
+		&group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
-		&group.OriginalInput, &group.ModuleConfigurations, &group.Deleted,
+		&group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInput, &group.ModuleConfigurations, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return 0, nil, err
 		}
 
@@ -227,4 +227,32 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 
 	err = tx.Commit()
 	return userContext.GetOrgID(), groupID, err
+}
+
+func (s *Service) Pause(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
+		return 0, 0, am.ErrUserNotAuthorized
+	}
+
+	now := time.Now().UnixNano()
+	err = s.pool.QueryRow("pauseScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return oid, gid, err
+}
+
+func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
+		return 0, 0, am.ErrUserNotAuthorized
+	}
+	now := time.Now().UnixNano()
+	err = s.pool.QueryRow("resumeScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return oid, gid, err
+
 }

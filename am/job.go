@@ -8,10 +8,27 @@ const (
 	RNJobServiceEvents    = "lrn:service:jobservice:feature:events"
 )
 
+type JobStatus int
+
+var (
+	JobStarted  JobStatus = 1
+	JobPaused   JobStatus = 2
+	JobCanceled JobStatus = 3
+	JobFinished JobStatus = 4
+)
+
+var JobStatusMap = map[JobStatus]string{
+	1: "started",
+	2: "paused",
+	3: "canceled",
+	4: "finished",
+}
+
 // Job represents a unit of work
 type Job struct {
 	OrgID        int   `json:"org_id"`
 	JobID        int64 `json:"job_id"`
+	GroupID      int   `json:"group_id"`
 	JobTimestamp int64 `json:"job_timestamp"`
 	JobStatus    int   `json:"job_status"`
 }
@@ -43,11 +60,11 @@ type JobEventFilter struct {
 // JobService interfaces with data store to manage jobs
 type JobService interface {
 	Start(ctx context.Context, userContext UserContext, scanGroupID int) (oid int, jobID int64, err error)
-	Stop(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
 	Pause(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
+	Resume(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
 	Cancel(ctx context.Context, userContext UserContext, jobID int64) (oid int, err error)
 	Get(ctx context.Context, userContext UserContext, jobID int64) (oid int, job *Job, err error)                               // config
 	List(ctx context.Context, userContext UserContext, filter *JobFilter) (oid int, jobs []*Job, err error)                     // list jobs via filter
-	CreateEvent(ctx context.Context, userContext UserContext, scanGroupID int) (oid int, eventID int64, err error)              //
+	CreateEvent(ctx context.Context, userContext UserContext, jobID int64) (oid int, eventID int64, err error)                  //
 	GetEvents(ctx context.Context, userContext UserContext, filter *JobEventFilter) (oid int, jobEvents []*JobEvent, err error) //
 }

@@ -243,8 +243,8 @@ func DomainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
 	}
 }
 
-// GroupToDomain convert protoc group to domain type ScanGroup
-func GroupToDomain(in *scangroup.Group) *am.ScanGroup {
+// ScanGroupToDomain convert protoc group to domain type ScanGroup
+func ScanGroupToDomain(in *scangroup.Group) *am.ScanGroup {
 	return &am.ScanGroup{
 		OrgID:                int(in.OrgID),
 		GroupID:              int(in.GroupID),
@@ -255,12 +255,13 @@ func GroupToDomain(in *scangroup.Group) *am.ScanGroup {
 		ModifiedBy:           int(in.ModifiedBy),
 		ModifiedTime:         in.ModifiedTime,
 		ModuleConfigurations: ModuleToDomain(in.ModuleConfiguration),
+		Paused:               in.Paused,
 		Deleted:              in.Deleted,
 	}
 }
 
-// DomainToGroup convert domain type SdcanGroup to protoc Group
-func DomainToGroup(in *am.ScanGroup) *scangroup.Group {
+// DomainToScanGroup convert domain type SdcanGroup to protoc Group
+func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
 	return &scangroup.Group{
 		OrgID:               int32(in.OrgID),
 		GroupID:             int32(in.GroupID),
@@ -271,6 +272,7 @@ func DomainToGroup(in *am.ScanGroup) *scangroup.Group {
 		ModifiedBy:          int32(in.ModifiedBy),
 		ModifiedTime:        in.ModifiedTime,
 		ModuleConfiguration: DomainToModule(in.ModuleConfigurations),
+		Paused:              in.Paused,
 		Deleted:             in.Deleted,
 	}
 }

@@ -24,23 +24,25 @@ func New(implementation am.ScanGroupService) *SGProtocService {
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
-	if err != nil {
-		return nil, err
-	}
-	return &scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToGroup(group)}, err
-}
+	var oid int
+	var group *am.ScanGroup
+	var err error
 
-func (s *SGProtocService) GetByName(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
-	oid, group, err := s.sgs.GetByName(ctx, convert.UserContextToDomain(in.UserContext), in.GroupName)
+	switch in.By {
+	case scangroup.GroupRequest_GROUPID:
+		oid, group, err = s.sgs.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	case scangroup.GroupRequest_GROUPNAME:
+		oid, group, err = s.sgs.GetByName(ctx, convert.UserContextToDomain(in.UserContext), in.GroupName)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	return &scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToGroup(group)}, err
+	return &scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToScanGroup(group)}, err
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
-	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.GroupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,7 @@ func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequ
 }
 
 func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupRequest) (*scangroup.GroupUpdatedResponse, error) {
-	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.GroupToDomain(in.Group))
+	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.Group))
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +76,25 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 			return ErrOrgIDNonMatch
 		}
 
-		if err := stream.Send(&scangroup.GroupResponse{Group: convert.DomainToGroup(g)}); err != nil {
+		if err := stream.Send(&scangroup.GroupResponse{Group: convert.DomainToScanGroup(g)}); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (s *SGProtocService) Pause(ctx context.Context, in *scangroup.PauseGroupRequest) (*scangroup.GroupPausedResponse, error) {
+	orgID, groupID, err := s.sgs.Pause(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupPausedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
+}
+
+func (s *SGProtocService) Resume(ctx context.Context, in *scangroup.ResumeGroupRequest) (*scangroup.GroupResumedResponse, error) {
+	orgID, groupID, err := s.sgs.Resume(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupResumedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
 }

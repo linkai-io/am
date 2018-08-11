@@ -51,13 +51,8 @@ func TestCreate(t *testing.T) {
 	orgName := "sgcreate"
 	groupName := "sgcreategroup"
 
-	auth := &mock.Authorizer{}
-	auth.IsAllowedFn = func(subject, resource, action string) error {
-		return nil
-	}
-	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
-		return nil
-	}
+	auth := amtest.MockEmptyAuthorizer()
+
 	service := scangroup.New(auth)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
@@ -170,13 +165,8 @@ func TestGetGroups(t *testing.T) {
 	groupName := "sggetgroupsgroup"
 	count := 10
 
-	auth := &mock.Authorizer{}
-	auth.IsAllowedFn = func(subject, resource, action string) error {
-		return nil
-	}
-	auth.IsUserAllowedFn = func(orgID, userID int, resource, action string) error {
-		return nil
-	}
+	auth := amtest.MockEmptyAuthorizer()
+
 	service := scangroup.New(auth)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
@@ -234,6 +224,67 @@ func TestGetGroups(t *testing.T) {
 		if err != am.ErrScanGroupNotExists {
 			t.Fatalf("expected errscangroupnotexists got: %s\n", err)
 		}
+	}
+}
+
+func TestPauseResume(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "sgpause"
+	groupName := "sgpausegroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+
+	userContext := testUserContext(orgID, ownerUserID)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	_, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	_, gid, err = service.Pause(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error pausing group: %s\n", err)
+	}
+
+	_, paused, err := service.Get(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting paused group: %s\n", err)
+	}
+
+	if paused.Paused == false {
+		t.Fatalf("scan group was not paused: %v\n", paused.Paused)
+	}
+
+	_, gid, err = service.Resume(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error resuming group: %s\n", err)
+	}
+
+	_, resumed, err := service.Get(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting paused group: %s\n", err)
+	}
+
+	if resumed.Paused == true {
+		t.Fatalf("scan group was not resumed: %v\n", resumed.Paused)
 	}
 }
 

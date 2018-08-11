@@ -20,4 +20,8 @@ var (
 
 	// User Specific
 	ErrUserExists = errors.New("user already exists")
+
+	// Job Specific
+	ErrJobAlreadyRunning = errors.New("job is already running for this scan group")
+	ErrJobCanceled       = errors.New("job is in cancelled state")
 )

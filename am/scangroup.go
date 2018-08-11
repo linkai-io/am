@@ -27,6 +27,7 @@ type ScanGroup struct {
 	ModifiedTime         int64                `json:"modified_time"`
 	OriginalInput        []byte               `json:"original_input"`
 	ModuleConfigurations *ModuleConfiguration `json:"module_configurations"`
+	Paused               bool                 `json:"paused"`
 	Deleted              bool                 `json:"deleted"`
 }
 
@@ -41,4 +42,6 @@ type ScanGroupService interface {
 	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup) (oid int, gid int, err error)
 	Update(ctx context.Context, userContext UserContext, group *ScanGroup) (oid int, gid int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
+	Pause(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
+	Resume(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
 }

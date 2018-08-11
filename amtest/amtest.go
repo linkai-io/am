@@ -25,8 +25,8 @@ const (
 		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false, 1000, 1000);`
 
 	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
-	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration, deleted) values 
-	($1, $2, $3, $4, $5, $6, $7, $8, false) returning scan_group_id`
+	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration, paused, deleted) values 
+	($1, $2, $3, $4, $5, $6, $7, $8, false, false) returning scan_group_id`
 	DeleteOrgStmt  = "select am.delete_org((select organization_id from am.organizations where organization_name=$1))"
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
@@ -126,7 +126,7 @@ func CreateOrgInstance(orgName string) *am.Organization {
 }
 
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
-	tag, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "identity_pool_id.blah",
+	_, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "identity_pool_id.blah",
 		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "", "",
 		"sf", "90210", time.Now().UnixNano())
 
@@ -136,11 +136,10 @@ func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 
 	orgID := GetOrgID(p, name, t)
 
-	tag, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now().UnixNano())
+	_, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now().UnixNano())
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
 	}
-	t.Logf("%#v %s\n", tag, err)
 }
 
 func DeleteOrg(p *pgx.ConnPool, name string, t *testing.T) {

@@ -23,6 +23,10 @@
 		GroupRequest
 		GroupsRequest
 		GroupResponse
+		PauseGroupRequest
+		GroupPausedResponse
+		ResumeGroupRequest
+		GroupResumedResponse
 */
 package scangroup
 
@@ -46,6 +50,29 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
+type GroupRequest_RequestBy int32
+
+const (
+	GroupRequest_GROUPNAME GroupRequest_RequestBy = 0
+	GroupRequest_GROUPID   GroupRequest_RequestBy = 1
+)
+
+var GroupRequest_RequestBy_name = map[int32]string{
+	0: "GROUPNAME",
+	1: "GROUPID",
+}
+var GroupRequest_RequestBy_value = map[string]int32{
+	"GROUPNAME": 0,
+	"GROUPID":   1,
+}
+
+func (x GroupRequest_RequestBy) String() string {
+	return proto.EnumName(GroupRequest_RequestBy_name, int32(x))
+}
+func (GroupRequest_RequestBy) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{12, 0}
+}
 
 type NSModuleConfig struct {
 	Name string `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
@@ -231,7 +258,8 @@ type Group struct {
 	ModifiedTime        int64                `protobuf:"varint,7,opt,name=ModifiedTime,proto3" json:"ModifiedTime,omitempty"`
 	ModifiedBy          int32                `protobuf:"varint,8,opt,name=ModifiedBy,proto3" json:"ModifiedBy,omitempty"`
 	ModuleConfiguration *ModuleConfiguration `protobuf:"bytes,9,opt,name=ModuleConfiguration" json:"ModuleConfiguration,omitempty"`
-	Deleted             bool                 `protobuf:"varint,10,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
+	Paused              bool                 `protobuf:"varint,10,opt,name=Paused,proto3" json:"Paused,omitempty"`
+	Deleted             bool                 `protobuf:"varint,11,opt,name=Deleted,proto3" json:"Deleted,omitempty"`
 }
 
 func (m *Group) Reset()                    { *m = Group{} }
@@ -302,6 +330,13 @@ func (m *Group) GetModuleConfiguration() *ModuleConfiguration {
 	return nil
 }
 
+func (m *Group) GetPaused() bool {
+	if m != nil {
+		return m.Paused
+	}
+	return false
+}
+
 func (m *Group) GetDeleted() bool {
 	if m != nil {
 		return m.Deleted
@@ -362,8 +397,6 @@ func (m *GroupCreatedResponse) GetGroupID() int32 {
 type UpdateGroupRequest struct {
 	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Group       *Group            `protobuf:"bytes,2,opt,name=Group" json:"Group,omitempty"`
-	GroupID     int32             `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupName   string            `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
 }
 
 func (m *UpdateGroupRequest) Reset()         { *m = UpdateGroupRequest{} }
@@ -385,20 +418,6 @@ func (m *UpdateGroupRequest) GetGroup() *Group {
 		return m.Group
 	}
 	return nil
-}
-
-func (m *UpdateGroupRequest) GetGroupID() int32 {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *UpdateGroupRequest) GetGroupName() string {
-	if m != nil {
-		return m.GroupName
-	}
-	return ""
 }
 
 type GroupUpdatedResponse struct {
@@ -480,9 +499,10 @@ func (m *GroupDeletedResponse) GetGroupID() int32 {
 }
 
 type GroupRequest struct {
-	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	GroupID     int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	GroupName   string            `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
+	UserContext *user.UserContext      `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	By          GroupRequest_RequestBy `protobuf:"varint,2,opt,name=By,proto3,enum=scangroup.GroupRequest_RequestBy" json:"By,omitempty"`
+	GroupID     int32                  `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	GroupName   string                 `protobuf:"bytes,4,opt,name=GroupName,proto3" json:"GroupName,omitempty"`
 }
 
 func (m *GroupRequest) Reset()                    { *m = GroupRequest{} }
@@ -495,6 +515,13 @@ func (m *GroupRequest) GetUserContext() *user.UserContext {
 		return m.UserContext
 	}
 	return nil
+}
+
+func (m *GroupRequest) GetBy() GroupRequest_RequestBy {
+	if m != nil {
+		return m.By
+	}
+	return GroupRequest_GROUPNAME
 }
 
 func (m *GroupRequest) GetGroupID() int32 {
@@ -551,6 +578,110 @@ func (m *GroupResponse) GetGroup() *Group {
 	return nil
 }
 
+type PauseGroupRequest struct {
+	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	GroupID     int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+}
+
+func (m *PauseGroupRequest) Reset()         { *m = PauseGroupRequest{} }
+func (m *PauseGroupRequest) String() string { return proto.CompactTextString(m) }
+func (*PauseGroupRequest) ProtoMessage()    {}
+func (*PauseGroupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{15}
+}
+
+func (m *PauseGroupRequest) GetUserContext() *user.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *PauseGroupRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+type GroupPausedResponse struct {
+	OrgID   int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+}
+
+func (m *GroupPausedResponse) Reset()         { *m = GroupPausedResponse{} }
+func (m *GroupPausedResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupPausedResponse) ProtoMessage()    {}
+func (*GroupPausedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{16}
+}
+
+func (m *GroupPausedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupPausedResponse) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+type ResumeGroupRequest struct {
+	UserContext *user.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	GroupID     int32             `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+}
+
+func (m *ResumeGroupRequest) Reset()         { *m = ResumeGroupRequest{} }
+func (m *ResumeGroupRequest) String() string { return proto.CompactTextString(m) }
+func (*ResumeGroupRequest) ProtoMessage()    {}
+func (*ResumeGroupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{17}
+}
+
+func (m *ResumeGroupRequest) GetUserContext() *user.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *ResumeGroupRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+type GroupResumedResponse struct {
+	OrgID   int32 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID int32 `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+}
+
+func (m *GroupResumedResponse) Reset()         { *m = GroupResumedResponse{} }
+func (m *GroupResumedResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupResumedResponse) ProtoMessage()    {}
+func (*GroupResumedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorScangroupservicer, []int{18}
+}
+
+func (m *GroupResumedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupResumedResponse) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*NSModuleConfig)(nil), "scangroup.NSModuleConfig")
 	proto.RegisterType((*BruteModuleConfig)(nil), "scangroup.BruteModuleConfig")
@@ -567,6 +698,11 @@ func init() {
 	proto.RegisterType((*GroupRequest)(nil), "scangroup.GroupRequest")
 	proto.RegisterType((*GroupsRequest)(nil), "scangroup.GroupsRequest")
 	proto.RegisterType((*GroupResponse)(nil), "scangroup.GroupResponse")
+	proto.RegisterType((*PauseGroupRequest)(nil), "scangroup.PauseGroupRequest")
+	proto.RegisterType((*GroupPausedResponse)(nil), "scangroup.GroupPausedResponse")
+	proto.RegisterType((*ResumeGroupRequest)(nil), "scangroup.ResumeGroupRequest")
+	proto.RegisterType((*GroupResumedResponse)(nil), "scangroup.GroupResumedResponse")
+	proto.RegisterEnum("scangroup.GroupRequest_RequestBy", GroupRequest_RequestBy_name, GroupRequest_RequestBy_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -581,11 +717,12 @@ const _ = grpc.SupportPackageIsVersion4
 
 type ScanGroupClient interface {
 	Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error)
-	GetByName(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error)
 	Create(ctx context.Context, in *NewGroupRequest, opts ...grpc.CallOption) (*GroupCreatedResponse, error)
 	Update(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*GroupUpdatedResponse, error)
 	Delete(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*GroupDeletedResponse, error)
 	Groups(ctx context.Context, in *GroupsRequest, opts ...grpc.CallOption) (ScanGroup_GroupsClient, error)
+	Pause(ctx context.Context, in *PauseGroupRequest, opts ...grpc.CallOption) (*GroupPausedResponse, error)
+	Resume(ctx context.Context, in *ResumeGroupRequest, opts ...grpc.CallOption) (*GroupResumedResponse, error)
 }
 
 type scanGroupClient struct {
@@ -599,15 +736,6 @@ func NewScanGroupClient(cc *grpc.ClientConn) ScanGroupClient {
 func (c *scanGroupClient) Get(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error) {
 	out := new(GroupResponse)
 	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/Get", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *scanGroupClient) GetByName(ctx context.Context, in *GroupRequest, opts ...grpc.CallOption) (*GroupResponse, error) {
-	out := new(GroupResponse)
-	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/GetByName", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -673,15 +801,34 @@ func (x *scanGroupGroupsClient) Recv() (*GroupResponse, error) {
 	return m, nil
 }
 
+func (c *scanGroupClient) Pause(ctx context.Context, in *PauseGroupRequest, opts ...grpc.CallOption) (*GroupPausedResponse, error) {
+	out := new(GroupPausedResponse)
+	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/Pause", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scanGroupClient) Resume(ctx context.Context, in *ResumeGroupRequest, opts ...grpc.CallOption) (*GroupResumedResponse, error) {
+	out := new(GroupResumedResponse)
+	err := grpc.Invoke(ctx, "/scangroup.ScanGroup/Resume", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for ScanGroup service
 
 type ScanGroupServer interface {
 	Get(context.Context, *GroupRequest) (*GroupResponse, error)
-	GetByName(context.Context, *GroupRequest) (*GroupResponse, error)
 	Create(context.Context, *NewGroupRequest) (*GroupCreatedResponse, error)
 	Update(context.Context, *UpdateGroupRequest) (*GroupUpdatedResponse, error)
 	Delete(context.Context, *DeleteGroupRequest) (*GroupDeletedResponse, error)
 	Groups(*GroupsRequest, ScanGroup_GroupsServer) error
+	Pause(context.Context, *PauseGroupRequest) (*GroupPausedResponse, error)
+	Resume(context.Context, *ResumeGroupRequest) (*GroupResumedResponse, error)
 }
 
 func RegisterScanGroupServer(s *grpc.Server, srv ScanGroupServer) {
@@ -702,24 +849,6 @@ func _ScanGroup_Get_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ScanGroupServer).Get(ctx, req.(*GroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ScanGroup_GetByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ScanGroupServer).GetByName(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/scangroup.ScanGroup/GetByName",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScanGroupServer).GetByName(ctx, req.(*GroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -799,6 +928,42 @@ func (x *scanGroupGroupsServer) Send(m *GroupResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ScanGroup_Pause_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).Pause(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/scangroup.ScanGroup/Pause",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).Pause(ctx, req.(*PauseGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScanGroup_Resume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).Resume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/scangroup.ScanGroup/Resume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).Resume(ctx, req.(*ResumeGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "scangroup.ScanGroup",
 	HandlerType: (*ScanGroupServer)(nil),
@@ -806,10 +971,6 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _ScanGroup_Get_Handler,
-		},
-		{
-			MethodName: "GetByName",
-			Handler:    _ScanGroup_GetByName_Handler,
 		},
 		{
 			MethodName: "Create",
@@ -822,6 +983,14 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _ScanGroup_Delete_Handler,
+		},
+		{
+			MethodName: "Pause",
+			Handler:    _ScanGroup_Pause_Handler,
+		},
+		{
+			MethodName: "Resume",
+			Handler:    _ScanGroup_Resume_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -1146,8 +1315,18 @@ func (m *Group) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i += n9
 	}
-	if m.Deleted {
+	if m.Paused {
 		dAtA[i] = 0x50
+		i++
+		if m.Paused {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	if m.Deleted {
+		dAtA[i] = 0x58
 		i++
 		if m.Deleted {
 			dAtA[i] = 1
@@ -1259,17 +1438,6 @@ func (m *UpdateGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i += n13
-	}
-	if m.GroupID != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
-	}
-	if len(m.GroupName) > 0 {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintScangroupservicer(dAtA, i, uint64(len(m.GroupName)))
-		i += copy(dAtA[i:], m.GroupName)
 	}
 	return i, nil
 }
@@ -1388,8 +1556,13 @@ func (m *GroupRequest) MarshalTo(dAtA []byte) (int, error) {
 		}
 		i += n15
 	}
-	if m.GroupID != 0 {
+	if m.By != 0 {
 		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.By))
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x18
 		i++
 		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
 	}
@@ -1459,6 +1632,128 @@ func (m *GroupResponse) MarshalTo(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i += n17
+	}
+	return i, nil
+}
+
+func (m *PauseGroupRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PauseGroupRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n18, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n18
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
+	}
+	return i, nil
+}
+
+func (m *GroupPausedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupPausedResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
+	}
+	return i, nil
+}
+
+func (m *ResumeGroupRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ResumeGroupRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n19, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n19
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
+	}
+	return i, nil
+}
+
+func (m *GroupResumedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupResumedResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
 	}
 	return i, nil
 }
@@ -1602,6 +1897,9 @@ func (m *Group) Size() (n int) {
 		l = m.ModuleConfiguration.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
+	if m.Paused {
+		n += 2
+	}
 	if m.Deleted {
 		n += 2
 	}
@@ -1643,13 +1941,6 @@ func (m *UpdateGroupRequest) Size() (n int) {
 	}
 	if m.Group != nil {
 		l = m.Group.Size()
-		n += 1 + l + sovScangroupservicer(uint64(l))
-	}
-	if m.GroupID != 0 {
-		n += 1 + sovScangroupservicer(uint64(m.GroupID))
-	}
-	l = len(m.GroupName)
-	if l > 0 {
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
 	return n
@@ -1699,6 +1990,9 @@ func (m *GroupRequest) Size() (n int) {
 		l = m.UserContext.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
 	}
+	if m.By != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.By))
+	}
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
 	}
@@ -1728,6 +2022,56 @@ func (m *GroupResponse) Size() (n int) {
 	if m.Group != nil {
 		l = m.Group.Size()
 		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	return n
+}
+
+func (m *PauseGroupRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.GroupID))
+	}
+	return n
+}
+
+func (m *GroupPausedResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.GroupID))
+	}
+	return n
+}
+
+func (m *ResumeGroupRequest) Size() (n int) {
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.GroupID))
+	}
+	return n
+}
+
+func (m *GroupResumedResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.GroupID))
 	}
 	return n
 }
@@ -2732,6 +3076,26 @@ func (m *Group) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 10:
 			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Paused", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Paused = bool(v != 0)
+		case 11:
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Deleted", wireType)
 			}
 			var v int
@@ -3069,54 +3433,6 @@ func (m *UpdateGroupRequest) Unmarshal(dAtA []byte) error {
 			if err := m.Group.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
-			}
-			m.GroupID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.GroupID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowScangroupservicer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthScangroupservicer
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GroupName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3481,6 +3797,25 @@ func (m *GroupRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field By", wireType)
+			}
+			m.By = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.By |= (GroupRequest_RequestBy(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
 			}
 			m.GroupID = 0
@@ -3733,6 +4068,386 @@ func (m *GroupResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *PauseGroupRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PauseGroupRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PauseGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &user.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupPausedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupPausedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupPausedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ResumeGroupRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ResumeGroupRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ResumeGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &user.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupResumedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupResumedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupResumedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipScangroupservicer(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3841,57 +4556,64 @@ var (
 func init() { proto.RegisterFile("scangroup/scangroupservicer.proto", fileDescriptorScangroupservicer) }
 
 var fileDescriptorScangroupservicer = []byte{
-	// 828 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0x4f, 0x8f, 0xdb, 0x44,
-	0x14, 0xc7, 0xeb, 0x75, 0x76, 0xf3, 0x76, 0xdb, 0x2d, 0x43, 0x2b, 0x4c, 0x28, 0x61, 0xb1, 0xaa,
-	0x2a, 0x27, 0x07, 0x96, 0x22, 0x21, 0x81, 0x16, 0x29, 0x49, 0xb3, 0x5d, 0x44, 0xd2, 0x6a, 0xdc,
-	0x0a, 0x89, 0x03, 0x92, 0x37, 0x79, 0xcd, 0x8e, 0x92, 0x78, 0xcc, 0xcc, 0x78, 0xbb, 0xf9, 0x26,
-	0x1c, 0x39, 0xf0, 0x3d, 0x7a, 0xe5, 0xc8, 0x47, 0x40, 0xcb, 0x99, 0xef, 0x80, 0x3c, 0x76, 0x92,
-	0x89, 0x1d, 0x08, 0x04, 0xd1, 0xdb, 0xbc, 0xdf, 0xfb, 0x33, 0xef, 0xbd, 0xdf, 0x6f, 0x2c, 0xc3,
-	0x47, 0x72, 0x10, 0x46, 0x23, 0xc1, 0x93, 0xb8, 0xb9, 0x38, 0x49, 0x14, 0x57, 0x6c, 0x80, 0xc2,
-	0x8f, 0x05, 0x57, 0x9c, 0x54, 0x17, 0x8e, 0xda, 0x3d, 0x8d, 0xa8, 0x59, 0x8c, 0xb2, 0x99, 0xc8,
-	0x79, 0x84, 0xf7, 0x00, 0x6e, 0xf7, 0x83, 0x1e, 0x1f, 0x26, 0x13, 0x6c, 0xf3, 0xe8, 0x25, 0x1b,
-	0x11, 0x02, 0xbb, 0xfd, 0x70, 0x8a, 0xae, 0x75, 0x6c, 0x35, 0xaa, 0x54, 0x9f, 0xbd, 0x31, 0xbc,
-	0xdd, 0x12, 0x89, 0xc2, 0x4d, 0x81, 0xe4, 0x21, 0xdc, 0x6e, 0x27, 0x52, 0xf1, 0x69, 0x90, 0x5c,
-	0xa4, 0x80, 0x74, 0x77, 0x8e, 0xed, 0x46, 0x95, 0x16, 0x50, 0x52, 0x83, 0xfd, 0x5e, 0x78, 0xdd,
-	0xc1, 0x58, 0x5d, 0xba, 0xf6, 0xb1, 0xd5, 0x70, 0xe8, 0xc2, 0xf6, 0xbe, 0x84, 0x3b, 0xcf, 0xb8,
-	0x50, 0x1b, 0xef, 0xba, 0x0b, 0x4e, 0x1a, 0x97, 0x5d, 0xe1, 0xd0, 0xcc, 0xf0, 0x5e, 0x5b, 0x70,
-	0xf4, 0x2d, 0x5e, 0x6c, 0xcc, 0x6e, 0xc0, 0xd1, 0xf3, 0x70, 0x8c, 0xc1, 0x40, 0x20, 0x46, 0xc1,
-	0x25, 0xd7, 0x75, 0xac, 0xc6, 0x3e, 0x2d, 0xc2, 0x79, 0xaf, 0xdf, 0xb0, 0x68, 0x2c, 0x8d, 0x5e,
-	0xb5, 0x4d, 0xee, 0x43, 0xf5, 0xf1, 0xb5, 0x12, 0xe1, 0x40, 0x7d, 0x1d, 0xb8, 0xbb, 0x3a, 0x7f,
-	0x09, 0x90, 0x47, 0x70, 0xaf, 0xcb, 0xa2, 0x11, 0x8a, 0x58, 0xb0, 0x48, 0x75, 0x45, 0x38, 0xc5,
-	0x57, 0x5c, 0x8c, 0xa5, 0xeb, 0xe8, 0xc8, 0xf5, 0x4e, 0xef, 0xf5, 0x0e, 0xbc, 0x63, 0xb6, 0x9f,
-	0x88, 0x50, 0x31, 0x1e, 0x91, 0xcf, 0x60, 0xbf, 0x1f, 0x64, 0x90, 0x9e, 0xe4, 0xe0, 0xe4, 0x3d,
-	0x7f, 0xc1, 0xaf, 0xbf, 0xca, 0x22, 0x5d, 0x84, 0x92, 0x53, 0x38, 0xd0, 0xdc, 0xe5, 0x99, 0x3b,
-	0x3a, 0xf3, 0xbe, 0x91, 0x59, 0x62, 0x96, 0x9a, 0x09, 0xe4, 0x0b, 0x80, 0x74, 0xb3, 0x79, 0xba,
-	0xad, 0xd3, 0xdf, 0x37, 0xd2, 0x8b, 0x5c, 0x51, 0x23, 0x9c, 0x74, 0x4a, 0x64, 0xe8, 0x2d, 0x1d,
-	0x9c, 0xd4, 0x8c, 0x0a, 0x85, 0x08, 0x5a, 0xe2, 0xcf, 0x07, 0xd2, 0x09, 0xd9, 0x64, 0x16, 0x0c,
-	0xc2, 0x28, 0x18, 0x5c, 0x62, 0xea, 0x4a, 0x97, 0x68, 0x37, 0x6c, 0xba, 0xc6, 0xe3, 0xfd, 0xb1,
-	0x03, 0xce, 0x59, 0x5a, 0x3a, 0xd5, 0xc8, 0x53, 0x31, 0x3a, 0xef, 0xe8, 0x85, 0x39, 0x34, 0x33,
-	0x88, 0x0b, 0x7b, 0xda, 0x7d, 0xde, 0xd1, 0xeb, 0x70, 0xe8, 0xdc, 0x4c, 0xf9, 0xd4, 0x47, 0x2d,
-	0x17, 0x5b, 0xcb, 0x65, 0x09, 0x10, 0x0f, 0x0e, 0xdb, 0x02, 0x35, 0x1b, 0xcf, 0xd9, 0x14, 0xf5,
-	0x28, 0x36, 0x5d, 0xc1, 0xd2, 0x0a, 0xda, 0xc6, 0x61, 0x6b, 0xa6, 0x79, 0x76, 0xe8, 0x12, 0x20,
-	0x0f, 0xe0, 0xd6, 0x53, 0xc1, 0x46, 0x2c, 0x0a, 0x27, 0xe7, 0x51, 0x9c, 0x28, 0xb7, 0x72, 0x6c,
-	0x35, 0x0e, 0xe9, 0x2a, 0x98, 0xde, 0xd3, 0xe3, 0x43, 0xf6, 0x92, 0xe1, 0x50, 0xdf, 0xb3, 0x97,
-	0xdd, 0x63, 0x62, 0xa4, 0x0e, 0x30, 0xb7, 0x5b, 0x33, 0x77, 0x5f, 0x5f, 0x64, 0x20, 0xe4, 0xd9,
-	0x5a, 0x11, 0xb9, 0x55, 0xbd, 0xfd, 0xba, 0xb1, 0xfd, 0x35, 0x51, 0x74, 0xad, 0xfe, 0x5c, 0xd8,
-	0xeb, 0xe0, 0x04, 0x15, 0x0e, 0x5d, 0xd0, 0xfa, 0x9d, 0x9b, 0x1e, 0x83, 0xa3, 0x3e, 0xbe, 0xd2,
-	0x7b, 0xa2, 0xf8, 0x43, 0x82, 0x52, 0x11, 0x1f, 0x0e, 0x5e, 0x48, 0x14, 0x6d, 0x1e, 0x29, 0xbc,
-	0x56, 0xb9, 0x5e, 0x0f, 0x7d, 0x03, 0xa3, 0x66, 0x00, 0x79, 0x98, 0x33, 0x96, 0xeb, 0xf3, 0x8e,
-	0xd1, 0x60, 0x56, 0x37, 0x73, 0x7b, 0x5d, 0xb8, 0xab, 0x0f, 0xf9, 0x4a, 0x29, 0xca, 0x98, 0x47,
-	0x12, 0xff, 0x2d, 0xd1, 0xde, 0xcf, 0x16, 0x90, 0x17, 0xf1, 0x30, 0x54, 0xf8, 0x26, 0xda, 0x36,
-	0x1b, 0xb1, 0xff, 0x46, 0x71, 0xbb, 0x05, 0xc5, 0x2d, 0xc6, 0xcd, 0x5a, 0xdd, 0x7e, 0xdc, 0xef,
-	0x81, 0x64, 0x64, 0xfd, 0xa7, 0x69, 0xff, 0xba, 0xfe, 0xbc, 0xcf, 0x5c, 0x11, 0x5b, 0xf7, 0x79,
-	0x05, 0x87, 0xff, 0x4f, 0x87, 0x1b, 0xf6, 0xfc, 0x15, 0xdc, 0xd2, 0x86, 0xdc, 0xf2, 0x62, 0xaf,
-	0x97, 0x17, 0xd8, 0x30, 0xf9, 0x3f, 0xd4, 0xcb, 0xc9, 0x4f, 0x36, 0x54, 0xd3, 0x6f, 0x5a, 0xa6,
-	0x9e, 0xcf, 0xc1, 0x3e, 0x43, 0x45, 0xde, 0x2d, 0x45, 0x67, 0xcd, 0xd6, 0xdc, 0xb2, 0x23, 0xef,
-	0xe2, 0x14, 0xaa, 0x67, 0xa8, 0x5a, 0x33, 0xfd, 0xf9, 0xda, 0x22, 0xff, 0x31, 0x54, 0xb2, 0x97,
-	0x46, 0xcc, 0x0f, 0x76, 0xe1, 0xb1, 0xd7, 0x3e, 0x2c, 0xe6, 0x17, 0x5f, 0xe7, 0x13, 0xa8, 0x64,
-	0x0a, 0x26, 0x1f, 0x18, 0xa1, 0xe5, 0xf7, 0x57, 0xae, 0x54, 0x14, 0xfe, 0x13, 0xa8, 0x64, 0x1a,
-	0x5b, 0xa9, 0x54, 0xd6, 0x76, 0xb9, 0x52, 0x51, 0x9a, 0xa7, 0x50, 0xc9, 0x28, 0x27, 0xa5, 0xf1,
-	0xe5, 0xc6, 0xc5, 0x7c, 0x6c, 0xb5, 0xba, 0xbf, 0xdc, 0xd4, 0xad, 0x5f, 0x6f, 0xea, 0xd6, 0x6f,
-	0x37, 0x75, 0xeb, 0xc7, 0xdf, 0xeb, 0x6f, 0x7d, 0xf7, 0x68, 0xc4, 0xe3, 0xf1, 0xc8, 0x9f, 0xb0,
-	0x68, 0x1c, 0x32, 0x9f, 0xf1, 0xe6, 0xd5, 0x27, 0x4d, 0x81, 0x31, 0x97, 0xcd, 0x70, 0xda, 0xd4,
-	0xbf, 0x5b, 0x83, 0xfc, 0xff, 0x4c, 0x2e, 0xff, 0xd8, 0x2e, 0x2a, 0xda, 0xf3, 0xe9, 0x9f, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x62, 0x6b, 0x05, 0x64, 0xcf, 0x09, 0x00, 0x00,
+	// 932 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0xdd, 0x6e, 0x1b, 0x45,
+	0x14, 0xee, 0x7a, 0xb3, 0x4e, 0x7c, 0x9c, 0xbf, 0x4e, 0x5b, 0x58, 0x4c, 0x31, 0xe9, 0xaa, 0x2a,
+	0xbe, 0x5a, 0xd3, 0x50, 0x24, 0x24, 0x50, 0x11, 0x8e, 0x9d, 0x1f, 0x84, 0x9d, 0x68, 0xdc, 0x08,
+	0x09, 0x09, 0xa4, 0x8d, 0x3d, 0x75, 0x56, 0xb6, 0x77, 0x97, 0x99, 0xd9, 0x36, 0x7e, 0x00, 0xde,
+	0x81, 0xb7, 0xe9, 0x2d, 0x97, 0x88, 0x27, 0x40, 0xe1, 0x09, 0x78, 0x03, 0xb4, 0x67, 0xd6, 0xce,
+	0x78, 0xd7, 0xc5, 0x90, 0x28, 0xbd, 0xf2, 0x9c, 0xff, 0x33, 0xdf, 0xf9, 0xe6, 0x78, 0xe1, 0x91,
+	0xe8, 0x79, 0xc1, 0x80, 0x87, 0x71, 0x54, 0x9f, 0x9d, 0x04, 0xe3, 0xaf, 0xfc, 0x1e, 0xe3, 0x6e,
+	0xc4, 0x43, 0x19, 0x92, 0xd2, 0xcc, 0x50, 0x79, 0x80, 0x1a, 0x39, 0x89, 0x98, 0xa8, 0xc7, 0x62,
+	0xea, 0xe1, 0x3c, 0x86, 0xcd, 0x4e, 0xb7, 0x1d, 0xf6, 0xe3, 0x11, 0xdb, 0x0b, 0x83, 0x97, 0xfe,
+	0x80, 0x10, 0x58, 0xe9, 0x78, 0x63, 0x66, 0x1b, 0x3b, 0x46, 0xad, 0x44, 0xf1, 0xec, 0x0c, 0xe1,
+	0x6e, 0x83, 0xc7, 0x92, 0x2d, 0x73, 0x24, 0x4f, 0x60, 0x73, 0x2f, 0x16, 0x32, 0x1c, 0x77, 0xe3,
+	0xb3, 0x44, 0x21, 0xec, 0xc2, 0x8e, 0x59, 0x2b, 0xd1, 0x8c, 0x96, 0x54, 0x60, 0xad, 0xed, 0x5d,
+	0x34, 0x59, 0x24, 0xcf, 0x6d, 0x73, 0xc7, 0xa8, 0x59, 0x74, 0x26, 0x3b, 0x5f, 0xc1, 0xf6, 0x49,
+	0xc8, 0xe5, 0xd2, 0x5a, 0xf7, 0xc1, 0x4a, 0xfc, 0x54, 0x09, 0x8b, 0x2a, 0xc1, 0x79, 0x63, 0xc0,
+	0xd6, 0xf7, 0xec, 0x6c, 0x69, 0x74, 0x0d, 0xb6, 0x5e, 0x78, 0x43, 0xd6, 0xed, 0x71, 0xc6, 0x82,
+	0xee, 0x79, 0x88, 0x79, 0x8c, 0xda, 0x1a, 0xcd, 0xaa, 0xd3, 0x5e, 0xbf, 0xf3, 0x83, 0xa1, 0xd0,
+	0x7a, 0x45, 0x99, 0x3c, 0x84, 0x52, 0xeb, 0x42, 0x72, 0xaf, 0x27, 0xbf, 0xed, 0xda, 0x2b, 0x18,
+	0x7f, 0xa5, 0x20, 0xcf, 0xe0, 0xc1, 0xbe, 0x1f, 0x0c, 0x18, 0x8f, 0xb8, 0x1f, 0xc8, 0x7d, 0xee,
+	0x8d, 0xd9, 0xeb, 0x90, 0x0f, 0x85, 0x6d, 0xa1, 0xe7, 0x62, 0xa3, 0xf3, 0xa6, 0x00, 0xf7, 0xf4,
+	0xf6, 0x63, 0xee, 0x49, 0x3f, 0x0c, 0xc8, 0xe7, 0xb0, 0xd6, 0xe9, 0x2a, 0x15, 0xde, 0xa4, 0xbc,
+	0xfb, 0x81, 0x3b, 0x9b, 0xaf, 0x3b, 0x3f, 0x45, 0x3a, 0x73, 0x25, 0xcf, 0xa1, 0x8c, 0xb3, 0x4b,
+	0x23, 0x0b, 0x18, 0xf9, 0x50, 0x8b, 0xcc, 0x4d, 0x96, 0xea, 0x01, 0xe4, 0x4b, 0x80, 0x04, 0xd9,
+	0x34, 0xdc, 0xc4, 0xf0, 0x0f, 0xb5, 0xf0, 0xec, 0xac, 0xa8, 0xe6, 0x4e, 0x9a, 0xb9, 0x61, 0x20,
+	0x4a, 0xe5, 0xdd, 0x8a, 0x96, 0x21, 0xe3, 0x41, 0x73, 0xf3, 0x73, 0x81, 0x34, 0x3d, 0x7f, 0x34,
+	0xe9, 0xf6, 0xbc, 0xa0, 0xdb, 0x3b, 0x67, 0x89, 0x29, 0x01, 0xd1, 0xac, 0x99, 0x74, 0x81, 0xc5,
+	0xf9, 0xc5, 0x04, 0xeb, 0x20, 0x49, 0x9d, 0x70, 0xe4, 0x98, 0x0f, 0x8e, 0x9a, 0x08, 0x98, 0x45,
+	0x95, 0x40, 0x6c, 0x58, 0x45, 0xf3, 0x51, 0x13, 0xe1, 0xb0, 0xe8, 0x54, 0x4c, 0xe6, 0x89, 0x47,
+	0xa4, 0x8b, 0x89, 0x74, 0xb9, 0x52, 0x10, 0x07, 0xd6, 0xf7, 0x38, 0xc3, 0x69, 0xbc, 0xf0, 0xc7,
+	0x0c, 0xaf, 0x62, 0xd2, 0x39, 0x5d, 0x92, 0x01, 0x65, 0xd6, 0x6f, 0x4c, 0x70, 0xce, 0x16, 0xbd,
+	0x52, 0x90, 0xc7, 0xb0, 0x71, 0xcc, 0xfd, 0x81, 0x1f, 0x78, 0xa3, 0xa3, 0x20, 0x8a, 0xa5, 0x5d,
+	0xdc, 0x31, 0x6a, 0xeb, 0x74, 0x5e, 0x99, 0xd4, 0x69, 0x87, 0x7d, 0xff, 0xa5, 0xcf, 0xfa, 0x58,
+	0x67, 0x55, 0xd5, 0xd1, 0x75, 0xa4, 0x0a, 0x30, 0x95, 0x1b, 0x13, 0x7b, 0x0d, 0x0b, 0x69, 0x1a,
+	0x72, 0xb2, 0x90, 0x44, 0x76, 0x09, 0xd1, 0xaf, 0x6a, 0xe8, 0x2f, 0xf0, 0xa2, 0x0b, 0xf9, 0xf7,
+	0x1e, 0x14, 0x4f, 0xbc, 0x58, 0xb0, 0xbe, 0x0d, 0x48, 0xdf, 0x54, 0x4a, 0xd0, 0x6c, 0xb2, 0x11,
+	0x93, 0xac, 0x6f, 0x97, 0xd1, 0x30, 0x15, 0x1d, 0x1f, 0xb6, 0x3a, 0xec, 0x35, 0xe2, 0x47, 0xd9,
+	0xcf, 0x31, 0x13, 0x92, 0xb8, 0x50, 0x3e, 0x15, 0x8c, 0xef, 0x85, 0x81, 0x64, 0x17, 0x32, 0xe5,
+	0xf1, 0xba, 0xab, 0xe9, 0xa8, 0xee, 0x40, 0x9e, 0xa4, 0x93, 0x4c, 0x79, 0xbb, 0xad, 0x35, 0xae,
+	0xf2, 0x2a, 0xb3, 0xb3, 0x0f, 0xf7, 0xf1, 0x90, 0x42, 0x4d, 0x99, 0x88, 0xc2, 0x40, 0xb0, 0xff,
+	0x4b, 0x00, 0x67, 0x04, 0xe4, 0x34, 0xea, 0x7b, 0x92, 0xbd, 0xd3, 0xae, 0x55, 0xc9, 0xeb, 0x77,
+	0xfd, 0x13, 0x10, 0x85, 0xf9, 0x8d, 0xba, 0x7e, 0x7b, 0xfe, 0x69, 0x9f, 0xe9, 0x60, 0xaf, 0xdd,
+	0xe7, 0x1f, 0x06, 0xac, 0xdf, 0xa8, 0xc5, 0xa7, 0x50, 0x68, 0x4c, 0x30, 0xeb, 0xe6, 0xee, 0xa3,
+	0x1c, 0xaa, 0x2a, 0xa9, 0x9b, 0xfe, 0x36, 0x26, 0xb4, 0xd0, 0x98, 0xe8, 0xdd, 0x98, 0xff, 0xf2,
+	0xd8, 0x57, 0x32, 0x8f, 0xdd, 0xf9, 0x04, 0x4a, 0xb3, 0x44, 0x64, 0x03, 0x4a, 0x07, 0xf4, 0xf8,
+	0xf4, 0xa4, 0xf3, 0x4d, 0xbb, 0xb5, 0x7d, 0x87, 0x94, 0x61, 0x15, 0xc5, 0xa3, 0xe6, 0xb6, 0xe1,
+	0x7c, 0x0d, 0x1b, 0x18, 0x25, 0xae, 0x79, 0x29, 0xa7, 0x9d, 0x26, 0x58, 0x02, 0xeb, 0x7f, 0x25,
+	0xd5, 0x8f, 0x70, 0x17, 0x5f, 0xe6, 0x2d, 0x71, 0xa1, 0x05, 0xf7, 0xf0, 0xa8, 0x5e, 0xff, 0x4d,
+	0x28, 0x4b, 0x99, 0x88, 0xc7, 0xb7, 0x4d, 0x59, 0x55, 0xe4, 0xda, 0x7d, 0xee, 0xfe, 0x6d, 0x42,
+	0x29, 0xf9, 0x77, 0x51, 0xff, 0x27, 0x5f, 0x80, 0x79, 0xc0, 0x24, 0x79, 0xff, 0x2d, 0xd4, 0xab,
+	0xd8, 0x79, 0x43, 0x5a, 0xb7, 0x05, 0x45, 0xb5, 0x9b, 0x88, 0xfe, 0xd7, 0x97, 0x59, 0x8f, 0x95,
+	0x8f, 0xb3, 0xf1, 0xd9, 0x7d, 0x76, 0x08, 0x45, 0xb5, 0x2c, 0xc8, 0x47, 0x9a, 0x6b, 0x7e, 0x65,
+	0xe5, 0x33, 0x65, 0x77, 0xcc, 0x21, 0x14, 0xd5, 0x73, 0x9e, 0xcb, 0x94, 0x5f, 0x23, 0xf9, 0x4c,
+	0xd9, 0x2d, 0xf0, 0x1c, 0x8a, 0xea, 0x01, 0x90, 0xdc, 0xf5, 0xc5, 0x52, 0x60, 0x3e, 0x35, 0x48,
+	0x0b, 0x2c, 0x24, 0x13, 0xd1, 0xbf, 0x4a, 0x72, 0x14, 0xae, 0x54, 0xb3, 0x29, 0x32, 0x0c, 0x3c,
+	0x84, 0xa2, 0x1a, 0xf6, 0xdc, 0x85, 0xf2, 0x24, 0xcb, 0x5f, 0x28, 0xc3, 0x91, 0xc6, 0xfe, 0x6f,
+	0x97, 0x55, 0xe3, 0xf7, 0xcb, 0xaa, 0xf1, 0xe7, 0x65, 0xd5, 0xf8, 0xf5, 0xaf, 0xea, 0x9d, 0x1f,
+	0x9e, 0x0d, 0xc2, 0x68, 0x38, 0x70, 0x47, 0x7e, 0x30, 0xf4, 0x7c, 0xd7, 0x0f, 0xeb, 0xaf, 0x9e,
+	0xd6, 0x39, 0x8b, 0x42, 0x51, 0xf7, 0xc6, 0x75, 0xfc, 0x92, 0xee, 0xa5, 0x9f, 0xde, 0xe2, 0xea,
+	0x63, 0xfc, 0xac, 0x88, 0x96, 0xcf, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0x51, 0x68, 0xd1, 0xc8,
+	0xaa, 0x0b, 0x00, 0x00,
 }
