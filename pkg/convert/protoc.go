@@ -1,10 +1,10 @@
 package convert
 
 import (
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/protocservices/address"
-	"gopkg.linkai.io/v1/repos/am/protocservices/prototypes"
-	"gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/protocservices/address"
+	"github.com/linkai-io/am/protocservices/prototypes"
+	"github.com/linkai-io/am/protocservices/scangroup"
 )
 
 // DomainToUser convert domain user type to protobuf user type

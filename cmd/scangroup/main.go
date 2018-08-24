@@ -6,14 +6,14 @@ import (
 	"os"
 
 	"github.com/jackc/pgx"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/secrets"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	scangroupprotoservice "gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
-	"gopkg.linkai.io/v1/repos/am/services/scangroup"
-	scangroupprotoc "gopkg.linkai.io/v1/repos/am/services/scangroup/protoc"
+	scangroupprotoservice "github.com/linkai-io/am/protocservices/scangroup"
+	"github.com/linkai-io/am/services/scangroup"
+	scangroupprotoc "github.com/linkai-io/am/services/scangroup/protoc"
 )
 
 var (

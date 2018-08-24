@@ -1,6 +1,6 @@
 package mock
 
-import "gopkg.linkai.io/v1/repos/am/am"
+import "github.com/linkai-io/am/am"
 
 type Authorizer struct {
 	IsAllowedFn      func(subject, resource, action string) error

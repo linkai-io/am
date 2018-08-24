@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 
-	"gopkg.linkai.io/v1/repos/am/amtest"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
-	"gopkg.linkai.io/v1/repos/am/services/address"
+	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/linkai-io/am/services/address"
 
-	"gopkg.linkai.io/v1/repos/am/mock"
+	"github.com/linkai-io/am/mock"
 )
 
 var env string

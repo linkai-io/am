@@ -9,9 +9,9 @@ import (
 	uuid "github.com/gofrs/uuid"
 	"github.com/ory/ladon"
 
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/amtest"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
 )
 
 func TestNewPolicy(t *testing.T) {

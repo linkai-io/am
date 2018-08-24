@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
+	"github.com/linkai-io/am/pkg/secrets"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
-	"gopkg.linkai.io/v1/repos/am/mock"
+	"github.com/linkai-io/am/mock"
 )
 
 const (

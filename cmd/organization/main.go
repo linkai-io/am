@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
-	orgprotoservice "gopkg.linkai.io/v1/repos/am/protocservices/organization"
-	"gopkg.linkai.io/v1/repos/am/services/organization"
-	orgprotoc "gopkg.linkai.io/v1/repos/am/services/organization/protoc"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/secrets"
+	orgprotoservice "github.com/linkai-io/am/protocservices/organization"
+	"github.com/linkai-io/am/services/organization"
+	orgprotoc "github.com/linkai-io/am/services/organization/protoc"
 )
 
 var (

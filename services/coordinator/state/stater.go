@@ -3,7 +3,7 @@ package state
 import (
 	"context"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 )
 
 // Stater is for interfacing with a state management system

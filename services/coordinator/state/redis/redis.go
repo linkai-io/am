@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/gomodule/redigo/redis"
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/redisclient"
+	"github.com/linkai-io/am/pkg/redisclient"
 )
 
 const (

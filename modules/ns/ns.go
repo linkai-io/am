@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/modules/ns/state"
-	"gopkg.linkai.io/v1/repos/am/pkg/dnsclient"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/modules/ns/state"
+	"github.com/linkai-io/am/pkg/dnsclient"
 )
 
 var (

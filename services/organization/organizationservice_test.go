@@ -6,14 +6,14 @@ import (
 	"flag"
 	"testing"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
+	"github.com/linkai-io/am/pkg/secrets"
 
-	"gopkg.linkai.io/v1/repos/am/amtest"
+	"github.com/linkai-io/am/amtest"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 
-	"gopkg.linkai.io/v1/repos/am/mock"
-	"gopkg.linkai.io/v1/repos/am/services/organization"
+	"github.com/linkai-io/am/mock"
+	"github.com/linkai-io/am/services/organization"
 )
 
 var env string

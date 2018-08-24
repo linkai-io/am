@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/dnsclient"
+	"github.com/linkai-io/am/pkg/dnsclient"
 
-	"gopkg.linkai.io/v1/repos/am/modules/brute"
+	"github.com/linkai-io/am/modules/brute"
 )
 
 func TestAnalyzeZone(t *testing.T) {

@@ -9,17 +9,17 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/amtest"
-	client "gopkg.linkai.io/v1/repos/am/clients/organization"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
-	"gopkg.linkai.io/v1/repos/am/services/organization"
-	"gopkg.linkai.io/v1/repos/am/services/organization/protoc"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/amtest"
+	client "github.com/linkai-io/am/clients/organization"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/linkai-io/am/services/organization"
+	"github.com/linkai-io/am/services/organization/protoc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	protoservice "gopkg.linkai.io/v1/repos/am/protocservices/organization"
+	protoservice "github.com/linkai-io/am/protocservices/organization"
 )
 
 const serviceKey = "orgservice"

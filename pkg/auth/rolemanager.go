@@ -1,6 +1,6 @@
 package auth
 
-import "gopkg.linkai.io/v1/repos/am/am"
+import "github.com/linkai-io/am/am"
 
 // RoleManager interface for managing roles and members of roles/groups
 type RoleManager interface {

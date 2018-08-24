@@ -3,7 +3,7 @@ package module
 import (
 	"context"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 )
 
 // Service for interfacing with coordinator/modules

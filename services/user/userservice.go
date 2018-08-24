@@ -6,8 +6,8 @@ import (
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/auth"
 )
 
 // Service for interfacing with postgresql/rds

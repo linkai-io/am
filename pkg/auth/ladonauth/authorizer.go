@@ -5,8 +5,8 @@ import (
 	"math"
 
 	"github.com/ory/ladon"
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/auth"
 )
 
 var (

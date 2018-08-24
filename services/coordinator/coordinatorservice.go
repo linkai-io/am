@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/services/coordinator/queue"
-	"gopkg.linkai.io/v1/repos/am/services/coordinator/state"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/services/coordinator/queue"
+	"github.com/linkai-io/am/services/coordinator/state"
 )
 
 var (

@@ -1,9 +1,9 @@
 package protoc
 
 import (
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/convert"
-	"gopkg.linkai.io/v1/repos/am/protocservices/organization"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/protocservices/organization"
 
 	context "golang.org/x/net/context"
 )

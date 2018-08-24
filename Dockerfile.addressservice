@@ -4,8 +4,8 @@ RUN apk update && apk add git && apk add ca-certificates
 
 RUN adduser -D -g '' appuser 
 
-COPY . $GOPATH/src/gopkg.linkai.io/v1/repos/am/
-WORKDIR $GOPATH/src/gopkg.linkai.io/v1/repos/am/
+COPY . $GOPATH/src/github.com/linkai-io/am/
+WORKDIR $GOPATH/src/github.com/linkai-io/am/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/addressservice cmd/address/main.go
 

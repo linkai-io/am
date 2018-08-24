@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	"golang.org/x/time/rate"
-	"gopkg.linkai.io/v1/repos/am/pkg/dnsclient"
+	"github.com/linkai-io/am/pkg/dnsclient"
 )
 
 type Analyzer struct {

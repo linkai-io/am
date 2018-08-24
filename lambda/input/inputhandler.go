@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"gopkg.linkai.io/v1/repos/am/clients/address"
-	"gopkg.linkai.io/v1/repos/am/clients/scangroup"
+	"github.com/linkai-io/am/clients/address"
+	"github.com/linkai-io/am/clients/scangroup"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

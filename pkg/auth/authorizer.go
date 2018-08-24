@@ -1,6 +1,6 @@
 package auth
 
-import "gopkg.linkai.io/v1/repos/am/am"
+import "github.com/linkai-io/am/am"
 
 // Authorizer interfaces between roles and policies to determine if a user is a member of a role allowed to access a resource
 // note it does not determine authorization of organization data, that is done at the datastore access level.

@@ -4,11 +4,11 @@ import (
 	"context"
 	"io"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/convert"
 
 	"google.golang.org/grpc"
-	"gopkg.linkai.io/v1/repos/am/am"
-	service "gopkg.linkai.io/v1/repos/am/protocservices/address"
+	"github.com/linkai-io/am/am"
+	service "github.com/linkai-io/am/protocservices/address"
 )
 
 type Client struct {

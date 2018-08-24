@@ -3,7 +3,7 @@ package ladonauth_test
 import (
 	"testing"
 
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
 )
 
 func TestGetStatements(t *testing.T) {

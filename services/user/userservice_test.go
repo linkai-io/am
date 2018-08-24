@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/amtest"
-	"gopkg.linkai.io/v1/repos/am/mock"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
-	"gopkg.linkai.io/v1/repos/am/services/user"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/mock"
+	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/linkai-io/am/services/user"
 )
 
 var env string

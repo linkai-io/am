@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"gopkg.linkai.io/v1/repos/am/pkg/auth/ladonauth"
-	"gopkg.linkai.io/v1/repos/am/pkg/secrets"
-	addressprotoservice "gopkg.linkai.io/v1/repos/am/protocservices/address"
-	"gopkg.linkai.io/v1/repos/am/services/address"
-	addressprotoc "gopkg.linkai.io/v1/repos/am/services/address/protoc"
+	"github.com/linkai-io/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/secrets"
+	addressprotoservice "github.com/linkai-io/am/protocservices/address"
+	"github.com/linkai-io/am/services/address"
+	addressprotoc "github.com/linkai-io/am/services/address/protoc"
 )
 
 var region string

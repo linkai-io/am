@@ -8,7 +8,7 @@ import (
 	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 )
 
 var (

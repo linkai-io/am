@@ -5,9 +5,9 @@ import (
 	"io"
 
 	"google.golang.org/grpc"
-	"gopkg.linkai.io/v1/repos/am/am"
-	"gopkg.linkai.io/v1/repos/am/pkg/convert"
-	service "gopkg.linkai.io/v1/repos/am/protocservices/scangroup"
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/convert"
+	service "github.com/linkai-io/am/protocservices/scangroup"
 )
 
 type Client struct {

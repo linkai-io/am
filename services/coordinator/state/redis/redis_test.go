@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.linkai.io/v1/repos/am/amtest"
+	"github.com/linkai-io/am/amtest"
 
-	"gopkg.linkai.io/v1/repos/am/am"
+	"github.com/linkai-io/am/am"
 
-	"gopkg.linkai.io/v1/repos/am/services/coordinator/state/redis"
+	"github.com/linkai-io/am/services/coordinator/state/redis"
 )
 
 func TestPut(t *testing.T) {

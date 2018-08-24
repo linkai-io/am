@@ -33,7 +33,7 @@ package scangroup
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import user "gopkg.linkai.io/v1/repos/am/protocservices/prototypes"
+import user "github.com/linkai-io/am/protocservices/prototypes"
 
 import context "golang.org/x/net/context"
 import grpc "google.golang.org/grpc"
