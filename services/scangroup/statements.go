@@ -7,7 +7,7 @@ var queryMap = map[string]string{
 
 	"scanGroupIDByName": "select organization_id, scan_group_id from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false",
 
-	"scanGroupByName": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration, paused, deleted 
+	"scanGroupByName": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted 
 	 	from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false`,
 
 	"scanGroupsByOrgID": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted  

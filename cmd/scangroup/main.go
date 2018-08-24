@@ -4,16 +4,17 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/pkg/auth/ladonauth"
 	"github.com/linkai-io/am/pkg/secrets"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	scangroupprotoservice "github.com/linkai-io/am/protocservices/scangroup"
 	"github.com/linkai-io/am/services/scangroup"
 	scangroupprotoc "github.com/linkai-io/am/services/scangroup/protoc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
@@ -75,10 +76,34 @@ func initDB() (string, *pgx.ConnPool) {
 		log.Fatalf("error parsing connection string")
 	}
 
-	p, err := pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig:     conf,
-		MaxConnections: 5,
-	})
+	ticker := time.NewTicker(5 * time.Second)
+	stopper := time.After(1 * time.Minute)
+	defer ticker.Stop()
+
+	var p *pgx.ConnPool
+	for {
+		select {
+		case <-ticker.C:
+			p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+				ConnConfig:     conf,
+				MaxConnections: 5,
+			})
+			if err == nil {
+				goto READY
+			}
+			log.Printf("error connecting to db, retrying in 5 seconds...\n")
+		case <-stopper:
+			p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+				ConnConfig:     conf,
+				MaxConnections: 5,
+			})
+			if err != nil {
+				log.Fatalf("error connecting to db after 1 minute: %s\n", err)
+			}
+
+		}
+	}
+READY:
 
 	return dbstring, p
 }
