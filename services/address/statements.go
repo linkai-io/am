@@ -13,13 +13,31 @@ var queryMap = map[string]string{
 		ip_address, 
 		discovered_timestamp, 
 		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_job_id,
+		last_scanned_timestamp,
 		last_seen_timestamp,
+		confidence_score,
 		is_soa,
 		is_wildcard_zone,
 		is_hosted_service,
 		ignored
 		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and address_id > $3 order by address_id limit $4`,
+
+	"scanGroupAddressesSinceScannedTime": `select 
+		organization_id, 
+		address_id, 
+		scan_group_id, 
+		host_address,
+		ip_address, 
+		discovered_timestamp, 
+		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
+		last_scanned_timestamp,
+		last_seen_timestamp,
+		confidence_score,
+		is_soa,
+		is_wildcard_zone,
+		is_hosted_service,
+		ignored
+		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and last_scanned_timestamp > $3 and address_id > $4 order by address_id limit $5`,
 
 	"scanGroupAddressesIgnored": `select 
 		organization_id, 
@@ -29,8 +47,9 @@ var queryMap = map[string]string{
 		ip_address, 
 		discovered_timestamp, 
 		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_job_id,
+		last_scanned_timestamp,
 		last_seen_timestamp,
+		confidence_score,
 		is_soa,
 		is_wildcard_zone,
 		is_hosted_service,
@@ -41,7 +60,7 @@ var queryMap = map[string]string{
 var (
 	AddAddressesTempTableKey     = "sga_add_temp"
 	AddAddressesTempTableColumns = []string{"organization_id", "scan_group_id", "host_address", "ip_address",
-		"discovered_timestamp", "discovered_by", "last_job_id", "last_seen_timestamp", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored"}
+		"discovered_timestamp", "discovered_by", "last_scanned_timestamp", "last_seen_timestamp", "confidence_score", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored"}
 	AddAddressesTempTable = `create temporary table sga_add_temp (
 			organization_id integer not null,
 			scan_group_id integer not null,
@@ -49,8 +68,9 @@ var (
 			ip_address varchar(256),
 			discovered_timestamp bigint,
 			discovered_by varchar,
-			last_job_id bigint,
+			last_scanned_timestamp bigint,
 			last_seen_timestamp bigint,
+			confidence_score float,
 			is_soa boolean not null,
 			is_wildcard_zone boolean not null,
 			is_hosted_service boolean not null,
@@ -65,8 +85,9 @@ var (
 			ip_address,
 			discovered_timestamp,
 			discovery_id,
-			last_job_id,
+			last_scanned_timestamp,
 			last_seen_timestamp,
+			confidence_score,
 			is_soa,
 			is_wildcard_zone,
 			is_hosted_service,
@@ -79,15 +100,17 @@ var (
 			temp.ip_address,
 			temp.discovered_timestamp, 
 			(select discovery_id from am.scan_address_discovered_by where discovered_by=temp.discovered_by),
-			temp.last_job_id,
+			temp.last_scanned_timestamp,
 			temp.last_seen_timestamp,
+			confidence_score,
 			temp.is_soa,
 			temp.is_wildcard_zone,
 			temp.is_hosted_service,
 			temp.ignored 
 		from sga_add_temp as temp on conflict (scan_group_id, host_address, ip_address) do update set
-			last_job_id=EXCLUDED.last_job_id,
+			last_scanned_timestamp=EXCLUDED.last_scanned_timestamp,
 			last_seen_timestamp=EXCLUDED.last_seen_timestamp,
+			confidence_score=EXCLUDED.confidence_score,
 			is_soa=EXCLUDED.is_soa,
 			is_wildcard_zone=EXCLUDED.is_wildcard_zone,
 			is_hosted_service=EXCLUDED.is_hosted_service,

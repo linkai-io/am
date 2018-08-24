@@ -143,13 +143,13 @@ func DomainToOrgFilter(in *am.OrgFilter) *prototypes.OrgFilter {
 	return &prototypes.OrgFilter{
 		Start:             int32(in.Start),
 		Limit:             int32(in.Limit),
-		WithDeleted:       in.WithDeleted,
-		DeletedValue:      in.DeletedValue,
-		WithStatus:        in.WithStatus,
-		StatusValue:       in.StatusValue,
 		WithSubcription:   in.WithSubcription,
 		SubValue:          in.SubValue,
 		SinceCreationTime: in.SinceCreationTime,
+		WithStatus:        in.WithStatus,
+		StatusValue:       in.StatusValue,
+		WithDeleted:       in.WithDeleted,
+		DeletedValue:      in.DeletedValue,
 	}
 }
 
@@ -178,7 +178,8 @@ func AddressToDomain(in *address.AddressData) *am.ScanGroupAddress {
 		DiscoveryTime:   in.DiscoveryTime,
 		DiscoveredBy:    in.DiscoveredBy,
 		LastSeenTime:    in.LastSeenTime,
-		LastJobID:       in.LastJobID,
+		LastScannedTime: in.LastScannedTime,
+		ConfidenceScore: in.ConfidenceScore,
 		IsSOA:           in.IsSOA,
 		IsWildcardZone:  in.IsWildcardZone,
 		IsHostedService: in.IsHostedService,
@@ -196,7 +197,8 @@ func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
 		DiscoveryTime:   in.DiscoveryTime,
 		DiscoveredBy:    in.DiscoveredBy,
 		LastSeenTime:    in.LastSeenTime,
-		LastJobID:       in.LastJobID,
+		LastScannedTime: in.LastScannedTime,
+		ConfidenceScore: in.ConfidenceScore,
 		IsSOA:           in.IsSOA,
 		IsWildcardZone:  in.IsWildcardZone,
 		IsHostedService: in.IsHostedService,
@@ -206,40 +208,76 @@ func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
 
 func AddressFilterToDomain(in *address.AddressFilter) *am.ScanGroupAddressFilter {
 	return &am.ScanGroupAddressFilter{
-		GroupID:      int(in.GroupID),
-		WithIgnored:  in.WithIgnored,
-		IgnoredValue: in.IgnoredValue,
-		Start:        int(in.Start),
-		Limit:        int(in.Limit),
+		OrgID:               int(in.OrgID),
+		GroupID:             int(in.GroupID),
+		WithIgnored:         in.WithIgnored,
+		IgnoredValue:        in.IgnoredValue,
+		Start:               in.Start,
+		Limit:               int(in.Limit),
+		WithLastScannedTime: in.WithLastScannedTime,
+		SinceScannedTime:    in.SinceScannedTime,
 	}
 }
 
 func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *address.AddressFilter {
 	return &address.AddressFilter{
-		GroupID:      int32(in.GroupID),
-		WithIgnored:  in.WithIgnored,
-		IgnoredValue: in.IgnoredValue,
-		Start:        int32(in.Start),
-		Limit:        int32(in.Limit),
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		WithIgnored:         in.WithIgnored,
+		IgnoredValue:        in.IgnoredValue,
+		Start:               in.Start,
+		Limit:               int32(in.Limit),
+		WithLastScannedTime: in.WithLastScannedTime,
+		SinceScannedTime:    in.SinceScannedTime,
 	}
 }
 
 // ModuleToDomain converts protoc ModuleConfiguration to am.ModuleConfiguration
 func ModuleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
 	return &am.ModuleConfiguration{
-		NSModule:    &am.NSModuleConfig{Name: in.NSConfig.Name},
-		BruteModule: &am.BruteModuleConfig{Name: in.BruteConfig.Name, CustomSubNames: in.BruteConfig.CustomSubNames, MaxDepth: in.BruteConfig.MaxDepth},
-		PortModule:  &am.PortModuleConfig{Name: in.PortConfig.Name, Ports: in.PortConfig.Ports},
-		WebModule:   &am.WebModuleConfig{Name: in.WebModuleConfig.Name, TakeScreenShots: in.WebModuleConfig.TakeScreenShots, MaxLinks: in.WebModuleConfig.MaxLinks, ExtractJS: in.WebModuleConfig.ExtractJS, FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks},
+		NSModule: &am.NSModuleConfig{
+			RequestsPerSecond: in.NSConfig.RequestsPerSecond,
+		},
+		BruteModule: &am.BruteModuleConfig{
+			RequestsPerSecond: in.BruteConfig.RequestsPerSecond,
+			CustomSubNames:    in.BruteConfig.CustomSubNames,
+			MaxDepth:          in.BruteConfig.MaxDepth,
+		},
+		PortModule: &am.PortModuleConfig{
+			RequestsPerSecond: in.PortConfig.RequestsPerSecond,
+			CustomPorts:       in.PortConfig.CustomPorts,
+		},
+		WebModule: &am.WebModuleConfig{
+			RequestsPerSecond:     in.WebModuleConfig.RequestsPerSecond,
+			TakeScreenShots:       in.WebModuleConfig.TakeScreenShots,
+			MaxLinks:              in.WebModuleConfig.MaxLinks,
+			ExtractJS:             in.WebModuleConfig.ExtractJS,
+			FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks,
+		},
 	}
 }
 
 func DomainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
 	return &scangroup.ModuleConfiguration{
-		NSConfig:        &scangroup.NSModuleConfig{Name: in.NSModule.Name},
-		BruteConfig:     &scangroup.BruteModuleConfig{Name: in.BruteModule.Name, CustomSubNames: in.BruteModule.CustomSubNames, MaxDepth: in.BruteModule.MaxDepth},
-		PortConfig:      &scangroup.PortModuleConfig{Name: in.PortModule.Name, Ports: in.PortModule.Ports},
-		WebModuleConfig: &scangroup.WebModuleConfig{Name: in.WebModule.Name, TakeScreenShots: in.WebModule.TakeScreenShots, MaxLinks: in.WebModule.MaxLinks, ExtractJS: in.WebModule.ExtractJS, FingerprintFrameworks: in.WebModule.FingerprintFrameworks},
+		NSConfig: &scangroup.NSModuleConfig{
+			RequestsPerSecond: in.NSModule.RequestsPerSecond,
+		},
+		BruteConfig: &scangroup.BruteModuleConfig{
+			RequestsPerSecond: in.BruteModule.RequestsPerSecond,
+			CustomSubNames:    in.BruteModule.CustomSubNames,
+			MaxDepth:          in.BruteModule.MaxDepth,
+		},
+		PortConfig: &scangroup.PortModuleConfig{
+			RequestsPerSecond: in.PortModule.RequestsPerSecond,
+			CustomPorts:       in.PortModule.CustomPorts,
+		},
+		WebModuleConfig: &scangroup.WebModuleConfig{
+			RequestsPerSecond:     in.WebModule.RequestsPerSecond,
+			TakeScreenShots:       in.WebModule.TakeScreenShots,
+			MaxLinks:              in.WebModule.MaxLinks,
+			ExtractJS:             in.WebModule.ExtractJS,
+			FingerprintFrameworks: in.WebModule.FingerprintFrameworks,
+		},
 	}
 }
 
@@ -251,7 +289,7 @@ func ScanGroupToDomain(in *scangroup.Group) *am.ScanGroup {
 		GroupName:            in.GroupName,
 		CreationTime:         in.CreationTime,
 		CreatedBy:            int(in.CreatedBy),
-		OriginalInput:        in.OriginalInput,
+		OriginalInputS3URL:   in.OriginalInputS3URL,
 		ModifiedBy:           int(in.ModifiedBy),
 		ModifiedTime:         in.ModifiedTime,
 		ModuleConfigurations: ModuleToDomain(in.ModuleConfiguration),
@@ -268,7 +306,7 @@ func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
 		GroupName:           in.GroupName,
 		CreationTime:        in.CreationTime,
 		CreatedBy:           int32(in.CreatedBy),
-		OriginalInput:       in.OriginalInput,
+		OriginalInputS3URL:  in.OriginalInputS3URL,
 		ModifiedBy:          int32(in.ModifiedBy),
 		ModifiedTime:        in.ModifiedTime,
 		ModuleConfiguration: DomainToModule(in.ModuleConfigurations),

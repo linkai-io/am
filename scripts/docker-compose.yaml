@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+  postgresdev:
+    image: postgres 
+    hostname: postgresdev
+    ports:
+      - "5432:5432"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.10
+  orgservice:
+     image: linkai_orgservice
+     hostname: linkai_orgservice
+     depends_on: 
+      - postgresdev
+     ports:
+       - "50051:50051"
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.11
+     environment:
+      - APP_ENV=local
+      - _am_local_db_orgservice_dbstring=${_am_local_db_orgservice_dbstring}
+  userservice:
+     image: linkai_userservice
+     hostname: linkai_userservice
+     depends_on: 
+      - postgresdev
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.12
+     ports:
+       - "50052:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_userservice_dbstring=${_am_local_db_userservice_dbstring}
+  scangroupservice:
+     image: linkai_scangroupservice
+     hostname: linkai_scangroupservice
+     depends_on: 
+      - postgresdev
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.13
+     ports:
+       - "50053:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_scangroupservice_dbstring=${_am_local_db_scangroupservice_dbstring}       
+  addressservice:
+     image: linkai_addressservice
+     hostname: linkai_addressservice
+     depends_on: 
+      - postgresdev
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.14
+     ports:
+       - "50054:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_addressservice_dbstring=${_am_local_db_addressservice_dbstring}
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: 172.16.238.0/24

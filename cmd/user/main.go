@@ -16,8 +16,10 @@ import (
 	userprotoc "gopkg.linkai.io/v1/repos/am/services/user/protoc"
 )
 
-var region string
-var env string
+var (
+	region string
+	env    string
+)
 
 const serviceKey = "userservice"
 

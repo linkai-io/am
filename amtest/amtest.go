@@ -25,7 +25,7 @@ const (
 		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false, 1000, 1000);`
 
 	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
-	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration, paused, deleted) values 
+	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted) values 
 	($1, $2, $3, $4, $5, $6, $7, $8, false, false) returning scan_group_id`
 	DeleteOrgStmt  = "select am.delete_org((select organization_id from am.organizations where organization_name=$1))"
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
@@ -63,6 +63,17 @@ func MockAuthorizer() *mock.Authorizer {
 		return nil
 	}
 	return auth
+}
+
+func CreateModuleConfig() *am.ModuleConfiguration {
+	m := &am.ModuleConfiguration{}
+	customSubNames := []string{"sub1", "sub2"}
+	m.BruteModule = &am.BruteModuleConfig{CustomSubNames: customSubNames, RequestsPerSecond: 50, MaxDepth: 2}
+	customPorts := []int32{1, 2}
+	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 50}
+	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 50, CustomPorts: customPorts}
+	m.WebModule = &am.WebModuleConfig{MaxLinks: 10, TakeScreenShots: true, ExtractJS: true, FingerprintFrameworks: true}
+	return m
 }
 
 func MockRoleManager() *mock.RoleManager {
@@ -169,7 +180,7 @@ func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) i
 	orgID := GetOrgID(p, orgName, t)
 	userID := GetUserId(p, orgID, orgName, t)
 	//organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration
-	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, 0, userID, 0, userID, "", nil).Scan(&groupID)
+	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, 0, userID, 0, userID, "s3://bucket/blah", nil).Scan(&groupID)
 	if err != nil {
 		t.Fatalf("error creating scan group: %s\n", err)
 	}

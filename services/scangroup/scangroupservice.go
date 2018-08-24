@@ -85,7 +85,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
-		&group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
+		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
-		&group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
+		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInput, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return 0, nil, err
 		}
 
@@ -171,7 +171,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 	}
 
 	// creates and sets oid/gid
-	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.ModifiedTime, newGroup.ModifiedBy, newGroup.OriginalInput, newGroup.ModuleConfigurations).Scan(&oid, &gid)
+	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.ModifiedTime, newGroup.ModifiedBy, newGroup.OriginalInputS3URL, newGroup.ModuleConfigurations).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}

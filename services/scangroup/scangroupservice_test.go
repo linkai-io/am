@@ -127,7 +127,7 @@ func TestCreate(t *testing.T) {
 	t.Logf("%#v\n", returned)
 	returned.ModifiedTime = time.Now().UnixNano()
 	returned.GroupName = "modified group"
-	returned.ModuleConfigurations = &am.ModuleConfiguration{NSModule: &am.NSModuleConfig{Name: "NS"}}
+	returned.ModuleConfigurations = &am.ModuleConfiguration{NSModule: &am.NSModuleConfig{RequestsPerSecond: 50}}
 	t.Logf("%#v\n", returned)
 
 	_, ugid, err := service.Update(ctx, userContext, returned)
@@ -153,7 +153,7 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("modified time was not updated, expected %d got %d\n", mod.ModifiedTime, returned.ModifiedTime)
 	}
 
-	if mod.ModuleConfigurations == nil || mod.ModuleConfigurations.NSModule == nil || mod.ModuleConfigurations.NSModule.Name != "NS" {
+	if mod.ModuleConfigurations == nil || mod.ModuleConfigurations.NSModule == nil || mod.ModuleConfigurations.NSModule.RequestsPerSecond != 50 {
 		t.Fatalf("module configurations was not returned properly: %#v\n", mod.ModuleConfigurations)
 	}
 }
@@ -317,8 +317,8 @@ func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {
 		t.Fatalf("GroupName by was different, %s and %s\n", group1.GroupName, group2.GroupName)
 	}
 
-	if string(group1.OriginalInput) != string(group2.OriginalInput) {
-		t.Fatalf("OriginalInput by was different, %s and %s\n", string(group1.OriginalInput), string(group2.OriginalInput))
+	if string(group1.OriginalInputS3URL) != string(group2.OriginalInputS3URL) {
+		t.Fatalf("OriginalInput by was different, %s and %s\n", string(group1.OriginalInputS3URL), string(group2.OriginalInputS3URL))
 	}
 }
 
@@ -338,7 +338,7 @@ func testCreateNewGroup(orgID, userID int, groupName string) *am.ScanGroup {
 		ModifiedTime:         now,
 		ModifiedBy:           userID,
 		ModuleConfigurations: &am.ModuleConfiguration{},
-		OriginalInput:        []byte("192.168.0.1"),
+		OriginalInputS3URL:   "s3://blah/bucket",
 	}
 
 	return group

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -30,15 +31,15 @@ const (
 
 // Client to resolve hosts and ip addresses
 type Client struct {
-	client *dns.Client
-	server string
-	retry  int
+	client  *dns.Client
+	servers []string
+	retry   int
 }
 
 // New returns a new DNS client
-func New(server string, retry int) *Client {
+func New(servers []string, retry int) *Client {
 	c := &Client{}
-	c.server = server
+	c.servers = servers
 	c.retry = retry
 	c.client = &dns.Client{Timeout: 5 * time.Second}
 	return c
@@ -60,9 +61,7 @@ func (c *Client) ResolveName(name string) ([]*Results, error) {
 
 	recvd := 0
 	for r := range resultErrors {
-		if r.Error != nil {
-			log.Printf("%s\n", r.Error)
-		} else {
+		if r.Error == nil {
 			results = append(results, r.Result)
 		}
 		recvd++
@@ -355,8 +354,10 @@ func (c *Client) exchange(name string, query uint16) (*dns.Msg, error) {
 
 	msg := new(dns.Msg)
 	msg.SetQuestion(dns.Fqdn(name), query)
+	// randomize dns resolver for requests
+	server := c.servers[rand.Intn(len(c.servers))]
 	for i := 0; i < c.retry; i++ {
-		result, _, err = c.client.Exchange(msg, c.server)
+		result, _, err = c.client.Exchange(msg, server)
 		if err == nil {
 			break
 		}

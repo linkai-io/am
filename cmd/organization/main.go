@@ -15,8 +15,10 @@ import (
 	orgprotoc "gopkg.linkai.io/v1/repos/am/services/organization/protoc"
 )
 
-var region string
-var env string
+var (
+	region string
+	env    string
+)
 
 const serviceKey = "orgservice"
 

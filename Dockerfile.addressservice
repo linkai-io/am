@@ -7,10 +7,7 @@ RUN adduser -D -g '' appuser
 COPY . $GOPATH/src/gopkg.linkai.io/v1/repos/am/
 WORKDIR $GOPATH/src/gopkg.linkai.io/v1/repos/am/
 
-# get dependencies
-RUN go get ./...
-
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/orgservice cmd/address/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/addressservice cmd/address/main.go
 
 # STEP 2 build a small image
 # start from scratch
@@ -18,9 +15,9 @@ FROM scratch
 # Copy our static executable and supporting
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /go/bin/orgservice /go/bin/orgservice 
+COPY --from=builder /go/bin/addressservice /go/bin/addressservice 
 USER appuser 
 
 ENV PORT 50051
 EXPOSE 50051
-ENTRYPOINT ["/go/bin/orgservice"]
+ENTRYPOINT ["/go/bin/addressservice"]

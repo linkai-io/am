@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/pgtype"
 	"gopkg.linkai.io/v1/repos/am/am"
 	"gopkg.linkai.io/v1/repos/am/pkg/auth"
 )
@@ -97,9 +96,12 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 
 	if filter.WithIgnored {
 		rows, err = s.pool.Query("scanGroupAddressesIgnored", userContext.GetOrgID(), filter.GroupID, filter.IgnoredValue, filter.Start, filter.Limit)
+	} else if filter.WithLastScannedTime {
+		rows, err = s.pool.Query("scanGroupAddressesSinceScannedTime", userContext.GetOrgID(), filter.GroupID, filter.SinceScannedTime, filter.Start, filter.Limit)
 	} else {
 		rows, err = s.pool.Query("scanGroupAddressesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	}
+	defer rows.Close()
 
 	if err != nil {
 		return 0, nil, err
@@ -109,17 +111,11 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 
 	for i := 0; rows.Next(); i++ {
 		a := &am.ScanGroupAddress{}
-		var jobID pgtype.Int8
 		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.HostAddress,
-			&a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &jobID,
-			&a.LastSeenTime, &a.IsSOA, &a.IsWildcardZone, &a.IsHostedService, &a.Ignored); err != nil {
-			return 0, nil, err
-		}
+			&a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &a.LastScannedTime,
+			&a.LastSeenTime, &a.ConfidenceScore, &a.IsSOA, &a.IsWildcardZone, &a.IsHostedService, &a.Ignored); err != nil {
 
-		// handle nil for empty/unassigned job ids
-		err := jobID.AssignTo(a.LastJobID)
-		if err != nil {
-			a.LastJobID = 0
+			return 0, nil, err
 		}
 
 		if a.OrgID != userContext.GetOrgID() {
@@ -162,12 +158,9 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 			return 0, 0, ErrAddressMissing
 		}
 
-		if a.LastJobID != 0 {
-			addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
-				a.DiscoveryTime, a.DiscoveredBy, a.LastJobID, a.LastSeenTime, a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored}
-		} else {
-			addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
-				a.DiscoveryTime, a.DiscoveredBy, nil, a.LastSeenTime, a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored}
+		addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
+			a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore,
+			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored,
 		}
 
 	}

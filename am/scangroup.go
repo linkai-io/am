@@ -8,12 +8,26 @@ const (
 	RNScanGroupGroups = "lrn:service:scangroup:feature:groups"
 )
 
-// ModuleConfiguration contains all the module configurations
-type ModuleConfiguration struct {
-	NSModule    *NSModuleConfig    `json:"ns_module"`
-	BruteModule *BruteModuleConfig `json:"brute_module"`
-	PortModule  *PortModuleConfig  `json:"port_module"`
-	WebModule   *WebModuleConfig   `json:"web_module"`
+type GroupStatus int
+
+var (
+	GroupStarted GroupStatus = 1
+	GroupStopped GroupStatus = 2
+)
+
+var GroupStatusMap = map[GroupStatus]string{
+	1: "started",
+	2: "stopped",
+}
+
+type ScanGroupEvent struct {
+	EventID          int64  `json:"event_id"`
+	OrgID            int    `json:"org_id"`
+	GroupID          int64  `json:"group_id"`
+	EventUserID      int    `json:"event_user_id"`
+	EventTime        int64  `json:"event_time"`
+	EventDescription string `json:"event_description"`
+	EventFrom        string `json:"event_from"`
 }
 
 // ScanGroup is a grouping configuration that has owner related information
@@ -25,7 +39,7 @@ type ScanGroup struct {
 	CreatedBy            int                  `json:"created_by"`
 	ModifiedBy           int                  `json:"modified_by"`
 	ModifiedTime         int64                `json:"modified_time"`
-	OriginalInput        []byte               `json:"original_input"`
+	OriginalInputS3URL   string               `json:"original_input_s3_url"`
 	ModuleConfigurations *ModuleConfiguration `json:"module_configurations"`
 	Paused               bool                 `json:"paused"`
 	Deleted              bool                 `json:"deleted"`

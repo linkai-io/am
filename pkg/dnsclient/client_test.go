@@ -24,7 +24,7 @@ func TestResolveName(t *testing.T) {
 		{"1.1", true, "", ""},
 	}
 
-	c := New(dnsServer, 3)
+	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
 		r, err := c.ResolveName(test.in)
 		if err != nil {
@@ -59,12 +59,12 @@ func TestResolveIPv4(t *testing.T) {
 		isError bool
 		out     string
 	}{
-		{"1.0.0.1", false, "1dot1dot1dot1.cloudflare-dns.com"},
-		{"1.1.1.1", false, "1dot1dot1dot1.cloudflare-dns.com"},
+		{"1.0.0.1", false, "one.one.one.one"},
+		{"1.1.1.1", false, "one.one.one.one"},
 		{"192.168.0.1", true, ""},
 		{"1.1", true, ""},
 	}
-	c := New(dnsServer, 3)
+	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
 		r, err := c.ResolveIP(test.in)
 
@@ -92,14 +92,14 @@ func TestResolveIPv6(t *testing.T) {
 		isError bool
 		out     string
 	}{
-		{"2606:4700:4700::1001", false, "1dot1dot1dot1.cloudflare-dns.com"},
-		{"2606:4700:4700::1111", false, "1dot1dot1dot1.cloudflare-dns.com"},
+		{"2606:4700:4700::1001", false, "one.one.one.one"},
+		{"2606:4700:4700::1111", false, "one.one.one.one"},
 		{"2404:6800:4004:80d::2004", false, "nrt12s17-in-x04.1e100.net"},
 		{"2606:4700:", true, ""},
 		{"dead:beef::", true, ""},
 	}
 
-	c := New(dnsServer, 3)
+	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
 		r, err := c.ResolveIP(test.in)
 
@@ -134,7 +134,7 @@ func TestLookupNS(t *testing.T) {
 		{"0932jzzzzzzzzzzzzz.com", true, 0},
 	}
 
-	c := New(dnsServer, 3)
+	c := New([]string{dnsServer}, 3)
 
 	for _, test := range tests {
 		r, err := c.LookupNS(test.in)
@@ -159,7 +159,7 @@ func TestLookupNS(t *testing.T) {
 }
 
 func TestDoAXFR(t *testing.T) {
-	c := New(dnsServer, 3)
+	c := New([]string{dnsServer}, 3)
 	r, err := c.DoAXFR("zonetransfer.me")
 	if err != nil {
 		t.Fatalf("error: %s\n", err)

@@ -18,7 +18,6 @@ var (
 // initialization.
 type Config struct {
 	OrgID  int64  `json:"org_id"`
-	JobID  int64  `json:"job_id"`
 	RCAddr string `json:"rc_addr"`
 	RCPass string `json:"rc_pass"`
 }

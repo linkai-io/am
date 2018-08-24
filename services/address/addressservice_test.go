@@ -88,7 +88,9 @@ func TestAdd(t *testing.T) {
 			IPAddress:       fmt.Sprintf("192.168.1.%d", i),
 			DiscoveryTime:   now,
 			DiscoveredBy:    "input_list",
+			LastScannedTime: 0,
 			LastSeenTime:    0,
+			ConfidenceScore: 0.0,
 			IsSOA:           false,
 			IsWildcardZone:  false,
 			IsHostedService: false,
@@ -235,6 +237,8 @@ func TestUpdate(t *testing.T) {
 	now = time.Now().UnixNano()
 	returned[0].LastSeenTime = now
 	// various field updates:
+	returned[0].ConfidenceScore = 99.9
+	returned[0].LastScannedTime = now
 	returned[0].IsSOA = true
 	returned[0].IsWildcardZone = true
 	returned[0].IsHostedService = true
@@ -275,8 +279,16 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 		t.Fatalf("DiscoveredBy did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
 	}
 
+	if e.LastScannedTime != r.LastScannedTime {
+		t.Fatalf("LastScannedTime did not match expected: %v got: %v\n", e.LastScannedTime, r.LastScannedTime)
+	}
+
 	if e.LastSeenTime != r.LastSeenTime {
-		t.Fatalf("LastSeenTime did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
+		t.Fatalf("LastSeenTime did not match expected: %v got: %v\n", e.LastSeenTime, r.LastSeenTime)
+	}
+
+	if e.ConfidenceScore != r.ConfidenceScore {
+		t.Fatalf("ConfidenceScore did not match expected: %v got: %v\n", e.ConfidenceScore, r.ConfidenceScore)
 	}
 
 	if e.IsSOA != r.IsSOA {

@@ -17,9 +17,8 @@ var (
 // Config represents this modules configuration data to be passed in on
 // initialization.
 type Config struct {
-	OrgID     int32  `json:"org_id"`
-	JobID     int64  `json:"job_id"`
-	DNSServer string `json:"dns_server"`
+	OrgID      int32    `json:"org_id"`
+	DNSServers []string `json:"dns_servers"`
 }
 
 // NS module for extracting NS related information for an input list.
@@ -43,7 +42,7 @@ func (ns *NS) Init(config []byte) error {
 		return err
 	}
 
-	ns.dc = dnsclient.New(ns.config.DNSServer, 3)
+	ns.dc = dnsclient.New(ns.config.DNSServers, 2)
 	return nil
 }
 
@@ -54,6 +53,7 @@ func (ns *NS) Name() string {
 
 // Analyze a domain zone, extracts NS, MX, A, AAAA, CNAME records
 func (ns *NS) Analyze(address *am.ScanGroupAddress) {
+
 	if address.HostAddress == "" {
 
 	}
@@ -68,7 +68,7 @@ func (ns *NS) parseConfig(config []byte) (*Config, error) {
 		return nil, err
 	}
 
-	if v.DNSServer == "" {
+	if len(v.DNSServers) == 0 {
 		return nil, ErrEmptyDNSServer
 	}
 
