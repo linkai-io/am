@@ -3,18 +3,20 @@ package am
 type ModuleType int
 
 const (
-	NSModule    ModuleType = 1
-	BruteModule ModuleType = 2
-	PortModule  ModuleType = 3
-	WebModule   ModuleType = 4
+	NSModule      ModuleType = 1
+	BruteModule   ModuleType = 2
+	PortModule    ModuleType = 3
+	WebModule     ModuleType = 4
+	KeywordModule ModuleType = 5
 )
 
 // ModuleConfiguration contains all the module configurations
 type ModuleConfiguration struct {
-	NSModule    *NSModuleConfig    `json:"ns_module"`
-	BruteModule *BruteModuleConfig `json:"dnsbrute_module"`
-	PortModule  *PortModuleConfig  `json:"port_module"`
-	WebModule   *WebModuleConfig   `json:"web_module"`
+	NSModule      *NSModuleConfig      `json:"ns_module"`
+	BruteModule   *BruteModuleConfig   `json:"dnsbrute_module"`
+	PortModule    *PortModuleConfig    `json:"port_module"`
+	WebModule     *WebModuleConfig     `json:"web_module"`
+	KeywordModule *KeywordModuleConfig `json:"keyword_module"`
 }
 
 // Module represents a module of work such as brute force, web scrape etc.
@@ -55,4 +57,8 @@ type WebModuleConfig struct {
 	MaxLinks              int32 `json:"max_links"`
 	ExtractJS             bool  `json:"extract_js"`
 	FingerprintFrameworks bool  `json:"fingerprint_frameworks"`
+}
+
+type KeywordModuleConfig struct {
+	Keywords []string `json:"keywords"`
 }

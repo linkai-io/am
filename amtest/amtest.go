@@ -298,3 +298,18 @@ func SortEqualInt(expected, returned []int, t *testing.T) bool {
 
 	return reflect.DeepEqual(expectedCopy, returnedCopy)
 }
+
+func SortEqualInt32(expected, returned []int32, t *testing.T) bool {
+	if len(expected) != len(returned) {
+		t.Fatalf("slice did not match size: %#v, %#v\n", expected, returned)
+	}
+	expectedCopy := make([]int32, len(expected))
+	returnedCopy := make([]int32, len(returned))
+
+	copy(expectedCopy, expected)
+	copy(returnedCopy, returned)
+	sort.Slice(expectedCopy, func(i, j int) bool { return expectedCopy[i] < expectedCopy[j] })
+	sort.Slice(returnedCopy, func(i, j int) bool { return returnedCopy[i] < returnedCopy[j] })
+
+	return reflect.DeepEqual(expectedCopy, returnedCopy)
+}

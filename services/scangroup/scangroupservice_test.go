@@ -158,6 +158,64 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+func TestModuleConfigs(t *testing.T) {
+	ctx := context.Background()
+	orgName := "sgmodules"
+	groupName := "sgmodulesgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+	userContext := testUserContext(orgID, ownerUserID)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	group.ModuleConfigurations.BruteModule = &am.BruteModuleConfig{
+		CustomSubNames:    []string{"x", "y"},
+		MaxDepth:          50,
+		RequestsPerSecond: 50,
+	}
+	group.ModuleConfigurations.KeywordModule = &am.KeywordModuleConfig{
+		Keywords: []string{"x", "y"},
+	}
+	group.ModuleConfigurations.NSModule = &am.NSModuleConfig{
+		RequestsPerSecond: 50,
+	}
+	group.ModuleConfigurations.PortModule = &am.PortModuleConfig{
+		RequestsPerSecond: 50,
+		CustomPorts:       []int32{80, 8800},
+	}
+	group.ModuleConfigurations.WebModule = &am.WebModuleConfig{
+		RequestsPerSecond:     50,
+		TakeScreenShots:       true,
+		MaxLinks:              50,
+		ExtractJS:             true,
+		FingerprintFrameworks: true,
+	}
+	_, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	_, returned, err := service.Get(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting group: %s\n", err)
+	}
+
+	testCompareGroupModules(group.ModuleConfigurations, returned.ModuleConfigurations, t)
+}
+
 func TestGetGroups(t *testing.T) {
 	ctx := context.Background()
 
@@ -286,6 +344,57 @@ func TestPauseResume(t *testing.T) {
 	if resumed.Paused == true {
 		t.Fatalf("scan group was not resumed: %v\n", resumed.Paused)
 	}
+}
+
+func testCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {
+	if e.BruteModule.RequestsPerSecond != r.BruteModule.RequestsPerSecond {
+		t.Fatalf("BruteModule.RequestsPerSecond expected %v got %v\n", e.BruteModule.RequestsPerSecond, r.BruteModule.RequestsPerSecond)
+	}
+
+	if e.NSModule.RequestsPerSecond != r.NSModule.RequestsPerSecond {
+		t.Fatalf("NSModule.RequestsPerSecond expected %v got %v\n", e.NSModule.RequestsPerSecond, r.NSModule.RequestsPerSecond)
+	}
+
+	if e.PortModule.RequestsPerSecond != r.PortModule.RequestsPerSecond {
+		t.Fatalf("PortModule.RequestsPerSecond expected %v got %v\n", e.PortModule.RequestsPerSecond, r.PortModule.RequestsPerSecond)
+	}
+
+	if e.WebModule.RequestsPerSecond != r.WebModule.RequestsPerSecond {
+		t.Fatalf("WebModule.RequestsPerSecond expected %v got %v\n", e.WebModule.RequestsPerSecond, r.WebModule.RequestsPerSecond)
+	}
+
+	if !amtest.SortEqualString(e.BruteModule.CustomSubNames, r.BruteModule.CustomSubNames, t) {
+		t.Fatalf("BruteModule expected %v got %v\n", e.BruteModule.CustomSubNames, r.BruteModule.CustomSubNames)
+	}
+
+	if e.BruteModule.MaxDepth != r.BruteModule.MaxDepth {
+		t.Fatalf("BruteModule.MaxDepth expected %v got %v\n", e.BruteModule.MaxDepth, r.BruteModule.MaxDepth)
+	}
+
+	if !amtest.SortEqualString(e.KeywordModule.Keywords, r.KeywordModule.Keywords, t) {
+		t.Fatalf("KeywordModule expected %v got %v\n", e.KeywordModule.Keywords, r.KeywordModule.Keywords)
+	}
+
+	if !amtest.SortEqualInt32(e.PortModule.CustomPorts, r.PortModule.CustomPorts, t) {
+		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomPorts, r.PortModule.CustomPorts)
+	}
+
+	if e.WebModule.ExtractJS != r.WebModule.ExtractJS {
+		t.Fatalf("WebModule.ExtractJS expected %v got %v\n", e.WebModule.ExtractJS, r.WebModule.ExtractJS)
+	}
+
+	if e.WebModule.FingerprintFrameworks != r.WebModule.FingerprintFrameworks {
+		t.Fatalf("WebModule.FingerprintFrameworks expected %v got %v\n", e.WebModule.FingerprintFrameworks, r.WebModule.FingerprintFrameworks)
+	}
+
+	if e.WebModule.MaxLinks != r.WebModule.MaxLinks {
+		t.Fatalf("WebModule.MaxLinks expected %v got %v\n", e.WebModule.MaxLinks, r.WebModule.MaxLinks)
+	}
+
+	if e.WebModule.TakeScreenShots != r.WebModule.TakeScreenShots {
+		t.Fatalf("WebModule.TakeScreenShots expected %v got %v\n", e.WebModule.TakeScreenShots, r.WebModule.TakeScreenShots)
+	}
+
 }
 
 func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {

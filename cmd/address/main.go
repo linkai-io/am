@@ -44,7 +44,7 @@ func main() {
 	}
 
 	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
-	log.Printf("Starting Organization Service\n")
+	log.Printf("Starting Address Service\n")
 
 	service := address.New(authorizer)
 	if err := service.Init([]byte(dbstring)); err != nil {
@@ -72,6 +72,7 @@ func initDB() (string, *pgx.ConnPool) {
 	if err != nil {
 		log.Fatalf("error parsing connection string")
 	}
+
 	ticker := time.NewTicker(5 * time.Second)
 	stopper := time.After(1 * time.Minute)
 	defer ticker.Stop()

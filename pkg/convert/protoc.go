@@ -170,39 +170,41 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 
 func AddressToDomain(in *address.AddressData) *am.ScanGroupAddress {
 	return &am.ScanGroupAddress{
-		AddressID:       in.AddressID,
-		OrgID:           int(in.OrgID),
-		GroupID:         int(in.GroupID),
-		HostAddress:     in.HostAddress,
-		IPAddress:       in.IPAddress,
-		DiscoveryTime:   in.DiscoveryTime,
-		DiscoveredBy:    in.DiscoveredBy,
-		LastSeenTime:    in.LastSeenTime,
-		LastScannedTime: in.LastScannedTime,
-		ConfidenceScore: in.ConfidenceScore,
-		IsSOA:           in.IsSOA,
-		IsWildcardZone:  in.IsWildcardZone,
-		IsHostedService: in.IsHostedService,
-		Ignored:         in.Ignored,
+		AddressID:           in.AddressID,
+		OrgID:               int(in.OrgID),
+		GroupID:             int(in.GroupID),
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		DiscoveryTime:       in.DiscoveryTime,
+		DiscoveredBy:        in.DiscoveredBy,
+		LastSeenTime:        in.LastSeenTime,
+		LastScannedTime:     in.LastScannedTime,
+		ConfidenceScore:     in.ConfidenceScore,
+		UserConfidenceScore: in.UserConfidenceScore,
+		IsSOA:               in.IsSOA,
+		IsWildcardZone:      in.IsWildcardZone,
+		IsHostedService:     in.IsHostedService,
+		Ignored:             in.Ignored,
 	}
 }
 
 func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
 	return &address.AddressData{
-		AddressID:       in.AddressID,
-		OrgID:           int32(in.OrgID),
-		GroupID:         int32(in.GroupID),
-		HostAddress:     in.HostAddress,
-		IPAddress:       in.IPAddress,
-		DiscoveryTime:   in.DiscoveryTime,
-		DiscoveredBy:    in.DiscoveredBy,
-		LastSeenTime:    in.LastSeenTime,
-		LastScannedTime: in.LastScannedTime,
-		ConfidenceScore: in.ConfidenceScore,
-		IsSOA:           in.IsSOA,
-		IsWildcardZone:  in.IsWildcardZone,
-		IsHostedService: in.IsHostedService,
-		Ignored:         in.Ignored,
+		AddressID:           in.AddressID,
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		DiscoveryTime:       in.DiscoveryTime,
+		DiscoveredBy:        in.DiscoveredBy,
+		LastSeenTime:        in.LastSeenTime,
+		LastScannedTime:     in.LastScannedTime,
+		ConfidenceScore:     in.ConfidenceScore,
+		UserConfidenceScore: in.UserConfidenceScore,
+		IsSOA:               in.IsSOA,
+		IsWildcardZone:      in.IsWildcardZone,
+		IsHostedService:     in.IsHostedService,
+		Ignored:             in.Ignored,
 	}
 }
 
@@ -254,6 +256,9 @@ func ModuleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
 			ExtractJS:             in.WebModuleConfig.ExtractJS,
 			FingerprintFrameworks: in.WebModuleConfig.FingerprintFrameworks,
 		},
+		KeywordModule: &am.KeywordModuleConfig{
+			Keywords: in.KeywordModuleConfig.Keywords,
+		},
 	}
 }
 
@@ -277,6 +282,9 @@ func DomainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
 			MaxLinks:              in.WebModule.MaxLinks,
 			ExtractJS:             in.WebModule.ExtractJS,
 			FingerprintFrameworks: in.WebModule.FingerprintFrameworks,
+		},
+		KeywordModuleConfig: &scangroup.KeywordModuleConfig{
+			Keywords: in.KeywordModule.Keywords,
 		},
 	}
 }

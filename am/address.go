@@ -9,20 +9,21 @@ const (
 // ScanGroupAddress contains details on addresses belonging to the scan group
 // for scanning.
 type ScanGroupAddress struct {
-	AddressID       int64   `json:"address_id"`
-	OrgID           int     `json:"org_id"`
-	GroupID         int     `json:"group_id"`
-	HostAddress     string  `json:"host_address"`
-	IPAddress       string  `json:"ip_address"`
-	DiscoveryTime   int64   `json:"discovery_time"`
-	DiscoveredBy    string  `json:"discovered_by"`
-	LastScannedTime int64   `json:"last_scanned_time"`
-	LastSeenTime    int64   `json:"last_seen_time"`
-	ConfidenceScore float32 `json:"confidence_score"`
-	IsSOA           bool    `json:"is_soa"`
-	IsWildcardZone  bool    `json:"is_wildcard_zone"`
-	IsHostedService bool    `json:"is_hosted_service"`
-	Ignored         bool    `json:"ignored"`
+	AddressID           int64   `json:"address_id"`
+	OrgID               int     `json:"org_id"`
+	GroupID             int     `json:"group_id"`
+	HostAddress         string  `json:"host_address"`
+	IPAddress           string  `json:"ip_address"`
+	DiscoveryTime       int64   `json:"discovery_time"`
+	DiscoveredBy        string  `json:"discovered_by"`
+	LastScannedTime     int64   `json:"last_scanned_time"`
+	LastSeenTime        int64   `json:"last_seen_time"`
+	ConfidenceScore     float32 `json:"confidence_score"`
+	UserConfidenceScore float32 `json:"user_confidence_score"`
+	IsSOA               bool    `json:"is_soa"`
+	IsWildcardZone      bool    `json:"is_wildcard_zone"`
+	IsHostedService     bool    `json:"is_hosted_service"`
+	Ignored             bool    `json:"ignored"`
 }
 
 // ScanGroupAddressFilter filters the results of an Addresses search

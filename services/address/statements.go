@@ -16,6 +16,7 @@ var queryMap = map[string]string{
 		last_scanned_timestamp,
 		last_seen_timestamp,
 		confidence_score,
+		user_confidence_score,
 		is_soa,
 		is_wildcard_zone,
 		is_hosted_service,
@@ -33,6 +34,7 @@ var queryMap = map[string]string{
 		last_scanned_timestamp,
 		last_seen_timestamp,
 		confidence_score,
+		user_confidence_score,
 		is_soa,
 		is_wildcard_zone,
 		is_hosted_service,
@@ -50,6 +52,7 @@ var queryMap = map[string]string{
 		last_scanned_timestamp,
 		last_seen_timestamp,
 		confidence_score,
+		user_confidence_score,
 		is_soa,
 		is_wildcard_zone,
 		is_hosted_service,
@@ -60,7 +63,7 @@ var queryMap = map[string]string{
 var (
 	AddAddressesTempTableKey     = "sga_add_temp"
 	AddAddressesTempTableColumns = []string{"organization_id", "scan_group_id", "host_address", "ip_address",
-		"discovered_timestamp", "discovered_by", "last_scanned_timestamp", "last_seen_timestamp", "confidence_score", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored"}
+		"discovered_timestamp", "discovered_by", "last_scanned_timestamp", "last_seen_timestamp", "confidence_score", "user_confidence_score", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored"}
 	AddAddressesTempTable = `create temporary table sga_add_temp (
 			organization_id integer not null,
 			scan_group_id integer not null,
@@ -71,6 +74,7 @@ var (
 			last_scanned_timestamp bigint,
 			last_seen_timestamp bigint,
 			confidence_score float,
+			user_confidence_score float,
 			is_soa boolean not null,
 			is_wildcard_zone boolean not null,
 			is_hosted_service boolean not null,
@@ -88,6 +92,7 @@ var (
 			last_scanned_timestamp,
 			last_seen_timestamp,
 			confidence_score,
+			user_confidence_score,
 			is_soa,
 			is_wildcard_zone,
 			is_hosted_service,
@@ -102,7 +107,8 @@ var (
 			(select discovery_id from am.scan_address_discovered_by where discovered_by=temp.discovered_by),
 			temp.last_scanned_timestamp,
 			temp.last_seen_timestamp,
-			confidence_score,
+			temp.confidence_score,
+			temp.user_confidence_score,
 			temp.is_soa,
 			temp.is_wildcard_zone,
 			temp.is_hosted_service,
@@ -111,6 +117,7 @@ var (
 			last_scanned_timestamp=EXCLUDED.last_scanned_timestamp,
 			last_seen_timestamp=EXCLUDED.last_seen_timestamp,
 			confidence_score=EXCLUDED.confidence_score,
+			user_confidence_score=EXCLUDED.user_confidence_score,
 			is_soa=EXCLUDED.is_soa,
 			is_wildcard_zone=EXCLUDED.is_wildcard_zone,
 			is_hosted_service=EXCLUDED.is_hosted_service,
