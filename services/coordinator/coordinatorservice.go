@@ -36,6 +36,8 @@ func (s *Service) Init(config []byte) error {
 
 // StartGroup initializes state system and queues if they do not exist, or updates with scan group details
 func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+	var queueMap map[string]string
+
 	oid, group, err := s.scanGroupClient.Get(ctx, userContext, scanGroupID)
 	if err != nil {
 		return err
@@ -50,7 +52,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return err
 	}
 
-	// TODO: if config is paused but group is not handle retrieveing s3 bucket dumped
+	// TODO: if config is paused but group is not, handle retrieveing s3 bucket dumped
 	// messages
 
 	if !exists || lastModified < group.ModifiedTime {
@@ -61,13 +63,13 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 			}
 		} else {
 			// create queues
-			if err := s.createGroupQueues(ctx, group); err != nil {
+			if queueMap, err = s.createGroupQueues(ctx, group); err != nil {
 				return err
 			}
 		}
 
 		// update/create configuration
-		if err := s.state.Put(ctx, userContext, group); err != nil {
+		if err := s.state.Put(ctx, userContext, group, queueMap); err != nil {
 			return err
 		}
 	}
@@ -79,17 +81,24 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	return s.state.Start(ctx, userContext, group.GroupID)
 }
 
-// create queue for scan group for each module type
-// TODO: shard them?
-func (s *Service) createGroupQueues(ctx context.Context, group *am.ScanGroup) error {
+// create queue for scan group for each module type and store queue urls in redis
+// TODO: shard them? if > 120,000 addresses this won't work will need to create a group
+// of queues for each.
+func (s *Service) createGroupQueues(ctx context.Context, group *am.ScanGroup) (map[string]string, error) {
 	key := fmt.Sprintf("%d_%d_", group.OrgID, group.GroupID)
-
+	queueMap := make(map[string]string, 0)
+	queueName := key + "input"
+	queueURL, err := s.queueClient.Create(queueName)
+	queueMap[queueName] = queueURL
 	for _, module := range modules {
-		if err := s.queueClient.Create(key + module); err != nil {
-			return err
+		queueName = key + module
+		queueURL, err := s.queueClient.Create(queueName)
+		if err != nil {
+			return nil, err
 		}
+		queueMap[queueName] = queueURL
 	}
-	return nil
+	return queueMap, nil
 }
 
 func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {

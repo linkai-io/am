@@ -12,7 +12,8 @@ import (
 type Stater interface {
 	Init(config []byte) error
 	GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, int64, error)
-	Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error
+	GetGroup(ctx context.Context, orgID, scanGroupID int) (*am.ScanGroup, error)
+	Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, queueMap map[string]string) error
 	Start(ctx context.Context, userContext am.UserContext, scanGroupID int) error
 	Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error
 	Delete(ctx context.Context, userContext am.UserContext, scanGroupID int) error

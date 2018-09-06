@@ -4,10 +4,10 @@ import (
 	"context"
 	"io"
 
-	"google.golang.org/grpc"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	service "github.com/linkai-io/am/protocservices/scangroup"
+	"google.golang.org/grpc"
 )
 
 type Client struct {
@@ -112,6 +112,32 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 		GroupID:     int32(groupID),
 	}
 	resp, err := c.client.Delete(ctx, in)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return int(resp.GetOrgID()), int(resp.GetGroupID()), nil
+}
+
+func (c *Client) Pause(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
+	in := &service.PauseGroupRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		GroupID:     int32(groupID),
+	}
+	resp, err := c.client.Pause(ctx, in)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return int(resp.GetOrgID()), int(resp.GetGroupID()), nil
+}
+
+func (c *Client) Resume(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
+	in := &service.ResumeGroupRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		GroupID:     int32(groupID),
+	}
+	resp, err := c.client.Resume(ctx, in)
 	if err != nil {
 		return 0, 0, err
 	}

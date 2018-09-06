@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -167,6 +168,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddAddressesTempTableKey}, AddAddressesTempTableColumns, pgx.CopyFromRows(addressRows))
 	if err != nil {
+
 		return 0, 0, err
 	}
 
@@ -175,6 +177,9 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 	}
 
 	if _, err := tx.Exec(AddAddressesTempToAddress); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, 0, fmt.Errorf("%#v", v)
+		}
 		return 0, 0, err
 	}
 

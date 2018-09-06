@@ -9,9 +9,9 @@ import (
 // Queue interface for managing queues
 type Queue interface {
 	List() (map[string]string, error)
-	Create(name string) error
-	Pause(name string) error
-	Delete(name string) error
-	Stats(name string) error
+	Create(name string) (string, error)
+	Pause(queue string) error
+	Delete(queue string) error
+	Stats(queue string) error
 	PushAddresses(ctx context.Context, addresses []*am.ScanGroupAddress) error
 }

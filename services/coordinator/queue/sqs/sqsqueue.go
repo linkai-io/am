@@ -30,6 +30,14 @@ func (q *SQSQueue) Init() error {
 	q.session, err = session.NewSession(&aws.Config{
 		Region: aws.String(q.Region)},
 	)
+	if q.Environment == "local" {
+		q.session, err = session.NewSession(&aws.Config{
+			LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody),
+			Region:   aws.String(q.Region),
+			Endpoint: aws.String("http://localhost:4576")},
+		)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -44,25 +52,33 @@ func (q *SQSQueue) List() (map[string]string, error) {
 }
 
 // Create the SQS queue for long polling
-func (q *SQSQueue) Create(name string) error {
-	_, err := q.service.CreateQueue(&awssqs.CreateQueueInput{
+func (q *SQSQueue) Create(name string) (string, error) {
+	out, err := q.service.CreateQueue(&awssqs.CreateQueueInput{
 		QueueName: aws.String(q.Environment + "_" + name),
 		Attributes: aws.StringMap(map[string]string{
 			"ReceiveMessageWaitTimeSeconds": strconv.Itoa(q.QueueTimeout),
 		}),
 	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return *out.QueueUrl, err
+}
+
+func (q *SQSQueue) Pause(queue string) error {
+	return nil
+}
+
+func (q *SQSQueue) Delete(queue string) error {
+	_, err := q.service.DeleteQueue(&awssqs.DeleteQueueInput{
+		QueueUrl: aws.String(queue),
+	})
 	return err
 }
 
-func (q *SQSQueue) Pause(name string) error {
-	return nil
-}
-
-func (q *SQSQueue) Delete(name string) error {
-	return nil
-}
-
-func (q *SQSQueue) Stats(name string) error {
+func (q *SQSQueue) Stats(queue string) error {
 	return nil
 }
 

@@ -1,0 +1,43 @@
+{
+    "org_id": 1,
+    "group_id": 1,
+    "group_name": "groupName",
+    "creation_time": 1536111262356454973,
+    "created_by": 1,
+    "modified_by": 1,
+    "modified_time": 1536111262356455145,
+    "original_input_s3_url": "s3://bucket/org/file",
+    "module_configurations": {
+            "ns_module": {
+                    "requests_per_second": 50
+            },
+            "dnsbrute_module": {
+                    "custom_subnames": [
+                            "custom"
+                    ],
+                    "requests_per_second": 50,
+                    "max_depth": 2
+            },
+            "port_module": {
+                    "requests_per_second": 50,
+                    "custom_ports": [
+                            8080,
+                            8443
+                    ]
+            },
+            "web_module": {
+                    "take_screenshots": true,
+                    "requests_per_second": 50,
+                    "max_links": 2,
+                    "extract_js": true,
+                    "fingerprint_frameworks": true
+            },
+            "keyword_module": {
+                    "keywords": [
+                            "keywords"
+                    ]
+            }
+    },
+    "paused": false,
+    "deleted": false
+}

@@ -12,6 +12,8 @@ import (
 	"github.com/linkai-io/am/services/coordinator/state/redis"
 )
 
+var testQueueMap = map[string]string{"queue_name": "queue_url"}
+
 func TestPut(t *testing.T) {
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
@@ -28,7 +30,7 @@ func TestPut(t *testing.T) {
 	}
 	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
-	if err := r.Put(ctx, userContext, sg); err != nil {
+	if err := r.Put(ctx, userContext, sg, testQueueMap); err != nil {
 		t.Fatalf("error putting sg: %s\n", err)
 	}
 
@@ -66,7 +68,7 @@ func TestGroupStatus(t *testing.T) {
 		t.Fatalf("group should not have existed\n")
 	}
 
-	if err := r.Put(ctx, userContext, sg); err != nil {
+	if err := r.Put(ctx, userContext, sg, testQueueMap); err != nil {
 		t.Fatalf("error putting sg: %s\n", err)
 	}
 
@@ -113,7 +115,7 @@ func BenchmarkPut(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err := r.Put(ctx, userContext, sg); err != nil {
+		if err := r.Put(ctx, userContext, sg, testQueueMap); err != nil {
 			b.Fatalf("error putting sg: %s\n", err)
 		}
 

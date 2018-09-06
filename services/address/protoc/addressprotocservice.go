@@ -4,16 +4,17 @@ import (
 	"errors"
 	"io"
 
-	context "golang.org/x/net/context"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/address"
+	context "golang.org/x/net/context"
 )
 
 var (
 	ErrOrgIDNonMatch      = errors.New("error organization id's did not match")
 	ErrMissingUserContext = errors.New("error request was missing user context")
 	ErrNoAddressesSent    = errors.New("error no addresses were sent")
+	ErrNilUserContext     = errors.New("error empty user context")
 )
 
 type AddressProtocService struct {
@@ -50,14 +51,18 @@ func (s *AddressProtocService) Update(stream address.Address_UpdateServer) error
 	var updateCount int
 	var count int32
 	var i int32
+	var userContext am.UserContext
 
 	addresses := make([]*am.ScanGroupAddress, s.MaxAddressStream)
 	for {
 		addr, err := stream.Recv()
 		if err == io.EOF {
+			if userContext == nil {
+				return ErrNilUserContext
+			}
 			// only do update if we have addresses
 			if i != 0 {
-				oid, updateCount, err = s.as.Update(stream.Context(), convert.UserContextToDomain(addr.UserContext), addresses[0:i])
+				oid, updateCount, err = s.as.Update(stream.Context(), userContext, addresses[0:i])
 				if err != nil {
 					return err
 				}
@@ -69,9 +74,9 @@ func (s *AddressProtocService) Update(stream address.Address_UpdateServer) error
 		if err != nil {
 			return err
 		}
-
+		userContext = convert.UserContextToDomain(addr.UserContext)
 		if i == s.MaxAddressStream {
-			oid, updateCount, err = s.as.Update(stream.Context(), convert.UserContextToDomain(addr.UserContext), addresses)
+			oid, updateCount, err = s.as.Update(stream.Context(), userContext, addresses)
 			if err != nil {
 				return err
 			}

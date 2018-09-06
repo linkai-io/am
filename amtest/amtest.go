@@ -73,6 +73,7 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 50}
 	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 50, CustomPorts: customPorts}
 	m.WebModule = &am.WebModuleConfig{MaxLinks: 10, TakeScreenShots: true, ExtractJS: true, FingerprintFrameworks: true}
+	m.KeywordModule = &am.KeywordModuleConfig{Keywords: []string{"company"}}
 	return m
 }
 

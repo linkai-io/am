@@ -3,12 +3,13 @@ package address
 import (
 	"context"
 	"io"
+	"log"
 
 	"github.com/linkai-io/am/pkg/convert"
 
-	"google.golang.org/grpc"
 	"github.com/linkai-io/am/am"
 	service "github.com/linkai-io/am/protocservices/address"
+	"google.golang.org/grpc"
 )
 
 type Client struct {
@@ -63,6 +64,10 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 	}
 
 	for i := 0; i < len(addresses); i++ {
+		if addresses[i] == nil {
+			log.Printf("nil address\n")
+			continue
+		}
 		in := &service.UpdateAddressRequest{
 			UserContext: convert.DomainToUserContext(userContext),
 			Address:     convert.DomainToAddress(addresses[i]),

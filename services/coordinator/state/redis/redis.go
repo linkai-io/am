@@ -15,12 +15,14 @@ import (
 
 const (
 	// OrgID:GroupID
-	ConfigFmt      = "%d:%d:configuration"
-	AddrFmt        = "%d:%d:address:" // orgid:groupid:address:md5(ip,host)
-	NSConfigFmt    = ":module:nsconfig"
-	BruteConfigFmt = ":module:dnsbruteconfig"
-	PortConfigFmt  = ":module:portconfig"
-	WebConfigFmt   = ":module:webconfig"
+	ConfigFmt        = "%d:%d:configuration"
+	AddrFmt          = "%d:%d:address:" // orgid:groupid:address:md5(ip,host)
+	QueuesFmt        = ":queues:"
+	NSConfigFmt      = ":module:nsconfig"
+	BruteConfigFmt   = ":module:dnsbruteconfig"
+	PortConfigFmt    = ":module:portconfig"
+	WebConfigFmt     = ":module:webconfig"
+	KeywordConfigFmt = ":module:keyword"
 )
 
 var (
@@ -102,7 +104,7 @@ func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupI
 	return err
 }
 
-func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
+func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, queueMap map[string]string) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return err
@@ -122,14 +124,17 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	portKey := configKey + PortConfigFmt
 	portKeyPorts := portKey + ":custom_ports"
 	webKey := configKey + WebConfigFmt
+	keywordKey := configKey + KeywordConfigFmt
 
 	// create primary configuration
 	if err := conn.Send("HMSET", configKey, "modified_time", group.ModifiedTime, "status", am.GroupStopped); err != nil {
 		return err
 	}
 
-	ns := group.ModuleConfigurations.NSModule
+	// add queues
+	//if err := conn.Send("HMSET", )
 
+	ns := group.ModuleConfigurations.NSModule
 	if err := conn.Send("HMSET", nsKey, "requests_per_second", ns.RequestsPerSecond); err != nil {
 		return err
 	}
@@ -170,8 +175,28 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 		return err
 	}
 
+	keyword := group.ModuleConfigurations.KeywordModule
+	keywordArgs := make([]interface{}, len(keyword.Keywords)+1)
+	keywordArgs[0] = keywordKey
+	for i := 1; i < len(keywordArgs); i++ {
+		keywordArgs[i] = keyword.Keywords[i-1]
+	}
+
+	if err := conn.Send("LPUSH", keywordArgs...); err != nil {
+		return err
+	}
+
 	_, err = conn.Do("EXEC")
 	return err
+}
+
+func (s *State) GetGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (am.ScanGroup, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return false, 0, 0, err
+	}
+	defer s.rc.Return(conn)
+
 }
 
 // GroupStatus returns the status of this group in redis (exists, status, and last modified time)
