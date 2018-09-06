@@ -3,25 +3,41 @@ package redis
 import "fmt"
 
 type RedisKeys struct {
-	OrgID     int
-	GroupID   int
-	ConfigFmt string
-	AddrFmt   string
+	orgID     int
+	groupID   int
+	configFmt string
+	statusFmt string
+	addrFmt   string
+	queueFmt  string
 }
 
 func NewRedisKeys(orgID, groupID int) *RedisKeys {
-	r := &RedisKeys{OrgID: orgID, GroupID: groupID}
-	r.ConfigFmt = fmt.Sprintf("%d:%d:configuration", orgID, groupID)
-	r.AddrFmt = fmt.Sprintf("%d:%d:address:", orgID, groupID)
+	r := &RedisKeys{orgID: orgID, groupID: groupID}
+	r.configFmt = fmt.Sprintf("%d:%d:configuration", orgID, groupID)
+	r.addrFmt = fmt.Sprintf("%d:%d:address:", orgID, groupID)
+	r.statusFmt = fmt.Sprintf("%d:%d:status", orgID, groupID)
+	r.queueFmt = fmt.Sprintf("%d:%d:queues", orgID, groupID)
 	return r
 }
 
+func (r *RedisKeys) Config() string {
+	return r.configFmt
+}
+
+func (r *RedisKeys) Status() string {
+	return r.statusFmt
+}
+
+func (r *RedisKeys) Queues() string {
+	return r.queueFmt
+}
+
 func (r *RedisKeys) NSConfig() string {
-	return r.ConfigFmt + ":module:nsconfig"
+	return r.configFmt + ":module:nsconfig"
 }
 
 func (r *RedisKeys) BruteConfig() string {
-	return r.ConfigFmt + ":module:dnsbruteconfig"
+	return r.configFmt + ":module:dnsbruteconfig"
 }
 
 func (r *RedisKeys) BruteConfigHosts() string {
@@ -29,7 +45,7 @@ func (r *RedisKeys) BruteConfigHosts() string {
 }
 
 func (r *RedisKeys) PortConfig() string {
-	return r.ConfigFmt + ":module:portconfig"
+	return r.configFmt + ":module:portconfig"
 }
 
 func (r *RedisKeys) PortConfigPorts() string {
@@ -37,9 +53,9 @@ func (r *RedisKeys) PortConfigPorts() string {
 }
 
 func (r *RedisKeys) WebConfig() string {
-	return r.ConfigFmt + ":module:webconfig"
+	return r.configFmt + ":module:webconfig"
 }
 
 func (r *RedisKeys) KeywordConfig() string {
-	return r.ConfigFmt + ":module:keyword"
+	return r.configFmt + ":module:keyword"
 }

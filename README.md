@@ -43,4 +43,19 @@ Secrets are managed via AWS Parameter Store for dev/production. For local testin
 }
 ```
 
-
+## Change Considerations
+When updating a database table or the domain types consider the following:
+1. Is the domain type stored in DB?
+    - Yes, update database schema
+    - Yes, update the [service]_statements.go file(s).
+2. Is the domain type transfered over grpc?
+    - Yes, update the relevant protorepo definitions
+        - Don't forget to re-run make protoc
+    - Yes, update: github.com/linkai-io/am/pkg/convert/protoc.go
+    - Yes, update: *all* services which use the domain type
+    - Yes, update: *all* clients which use the domain type
+3. Update both local tests and amtests if it references the domain type
+4. Is the domain type stored in redis?
+    - Yes, update the package(s) redis state system 
+5. Extra paranoid: search project for all references
+6. Re-run make services

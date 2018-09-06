@@ -47,25 +47,37 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return am.ErrOrgIDMismatch
 	}
 
-	exists, _, lastModified, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
+	if group.Paused {
+		return ErrScanGroupPaused
+	}
+
+	exists, _, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
 	if err != nil {
 		return err
 	}
 
+	if !exists {
+		// create queues
+		if queueMap, err = s.createGroupQueues(ctx, group); err != nil {
+			return err
+		}
+
+		// update/create configuration
+		if err := s.state.Put(ctx, userContext, group, queueMap); err != nil {
+			return err
+		}
+	}
+
+	wantModules := true
+	cachedGroup, err := s.state.GetGroup(ctx, userContext.GetOrgID(), scanGroupID, wantModules)
+	if err != nil {
+		return err
+	}
 	// TODO: if config is paused but group is not, handle retrieveing s3 bucket dumped
 	// messages
-
-	if !exists || lastModified < group.ModifiedTime {
-		// if it exists, we need to delete the stale data.
-		if exists {
-			if err := s.state.Delete(ctx, userContext, group.GroupID); err != nil {
-				return err
-			}
-		} else {
-			// create queues
-			if queueMap, err = s.createGroupQueues(ctx, group); err != nil {
-				return err
-			}
+	if cachedGroup.ModifiedTime < group.ModifiedTime {
+		if err := s.state.Delete(ctx, userContext, group.GroupID); err != nil {
+			return err
 		}
 
 		// update/create configuration
@@ -89,6 +101,10 @@ func (s *Service) createGroupQueues(ctx context.Context, group *am.ScanGroup) (m
 	queueMap := make(map[string]string, 0)
 	queueName := key + "input"
 	queueURL, err := s.queueClient.Create(queueName)
+	if err != nil {
+		return nil, err
+	}
+
 	queueMap[queueName] = queueURL
 	for _, module := range modules {
 		queueName = key + module

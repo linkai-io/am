@@ -121,7 +121,7 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("error getting group by name: %s\n", err)
 	}
 
-	testCompareGroups(returned, returnedName, t)
+	amtest.TestCompareScanGroup(returned, returnedName, t)
 
 	// test update
 	t.Logf("%#v\n", returned)
@@ -213,7 +213,7 @@ func TestModuleConfigs(t *testing.T) {
 		t.Fatalf("error getting group: %s\n", err)
 	}
 
-	testCompareGroupModules(group.ModuleConfigurations, returned.ModuleConfigurations, t)
+	amtest.TestCompareGroupModules(group.ModuleConfigurations, returned.ModuleConfigurations, t)
 }
 
 func TestGetGroups(t *testing.T) {
@@ -343,91 +343,6 @@ func TestPauseResume(t *testing.T) {
 
 	if resumed.Paused == true {
 		t.Fatalf("scan group was not resumed: %v\n", resumed.Paused)
-	}
-}
-
-func testCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {
-	if e.BruteModule.RequestsPerSecond != r.BruteModule.RequestsPerSecond {
-		t.Fatalf("BruteModule.RequestsPerSecond expected %v got %v\n", e.BruteModule.RequestsPerSecond, r.BruteModule.RequestsPerSecond)
-	}
-
-	if e.NSModule.RequestsPerSecond != r.NSModule.RequestsPerSecond {
-		t.Fatalf("NSModule.RequestsPerSecond expected %v got %v\n", e.NSModule.RequestsPerSecond, r.NSModule.RequestsPerSecond)
-	}
-
-	if e.PortModule.RequestsPerSecond != r.PortModule.RequestsPerSecond {
-		t.Fatalf("PortModule.RequestsPerSecond expected %v got %v\n", e.PortModule.RequestsPerSecond, r.PortModule.RequestsPerSecond)
-	}
-
-	if e.WebModule.RequestsPerSecond != r.WebModule.RequestsPerSecond {
-		t.Fatalf("WebModule.RequestsPerSecond expected %v got %v\n", e.WebModule.RequestsPerSecond, r.WebModule.RequestsPerSecond)
-	}
-
-	if !amtest.SortEqualString(e.BruteModule.CustomSubNames, r.BruteModule.CustomSubNames, t) {
-		t.Fatalf("BruteModule expected %v got %v\n", e.BruteModule.CustomSubNames, r.BruteModule.CustomSubNames)
-	}
-
-	if e.BruteModule.MaxDepth != r.BruteModule.MaxDepth {
-		t.Fatalf("BruteModule.MaxDepth expected %v got %v\n", e.BruteModule.MaxDepth, r.BruteModule.MaxDepth)
-	}
-
-	if !amtest.SortEqualString(e.KeywordModule.Keywords, r.KeywordModule.Keywords, t) {
-		t.Fatalf("KeywordModule expected %v got %v\n", e.KeywordModule.Keywords, r.KeywordModule.Keywords)
-	}
-
-	if !amtest.SortEqualInt32(e.PortModule.CustomPorts, r.PortModule.CustomPorts, t) {
-		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomPorts, r.PortModule.CustomPorts)
-	}
-
-	if e.WebModule.ExtractJS != r.WebModule.ExtractJS {
-		t.Fatalf("WebModule.ExtractJS expected %v got %v\n", e.WebModule.ExtractJS, r.WebModule.ExtractJS)
-	}
-
-	if e.WebModule.FingerprintFrameworks != r.WebModule.FingerprintFrameworks {
-		t.Fatalf("WebModule.FingerprintFrameworks expected %v got %v\n", e.WebModule.FingerprintFrameworks, r.WebModule.FingerprintFrameworks)
-	}
-
-	if e.WebModule.MaxLinks != r.WebModule.MaxLinks {
-		t.Fatalf("WebModule.MaxLinks expected %v got %v\n", e.WebModule.MaxLinks, r.WebModule.MaxLinks)
-	}
-
-	if e.WebModule.TakeScreenShots != r.WebModule.TakeScreenShots {
-		t.Fatalf("WebModule.TakeScreenShots expected %v got %v\n", e.WebModule.TakeScreenShots, r.WebModule.TakeScreenShots)
-	}
-
-}
-
-func testCompareGroups(group1, group2 *am.ScanGroup, t *testing.T) {
-	if group1.CreatedBy != group2.CreatedBy {
-		t.Fatalf("created by was different, %d and %d\n", group1.CreatedBy, group2.CreatedBy)
-	}
-
-	if group1.ModifiedBy != group2.ModifiedBy {
-		t.Fatalf("modified by was different, %d and %d\n", group1.ModifiedBy, group2.ModifiedBy)
-	}
-
-	if group1.CreationTime != group2.CreationTime {
-		t.Fatalf("creation time by was different, %d and %d\n", group1.CreationTime, group2.CreationTime)
-	}
-
-	if group1.ModifiedTime != group2.ModifiedTime {
-		t.Fatalf("ModifiedTime by was different, %d and %d\n", group1.CreationTime, group2.CreationTime)
-	}
-
-	if group1.GroupID != group2.GroupID {
-		t.Fatalf("GroupID by was different, %d and %d\n", group1.GroupID, group2.GroupID)
-	}
-
-	if group1.OrgID != group2.OrgID {
-		t.Fatalf("OrgID by was different, %d and %d\n", group1.OrgID, group2.OrgID)
-	}
-
-	if group1.GroupName != group2.GroupName {
-		t.Fatalf("GroupName by was different, %s and %s\n", group1.GroupName, group2.GroupName)
-	}
-
-	if string(group1.OriginalInputS3URL) != string(group2.OriginalInputS3URL) {
-		t.Fatalf("OriginalInput by was different, %s and %s\n", string(group1.OriginalInputS3URL), string(group2.OriginalInputS3URL))
 	}
 }
 

@@ -40,7 +40,7 @@ type ScanGroup struct {
 	ModifiedBy           int                  `json:"modified_by"`
 	ModifiedTime         int64                `json:"modified_time"`
 	OriginalInputS3URL   string               `json:"original_input_s3_url"`
-	ModuleConfigurations *ModuleConfiguration `json:"module_configurations"`
+	ModuleConfigurations *ModuleConfiguration `json:"module_configurations" redis:"-"`
 	Paused               bool                 `json:"paused"`
 	Deleted              bool                 `json:"deleted"`
 }

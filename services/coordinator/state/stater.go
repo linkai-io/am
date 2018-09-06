@@ -11,8 +11,8 @@ import (
 // and tracking global scan state
 type Stater interface {
 	Init(config []byte) error
-	GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, int64, error)
-	GetGroup(ctx context.Context, orgID, scanGroupID int) (*am.ScanGroup, error)
+	GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, error)
+	GetGroup(ctx context.Context, orgID, scanGroupID int, wantModules bool) (*am.ScanGroup, error)
 	Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, queueMap map[string]string) error
 	Start(ctx context.Context, userContext am.UserContext, scanGroupID int) error
 	Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error

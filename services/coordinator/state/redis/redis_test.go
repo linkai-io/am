@@ -39,6 +39,44 @@ func TestPut(t *testing.T) {
 	}
 }
 
+func TestGetGroup(t *testing.T) {
+	r := redis.New()
+	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+		t.Fatalf("error connecting to redis: %s\n", err)
+	}
+	now := time.Now().UnixNano()
+	sg := &am.ScanGroup{
+		OrgID:                1,
+		GroupID:              1,
+		GroupName:            "testredis",
+		CreationTime:         now,
+		ModifiedTime:         now,
+		ModuleConfigurations: amtest.CreateModuleConfig(),
+	}
+	userContext := amtest.CreateUserContext(1, 1)
+	ctx := context.Background()
+	if err := r.Put(ctx, userContext, sg, testQueueMap); err != nil {
+		t.Fatalf("error putting sg: %s\n", err)
+	}
+
+	wantModules := true
+	returned, err := r.GetGroup(ctx, userContext, 1, wantModules)
+	if err != nil {
+		t.Fatalf("error getting group: %s\n", err)
+	}
+
+	if returned.ModuleConfigurations == nil {
+		t.Fatalf("error module configurations was nil\n")
+	}
+
+	amtest.TestCompareScanGroup(sg, returned, t)
+	amtest.TestCompareGroupModules(sg.ModuleConfigurations, returned.ModuleConfigurations, t)
+
+	if err := r.Delete(ctx, userContext, sg); err != nil {
+		t.Fatalf("error deleting all keys: %s\n", err)
+	}
+}
+
 func TestGroupStatus(t *testing.T) {
 	oid := 2
 	gid := 2
@@ -59,7 +97,7 @@ func TestGroupStatus(t *testing.T) {
 	ctx := context.Background()
 
 	// test empty
-	exists, status, lastModified, err := r.GroupStatus(ctx, userContext, gid)
+	exists, status, err := r.GroupStatus(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error getting non-existent group status: %s\n", err)
 	}
@@ -78,7 +116,7 @@ func TestGroupStatus(t *testing.T) {
 		}
 	}()
 
-	exists, status, lastModified, err = r.GroupStatus(ctx, userContext, gid)
+	exists, status, err = r.GroupStatus(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error getting status: %s\n", err)
 	}
@@ -87,14 +125,9 @@ func TestGroupStatus(t *testing.T) {
 		t.Fatalf("error status for gid should have existed\n")
 	}
 
-	if now != lastModified {
-		t.Fatalf("error last modified expected %v got %v\n", now, lastModified)
-	}
-
 	if status != am.GroupStopped {
 		t.Fatalf("expected group stopped got: %v\n", am.GroupStatusMap[status])
 	}
-
 }
 
 func BenchmarkPut(b *testing.B) {

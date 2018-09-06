@@ -39,7 +39,7 @@ type NSModuleConfig struct {
 
 // BruteModuleConfig DNS subdomain brute forcer
 type BruteModuleConfig struct {
-	CustomSubNames    []string `json:"custom_subnames"`
+	CustomSubNames    []string `json:"custom_subnames" redis:"-"`
 	RequestsPerSecond int32    `json:"requests_per_second"`
 	MaxDepth          int32    `json:"max_depth"`
 }
@@ -47,7 +47,7 @@ type BruteModuleConfig struct {
 // PortModuleConfig for simple port scanning module
 type PortModuleConfig struct {
 	RequestsPerSecond int32   `json:"requests_per_second"`
-	CustomPorts       []int32 `json:"custom_ports"`
+	CustomPorts       []int32 `json:"custom_ports" redis:"-"`
 }
 
 // WebModuleConfig for web related analysis module
@@ -60,5 +60,5 @@ type WebModuleConfig struct {
 }
 
 type KeywordModuleConfig struct {
-	Keywords []string `json:"keywords"`
+	Keywords []string `json:"keywords" redis:"-"`
 }
