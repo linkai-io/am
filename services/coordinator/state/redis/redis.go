@@ -84,9 +84,8 @@ func (s *State) Start(ctx context.Context, userContext am.UserContext, scanGroup
 	}
 	defer s.rc.Return(conn)
 
-	configKey := fmt.Sprintf(ConfigFmt, userContext.GetOrgID(), scanGroupID)
-	_, err = conn.Do("HSET", configKey, "status", am.GroupStarted)
-
+	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	_, err = conn.Do("HSET", keys.Status(), "status", am.GroupStarted)
 	return err
 }
 
@@ -97,9 +96,8 @@ func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupI
 	}
 	defer s.rc.Return(conn)
 
-	configKey := fmt.Sprintf(ConfigFmt, userContext.GetOrgID(), scanGroupID)
-	_, err = conn.Do("HSET", configKey, "status", am.GroupStopped)
-
+	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	_, err = conn.Do("HSET", keys.Status(), "status", am.GroupStopped)
 	return err
 }
 
@@ -304,6 +302,18 @@ func (s *State) getModules(keys *RedisKeys, conn redis.Conn) (*am.ModuleConfigur
 	}, nil
 }
 
+// GetGroupQueues returns all queues for this scan group
+func (s *State) GetGroupQueues(ctx context.Context, userContext am.UserContext, scanGroupID int) (map[string]string, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.rc.Return(conn)
+
+	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	return redis.StringMap(conn.Do("HGETALL", keys.Queues()))
+}
+
 // GroupStatus returns the status of this group in redis (exists, status)
 func (s *State) GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, error) {
 	conn, err := s.rc.GetContext(ctx)
@@ -352,22 +362,25 @@ func (s *State) Delete(ctx context.Context, userContext am.UserContext, group *a
 	return err
 }
 
+// PushAddresses iterates over the addresses and pushes each to it's own key oid:gid:address:<addrid> <hash>
 func (s *State) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return err
 	}
 	defer s.rc.Return(conn)
-	/*
-		key := fmt.Sprintf(AddrFmt, userContext.GetOrgID(), scanGroupID)
 
-		if err := conn.Send("MULTI"); err != nil {
+	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+
+	if err := conn.Send("MULTI"); err != nil {
+		return err
+	}
+
+	for _, addr := range addresses {
+		if err := conn.Send("HMSET", redis.Args{keys.Addr(addr.AddressID)}.AddFlat(addr)...); err != nil {
 			return err
 		}
-
-		for _, addr := range addresses {
-			conn.Send("HMSET")
-		}
-	*/
-	return nil
+	}
+	_, err = conn.Do("EXEC")
+	return err
 }

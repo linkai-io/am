@@ -59,3 +59,9 @@ func (r *RedisKeys) WebConfig() string {
 func (r *RedisKeys) KeywordConfig() string {
 	return r.configFmt + ":module:keyword"
 }
+
+// Addr returns the address key based on supplied addr id
+// TODO: look at better more performant options
+func (r *RedisKeys) Addr(addrID int64) string {
+	return fmt.Sprintf("%d:%d:address:%d", r.orgID, r.groupID, addrID)
+}

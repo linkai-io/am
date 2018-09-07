@@ -18,18 +18,19 @@ var (
 
 // Service for interfacing with postgresql/rds
 type Service struct {
-	state           state.Stater
-	queueClient     queue.Queue
-	addressClient   am.AddressService
-	scanGroupClient am.ScanGroupService
+	state             state.Stater
+	queueClient       queue.Queue
+	addressClient     am.AddressService
+	scanGroupClient   am.ScanGroupService
+	workerCoordinator *WorkerCoordinator
 }
 
-// New returns an empty Service
-func New(state state.Stater, addressClient am.AddressService, scanGroupClient am.ScanGroupService, queueClient queue.Queue) *Service {
-	return &Service{state: state, addressClient: addressClient, scanGroupClient: scanGroupClient, queueClient: queueClient}
+// New returns
+func New(state state.Stater, workerCoordinator *WorkerCoordinator, addressClient am.AddressService, scanGroupClient am.ScanGroupService, queueClient queue.Queue) *Service {
+	return &Service{state: state, workerCoordinator: workerCoordinator, addressClient: addressClient, scanGroupClient: scanGroupClient, queueClient: queueClient}
 }
 
-// Init by parsing the config and initializing the database pool
+// Init by
 func (s *Service) Init(config []byte) error {
 	return nil
 }
@@ -66,6 +67,11 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		if err := s.state.Put(ctx, userContext, group, queueMap); err != nil {
 			return err
 		}
+	} else {
+		// get queues
+		if queueMap, err = s.state.GetGroupQueues(ctx, userContext, scanGroupID); err != nil {
+			return err
+		}
 	}
 
 	wantModules := true
@@ -86,17 +92,22 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		}
 	}
 
-	if err := s.pushAddresses(ctx, userContext, scanGroupID); err != nil {
+	if err := s.pushAddresses(ctx, userContext, scanGroupID, queueMap); err != nil {
 		return err
 	}
 
-	return s.state.Start(ctx, userContext, group.GroupID)
+	if err := s.state.Start(ctx, userContext, group.GroupID); err != nil {
+		return err
+	}
+
+	return err
 }
 
 // create queue for scan group for each module type and store queue urls in redis
 // TODO: shard them? if > 120,000 addresses this won't work will need to create a group
-// of queues for each.
+// of queues for each OR batch addresses inside of messages?
 func (s *Service) createGroupQueues(ctx context.Context, group *am.ScanGroup) (map[string]string, error) {
+
 	key := fmt.Sprintf("%d_%d_", group.OrgID, group.GroupID)
 	queueMap := make(map[string]string, 0)
 	queueName := key + "input"
@@ -117,7 +128,7 @@ func (s *Service) createGroupQueues(ctx context.Context, group *am.ScanGroup) (m
 	return queueMap, nil
 }
 
-func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, queueMap map[string]string) error {
 	now := time.Now()
 	// TODO: do smart calculation on size of scan group addresses
 	then := now.Add(time.Duration(-4) * time.Hour).UnixNano()
@@ -131,7 +142,8 @@ func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext,
 		WithIgnored:         true,
 	}
 
-	// push addresses to state
+	queue := s.getQueue(userContext.GetOrgID(), scanGroupID, "input", queueMap)
+	// push addresses to state & input queue
 	for {
 		_, addrs, err := s.addressClient.Get(ctx, userContext, filter)
 		if err != nil {
@@ -143,14 +155,22 @@ func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext,
 		}
 		// get last addressid and update start for filter.
 		filter.Start = addrs[len(addrs)-1].AddressID
-		if err := s.state.PushAddresses(ctx, userContext, addrs); err != nil {
+
+		// push to state
+		if err := s.state.PushAddresses(ctx, userContext, scanGroupID, addrs); err != nil {
 			return err
 		}
 
-		if err := s.queueClient.PushAddresses(ctx, addrs); err != nil {
+		// push to input queue
+		if err := s.queueClient.PushAddresses(ctx, queue, addrs); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (s *Service) getQueue(orgID, groupID int, queueName string, queueMap map[string]string) string {
+	key := fmt.Sprintf("%d_%d_%s", orgID, groupID, queueName)
+	return queueMap[key]
 }

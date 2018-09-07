@@ -13,5 +13,5 @@ type Queue interface {
 	Pause(queue string) error
 	Delete(queue string) error
 	Stats(queue string) error
-	PushAddresses(ctx context.Context, addresses []*am.ScanGroupAddress) error
+	PushAddresses(ctx context.Context, queue string, addresses []*am.ScanGroupAddress) error
 }
