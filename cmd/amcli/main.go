@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/linkai-io/am/am"
@@ -76,7 +75,6 @@ func init() {
 	addrCmd.Int64Var(&addrStart, "start", 0, "address id to start get from")
 	addrCmd.IntVar(&addrLimit, "limit", 10000, "limit number of records to return")
 
-	
 	userCmd = flag.NewFlagSet("user", flag.ExitOnError)
 	coorCmd = flag.NewFlagSet("coor", flag.ExitOnError)
 }
@@ -84,7 +82,14 @@ func init() {
 func main() {
 	flag.Parse()
 	if len(os.Args) < 2 {
-		log.Fatalf("insufficient arguments")
+		fmt.Println("./amcli org: ")
+		orgCmd.PrintDefaults()
+		fmt.Println("./amcli group: ")
+		groupCmd.PrintDefaults()
+		fmt.Println("./amcli addr: ")
+		addrCmd.PrintDefaults()
+		fmt.Println("insufficient arguments")
+		os.Exit(-1)
 	}
 
 	switch os.Args[1] {

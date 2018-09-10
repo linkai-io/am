@@ -14,7 +14,7 @@ type WorkerCoordinator struct {
 	env     string
 	region  string
 	state   state.Stater
-	spawner spawner.Spawner
+	spawner *spawner.Spawn
 }
 
 // NewWorkerCoordinator for coordinating the work of workers
@@ -24,8 +24,9 @@ func NewWorkerCoordinator(env, region string, stater state.Stater) *WorkerCoordi
 	return wc
 }
 
-// Spawn N new worker(s) via spawner of module type for queue.
-func (wc *WorkerCoordinator) Spawn(ctx context.Context, moduleType am.ModuleType, queue string, count int) error {
+// Spawn count new worker(s) via spawner of module type for queue.
+func (wc *WorkerCoordinator) Spawn(ctx context.Context, moduleType am.ModuleType, count int) error {
+
 }
 
 // Kill the worker by the provided workerID

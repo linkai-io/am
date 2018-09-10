@@ -8,6 +8,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/linkai-io/am/am"
+	"github.com/spaolacci/murmur3"
 
 	"github.com/linkai-io/am/pkg/redisclient"
 )
@@ -84,7 +85,7 @@ func (s *State) Start(ctx context.Context, userContext am.UserContext, scanGroup
 	}
 	defer s.rc.Return(conn)
 
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 	_, err = conn.Do("HSET", keys.Status(), "status", am.GroupStarted)
 	return err
 }
@@ -96,12 +97,12 @@ func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupI
 	}
 	defer s.rc.Return(conn)
 
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 	_, err = conn.Do("HSET", keys.Status(), "status", am.GroupStopped)
 	return err
 }
 
-func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, queueMap map[string]string) error {
+func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return err
@@ -114,7 +115,7 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	// create redis keys for this org/group
-	keys := NewRedisKeys(group.OrgID, group.GroupID)
+	keys := redisclient.NewRedisKeys(group.OrgID, group.GroupID)
 
 	// create primary configuration
 	if err := conn.Send("HMSET", redis.Args{keys.Config()}.AddFlat(group)...); err != nil {
@@ -123,11 +124,6 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 
 	// set scan group status to stopped (until addresses are added)
 	if err := conn.Send("SET", keys.Status(), am.GroupStopped); err != nil {
-		return err
-	}
-
-	// add queues
-	if err := conn.Send("HMSET", redis.Args{keys.Queues()}.AddFlat(queueMap)...); err != nil {
 		return err
 	}
 
@@ -200,7 +196,7 @@ func (s *State) GetGroup(ctx context.Context, userContext am.UserContext, scanGr
 		return nil, err
 	}
 	defer s.rc.Return(conn)
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 	group := &am.ScanGroup{}
 
 	value, err := redis.Values(conn.Do("HGETALL", keys.Config()))
@@ -223,7 +219,7 @@ func (s *State) GetGroup(ctx context.Context, userContext am.UserContext, scanGr
 	return group, nil
 }
 
-func (s *State) getModules(keys *RedisKeys, conn redis.Conn) (*am.ModuleConfiguration, error) {
+func (s *State) getModules(keys *redisclient.RedisKeys, conn redis.Conn) (*am.ModuleConfiguration, error) {
 	ns := &am.NSModuleConfig{}
 	brute := &am.BruteModuleConfig{}
 	port := &am.PortModuleConfig{}
@@ -302,18 +298,6 @@ func (s *State) getModules(keys *RedisKeys, conn redis.Conn) (*am.ModuleConfigur
 	}, nil
 }
 
-// GetGroupQueues returns all queues for this scan group
-func (s *State) GetGroupQueues(ctx context.Context, userContext am.UserContext, scanGroupID int) (map[string]string, error) {
-	conn, err := s.rc.GetContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer s.rc.Return(conn)
-
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
-	return redis.StringMap(conn.Do("HGETALL", keys.Queues()))
-}
-
 // GroupStatus returns the status of this group in redis (exists, status)
 func (s *State) GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, error) {
 	conn, err := s.rc.GetContext(ctx)
@@ -321,7 +305,7 @@ func (s *State) GroupStatus(ctx context.Context, userContext am.UserContext, sca
 		return false, am.GroupStopped, err
 	}
 	defer s.rc.Return(conn)
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 
 	value, err := redis.Int(conn.Do("GET", keys.Status()))
 	if err != nil {
@@ -342,7 +326,7 @@ func (s *State) Delete(ctx context.Context, userContext am.UserContext, group *a
 	}
 	defer s.rc.Return(conn)
 	// delete configuration
-	key := fmt.Sprintf(ConfigFmt, group.OrgID, group.GroupID)
+	key := fmt.Sprintf("%d:%d", group.OrgID, group.GroupID)
 
 	r, err := redis.Strings(conn.Do("KEYS", key+"*"))
 	if err != nil {
@@ -362,25 +346,118 @@ func (s *State) Delete(ctx context.Context, userContext am.UserContext, group *a
 	return err
 }
 
-// PushAddresses iterates over the addresses and pushes each to it's own key oid:gid:address:<addrid> <hash>
-func (s *State) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
+// PutAddresses iterates over the addresses and puts each to it's own key oid:gid:address:<addrid> <hash>
+// also stores a set as an 'index' for retrieving them.
+func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return err
 	}
 	defer s.rc.Return(conn)
 
-	keys := NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 
 	if err := conn.Send("MULTI"); err != nil {
 		return err
 	}
 
 	for _, addr := range addresses {
+
+		if err := conn.Send("SADD", keys.AddrList(), addr.AddressID); err != nil {
+			return err
+		}
+
+		if err := conn.Send("SADD", keys.AddrHash(), HashAddress(addr.IPAddress, addr.HostAddress)); err != nil {
+			return err
+		}
+
 		if err := conn.Send("HMSET", redis.Args{keys.Addr(addr.AddressID)}.AddFlat(addr)...); err != nil {
 			return err
 		}
 	}
 	_, err = conn.Do("EXEC")
 	return err
+}
+
+// GetAddresses is a rather convoluted process of extracting addresses from redis. We use a cursor to iterate over
+// a predefined set which contains all of the address id's. These address ids are then appended to the address key
+// to be able to extract the address data using HGETALL. Since this is done in a MULTI pipeline, we are returned
+// a slice of addresses and we need to iterate through each and do some interface type checking and finally call
+// ScanStruct to map it back to an am.ScanGroupAddress. We use a map in the event that multiple addresses come back
+// during the same iteration (which apparently can happen)
+func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[int64]*am.ScanGroupAddress, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.rc.Return(conn)
+
+	cachedAddrs := make(map[int64]*am.ScanGroupAddress, 0)
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	iter := 0
+
+	for {
+
+		resp, err := redis.Values(conn.Do("SSCAN", keys.AddrList(), iter, "COUNT", limit))
+		if err != nil {
+			return nil, err
+		}
+		addressKeys, err := redis.Int64s(resp[1], err)
+		if err != nil {
+			return nil, err
+		}
+
+		iter, err = redis.Int(resp[0], err)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := conn.Send("MULTI"); err != nil {
+			return nil, err
+		}
+
+		for _, addressID := range addressKeys {
+			if err := conn.Send("HGETALL", keys.Addr(addressID)); err != nil {
+				return nil, err
+			}
+		}
+		addrs, err := redis.Values(conn.Do("EXEC"))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, addrData := range addrs {
+			if a, ok := addrData.([]interface{}); ok {
+				addr := &am.ScanGroupAddress{}
+				if err := redis.ScanStruct(a, addr); err != nil {
+					return nil, err
+				}
+				cachedAddrs[addr.AddressID] = addr
+			}
+		}
+		if iter == 0 {
+			break
+		}
+	}
+
+	return cachedAddrs, nil
+}
+
+func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddress string) (bool, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer s.rc.Return(conn)
+
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return redis.Bool(conn.Do("SISMEMBER", keys.AddrHash(), HashAddress(host, ipAddress)))
+}
+
+// HashAddress for ip and host returning a hash key to allow modules to check if hosts exist
+func HashAddress(ipAddress, host string) uint64 {
+	hash := murmur3.New64()
+	hash.Write([]byte(ipAddress))
+	hash.Write([]byte(host))
+	return hash.Sum64()
 }

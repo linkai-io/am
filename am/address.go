@@ -6,6 +6,30 @@ const (
 	RNAddressAddresses = "lrn:service:address:feature:addresses"
 )
 
+/*
+(1, 'input_list'),
+    (2, 'manual'),
+    (3, 'other'),
+    -- ns analyzer module 100-200
+    (100, 'ns_query_other'),
+    (101, 'ns_query_ip_to_name'),
+    (102, 'ns_query_name_to_ip'),
+    -- dns brute module 200-300
+    (200, 'dns_brute_forcer'),
+    (201, 'dns_axfr'),
+    -- web modules 300 - 999
+    (300, 'web_crawler'),
+    -- other, feature modules
+	(1000, 'git_hooks');
+*/
+const (
+	DiscoveryNSInputList     = "input_list"
+	DiscoveryNSManual        = "manual"
+	DiscoveryNSQueryOther    = "ns_query_other"
+	DiscoveryNSQueryIPToName = "ns_query_ip_to_name"
+	DiscoveryNSQueryNameToIP = "ns_query_name_to_ip"
+)
+
 // ScanGroupAddress contains details on addresses belonging to the scan group
 // for scanning.
 type ScanGroupAddress struct {

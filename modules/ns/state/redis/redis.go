@@ -1,9 +1,13 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"log"
+	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/linkai-io/am/pkg/redisclient"
 )
 
@@ -17,7 +21,6 @@ var (
 // Config represents this modules configuration data to be passed in on
 // initialization.
 type Config struct {
-	OrgID  int64  `json:"org_id"`
 	RCAddr string `json:"rc_addr"`
 	RCPass string `json:"rc_pass"`
 }
@@ -33,20 +36,20 @@ func New() *State {
 }
 
 // Init by parsing the config and initializing the redis client
-func (rs *State) Init(config []byte) error {
-	stateConfig, err := rs.parseConfig(config)
+func (s *State) Init(config []byte) error {
+	stateConfig, err := s.parseConfig(config)
 	if err != nil {
 		return err
 	}
 
-	rs.rc = redisclient.New(stateConfig.RCAddr, stateConfig.RCPass)
+	s.rc = redisclient.New(stateConfig.RCAddr, stateConfig.RCPass)
 
-	return rs.rc.Init()
+	return s.rc.Init()
 }
 
 // parseConfig parses the configuration options and validates they are sane.
 func (rs *State) parseConfig(config []byte) (*Config, error) {
-	var v *Config
+	v := &Config{}
 	if err := json.Unmarshal(config, v); err != nil {
 		return nil, err
 	}
@@ -63,8 +66,30 @@ func (rs *State) parseConfig(config []byte) (*Config, error) {
 
 // IsValid checks if the zone is valid for testing (not done before)
 // and not an ignored zone (aws, etc).
-func (rs *State) IsValid(zone string) bool {
-	conn := rs.rc.Get()
-	rs.rc.Return(conn)
+func (s *State) IsValid(zone string) bool {
+	conn := s.rc.Get()
+	s.rc.Return(conn)
 	return true
+}
+
+// DoNSRecords org:group:ns:zone:<zonename> recorded bool EXPIRE 4 H?
+func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer s.rc.Return(conn)
+
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	ret, err := redis.String(conn.Do("SET", keys.NSZone(zone), time.Now().UnixNano(), "NX", "PX", expireSeconds))
+	if err != nil {
+		// redis will return ErrNil if value is already set.
+		if err == redis.ErrNil {
+			return false, nil
+		}
+		return false, err
+	}
+	log.Printf("%#v\n", ret)
+	return ret == "OK", nil
 }

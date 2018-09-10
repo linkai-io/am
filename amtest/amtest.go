@@ -1,6 +1,7 @@
 package amtest
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -39,6 +40,26 @@ func GenerateID(t *testing.T) string {
 		t.Fatalf("error generating ID: %s\n", err)
 	}
 	return id.String()
+}
+
+func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
+	addrs := make([]*am.ScanGroupAddress, count)
+	for i := 0; i < count; i++ {
+		addrs[i] = &am.ScanGroupAddress{
+			AddressID:           int64(i),
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         "",
+			IPAddress:           fmt.Sprintf("192.168.0.%d", i),
+			DiscoveryTime:       time.Now().UnixNano(),
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     0,
+			LastSeenTime:        0,
+			ConfidenceScore:     100.0,
+			UserConfidenceScore: 0.0,
+		}
+	}
+	return addrs
 }
 
 func CreateUserContext(orgID, userID int) *mock.UserContext {
@@ -267,6 +288,81 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 }
 
+func TestCompareAddresses(expected, returned map[int64]*am.ScanGroupAddress, t *testing.T) {
+
+	expectedKeys := make([]int64, len(expected))
+	i := 0
+	for k := range expected {
+		expectedKeys[i] = k
+		i++
+	}
+	returnedKeys := make([]int64, len(returned))
+	i = 0
+	for k := range returned {
+		returnedKeys[i] = k
+		i++
+	}
+
+	SortEqualInt64(expectedKeys, returnedKeys, t)
+
+	for addrID := range returned {
+		e := expected[addrID]
+		r := returned[addrID]
+
+		if !Float32Equals(e.ConfidenceScore, r.ConfidenceScore) {
+			t.Fatalf("ConfidenceScore by was different, %v and %v\n", e.ConfidenceScore, r.ConfidenceScore)
+		}
+
+		if !Float32Equals(e.UserConfidenceScore, r.UserConfidenceScore) {
+			t.Fatalf("UserConfidenceScore by was different, %v and %v\n", e.UserConfidenceScore, r.UserConfidenceScore)
+		}
+
+		if e.DiscoveredBy != r.DiscoveredBy {
+			t.Fatalf("DiscoveredBy by was different, %v and %v\n", e.DiscoveredBy, r.DiscoveredBy)
+		}
+
+		if e.DiscoveryTime != r.DiscoveryTime {
+			t.Fatalf("DiscoveryTime by was different, %v and %v\n", e.DiscoveryTime, r.DiscoveryTime)
+		}
+
+		if e.GroupID != r.GroupID {
+			t.Fatalf("GroupID by was different, %v and %v\n", e.GroupID, r.GroupID)
+		}
+
+		if e.HostAddress != r.HostAddress {
+			t.Fatalf("HostAddress by was different, %v and %v\n", e.HostAddress, r.HostAddress)
+		}
+
+		if e.IPAddress != r.IPAddress {
+			t.Fatalf("IPAddress by was different, %v and %v\n", e.IPAddress, r.IPAddress)
+		}
+
+		if e.Ignored != r.Ignored {
+			t.Fatalf("Ignored by was different, %v and %v\n", e.Ignored, r.Ignored)
+		}
+
+		if e.IsHostedService != r.IsHostedService {
+			t.Fatalf("IsHostedService by was different, %v and %v\n", e.IsHostedService, r.IsHostedService)
+		}
+
+		if e.IsSOA != r.IsSOA {
+			t.Fatalf("IsSOA by was different, %v and %v\n", e.IsSOA, r.IsSOA)
+		}
+
+		if e.IsWildcardZone != r.IsWildcardZone {
+			t.Fatalf("IsWildcardZone by was different, %v and %v\n", e.IsWildcardZone, r.IsWildcardZone)
+		}
+
+		if e.LastScannedTime != r.LastScannedTime {
+			t.Fatalf("LastScannedTime by was different, %v and %v\n", e.LastScannedTime, r.LastScannedTime)
+		}
+
+		if e.LastSeenTime != r.LastSeenTime {
+			t.Fatalf("LastSeenTime by was different, %v and %v\n", e.LastSeenTime, r.LastSeenTime)
+		}
+	}
+}
+
 func TestCompareScanGroup(group1, group2 *am.ScanGroup, t *testing.T) {
 	if group1.CreatedBy != group2.CreatedBy {
 		t.Fatalf("created by was different, %d and %d\n", group1.CreatedBy, group2.CreatedBy)
@@ -396,4 +492,37 @@ func SortEqualInt32(expected, returned []int32, t *testing.T) bool {
 	sort.Slice(returnedCopy, func(i, j int) bool { return returnedCopy[i] < returnedCopy[j] })
 
 	return reflect.DeepEqual(expectedCopy, returnedCopy)
+}
+
+func SortEqualInt64(expected, returned []int64, t *testing.T) bool {
+	if len(expected) != len(returned) {
+		t.Fatalf("slice did not match size: %#v, %#v\n", expected, returned)
+	}
+	expectedCopy := make([]int64, len(expected))
+	returnedCopy := make([]int64, len(returned))
+
+	copy(expectedCopy, expected)
+	copy(returnedCopy, returned)
+	sort.Slice(expectedCopy, func(i, j int) bool { return expectedCopy[i] < expectedCopy[j] })
+	sort.Slice(returnedCopy, func(i, j int) bool { return returnedCopy[i] < returnedCopy[j] })
+
+	return reflect.DeepEqual(expectedCopy, returnedCopy)
+}
+
+const epsilon = 1e-4
+
+func Float32Equals(a, b float32) bool {
+	return Float32EqualEPS(a, b, epsilon)
+}
+
+func Float32EqualEPS(a, b float32, eps float32) bool {
+	return (a-b) < eps && (b-a) < eps
+}
+
+func Float64Equals(a, b float64) bool {
+	return Float64EqualEPS(a, b, epsilon)
+}
+
+func Float64EqualEPS(a, b float64, eps float64) bool {
+	return (a-b) < eps && (b-a) < eps
 }
