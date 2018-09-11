@@ -197,6 +197,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:919bb3aa6d9d0b67648c219fa4925312bc3c2872da19e818fa769e9c97a2b643"
+  name = "github.com/spaolacci/murmur3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9f5d223c60793748f04a9d5b4b4eacddfc1f755d"
+  version = "v1.1"
+
+[[projects]]
   digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
   name = "github.com/stretchr/testify"
   packages = [
@@ -344,6 +352,7 @@
     "github.com/ory/ladon",
     "github.com/ory/ladon/compiler",
     "github.com/pkg/errors",
+    "github.com/spaolacci/murmur3",
     "golang.org/x/net/context",
     "golang.org/x/net/publicsuffix",
     "golang.org/x/time/rate",

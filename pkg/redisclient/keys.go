@@ -16,7 +16,6 @@ func NewRedisKeys(orgID, groupID int) *RedisKeys {
 	r.configFmt = fmt.Sprintf("%d:%d:configuration", orgID, groupID)
 	r.addrFmt = fmt.Sprintf("%d:%d:address", orgID, groupID)
 	r.statusFmt = fmt.Sprintf("%d:%d:status", orgID, groupID)
-	r.queueFmt = fmt.Sprintf("%d:%d:queues", orgID, groupID)
 	return r
 }
 
@@ -26,10 +25,6 @@ func (r *RedisKeys) Config() string {
 
 func (r *RedisKeys) Status() string {
 	return r.statusFmt
-}
-
-func (r *RedisKeys) Queues() string {
-	return r.queueFmt
 }
 
 func (r *RedisKeys) NSConfig() string {

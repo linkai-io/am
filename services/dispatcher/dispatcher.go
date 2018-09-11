@@ -2,24 +2,51 @@ package dispatcher
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/services/coordinator/state"
 )
 
-// Service for coordinating the lifecycle of workers
-type Service struct {
-	env           string
-	region        string
-	addressClient am.AddressService
-	state         state.Stater
+type Config struct {
+	DispatcherID string `json:"dispatcher_id"`
 }
 
-// NewService for coordinating the work of workers
-func NewService(env, region string, addressClient am.AddressService, stater state.Stater) *Service {
-	s := &Service{state: stater, addressClient: addressClient, env: env, region: region}
+// Service for coordinating the lifecycle of workers
+type Service struct {
+	env               string
+	region            string
+	config            *Config
+	addressClient     am.AddressService
+	coordinatorClient am.CoordinatorService
+	state             state.Stater
+}
+
+// New for coordinating the work of workers
+func New(env, region string, addressClient am.AddressService, coordinatorClient am.CoordinatorService, stater state.Stater) *Service {
+	s := &Service{state: stater, addressClient: addressClient, coordinatorClient: coordinatorClient, env: env, region: region}
 	return s
+}
+
+func (s *Service) Init(config []byte) error {
+	var err error
+
+	s.config, err = s.parseConfig(config)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	return s.coordinatorClient.Register(ctx, s.config.DispatcherID)
+}
+
+func (s *Service) parseConfig(data []byte) (*Config, error) {
+	config := &Config{}
+	if err := json.Unmarshal(data, config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
 
 // push addresses to state

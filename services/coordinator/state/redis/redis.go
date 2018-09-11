@@ -8,21 +8,9 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/linkai-io/am/am"
-	"github.com/spaolacci/murmur3"
 
+	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/redisclient"
-)
-
-const (
-	// OrgID:GroupID
-	ConfigFmt        = "%d:%d:configuration"
-	AddrFmt          = "%d:%d:address:" // orgid:groupid:address:md5(ip,host)
-	QueuesFmt        = ":queues:"
-	NSConfigFmt      = ":module:nsconfig"
-	BruteConfigFmt   = ":module:dnsbruteconfig"
-	PortConfigFmt    = ":module:portconfig"
-	WebConfigFmt     = ":module:webconfig"
-	KeywordConfigFmt = ":module:keyword"
 )
 
 var (
@@ -102,6 +90,8 @@ func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupI
 	return err
 }
 
+// Put the scan group configuration and publish to the scan group RN that it has been put
+// or updated
 func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
@@ -182,6 +172,10 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	if err := conn.Send("LPUSH", keywordArgs...); err != nil {
+		return err
+	}
+
+	if err := conn.Send("PUBLISH", am.RNScanGroupGroups, keys.Config()); err != nil {
 		return err
 	}
 
@@ -367,7 +361,7 @@ func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, sc
 			return err
 		}
 
-		if err := conn.Send("SADD", keys.AddrHash(), HashAddress(addr.IPAddress, addr.HostAddress)); err != nil {
+		if err := conn.Send("SADD", keys.AddrHash(), convert.HashAddress(addr.IPAddress, addr.HostAddress)); err != nil {
 			return err
 		}
 
@@ -451,13 +445,5 @@ func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddr
 	defer s.rc.Return(conn)
 
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
-	return redis.Bool(conn.Do("SISMEMBER", keys.AddrHash(), HashAddress(host, ipAddress)))
-}
-
-// HashAddress for ip and host returning a hash key to allow modules to check if hosts exist
-func HashAddress(ipAddress, host string) uint64 {
-	hash := murmur3.New64()
-	hash.Write([]byte(ipAddress))
-	hash.Write([]byte(host))
-	return hash.Sum64()
+	return redis.Bool(conn.Do("SISMEMBER", keys.AddrHash(), convert.HashAddress(host, ipAddress)))
 }

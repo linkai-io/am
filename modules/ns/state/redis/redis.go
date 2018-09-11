@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -48,7 +47,7 @@ func (s *State) Init(config []byte) error {
 }
 
 // parseConfig parses the configuration options and validates they are sane.
-func (rs *State) parseConfig(config []byte) (*Config, error) {
+func (s *State) parseConfig(config []byte) (*Config, error) {
 	v := &Config{}
 	if err := json.Unmarshal(config, v); err != nil {
 		return nil, err
@@ -62,6 +61,11 @@ func (rs *State) parseConfig(config []byte) (*Config, error) {
 		return nil, ErrEmptyRCPassword
 	}
 	return v, nil
+}
+
+// Subscribe to listen for group state updates
+func (s *State) Subscribe(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+	return s.rc.Subscribe(ctx, onStartFn, onMessageFn, channels...)
 }
 
 // IsValid checks if the zone is valid for testing (not done before)
@@ -82,6 +86,7 @@ func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireS
 
 	// create redis keys for this org/group
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+
 	ret, err := redis.String(conn.Do("SET", keys.NSZone(zone), time.Now().UnixNano(), "NX", "PX", expireSeconds))
 	if err != nil {
 		// redis will return ErrNil if value is already set.
@@ -90,6 +95,10 @@ func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireS
 		}
 		return false, err
 	}
-	log.Printf("%#v\n", ret)
 	return ret == "OK", nil
+}
+
+// TestGetConn for testing
+func (s *State) TestGetConn() redis.Conn {
+	return s.rc.Get()
 }

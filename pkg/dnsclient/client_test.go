@@ -5,6 +5,8 @@ import (
 	"net"
 	"strings"
 	"testing"
+
+	"github.com/linkai-io/am/pkg/parsers"
 )
 
 const dnsServer = "0.0.0.0:2053"
@@ -196,7 +198,7 @@ func TestParseArpa(t *testing.T) {
 		{"5.2.0.192in-addr.arpa.", false, ""},
 	}
 	for _, test := range tests {
-		ip, ok := ParseArpa(test.in)
+		ip, ok := parsers.ParseArpa(test.in)
 		if test.isOK && test.out != ip {
 			t.Fatalf("error expected %s got %s\n", test.out, ip)
 		}

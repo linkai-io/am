@@ -13,10 +13,11 @@ const (
     -- ns analyzer module 100-200
     (100, 'ns_query_other'),
     (101, 'ns_query_ip_to_name'),
-    (102, 'ns_query_name_to_ip'),
+	(102, 'ns_query_name_to_ip'),
+	(103, 'dns_axfr'),
     -- dns brute module 200-300
     (200, 'dns_brute_forcer'),
-    (201, 'dns_axfr'),
+    (201, 'dns_mutator'),
     -- web modules 300 - 999
     (300, 'web_crawler'),
     -- other, feature modules
@@ -28,6 +29,7 @@ const (
 	DiscoveryNSQueryOther    = "ns_query_other"
 	DiscoveryNSQueryIPToName = "ns_query_ip_to_name"
 	DiscoveryNSQueryNameToIP = "ns_query_name_to_ip"
+	DiscoveryNSAXFR          = "ns_query_axfr"
 )
 
 // ScanGroupAddress contains details on addresses belonging to the scan group

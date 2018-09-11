@@ -2,7 +2,6 @@ package dnsclient
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gammazero/workerpool"
+	"github.com/linkai-io/am/pkg/parsers"
 	"github.com/miekg/dns"
 )
 
@@ -292,7 +292,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 	switch value := rr.(type) {
 	case *dns.NS:
 		ips, err := c.ResolveName(value.Ns)
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Ns))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Ns))
 		if err != nil {
 			log.Printf("error resolving NS server: %s\n", err)
 			return nil
@@ -307,7 +307,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 			log.Printf("error resolving CNAME: %s\n", err)
 			return nil
 		}
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Hdr.Name))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
 		for _, resolved := range ips {
 			axfrResult.IPs = append(axfrResult.IPs, resolved.IPs...)
 		}
@@ -317,7 +317,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 			log.Printf("error resolving SRV: %s\n", err)
 			return nil
 		}
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Hdr.Name))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
 		for _, resolved := range ips {
 			axfrResult.IPs = append(axfrResult.IPs, resolved.IPs...)
 		}
@@ -327,19 +327,19 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 			log.Printf("error resolving MX: %s\n", err)
 			return nil
 		}
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Hdr.Name))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
 		for _, resolved := range ips {
 			axfrResult.IPs = append(axfrResult.IPs, resolved.IPs...)
 		}
 	case *dns.A:
 		axfrResult.IPs = append(axfrResult.IPs, value.A.String())
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Hdr.Name))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
 	case *dns.AAAA:
 		axfrResult.IPs = append(axfrResult.IPs, value.AAAA.String())
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Hdr.Name))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
 	case *dns.PTR:
 		axfrResult.IPs = append(axfrResult.IPs, value.Hdr.Name)
-		axfrResult.Hosts = append(axfrResult.Hosts, fqdnTrim(value.Ptr))
+		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Ptr))
 	default:
 		log.Printf("unknown type: %s\n", value.String())
 		return nil
@@ -376,59 +376,4 @@ func (c *Client) exchange(name string, query uint16) (*dns.Msg, error) {
 		return nil, ErrEmptyRecords
 	}
 	return result, nil
-}
-
-// ParseArpa parses an in-addr.arpa or ip6.arpa name to IP address.
-func ParseArpa(arpa string) (string, bool) {
-	arpa = fqdnTrim(arpa)
-	// IPv4
-	if strings.LastIndex(arpa, "in-addr.arpa") != -1 {
-		return parseIPv4Arpa(arpa)
-	} else if strings.LastIndex(arpa, "ip6.arpa") != -1 {
-		return parseIPv6Arpa(arpa)
-	}
-	return "", false
-}
-
-// parseIPv4Arpa uses sscanf to ensure we only get integer values for the in-addr.arpa string.
-func parseIPv4Arpa(ipv4arpa string) (string, bool) {
-	bytes := make([]int, 4)
-	n, err := fmt.Sscanf(ipv4arpa, ipv4arpafmt, &bytes[3], &bytes[2], &bytes[1], &bytes[0])
-	if err != nil || n != 4 {
-		return "", false
-	}
-	return fmt.Sprintf("%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]), true
-}
-
-// parseIPv6Arpa uses sscanf to ensure we only get integer values for the in-addr.arpa string.
-func parseIPv6Arpa(ipv4arpa string) (string, bool) {
-	bytes := make([]byte, 32)
-	n, err := fmt.Sscanf(ipv4arpa, ipv6arpafmt, &bytes[31], &bytes[30], &bytes[29], &bytes[28], &bytes[27], &bytes[26], &bytes[25],
-		&bytes[24], &bytes[23], &bytes[22], &bytes[21], &bytes[20], &bytes[19], &bytes[18], &bytes[17], &bytes[16], &bytes[15],
-		&bytes[14], &bytes[13], &bytes[12], &bytes[11], &bytes[10], &bytes[9], &bytes[8], &bytes[7], &bytes[6], &bytes[5], &bytes[4],
-		&bytes[3], &bytes[2], &bytes[1], &bytes[0])
-	if err != nil || n != 32 {
-		log.Printf("%d err: %s\n", n, err)
-		return "", false
-	}
-	return toIPv6(bytes), true
-}
-
-func toIPv6(in []byte) string {
-	out := make([]string, len(in)+8) // 7 : characters
-	for i, j := 0, 0; i < len(in); i, j = i+1, j+1 {
-		out[j] = string(in[i])
-		if i != len(in)-1 && (i+1)%4 == 0 {
-			j++
-			out[j] = ":"
-		}
-	}
-	return strings.Join(out, "")
-}
-
-func fqdnTrim(name string) string {
-	if dns.IsFqdn(name) {
-		return strings.TrimRight(name, ".")
-	}
-	return name
 }
