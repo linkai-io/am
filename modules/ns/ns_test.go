@@ -6,7 +6,7 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/modules/ns"
-	"github.com/linkai-io/am/modules/ns/state/redis"
+	"github.com/linkai-io/am/pkg/state/redis"
 )
 
 const dnsServer = "0.0.0.0:2053"

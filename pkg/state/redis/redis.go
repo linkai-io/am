@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/linkai-io/am/am"
@@ -92,6 +93,7 @@ func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupI
 
 // Put the scan group configuration and publish to the scan group RN that it has been put
 // or updated
+// TODO: PUT SCANGROUP IN SET
 func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
@@ -184,13 +186,13 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 }
 
 // GetGroup returns the entire scan group details.
-func (s *State) GetGroup(ctx context.Context, userContext am.UserContext, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+func (s *State) GetGroup(ctx context.Context, orgID, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer s.rc.Return(conn)
-	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	group := &am.ScanGroup{}
 
 	value, err := redis.Values(conn.Do("HGETALL", keys.Config()))
@@ -446,4 +448,44 @@ func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddr
 
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	return redis.Bool(conn.Do("SISMEMBER", keys.AddrHash(), convert.HashAddress(host, ipAddress)))
+}
+
+// Subscribe to listen for group state updates
+func (s *State) Subscribe(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+	return s.rc.Subscribe(ctx, onStartFn, onMessageFn, channels...)
+}
+
+// IsValid checks if the zone is valid for testing (not done before)
+// and not an ignored zone (aws, etc).
+func (s *State) IsValid(zone string) bool {
+	conn := s.rc.Get()
+	s.rc.Return(conn)
+	return true
+}
+
+// DoNSRecords org:group:ns:zone:<zonename> recorded bool EXPIRE 4 H?
+func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer s.rc.Return(conn)
+
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+
+	ret, err := redis.String(conn.Do("SET", keys.NSZone(zone), time.Now().UnixNano(), "NX", "PX", expireSeconds))
+	if err != nil {
+		// redis will return ErrNil if value is already set.
+		if err == redis.ErrNil {
+			return false, nil
+		}
+		return false, err
+	}
+	return ret == "OK", nil
+}
+
+// TestGetConn for testing
+func (s *State) TestGetConn() redis.Conn {
+	return s.rc.Get()
 }

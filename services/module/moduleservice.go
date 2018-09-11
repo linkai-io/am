@@ -35,19 +35,9 @@ func (s *Service) parseConfig(config []byte) error {
 	return nil
 }
 
-// register this module servicer with the coordinator
-func (s *Service) register(ctx context.Context) error {
-	return nil
-}
-
 // Report on statistics of all running workers
 func (s *Service) Report(ctx context.Context) (*am.WorkerReport, error) {
 	return nil, nil
-}
-
-// Heartbeat if alive
-func (s *Service) Heartbeat(ctx context.Context) bool {
-	return true
 }
 
 func (s *Service) Shutdown(ctx context.Context) error {

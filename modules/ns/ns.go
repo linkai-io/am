@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/parsers"
 
 	"github.com/linkai-io/am/am"
@@ -31,19 +34,24 @@ type NS struct {
 	// for closing subscriptions to listen for group updates
 	exitContext context.Context
 	cancel      context.CancelFunc
+	// concurrent safe cache of scan groups updated via Subscribe callbacks
+	groupCache *cache.ScanGroupCache
 }
 
 // New creates a new NS module for identifying zone information via DNS
 // and storing the results in Redis.
 func New(st state.Stater) *NS {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &NS{st: st, exitContext: ctx, cancel: cancel}
+	ns := &NS{st: st, exitContext: ctx, cancel: cancel}
+	ns.groupCache = cache.NewScanGroupCache()
+	return ns
 }
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
 	ns.dc = dnsclient.New([]string{"0.0.0.0:2053"}, 2)
 	go ns.st.Subscribe(ns.exitContext, ns.ChannelOnStart, ns.ChannelOnMessage, am.RNScanGroupGroups)
+	// populate cache
 	return nil
 }
 
@@ -64,7 +72,59 @@ func (ns *NS) ChannelOnStart() error {
 
 // ChannelOnMessage when we receieve updates to scan groups/other state.
 func (ns *NS) ChannelOnMessage(channel string, data []byte) error {
+	switch channel {
+	case am.RNScanGroupGroups:
+		ctx := context.Background()
+		key := string(data)
+
+		orgID, groupID, err := ns.splitKey(key)
+		if err != nil {
+			return err
+		}
+
+		wantModules := true
+		group, err := ns.st.GetGroup(ctx, orgID, groupID, wantModules)
+		if err != nil {
+			return err
+		}
+
+		ns.groupCache.Put(key, group)
+	}
 	return nil
+}
+
+func (ns *NS) getGroupByIDs(orgID, groupID int) (*am.ScanGroup, error) {
+	var err error
+
+	key := ns.groupCache.MakeGroupKey(orgID, groupID)
+	group := ns.groupCache.Get(key)
+	if group == nil {
+		ctx := context.Background()
+		wantModules := true
+		group, err = ns.st.GetGroup(ctx, orgID, groupID, wantModules)
+		if err != nil {
+			return nil, err
+		}
+		ns.groupCache.Put(key, group)
+	}
+	return group, nil
+}
+
+func (ns *NS) splitKey(key string) (orgID int, groupID int, err error) {
+	keys := strings.Split(key, ":")
+	if len(keys) < 2 {
+		log.Printf("failed to put group, invalid key: %s\n", key)
+		return
+	}
+	orgID, err = strconv.Atoi(keys[0])
+	if err != nil {
+		return 0, 0, err
+	}
+	groupID, err = strconv.Atoi(keys[1])
+	if err != nil {
+		return 0, 0, err
+	}
+	return orgID, groupID, nil
 }
 
 // Analyze a domain zone, extracts NS, MX, A, AAAA, CNAME records
