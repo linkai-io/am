@@ -40,3 +40,11 @@ func (s *DBSecrets) ServicePassword(serviceKey string) (string, error) {
 	}
 	return string(data), nil
 }
+
+func (s *DBSecrets) CacheConfig() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/cache/config", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}

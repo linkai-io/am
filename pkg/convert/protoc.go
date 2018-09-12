@@ -2,7 +2,6 @@ package convert
 
 import (
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/protocservices/address"
 	"github.com/linkai-io/am/protocservices/prototypes"
 	"github.com/linkai-io/am/protocservices/scangroup"
 )
@@ -168,7 +167,7 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 	}
 }
 
-func AddressToDomain(in *address.AddressData) *am.ScanGroupAddress {
+func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 	return &am.ScanGroupAddress{
 		AddressID:           in.AddressID,
 		OrgID:               int(in.OrgID),
@@ -188,8 +187,8 @@ func AddressToDomain(in *address.AddressData) *am.ScanGroupAddress {
 	}
 }
 
-func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
-	return &address.AddressData{
+func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
+	return &prototypes.AddressData{
 		AddressID:           in.AddressID,
 		OrgID:               int32(in.OrgID),
 		GroupID:             int32(in.GroupID),
@@ -208,7 +207,7 @@ func DomainToAddress(in *am.ScanGroupAddress) *address.AddressData {
 	}
 }
 
-func AddressFilterToDomain(in *address.AddressFilter) *am.ScanGroupAddressFilter {
+func AddressFilterToDomain(in *prototypes.AddressFilter) *am.ScanGroupAddressFilter {
 	return &am.ScanGroupAddressFilter{
 		OrgID:               int(in.OrgID),
 		GroupID:             int(in.GroupID),
@@ -221,8 +220,8 @@ func AddressFilterToDomain(in *address.AddressFilter) *am.ScanGroupAddressFilter
 	}
 }
 
-func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *address.AddressFilter {
-	return &address.AddressFilter{
+func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *prototypes.AddressFilter {
+	return &prototypes.AddressFilter{
 		OrgID:               int32(in.OrgID),
 		GroupID:             int32(in.GroupID),
 		WithIgnored:         in.WithIgnored,

@@ -16,6 +16,6 @@ type Stater interface {
 	Put(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error
 	Start(ctx context.Context, userContext am.UserContext, scanGroupID int) error
 	Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error
-	Delete(ctx context.Context, userContext am.UserContext, scanGroupID int) error
-	PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error
+	Delete(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error
+	PutAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error
 }

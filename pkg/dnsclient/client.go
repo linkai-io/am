@@ -24,11 +24,6 @@ var (
 	ErrInvalidIP = errors.New("invalid format for IP address")
 )
 
-const (
-	ipv4arpafmt = "%d.%d.%d.%d.in-addr.arpa"
-	ipv6arpafmt = "%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.ip6.arpa"
-)
-
 // Client to resolve hosts and ip addresses
 type Client struct {
 	client  *dns.Client

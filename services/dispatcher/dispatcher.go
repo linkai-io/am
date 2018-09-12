@@ -3,10 +3,12 @@ package dispatcher
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/services/coordinator/state"
+	"github.com/linkai-io/am/services/dispatcher/state"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -15,20 +17,24 @@ type Config struct {
 
 // Service for coordinating the lifecycle of workers
 type Service struct {
-	env               string
-	region            string
 	config            *Config
 	addressClient     am.AddressService
 	coordinatorClient am.CoordinatorService
+	moduleClients     map[am.ModuleType]am.ModuleService
 	state             state.Stater
 }
 
 // New for coordinating the work of workers
-func New(env, region string, addressClient am.AddressService, coordinatorClient am.CoordinatorService, stater state.Stater) *Service {
-	s := &Service{state: stater, addressClient: addressClient, coordinatorClient: coordinatorClient, env: env, region: region}
-	return s
+func New(addrClient am.AddressService, coordClient am.CoordinatorService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
+	return &Service{
+		state:             stater,
+		addressClient:     addrClient,
+		coordinatorClient: coordClient,
+		moduleClients:     modClients,
+	}
 }
 
+// Init this dispatcher and register it with coordinator
 func (s *Service) Init(config []byte) error {
 	var err error
 
@@ -49,8 +55,8 @@ func (s *Service) parseConfig(data []byte) (*Config, error) {
 	return config, nil
 }
 
-// push addresses to state
-func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+// PushAddresses to state
+func (s *Service) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	now := time.Now()
 	// TODO: do smart calculation on size of scan group addresses
 	then := now.Add(time.Duration(-4) * time.Hour).UnixNano()
@@ -63,19 +69,39 @@ func (s *Service) pushAddresses(ctx context.Context, userContext am.UserContext,
 		SinceScannedTime:    then,
 		WithIgnored:         true,
 	}
-
-	// push addresses to state & input queue
+	count := 0
+	// push addresses to state
 	for {
 		_, addrs, err := s.addressClient.Get(ctx, userContext, filter)
 		if err != nil {
 			return err
 		}
-
+		count += len(addrs)
 		if len(addrs) == 0 {
 			break
 		}
 		// get last addressid and update start for filter.
 		filter.Start = addrs[len(addrs)-1].AddressID
+
+		if err := s.state.PushAddresses(ctx, userContext, scanGroupID, addrs); err != nil {
+			log.Printf("error pushing addresses last addr: %d for scangroup %d: %s\n", filter.Start, scanGroupID, err)
+			return err
+		}
+	}
+	log.Printf("push addresses for %d complete.\n", scanGroupID)
+
+	for {
+		addrMap, err := s.state.GetAddresses(ctx, userContext, scanGroupID, 1000)
+		if err != nil {
+			return errors.Wrap(err, "error getting addresses")
+		}
+
+		if len(addrMap) == 0 {
+			break
+		}
+		for _, addr := range addrMap {
+			s.moduleClients[am.NSModule].Analyze(ctx, addr)
+		}
 	}
 
 	return nil

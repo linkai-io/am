@@ -1,5 +1,7 @@
 package am
 
+import "context"
+
 type ModuleType int
 
 const (
@@ -61,4 +63,8 @@ type WebModuleConfig struct {
 
 type KeywordModuleConfig struct {
 	Keywords []string `json:"keywords" redis:"-"`
+}
+
+type ModuleService interface {
+	Analyze(ctx context.Context, address *ScanGroupAddress) error
 }

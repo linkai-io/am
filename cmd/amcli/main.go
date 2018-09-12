@@ -41,6 +41,8 @@ var (
 	addrInput string
 	addrStart int64
 	addrLimit int
+
+	coorAddr string
 )
 
 func init() {
@@ -76,18 +78,26 @@ func init() {
 	addrCmd.IntVar(&addrLimit, "limit", 10000, "limit number of records to return")
 
 	userCmd = flag.NewFlagSet("user", flag.ExitOnError)
+
 	coorCmd = flag.NewFlagSet("coor", flag.ExitOnError)
+	coorCmd.StringVar(&coorAddr, "addr", ":50050", "coordinator server address")
+	coorCmd.IntVar(&groupID, "gid", -1, "scan group id to coordinate")
+	coorCmd.IntVar(&orgID, "oid", -1, "org id to use for coordination")
+	coorCmd.IntVar(&userID, "uid", -1, "user id to use for coordination")
+
 }
 
 func main() {
 	flag.Parse()
-	if len(os.Args) < 2 {
-		fmt.Println("./amcli org: ")
+	if len(os.Args) < 2 || os.Args[1] == "-h" || os.Args[1] == "--help" {
+		fmt.Println("./amcli org: (add, rem, get)")
 		orgCmd.PrintDefaults()
-		fmt.Println("./amcli group: ")
+		fmt.Println("./amcli group: (json, get, add, rem, pause)")
 		groupCmd.PrintDefaults()
-		fmt.Println("./amcli addr: ")
+		fmt.Println("./amcli addr: (add, rem, get)")
 		addrCmd.PrintDefaults()
+		fmt.Println("./amcli coor: (start)")
+		coorCmd.PrintDefaults()
 		fmt.Println("insufficient arguments")
 		os.Exit(-1)
 	}
@@ -99,6 +109,8 @@ func main() {
 		processGroup(os.Args[1:])
 	case "addr":
 		processAddr(os.Args[1:])
+	case "coor":
+		processCoor(os.Args[1:])
 	default:
 		printExit("unknown cmd, must be one of: org, group, user, addr, coor")
 	}

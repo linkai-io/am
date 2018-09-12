@@ -15,7 +15,7 @@
   version = "v1.6.0"
 
 [[projects]]
-  digest = "1:d0dcff3de0bfb4b6fd399d871fefd15ffa49c242ac8ab3f06457d0184ef2f490"
+  digest = "1:f1e4fb21c0aeecbfd8f3652264c4a3e0a131e435d8ecb2b60630d44b78cad202"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -46,7 +46,6 @@
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
-    "service/sqs",
     "service/ssm",
     "service/sts",
   ]
@@ -340,7 +339,6 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
-    "github.com/aws/aws-sdk-go/service/sqs",
     "github.com/aws/aws-sdk-go/service/ssm",
     "github.com/gammazero/workerpool",
     "github.com/gofrs/uuid",

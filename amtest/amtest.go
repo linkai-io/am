@@ -2,7 +2,6 @@ package amtest
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"sort"
 	"testing"
@@ -460,8 +459,6 @@ func SortEqualString(expected, returned []string, t *testing.T) bool {
 
 	sort.Strings(expectedCopy)
 	sort.Strings(returnedCopy)
-	log.Printf("expected: %v\n", expectedCopy)
-	log.Printf("returned: %v\n", returnedCopy)
 	return reflect.DeepEqual(expectedCopy, returnedCopy)
 }
 

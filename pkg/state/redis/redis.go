@@ -67,6 +67,7 @@ func (s *State) parseConfig(config []byte) (*Config, error) {
 	return v, nil
 }
 
+// Start set scan group status to started
 func (s *State) Start(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
@@ -79,6 +80,7 @@ func (s *State) Start(ctx context.Context, userContext am.UserContext, scanGroup
 	return err
 }
 
+// Stop set scan group status to stopped
 func (s *State) Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
@@ -115,7 +117,7 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	// set scan group status to stopped (until addresses are added)
-	if err := conn.Send("SET", keys.Status(), am.GroupStopped); err != nil {
+	if err := conn.Send("HSET", keys.Status(), "status", am.GroupStopped); err != nil {
 		return err
 	}
 
@@ -303,7 +305,7 @@ func (s *State) GroupStatus(ctx context.Context, userContext am.UserContext, sca
 	defer s.rc.Return(conn)
 	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 
-	value, err := redis.Int(conn.Do("GET", keys.Status()))
+	value, err := redis.Int(conn.Do("HGET", keys.Status(), "status"))
 	if err != nil {
 		if err == redis.ErrNil {
 			return false, am.GroupStopped, nil
@@ -439,6 +441,7 @@ func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, sc
 	return cachedAddrs, nil
 }
 
+// Exists checks if a host/ipaddress pair is in our list of *known* addreses for this group
 func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddress string) (bool, error) {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {

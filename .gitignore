@@ -2,4 +2,6 @@ cmd/scangroup/scangroup
 cmd/organization/organization
 cmd/services/services
 cmd/user/user
+cmd/amcli/amcli
+cmd/coordinator/coordinator
 .vscode/*

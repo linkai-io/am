@@ -16,6 +16,10 @@ func NewLocalSpawner(env, region string) *LocalSpawner {
 }
 
 func (s *LocalSpawner) Spawn(ctx context.Context, moduleType am.ModuleType) (*WorkerData, error) {
+	switch moduleType {
+	case am.NSModule:
+
+	}
 	return nil, nil
 }
 

@@ -49,7 +49,7 @@ type ScanGroup struct {
 // always be returned for ensuring data integrity for requesters
 type ScanGroupService interface {
 	Init(config []byte) error
-	IsAuthorized(ctx context.Context, userContext UserContext, resource, action string) bool
+	//IsAuthorized(ctx context.Context, userContext UserContext, resource, action string) bool
 	Get(ctx context.Context, userContext UserContext, groupID int) (oid int, group *ScanGroup, err error)
 	GetByName(ctx context.Context, userContext UserContext, groupName string) (oid int, group *ScanGroup, err error)
 	Groups(ctx context.Context, userContext UserContext) (oid int, groups []*ScanGroup, err error)

@@ -13,7 +13,7 @@ import (
 func processOrg(args []string) {
 	//orgCmd.Parse(args)
 	if len(args) < 2 {
-		fmt.Printf("amcli - insufficent arguments for org command\n\n")
+		fmt.Printf("amcli - insufficent arguments for org command must be one of: add, rem, get\n\n")
 		orgCmd.PrintDefaults()
 		os.Exit(-1)
 	}

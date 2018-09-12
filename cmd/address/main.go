@@ -27,7 +27,7 @@ func init() {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", ":50054")
+	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
