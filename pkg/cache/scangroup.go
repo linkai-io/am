@@ -42,13 +42,17 @@ func (s *ScanGroupCache) Get(key string) *am.ScanGroup {
 	groupCopy := &am.ScanGroup{}
 
 	s.mu.RLock()
-	defer s.mu.Unlock()
+	defer s.mu.RUnlock()
 
-	if group, ok := s.groups[key]; ok {
-		if err := Copy(group, groupCopy); err != nil {
-			return nil
-		}
+	group, ok := s.groups[key]
+	if !ok {
+		return nil
 	}
+
+	if err := Copy(group, groupCopy); err != nil {
+		return nil
+	}
+
 	return groupCopy
 }
 

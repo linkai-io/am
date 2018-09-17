@@ -1,0 +1,8 @@
+{
+    "service": 
+    {
+        "name": "coordinatorservice", 
+        "tags": ["coordinatorservice"], 
+        "port": 50055
+    }
+}

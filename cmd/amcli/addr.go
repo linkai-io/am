@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/am"
+	"google.golang.org/grpc"
 
 	"github.com/linkai-io/am/clients/address"
 	"github.com/linkai-io/am/pkg/inputlist"
@@ -118,6 +119,8 @@ func removeAddrs() {
 }
 
 func getAddrs() {
+	grpc.EnableTracing = true
+
 	var err error
 	if addrAddr == "" {
 		printExit("addr server address required")
@@ -146,7 +149,7 @@ func getAddrs() {
 
 	_, addresses, err := addrClient.Get(ctx, newUserContext(orgID, userID), filter)
 	if err != nil {
-		printErrExit("error adding addresses", err)
+		printErrExit("error getting addresses %#v\n", err)
 	}
 	data, err := json.MarshalIndent(addresses, "", "\t")
 	fmt.Printf("%s\n", string(data))

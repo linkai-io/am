@@ -34,11 +34,6 @@ func (dc *DispatcherCoordinator) Kill(ctx context.Context, dispatcherID string) 
 	return nil
 }
 
-// KillAll workers for a scan group ID
-func (dc *DispatcherCoordinator) KillAll(ctx context.Context, scanGroupID int) {
-
-}
-
 // Register the worker and set status to registered in our state.
 func (dc *DispatcherCoordinator) Register(ctx context.Context, dispatcherID string) error {
 	return nil

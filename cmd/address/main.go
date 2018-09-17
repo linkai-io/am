@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
+	"github.com/bsm/grpclb/load"
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/pkg/auth/ladonauth"
 	"github.com/linkai-io/am/pkg/secrets"
@@ -13,7 +15,6 @@ import (
 	"github.com/linkai-io/am/services/address"
 	addressprotoc "github.com/linkai-io/am/services/address/protoc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var region string
@@ -52,10 +53,14 @@ func main() {
 	}
 
 	s := grpc.NewServer()
+	r := load.NewRateReporter(time.Minute)
+
 	addressp := addressprotoc.New(service)
 	addressprotoservice.RegisterAddressServer(s, addressp)
 	// Register reflection service on gRPC server.
-	reflection.Register(s)
+	//reflection.Register(s)
+	lbpb.RegisterLoadReportServer(s, r)
+
 	if err := s.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

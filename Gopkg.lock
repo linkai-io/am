@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:b28b250b648609be14e0fa4a220b9b991ccaf7b1226781fd9d6e4dd6f4e086fd"
+  name = "github.com/avast/retry-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "611bd93c6d74b0575c569d7c3a13de46f65840ff"
+  version = "1.0.2"
+
+[[projects]]
   digest = "1:014e79cf5c422dd0547a87bde33c7f7b3cd29116a96fac8897c7e50f18531dea"
   name = "github.com/aws/aws-lambda-go"
   packages = [
@@ -52,6 +60,20 @@
   pruneopts = "UT"
   revision = "ea2d2b9a8808d0c390d966daf855a7b3b74bc44e"
   version = "v1.15.19"
+
+[[projects]]
+  digest = "1:ddf6fad33ac9374e39be3a797948d469cb15772a996376b674b0f62646e98c5f"
+  name = "github.com/bsm/grpclb"
+  packages = [
+    "balancer",
+    "discovery/consul",
+    "grpclb_backend_v1",
+    "grpclb_balancer_v1",
+    "load",
+  ]
+  pruneopts = "UT"
+  revision = "e9b66bd7f573976e81d88da5328a70ac01fcc967"
+  version = "v0.5.0"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -120,6 +142,30 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:d56baf8f9ef8bcf6f7c00ed2411220f5e35cc4912076de12c5a41be722eee9ec"
+  name = "github.com/hashicorp/consul"
+  packages = ["api"]
+  pruneopts = "UT"
+  revision = "48d287ef690ada66634885640f3444dbf7b71d18"
+  version = "v1.2.3"
+
+[[projects]]
+  digest = "1:f47d6109c2034cb16bd62b220e18afd5aa9d5a1630fe5d937ad96a4fb7cbb277"
+  name = "github.com/hashicorp/go-cleanhttp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e8ab9daed8d1ddd2d3c4efba338fe2eeae2e4f18"
+  version = "v0.5.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:45aad874d3c7d5e8610427c81870fb54970b981692930ec2a319ce4cb89d7a00"
+  name = "github.com/hashicorp/go-rootcerts"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
+
+[[projects]]
   branch = "master"
   digest = "1:cf296baa185baae04a9a7004efee8511d08e2f5f51d4cbe5375da89722d681db"
   name = "github.com/hashicorp/golang-lru"
@@ -129,6 +175,14 @@
   ]
   pruneopts = "UT"
   revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
+
+[[projects]]
+  digest = "1:0dd7b7b01769f9df356dc99f9e4144bdbabf6c79041ea7c0892379c5737f3c44"
+  name = "github.com/hashicorp/serf"
+  packages = ["coordinate"]
+  pruneopts = "UT"
+  revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:8dfbec76b4834d96c37ba4c4969fc47c9a15e67c5a7eecfa031fbe67dab50429"
@@ -159,6 +213,22 @@
   pruneopts = "UT"
   revision = "5a2b9fab83ff0f8bfc99684bd5f43a37abe560f1"
   version = "v1.0.8"
+
+[[projects]]
+  digest = "1:78bbb1ba5b7c3f2ed0ea1eab57bdd3859aec7e177811563edc41198a760b06af"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ae18d6b8b3205b561c79e8e5f69bff09736185f4"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:645110e089152bd0f4a011a2648fbb0e4df5977be73ca605781157ac297f50c4"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "fa473d140ef3c6adf42d6b391fe76707f1f243c8"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:7188771d3da3b536a4b5d1eaae497b40911222761bb48f835bb71dd28c5ef5a0"
@@ -335,15 +405,22 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/avast/retry-go",
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/ssm",
+    "github.com/bsm/grpclb/balancer",
+    "github.com/bsm/grpclb/discovery/consul",
+    "github.com/bsm/grpclb/grpclb_backend_v1",
+    "github.com/bsm/grpclb/grpclb_balancer_v1",
+    "github.com/bsm/grpclb/load",
     "github.com/gammazero/workerpool",
     "github.com/gofrs/uuid",
     "github.com/golang/protobuf/proto",
     "github.com/gomodule/redigo/redis",
+    "github.com/hashicorp/consul/api",
     "github.com/jackc/pgx",
     "github.com/jackc/pgx/pgtype",
     "github.com/miekg/dns",

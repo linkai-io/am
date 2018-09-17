@@ -133,6 +133,6 @@ func printExit(message string) {
 }
 
 func printErrExit(message string, err error) {
-	fmt.Printf(message, err)
+	fmt.Printf(message, err.Error())
 	os.Exit(-1)
 }

@@ -14,7 +14,7 @@ import (
 
 func processGroup(args []string) {
 	if len(args) < 2 {
-		fmt.Printf("amcli - insufficent arguments for group command must be one of: json, get, add, rem\n\n")
+		fmt.Printf("amcli - insufficent arguments for group command must be one of: json, get, add, rem, pause\n\n")
 		groupCmd.PrintDefaults()
 		os.Exit(-1)
 	}

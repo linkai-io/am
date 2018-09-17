@@ -22,6 +22,6 @@ func (o *CoordProtocService) StartGroup(ctx context.Context, in *coordinator.Sta
 }
 
 func (o *CoordProtocService) Register(ctx context.Context, in *coordinator.RegisterRequest) (*coordinator.RegisteredResponse, error) {
-	err := o.cs.Register(ctx, in.DispatcherID)
+	err := o.cs.Register(ctx, in.DispatcherAddr, in.DispatcherID)
 	return &coordinator.RegisteredResponse{}, err
 }

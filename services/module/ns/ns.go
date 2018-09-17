@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/linkai-io/am/pkg/cache"
@@ -35,7 +33,7 @@ type NS struct {
 	exitContext context.Context
 	cancel      context.CancelFunc
 	// concurrent safe cache of scan groups updated via Subscribe callbacks
-	groupCache *cache.ScanGroupCache
+	groupCache *cache.ScanGroupSubscriber
 }
 
 // New creates a new NS module for identifying zone information via DNS
@@ -43,14 +41,14 @@ type NS struct {
 func New(st state.Stater) *NS {
 	ctx, cancel := context.WithCancel(context.Background())
 	ns := &NS{st: st, exitContext: ctx, cancel: cancel}
-	ns.groupCache = cache.NewScanGroupCache()
+	// start cache subscriber and listen for updates
+	ns.groupCache = cache.NewScanGroupSubscriber(ctx, st)
 	return ns
 }
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
 	ns.dc = dnsclient.New([]string{"0.0.0.0:2053"}, 2)
-	go ns.st.Subscribe(ns.exitContext, ns.ChannelOnStart, ns.ChannelOnMessage, am.RNScanGroupGroups)
 	// populate cache
 	return nil
 }
@@ -65,100 +63,28 @@ func (ns *NS) Name() string {
 	return "NS"
 }
 
-// ChannelOnStart when we are subscribed to listen for group/other state updates
-func (ns *NS) ChannelOnStart() error {
-	return nil
-}
-
-// ChannelOnMessage when we receieve updates to scan groups/other state.
-func (ns *NS) ChannelOnMessage(channel string, data []byte) error {
-	switch channel {
-	case am.RNScanGroupGroups:
-		key := string(data)
-		if err := ns.updateGroupFromState(key); err != nil {
-			log.Printf("error updating group from state: %s\n", err)
-		}
-	}
-	return nil
-}
-
-// updateGroupFromState calls out to our state system to grab the scan group
-// and put it in our group cache.
-func (ns *NS) updateGroupFromState(key string) error {
-	ctx := context.Background()
-	orgID, groupID, err := ns.splitKey(key)
-	if err != nil {
-		return err
-	}
-
-	wantModules := true
-	group, err := ns.st.GetGroup(ctx, orgID, groupID, wantModules)
-	if err != nil {
-		return err
-	}
-
-	ns.groupCache.Put(key, group)
-
-	return nil
-}
-
-// getGroupByIDs using the orgID/groupID first check if it is in our cache,
-// if not grab the scan group from our state.
-func (ns *NS) getGroupByIDs(orgID, groupID int) (*am.ScanGroup, error) {
-	var err error
-
-	key := ns.groupCache.MakeGroupKey(orgID, groupID)
-	group := ns.groupCache.Get(key)
-	if group == nil {
-		ctx := context.Background()
-		wantModules := true
-		group, err = ns.st.GetGroup(ctx, orgID, groupID, wantModules)
-		if err != nil {
-			return nil, err
-		}
-		ns.groupCache.Put(key, group)
-	}
-	return group, nil
-}
-
-// splitKey into org/group
-func (ns *NS) splitKey(key string) (orgID int, groupID int, err error) {
-	keys := strings.Split(key, ":")
-	if len(keys) < 2 {
-		log.Printf("failed to put group, invalid key: %s\n", key)
-		return
-	}
-	orgID, err = strconv.Atoi(keys[0])
-	if err != nil {
-		return 0, 0, err
-	}
-	groupID, err = strconv.Atoi(keys[1])
-	if err != nil {
-		return 0, 0, err
-	}
-	return orgID, groupID, nil
-}
-
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
-func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) {
+// TODO: add error if shutting down so dispatcher can retry
+func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) error {
+	//if ns.groupCache.GetGroupByIDs(address.OrgID, address.GroupID)
 	resolvedHosts := ns.analyzeHost(ctx, address)
 	resolvedIPs := ns.analyzeIP(ctx, address)
 	nsRecords := make([]*am.NSData, len(resolvedHosts)+len(resolvedIPs))
 
 	if address.HostAddress == "" {
 		// push nsRecords
-		return
+		return nil
 	}
 
 	etld, err := parsers.GetETLD(address.HostAddress)
 	if err != nil || etld == "" {
 		// push nsRecords
-		return
+		return nil
 	}
 
 	ok, err := ns.st.DoNSRecords(ctx, address.OrgID, address.GroupID, nsExpire, etld)
 	if err != nil {
-		log.Printf("unable to do ns records for %s\n", etld)
+		log.Printf("unable to do ns records for %s, %s\n", etld, err)
 	}
 
 	if ok {
@@ -167,7 +93,7 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) {
 	}
 	log.Printf("got %d\n", len(nsRecords))
 	// push nsRecords
-	return
+	return nil
 }
 
 func (ns *NS) recordFromAddress(address *am.ScanGroupAddress, ip, host, discoveredBy string, recordType uint) *am.NSData {

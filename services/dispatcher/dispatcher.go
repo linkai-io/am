@@ -11,11 +11,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Config ...
 type Config struct {
 	DispatcherID string `json:"dispatcher_id"`
 }
 
-// Service for coordinating the lifecycle of workers
+// Service for dispatching and handling responses from worker modules
 type Service struct {
 	config            *Config
 	addressClient     am.AddressService
@@ -43,7 +44,7 @@ func (s *Service) Init(config []byte) error {
 		return err
 	}
 	ctx := context.Background()
-	return s.coordinatorClient.Register(ctx, s.config.DispatcherID)
+	return s.coordinatorClient.Register(ctx, ":50056", s.config.DispatcherID)
 }
 
 func (s *Service) parseConfig(data []byte) (*Config, error) {
@@ -83,11 +84,12 @@ func (s *Service) PushAddresses(ctx context.Context, userContext am.UserContext,
 		// get last addressid and update start for filter.
 		filter.Start = addrs[len(addrs)-1].AddressID
 
-		if err := s.state.PushAddresses(ctx, userContext, scanGroupID, addrs); err != nil {
+		if err := s.state.PutAddresses(ctx, userContext, scanGroupID, addrs); err != nil {
 			log.Printf("error pushing addresses last addr: %d for scangroup %d: %s\n", filter.Start, scanGroupID, err)
 			return err
 		}
 	}
+
 	log.Printf("push addresses for %d complete.\n", scanGroupID)
 
 	for {
@@ -97,8 +99,11 @@ func (s *Service) PushAddresses(ctx context.Context, userContext am.UserContext,
 		}
 
 		if len(addrMap) == 0 {
+			log.Printf("no more addresses for %d\n", scanGroupID)
 			break
 		}
+
+		// TODO: add concurrency here
 		for _, addr := range addrMap {
 			s.moduleClients[am.NSModule].Analyze(ctx, addr)
 		}

@@ -1,6 +1,14 @@
 version: '3'
 
 services:
+  redis:
+    image: myredis
+    hostname: redis
+    ports: 
+      - "6379:6379"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.5
   postgresdev:
     image: postgres 
     hostname: postgresdev
@@ -98,7 +106,21 @@ services:
      environment:
       - APP_ENV=local
       - _am_local_db_addressservice_dbstring=${_am_local_db_addressservice_dbstring}
-
+  coordinatorservice:
+     image: linkai_coordinatorservice
+     hostname: linkai_coordinatorservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.15
+     ports:
+       - "50055:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_cache_config=${_am_local_cache_config}
+ 
 networks:
   app_net:
     driver: bridge

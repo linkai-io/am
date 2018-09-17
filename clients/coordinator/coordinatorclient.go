@@ -36,3 +36,13 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 	_, err := c.client.StartGroup(ctx, in)
 	return err
 }
+
+func (c *Client) Register(ctx context.Context, address, dispatcherID string) error {
+	in := &service.RegisterRequest{
+		DispatcherAddr: address,
+		DispatcherID:   dispatcherID,
+	}
+
+	_, err := c.client.Register(ctx, in)
+	return err
+}

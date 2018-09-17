@@ -4,4 +4,7 @@ cmd/services/services
 cmd/user/user
 cmd/amcli/amcli
 cmd/coordinator/coordinator
+cmd/dispatcher/dispatcher
+cmd/module/ns/ns
+cmd/amload/amload
 .vscode/*

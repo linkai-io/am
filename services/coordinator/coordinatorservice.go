@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/clients/dispatcher"
 	"github.com/linkai-io/am/services/coordinator/state"
 )
 
@@ -17,14 +18,18 @@ var (
 
 // Service for coordinating all scans
 type Service struct {
-	state           state.Stater
-	addressClient   am.AddressService
-	scanGroupClient am.ScanGroupService
+	state             state.Stater
+	dispatcherClients map[string]am.DispatcherService
+	scanGroupClient   am.ScanGroupService
 }
 
 // New returns
 func New(state state.Stater, scanGroupClient am.ScanGroupService) *Service {
-	return &Service{state: state, scanGroupClient: scanGroupClient}
+	return &Service{
+		state:             state,
+		scanGroupClient:   scanGroupClient,
+		dispatcherClients: make(map[string]am.DispatcherService),
+	}
 }
 
 // Init by
@@ -84,7 +89,12 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 }
 
 // Register the dispatcher and set status to registered in our state.
-func (s *Service) Register(ctx context.Context, dispatcherID string) error {
-	log.Printf("dispatcher %s is now registered\n", dispatcherID)
+func (s *Service) Register(ctx context.Context, dispatcherAddress, dispatcherID string) error {
+	log.Printf("dispatcher [%s] %s is now registered\n", dispatcherAddress, dispatcherID)
+	dispatcherClient := dispatcher.New()
+	if err := dispatcherClient.Init([]byte(dispatcherAddress)); err != nil {
+		return err
+	}
+	s.dispatcherClients[dispatcherID] = dispatcherClient
 	return nil
 }
