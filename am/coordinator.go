@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+const (
+	CoordinatorServiceKey = "coordinatorservice"
+)
+
 type ScanGroupStats struct {
 }
 

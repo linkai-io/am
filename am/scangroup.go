@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	RNScanGroupGroups = "lrn:service:scangroup:feature:groups"
+	RNScanGroupGroups   = "lrn:service:scangroup:feature:groups"
+	ScanGroupServiceKey = "scangroupservice"
 )
 
 type GroupStatus int

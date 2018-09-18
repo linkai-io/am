@@ -6,6 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/am"
+
+	"github.com/linkai-io/am/pkg/retrier"
+
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
 	"github.com/jackc/pgx"
@@ -15,18 +19,18 @@ import (
 	"github.com/linkai-io/am/services/address"
 	addressprotoc "github.com/linkai-io/am/services/address/protoc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var region string
 var env string
-
-const serviceKey = "addressservice"
 
 func init() {
 	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 }
 
+// main starts the Address Service
 func main() {
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
@@ -58,7 +62,7 @@ func main() {
 	addressp := addressprotoc.New(service)
 	addressprotoservice.RegisterAddressServer(s, addressp)
 	// Register reflection service on gRPC server.
-	//reflection.Register(s)
+	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
 
 	if err := s.Serve(listener); err != nil {
@@ -68,43 +72,28 @@ func main() {
 
 func initDB() (string, *pgx.ConnPool) {
 	sec := secrets.NewDBSecrets(env, region)
-	dbstring, err := sec.DBString(serviceKey)
+	dbstring, err := sec.DBString(am.AddressServiceKey)
 	if err != nil {
 		log.Fatalf("unable to get dbstring: %s\n", err)
 	}
 
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
-		log.Fatalf("error parsing connection string")
+		log.Fatalf("error parsing connection string: %s\n", err)
 	}
-
-	ticker := time.NewTicker(5 * time.Second)
-	stopper := time.After(1 * time.Minute)
-	defer ticker.Stop()
 
 	var p *pgx.ConnPool
-	for {
-		select {
-		case <-ticker.C:
-			p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
-				ConnConfig:     conf,
-				MaxConnections: 5,
-			})
-			if err == nil {
-				goto READY
-			}
-			log.Printf("error connecting to db, retrying in 5 seconds...\n")
-		case <-stopper:
-			p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
-				ConnConfig:     conf,
-				MaxConnections: 5,
-			})
-			if err != nil {
-				log.Fatalf("error connecting to db after 1 minute: %s\n", err)
-			}
 
-		}
+	err = retrier.RetryUntil(func() error {
+		p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+			ConnConfig:     conf,
+			MaxConnections: 5,
+		})
+		return err
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatalf("unable to connect to postgresql: %s\n", err)
 	}
-READY:
 	return dbstring, p
 }

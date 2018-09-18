@@ -50,12 +50,24 @@ services:
     environment:
       - APP_ENV=local
       - _am_local_db_linkai_admin_dbstring=${_am_local_db_linkai_admin_dbstring}
+  amloadservice:
+    image: linkai_amloadservice
+    hostname: linkai_amloadservice
+    ports: 
+      - "8383:8383"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.2
+    environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
   orgservice:
      image: linkai_orgservice
      hostname: linkai_orgservice
      depends_on: 
       - postgresdev
       - ammigration
+      - amloadservice
      ports:
        - "50051:50051"
      networks:
@@ -70,6 +82,7 @@ services:
      depends_on: 
       - postgresdev
       - ammigration
+      - amloadservice
      networks:
       app_net:
         ipv4_address: 172.16.238.12
@@ -84,6 +97,7 @@ services:
      depends_on: 
       - postgresdev
       - ammigration
+      - amloadservice
      networks:
       app_net:
         ipv4_address: 172.16.238.13
@@ -98,6 +112,7 @@ services:
      depends_on: 
       - postgresdev
       - ammigration
+      - amloadservice
      networks:
       app_net:
         ipv4_address: 172.16.238.14
@@ -112,6 +127,7 @@ services:
      depends_on: 
       - postgresdev
       - ammigration
+      - amloadservice
      networks:
       app_net:
         ipv4_address: 172.16.238.15
@@ -119,6 +135,8 @@ services:
        - "50055:50051"
      environment:
       - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
  
 networks:

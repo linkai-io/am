@@ -146,7 +146,6 @@ func getAddrs() {
 		Start:   addrStart,
 		Limit:   addrLimit,
 	}
-
 	_, addresses, err := addrClient.Get(ctx, newUserContext(orgID, userID), filter)
 	if err != nil {
 		printErrExit("error getting addresses %#v\n", err)

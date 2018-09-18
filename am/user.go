@@ -6,7 +6,8 @@ const (
 	// RNUserSystem system only access
 	RNUserSystem = "lrn:service:user:feature:system"
 	// RNUserManage organization specific management
-	RNUserManage = "lrn:service:user:feature:manage"
+	RNUserManage   = "lrn:service:user:feature:manage"
+	UserServiceKey = "userservice"
 )
 
 const (

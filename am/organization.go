@@ -6,7 +6,8 @@ const (
 	// RNOrganizationSystem system only access (create/delete)
 	RNOrganizationSystem = "lrn:service:organization:feature:system"
 	// RNOrganizationManage organization specific management
-	RNOrganizationManage = "lrn:service:organization:feature:manage"
+	RNOrganizationManage   = "lrn:service:organization:feature:manage"
+	OrganizationServiceKey = "orgservice"
 )
 
 const (

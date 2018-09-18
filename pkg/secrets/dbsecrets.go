@@ -48,3 +48,19 @@ func (s *DBSecrets) CacheConfig() (string, error) {
 	}
 	return string(data), nil
 }
+
+func (s *DBSecrets) DiscoveryAddr() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/discovery/config", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func (s *DBSecrets) LoadBalancerAddr() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/loadbalancer/config", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}

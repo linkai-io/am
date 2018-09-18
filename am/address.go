@@ -4,6 +4,7 @@ import "context"
 
 const (
 	RNAddressAddresses = "lrn:service:address:feature:addresses"
+	AddressServiceKey  = "addressservice"
 )
 
 /*

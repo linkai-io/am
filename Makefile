@@ -34,7 +34,10 @@ dispatcherservice:
 nsmoduleservice:
 	docker build -t linkai_nsmoduleservice -f Dockerfile.nsmoduleservice .
 
-services: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice
+amloadservice:
+	docker build -t linkai_amloadservice -f Dockerfile.amloadservice .
+
+services: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice amloadservice nsmoduleservice
 
 test:
 	go test -v ./...

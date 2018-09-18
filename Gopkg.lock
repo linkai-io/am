@@ -62,9 +62,10 @@
   version = "v1.15.19"
 
 [[projects]]
-  digest = "1:ddf6fad33ac9374e39be3a797948d469cb15772a996376b674b0f62646e98c5f"
+  digest = "1:52f9ebb7fb176012206b32ff95158d64de9f9dc80c96f4839bfcbbe7129d4848"
   name = "github.com/bsm/grpclb"
   packages = [
+    ".",
     "balancer",
     "discovery/consul",
     "grpclb_backend_v1",
@@ -411,6 +412,7 @@
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/ssm",
+    "github.com/bsm/grpclb",
     "github.com/bsm/grpclb/balancer",
     "github.com/bsm/grpclb/discovery/consul",
     "github.com/bsm/grpclb/grpclb_backend_v1",

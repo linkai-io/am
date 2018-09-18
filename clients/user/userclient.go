@@ -4,11 +4,13 @@ import (
 	"context"
 	"io"
 
+	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/retrier"
 
-	"google.golang.org/grpc"
 	"github.com/linkai-io/am/am"
 	service "github.com/linkai-io/am/protocservices/user"
+	"google.golang.org/grpc"
 )
 
 type Client struct {
@@ -20,16 +22,28 @@ func New() *Client {
 }
 
 func (c *Client) Init(config []byte) error {
-	conn, err := grpc.Dial(string(config))
+	balancer := grpc.RoundRobin(grpclb.NewResolver(&grpclb.Options{
+		Address: string(config),
+	}))
+
+	conn, err := grpc.Dial(am.UserServiceKey, grpc.WithInsecure(), grpc.WithBalancer(balancer))
 	if err != nil {
 		return err
 	}
+
 	c.client = service.NewUserServiceClient(conn)
 	return nil
 }
 
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.UserRequest) (oid int, user *am.User, err error) {
-	resp, err := c.client.Get(ctx, in)
+	var resp *service.UserResponse
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Get(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, nil, err
 	}
@@ -55,11 +69,19 @@ func (c *Client) GetByCID(ctx context.Context, userContext am.UserContext, userC
 }
 
 func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) (oid int, users []*am.User, err error) {
+	var resp service.UserService_ListClient
+
 	in := &service.UserListRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		UserFilter:  convert.DomainToUserFilter(filter),
 	}
-	resp, err := c.client.List(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.List(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, nil, err
 	}
@@ -80,24 +102,41 @@ func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *a
 }
 
 func (c *Client) Create(ctx context.Context, userContext am.UserContext, user *am.User) (oid int, uid int, ucid string, err error) {
+	var resp *service.UserCreatedResponse
+
 	in := &service.CreateUserRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		User:        convert.DomainToUser(user),
 	}
-	resp, err := c.client.Create(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Create(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, 0, "", err
 	}
+
 	return int(resp.GetOrgID()), int(resp.GetUserID()), resp.GetUserCID(), nil
 }
 
 func (c *Client) Update(ctx context.Context, userContext am.UserContext, user *am.User, userID int) (oid int, uid int, err error) {
+	var resp *service.UserUpdatedResponse
+
 	in := &service.UpdateUserRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		User:        convert.DomainToUser(user),
 		UserID:      int32(userID),
 	}
-	resp, err := c.client.Update(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Update(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, 0, err
 	}
@@ -105,11 +144,19 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, user *a
 }
 
 func (c *Client) Delete(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error) {
+	var resp *service.UserDeletedResponse
+
 	in := &service.DeleteUserRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		UserID:      int32(userID),
 	}
-	resp, err := c.client.Delete(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Delete(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, err
 	}

@@ -10,7 +10,29 @@ const (
 	PortModule    ModuleType = 3
 	WebModule     ModuleType = 4
 	KeywordModule ModuleType = 5
+
+	NSModuleServiceKey      = "nsmoduleservice"
+	BruteModuleServiceKey   = "brutemoduleservice"
+	PortModuleServiceKey    = "portmoduleservice"
+	WebModuleServiceKey     = "webmoduleservice"
+	KeywordModuleServiceKey = "keywordmoduleservice"
 )
+
+func KeyFromModuleType(moduleType ModuleType) string {
+	switch moduleType {
+	case NSModule:
+		return NSModuleServiceKey
+	case BruteModule:
+		return BruteModuleServiceKey
+	case PortModule:
+		return PortModuleServiceKey
+	case WebModule:
+		return WebModuleServiceKey
+	case KeywordModule:
+		return KeywordModuleServiceKey
+	}
+	return ""
+}
 
 // ModuleConfiguration contains all the module configurations
 type ModuleConfiguration struct {

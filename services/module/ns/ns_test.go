@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/pkg/state/redis"
+	"github.com/linkai-io/am/mock"
+	"github.com/linkai-io/am/pkg/redisclient"
 	"github.com/linkai-io/am/services/module/ns"
 )
 
@@ -48,12 +49,21 @@ func TestNS_Analyze(t *testing.T) {
 			DiscoveredBy: "input_list",
 		},
 	}
-	state := redis.New()
-	if err := state.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
-		t.Fatalf("error connecting to redis\n")
+	state := &mock.NSState{}
+	state.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+		return nil
+	}
+	hosts := make(map[string]bool)
+	state.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := hosts[zone]; !ok {
+			hosts[zone] = true
+			return true, nil
+		}
+		return false, nil
 	}
 	ns := ns.New(state)
 	ns.Init(nil)
+
 	ctx := context.Background()
 
 	for _, tt := range tests {

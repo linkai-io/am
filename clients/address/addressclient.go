@@ -2,13 +2,13 @@ package address
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 
-	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
+	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/address"
 	"google.golang.org/grpc"
 )
@@ -22,44 +22,35 @@ func New() *Client {
 }
 
 func (c *Client) Init(config []byte) error {
-	/*
-		conn, err := grpc.Dial(string(config), grpc.WithInsecure())
-		if err != nil {
-			return err
-		}
-	*/
-	cc, err := grpc.Dial(string(config), grpc.WithInsecure())
+	balancer := grpc.RoundRobin(grpclb.NewResolver(&grpclb.Options{
+		Address: string(config),
+	}))
+
+	conn, err := grpc.Dial(am.AddressServiceKey, grpc.WithInsecure(), grpc.WithBalancer(balancer))
 	if err != nil {
 		return err
 	}
 
-	bc := balancerpb.NewLoadBalancerClient(cc)
-	resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
-		Target: "addressservice",
-	})
+	c.client = service.NewAddressClient(conn)
 
-	if err != nil {
-		return err
-	}
-
-	for _, srv := range resp.Servers {
-		fmt.Printf("%d\t%s\n", srv.Score, srv.Address)
-	}
-
-	c.client = service.NewAddressClient(cc)
 	return nil
 }
 
 func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
+	var resp service.Address_GetClient
 
 	in := &service.AddressesRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		Filter:      convert.DomainToAddressFilter(filter),
 	}
-	fmt.Printf("sending get request: %#v\n", in)
-	resp, err := c.client.Get(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Get(ctx, in)
+		return err
+	})
+
 	if err != nil {
-		fmt.Printf("Got get error: %#v\n", err)
 		return 0, nil, err
 	}
 
@@ -80,8 +71,14 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 }
 
 func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error) {
+	var stream service.Address_UpdateClient
 
-	stream, err := c.client.Update(ctx)
+	err = retrier.Retry(func() error {
+		var err error
+		stream, err = c.client.Update(ctx)
+		return err
+	})
+
 	if err != nil {
 		return 0, 0, err
 	}
@@ -110,24 +107,40 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 }
 
 func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
+	var resp *service.CountAddressesResponse
+
 	in := &service.CountAddressesRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		GroupID:     int32(groupID),
 	}
-	resp, err := c.client.Count(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Count(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, 0, err
 	}
+
 	return int(resp.GetOrgID()), int(resp.Count), nil
 }
 
 func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error) {
+	var resp *service.DeleteAddressesResponse
 	in := &service.DeleteAddressesRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		GroupID:     int32(groupID),
 		AddressIDs:  addressIDs,
 	}
-	resp, err := c.client.Delete(ctx, in)
+
+	err = retrier.Retry(func() error {
+		var err error
+		resp, err = c.client.Delete(ctx, in)
+		return err
+	})
+
 	if err != nil {
 		return 0, err
 	}

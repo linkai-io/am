@@ -105,11 +105,14 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error listing organizations: %s\n", err)
 	}
+	filterOrg := &am.Organization{}
 
-	if len(orgs) != 3 {
-		t.Fatalf("expected 3 organization in list, got: %d\n", len(orgs))
+	for _, org := range orgs {
+		if org.OrgID == returned.OrgID {
+			filterOrg = org
+		}
 	}
-	amtest.TestCompareOrganizations(org, orgs[2], t)
+	amtest.TestCompareOrganizations(org, filterOrg, t)
 }
 
 func TestCreateRoleFail(t *testing.T) {

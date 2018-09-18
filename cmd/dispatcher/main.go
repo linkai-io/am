@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/avast/retry-go"
-
+	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
+	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/clients/address"
 	"github.com/linkai-io/am/clients/coordinator"
-	"github.com/linkai-io/am/clients/scangroup"
+	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
 	dispatcherprotoservice "github.com/linkai-io/am/protocservices/dispatcher"
@@ -25,15 +25,23 @@ import (
 
 var region string
 var env string
-
-const serviceKey = "dispatcherservice"
+var loadBalancerAddr string
 
 func init() {
 	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 }
 
+// main starts the DispatcherService
 func main() {
+	var err error
+
+	sec := secrets.NewDBSecrets(env, region)
+	loadBalancerAddr, err = sec.LoadBalancerAddr()
+	if err != nil {
+		log.Fatalf("unable to get load balancer address: %s\n", err)
+	}
+
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -49,11 +57,17 @@ func main() {
 		log.Fatalf("error initializing service: %s\n", err)
 	}
 
+	log.Printf("Starting Dispatcher Service\n")
+
 	s := grpc.NewServer()
+	r := load.NewRateReporter(time.Minute)
+
 	dispatcherp := dispatcherprotoc.New(service)
 	dispatcherprotoservice.RegisterDispatcherServer(s, dispatcherp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
+	lbpb.RegisterLoadReportServer(s, r)
+
 	if err := s.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
@@ -62,15 +76,11 @@ func main() {
 func initAddrClient() am.AddressService {
 	addrClient := address.New()
 
-	err := retry.Do(
+	err := retrier.RetryUntil(
 		func() error {
-			return addrClient.Init([]byte(":50054"))
-		},
-		retry.Attempts(12),
-		retry.Delay(5),
-		retry.Units(time.Second),
-		retry.OnRetry(logRetry),
-	)
+			return addrClient.Init([]byte(loadBalancerAddr))
+		}, time.Minute*1, time.Second*3)
+
 	if err != nil {
 		log.Fatalf("unable to connect to address client: %s\n", err)
 	}
@@ -80,15 +90,10 @@ func initAddrClient() am.AddressService {
 func initCoordClient() am.CoordinatorService {
 	coordClient := coordinator.New()
 
-	err := retry.Do(
+	err := retrier.RetryUntil(
 		func() error {
-			return coordClient.Init([]byte(":50055"))
-		},
-		retry.Attempts(12),
-		retry.Delay(5),
-		retry.Units(time.Second),
-		retry.OnRetry(logRetry),
-	)
+			return coordClient.Init([]byte(loadBalancerAddr))
+		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
 		log.Fatalf("unable to connect to coordinator client: %s\n", err)
@@ -99,15 +104,10 @@ func initCoordClient() am.CoordinatorService {
 func initModules(state nsstate.Stater) map[am.ModuleType]am.ModuleService {
 	nsClient := ns.New(state)
 
-	err := retry.Do(
+	err := retrier.RetryUntil(
 		func() error {
-			return nsClient.Init([]byte(":50057"))
-		},
-		retry.Attempts(12),
-		retry.Delay(5),
-		retry.Units(time.Second),
-		retry.OnRetry(logRetry),
-	)
+			return nsClient.Init([]byte(loadBalancerAddr))
+		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
 		log.Fatalf("unable to connect to ns module client: %s\n", err)
@@ -118,12 +118,7 @@ func initModules(state nsstate.Stater) map[am.ModuleType]am.ModuleService {
 	return modules
 }
 
-func logRetry(n uint, err error) {
-	log.Printf("attempt %d failed: %s\n", n, err)
-}
-
 func initState() *redis.State {
-
 	redisState := redis.New()
 	sec := secrets.NewDBSecrets(env, region)
 	cacheConfig, err := sec.CacheConfig()
@@ -131,43 +126,12 @@ func initState() *redis.State {
 		log.Fatalf("unable to get cache connection string: %s\n", err)
 	}
 
-	log.Printf("cacheconfig: %s\n", cacheConfig)
+	err = retrier.RetryUntil(func() error {
+		return redisState.Init([]byte(cacheConfig))
+	}, time.Minute*1, time.Second*3)
 
-	err = retry.Do(
-		func() error {
-			return redisState.Init([]byte(cacheConfig))
-		},
-		retry.Attempts(12),
-		retry.Delay(5),
-		retry.Units(time.Second),
-		retry.OnRetry(logRetry),
-	)
 	if err != nil {
-		log.Fatalf("unable to connect to redis cache: %s\n", err)
+		log.Fatalf("error connecting to redis: %s\n", err)
 	}
-
 	return redisState
-}
-
-func initClient() am.ScanGroupService {
-	scanGroupClient := scangroup.New()
-
-	ticker := time.NewTicker(5 * time.Second)
-	stopper := time.After(1 * time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-
-			if err := scanGroupClient.Init([]byte(":50053")); err == nil {
-				goto READY
-			}
-			log.Printf("error connecting to scangroup service, retrying in 5 seconds...\n")
-		case <-stopper:
-			log.Fatalf("error connecting to scangroup service after 1 minute\n")
-		}
-	}
-READY:
-	return scanGroupClient
 }

@@ -1,0 +1,8 @@
+bin/
+build/
+dist/
+vendor/
+.glide/
+*egg-info/
+.rubocop-*
+pkg/
