@@ -48,7 +48,7 @@ func getOrg() {
 	}
 
 	if orgData.OrgName == "" || orgData.OrgID == -1 {
-		printExit("remove requires org name or org id")
+		printExit("requires org name or org id")
 	}
 
 	orgClient := organization.New()
@@ -60,7 +60,7 @@ func getOrg() {
 	if orgData.OrgID != -1 {
 		_, org, err = orgClient.GetByID(ctx, systemContext(), orgData.OrgID)
 		if err != nil {
-			printExit(fmt.Sprintf("error deleting org: %s\n", err))
+			printExit(fmt.Sprintf("error getting org by id: %s\n", err))
 		}
 	} else {
 		_, org, err = orgClient.Get(ctx, systemContext(), orgData.OrgName)

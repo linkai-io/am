@@ -3,7 +3,7 @@
     {
         "name": "addressservice", 
         "tags": ["addressservice"], 
-	    "address": "127.0.0.1",
-        "port": 50054
+        "address": "172.16.238.14",
+        "port": 50051
     }
 }

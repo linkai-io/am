@@ -48,7 +48,7 @@ var (
 func init() {
 	orgData = &am.Organization{}
 	orgCmd = flag.NewFlagSet("org", flag.ExitOnError)
-	orgCmd.StringVar(&orgAddr, "addr", ":50051", "org server address")
+	orgCmd.StringVar(&orgAddr, "addr", ":8383", "org server address")
 	orgCmd.StringVar(&orgData.OrgName, "name", "test", "organization name")
 	orgCmd.StringVar(&orgData.FirstName, "first", "first_name", "owner's first name")
 	orgCmd.StringVar(&orgData.LastName, "last", "last_name", "owner's last name")
@@ -57,7 +57,7 @@ func init() {
 
 	groupData = &am.ScanGroup{}
 	groupCmd = flag.NewFlagSet("group", flag.ExitOnError)
-	groupCmd.StringVar(&groupAddr, "addr", ":50053", "org server address")
+	groupCmd.StringVar(&groupAddr, "addr", ":8383", "org server address")
 	groupCmd.StringVar(&groupFile, "file", "scangroup.json", "file with scan group details")
 	groupCmd.StringVar(&groupName, "name", "", "scan group name")
 	groupCmd.IntVar(&groupOID, "oid", -1, "org id to use for this scan group")
@@ -68,7 +68,7 @@ func init() {
 	groupCmd.StringVar(&groupInputFile, "input", "s3:///tmp/ips.txt", "path to input file note s3:// becomes file:// if local")
 
 	addrCmd = flag.NewFlagSet("addr", flag.ExitOnError)
-	addrCmd.StringVar(&addrAddr, "addr", ":50054", "address server address")
+	addrCmd.StringVar(&addrAddr, "addr", ":8383", "address server address")
 	addrCmd.StringVar(&groupName, "name", "", "scan group name")
 	addrCmd.IntVar(&groupID, "gid", -1, "scan group name for these addresses")
 	addrCmd.IntVar(&orgID, "oid", -1, "org id to use for this scan group's addresses")
@@ -80,7 +80,7 @@ func init() {
 	userCmd = flag.NewFlagSet("user", flag.ExitOnError)
 
 	coorCmd = flag.NewFlagSet("coor", flag.ExitOnError)
-	coorCmd.StringVar(&coorAddr, "addr", ":50050", "coordinator server address")
+	coorCmd.StringVar(&coorAddr, "addr", ":8383", "coordinator server address")
 	coorCmd.IntVar(&groupID, "gid", -1, "scan group id to coordinate")
 	coorCmd.IntVar(&orgID, "oid", -1, "org id to use for coordination")
 	coorCmd.IntVar(&userID, "uid", -1, "user id to use for coordination")

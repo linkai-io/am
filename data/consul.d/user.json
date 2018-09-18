@@ -3,6 +3,7 @@
     {
         "name": "userservice", 
         "tags": ["userservice"], 
-        "port": 50052
+        "address": "172.16.238.12",
+        "port": 50051
     }
 }

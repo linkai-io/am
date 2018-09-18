@@ -3,6 +3,7 @@
     {
         "name": "coordinatorservice", 
         "tags": ["coordinatorservice"], 
-        "port": 50055
+        "address": "172.16.238.15",
+        "port": 50051
     }
 }
