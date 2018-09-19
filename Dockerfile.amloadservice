@@ -18,6 +18,6 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/bin/amload /go/bin/amload 
 USER appuser 
 
-ENV PORT 8383
-EXPOSE 8383
+ENV PORT 9999
+EXPOSE 9999
 ENTRYPOINT ["/go/bin/amload"]

@@ -53,6 +53,7 @@ func TestNS_Analyze(t *testing.T) {
 	state.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
 		return nil
 	}
+
 	hosts := make(map[string]bool)
 	state.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
 		if _, ok := hosts[zone]; !ok {

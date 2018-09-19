@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"context"
+	"log"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
@@ -42,18 +43,7 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 
 	return retrier.Retry(func() error {
 		_, err := c.client.StartGroup(ctx, in)
-		return err
-	})
-}
-
-func (c *Client) Register(ctx context.Context, address, dispatcherID string) error {
-	in := &service.RegisterRequest{
-		DispatcherAddr: address,
-		DispatcherID:   dispatcherID,
-	}
-
-	return retrier.Retry(func() error {
-		_, err := c.client.Register(ctx, in)
+		log.Printf("error starting group: %v\n", err)
 		return err
 	})
 }

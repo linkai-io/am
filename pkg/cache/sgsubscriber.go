@@ -24,6 +24,7 @@ type ScanGroupSubscriber struct {
 // will be re-used in most (if not all) modules.
 func NewScanGroupSubscriber(exitContext context.Context, state CacheStater) *ScanGroupSubscriber {
 	s := &ScanGroupSubscriber{}
+	s.exitContext = exitContext
 	s.groupCache = NewScanGroupCache()
 	s.st = state
 	go s.st.Subscribe(s.exitContext, s.ChannelOnStart, s.ChannelOnMessage, am.RNScanGroupGroups)

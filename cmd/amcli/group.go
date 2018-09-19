@@ -90,9 +90,6 @@ func generateJSON() {
 }
 
 func addGroup() {
-	if groupAddr == "" {
-		printExit("group server address is required")
-	}
 
 	if groupOID == -1 || groupUID == -1 {
 		printExit("error oid and uid are required")
@@ -125,7 +122,7 @@ func addGroup() {
 
 	groupClient := scangroup.New()
 	ctx := context.Background()
-	if err = groupClient.Init([]byte(groupAddr)); err != nil {
+	if err = groupClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 
@@ -141,7 +138,7 @@ func removeGroup() {
 	var gid int
 	var err error
 
-	if groupAddr == "" {
+	if addr == "" {
 		printExit("group server address is required")
 	}
 
@@ -155,7 +152,7 @@ func removeGroup() {
 
 	groupClient := scangroup.New()
 	ctx := context.Background()
-	if err = groupClient.Init([]byte(groupAddr)); err != nil {
+	if err = groupClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 
@@ -179,7 +176,7 @@ func removeGroup() {
 func getGroup() {
 	var err error
 
-	if groupAddr == "" {
+	if addr == "" {
 		printExit("group server address is required")
 	}
 
@@ -193,7 +190,7 @@ func getGroup() {
 
 	groupClient := scangroup.New()
 	ctx := context.Background()
-	if err = groupClient.Init([]byte(groupAddr)); err != nil {
+	if err = groupClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 
@@ -217,7 +214,7 @@ func pauseGroup() {
 	var gid int
 	var err error
 
-	if groupAddr == "" {
+	if addr == "" {
 		printExit("group server address is required")
 	}
 
@@ -234,7 +231,7 @@ func pauseGroup() {
 
 	groupClient := scangroup.New()
 	ctx := context.Background()
-	if err = groupClient.Init([]byte(groupAddr)); err != nil {
+	if err = groupClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 

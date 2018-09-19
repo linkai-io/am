@@ -17,11 +17,14 @@ var (
 	userCmd  *flag.FlagSet
 	addrCmd  *flag.FlagSet
 	coorCmd  *flag.FlagSet
+
+	spawnCmd *flag.FlagSet
 )
 
 var (
 	orgID  int
 	userID int
+	addr   string
 
 	orgData *am.Organization
 	orgAddr string
@@ -43,12 +46,16 @@ var (
 	addrLimit int
 
 	coorAddr string
+
+	spawnType    string
+	spawnNetwork string
+	spawnCount   int
 )
 
 func init() {
 	orgData = &am.Organization{}
 	orgCmd = flag.NewFlagSet("org", flag.ExitOnError)
-	orgCmd.StringVar(&orgAddr, "addr", ":8383", "org server address")
+	orgCmd.StringVar(&addr, "addr", ":8383", "org server address")
 	orgCmd.StringVar(&orgData.OrgName, "name", "test", "organization name")
 	orgCmd.StringVar(&orgData.FirstName, "first", "first_name", "owner's first name")
 	orgCmd.StringVar(&orgData.LastName, "last", "last_name", "owner's last name")
@@ -57,7 +64,7 @@ func init() {
 
 	groupData = &am.ScanGroup{}
 	groupCmd = flag.NewFlagSet("group", flag.ExitOnError)
-	groupCmd.StringVar(&groupAddr, "addr", ":8383", "org server address")
+	groupCmd.StringVar(&addr, "addr", ":8383", "org server address")
 	groupCmd.StringVar(&groupFile, "file", "scangroup.json", "file with scan group details")
 	groupCmd.StringVar(&groupName, "name", "", "scan group name")
 	groupCmd.IntVar(&groupOID, "oid", -1, "org id to use for this scan group")
@@ -68,7 +75,7 @@ func init() {
 	groupCmd.StringVar(&groupInputFile, "input", "s3:///tmp/ips.txt", "path to input file note s3:// becomes file:// if local")
 
 	addrCmd = flag.NewFlagSet("addr", flag.ExitOnError)
-	addrCmd.StringVar(&addrAddr, "addr", ":8383", "address server address")
+	addrCmd.StringVar(&addr, "addr", ":8383", "address server address")
 	addrCmd.StringVar(&groupName, "name", "", "scan group name")
 	addrCmd.IntVar(&groupID, "gid", -1, "scan group name for these addresses")
 	addrCmd.IntVar(&orgID, "oid", -1, "org id to use for this scan group's addresses")
@@ -80,11 +87,15 @@ func init() {
 	userCmd = flag.NewFlagSet("user", flag.ExitOnError)
 
 	coorCmd = flag.NewFlagSet("coor", flag.ExitOnError)
-	coorCmd.StringVar(&coorAddr, "addr", ":8383", "coordinator server address")
+	coorCmd.StringVar(&addr, "addr", ":8383", "coordinator server address")
 	coorCmd.IntVar(&groupID, "gid", -1, "scan group id to coordinate")
 	coorCmd.IntVar(&orgID, "oid", -1, "org id to use for coordination")
 	coorCmd.IntVar(&userID, "uid", -1, "user id to use for coordination")
 
+	spawnCmd = flag.NewFlagSet("spawn", flag.ExitOnError)
+	spawnCmd.StringVar(&spawnType, "type", "dispatcher", "system to spawn: (dispatcher, ns, web, port, brute, keyword)")
+	spawnCmd.StringVar(&spawnNetwork, "net", "scripts_app_net", "network to add this container to: (scripts_app_net)")
+	spawnCmd.IntVar(&spawnCount, "count", 1, "number of containers to spawn")
 }
 
 func main() {
@@ -99,6 +110,8 @@ func main() {
 		fmt.Println("./amcli coor: (start)")
 		coorCmd.PrintDefaults()
 		fmt.Println("insufficient arguments")
+		fmt.Println("./amcli spawn: (type)")
+		spawnCmd.PrintDefaults()
 		os.Exit(-1)
 	}
 
@@ -111,8 +124,10 @@ func main() {
 		processAddr(os.Args[1:])
 	case "coor":
 		processCoor(os.Args[1:])
+	case "spawn":
+		processSpawn(os.Args[1:])
 	default:
-		printExit("unknown cmd, must be one of: org, group, user, addr, coor")
+		printExit("unknown cmd, must be one of: org, group, user, addr, coor, spawn")
 	}
 }
 

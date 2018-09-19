@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net"
 	"os"
@@ -11,13 +12,13 @@ import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/clients/address"
 	"github.com/linkai-io/am/clients/coordinator"
+	"github.com/linkai-io/am/clients/module"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
 	dispatcherprotoservice "github.com/linkai-io/am/protocservices/dispatcher"
 	"github.com/linkai-io/am/services/dispatcher"
 	dispatcherprotoc "github.com/linkai-io/am/services/dispatcher/protoc"
-	"github.com/linkai-io/am/services/module/ns"
 	nsstate "github.com/linkai-io/am/services/module/ns/state"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -49,10 +50,9 @@ func main() {
 
 	state := initState()
 	addrClient := initAddrClient()
-	coordClient := initCoordClient()
 	modules := initModules(state)
 
-	service := dispatcher.New(addrClient, coordClient, modules, state)
+	service := dispatcher.New(addrClient, modules, state)
 	if err := service.Init(nil); err != nil {
 		log.Fatalf("error initializing service: %s\n", err)
 	}
@@ -102,11 +102,13 @@ func initCoordClient() am.CoordinatorService {
 }
 
 func initModules(state nsstate.Stater) map[am.ModuleType]am.ModuleService {
-	nsClient := ns.New(state)
+	nsClient := module.New()
+	cfg := &module.Config{Addr: loadBalancerAddr, ModuleType: am.NSModule}
+	data, _ := json.Marshal(cfg)
 
 	err := retrier.RetryUntil(
 		func() error {
-			return nsClient.Init([]byte(loadBalancerAddr))
+			return nsClient.Init(data)
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
@@ -127,6 +129,7 @@ func initState() *redis.State {
 	}
 
 	err = retrier.RetryUntil(func() error {
+		log.Printf("attempting to connect to redis...")
 		return redisState.Init([]byte(cacheConfig))
 	}, time.Minute*1, time.Second*3)
 

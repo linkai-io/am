@@ -1,0 +1,17 @@
+{
+    "services": 
+    [{
+        "name": "dispatcherservice", 
+        "tags": ["dispatcherservice"],
+        "address": "172.16.238.16",
+        "port": 50051,
+        "id": "dispatcherservice1"
+    },
+    {
+        "name": "dispatcherservice", 
+        "tags": ["dispatcherservice"],
+        "address": "172.16.238.17",
+        "port": 50051,
+        "id": "dispatcherservice2"
+    }]
+}

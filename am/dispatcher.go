@@ -7,5 +7,6 @@ const (
 )
 
 type DispatcherService interface {
+	Init(config []byte) error
 	PushAddresses(ctx context.Context, userContext UserContext, scanGroupID int) error
 }

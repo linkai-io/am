@@ -9,6 +9,17 @@ services:
     networks:
       app_net:
         ipv4_address: 172.16.238.5
+  amloadservice:
+    image: linkai_amloadservice
+    hostname: linkai_amloadservice
+    ports: 
+      - "8383:9999"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.6
+    environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
   postgresdev:
     image: postgres 
     hostname: postgresdev
@@ -50,17 +61,7 @@ services:
     environment:
       - APP_ENV=local
       - _am_local_db_linkai_admin_dbstring=${_am_local_db_linkai_admin_dbstring}
-  amloadservice:
-    image: linkai_amloadservice
-    hostname: linkai_amloadservice
-    ports: 
-      - "8383:8383"
-    networks:
-      app_net:
-        ipv4_address: 172.16.238.2
-    environment:
-      - APP_ENV=local
-      - _am_local_discovery_config=${_am_local_discovery_config}
+
   orgservice:
      image: linkai_orgservice
      hostname: linkai_orgservice
@@ -127,12 +128,78 @@ services:
      depends_on: 
       - postgresdev
       - ammigration
+      - scangroupservice
       - amloadservice
      networks:
       app_net:
         ipv4_address: 172.16.238.15
      ports:
        - "50055:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  dispatcherservice1:
+     image: linkai_dispatcherservice
+     hostname: linkai_dispatcherservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+      - nsmoduleservice1
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.16
+     ports:
+       - "50056:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  dispatcherservice2:
+     image: linkai_dispatcherservice
+     hostname: linkai_dispatcherservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.17
+     ports:
+       - "50057:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  nsmoduleservice1:
+     image: linkai_nsmoduleservice
+     hostname: linkai_nsmoduleservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.18
+     ports:
+       - "50058:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  nsmoduleservice2:
+     image: linkai_nsmoduleservice
+     hostname: linkai_nsmoduleservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.19
+     ports:
+       - "50059:50051"
      environment:
       - APP_ENV=local
       - _am_local_discovery_config=${_am_local_discovery_config}

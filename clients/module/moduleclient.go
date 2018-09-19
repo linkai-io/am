@@ -1,15 +1,18 @@
-package dispatcher
+package module
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"time"
 
 	"github.com/bsm/grpclb"
+	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
-
 	service "github.com/linkai-io/am/protocservices/module"
 	"google.golang.org/grpc"
 )
@@ -46,9 +49,34 @@ func (c *Client) Init(data []byte) error {
 	if err != nil {
 		return err
 	}
-
+	go debug(key, config.Addr)
 	c.client = service.NewModuleClient(conn)
 	return nil
+}
+
+func debug(key, addr string) {
+	for {
+		time.Sleep(5 * time.Second)
+		cc, err := grpc.Dial(addr, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("error dialing address: %v\n", err)
+			continue
+		}
+		defer cc.Close()
+
+		bc := balancerpb.NewLoadBalancerClient(cc)
+		resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
+			Target: key,
+		})
+		if err != nil {
+			log.Printf("error in resp: %v\n", err)
+			continue
+		}
+
+		for _, srv := range resp.Servers {
+			fmt.Printf("%s SERVERS: %d\t%s\n", key, srv.Score, srv.Address)
+		}
+	}
 }
 
 func (c *Client) parseConfig(data []byte) (*Config, error) {

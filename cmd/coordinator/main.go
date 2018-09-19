@@ -50,7 +50,7 @@ func main() {
 	scanGroupClient := initSGClient()
 
 	service := coordinator.New(state, scanGroupClient)
-	if err := service.Init(nil); err != nil {
+	if err := service.Init([]byte(loadBalancerAddr)); err != nil {
 		log.Fatalf("error initializing service: %s\n", err)
 	}
 
@@ -63,6 +63,7 @@ func main() {
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
 
+	log.Printf("Starting Coordinator Service\n")
 	if err := s.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

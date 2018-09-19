@@ -20,8 +20,3 @@ func (o *CoordProtocService) StartGroup(ctx context.Context, in *coordinator.Sta
 	err := o.cs.StartGroup(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	return &coordinator.GroupStartedResponse{}, err
 }
-
-func (o *CoordProtocService) Register(ctx context.Context, in *coordinator.RegisterRequest) (*coordinator.RegisteredResponse, error) {
-	err := o.cs.Register(ctx, in.DispatcherAddr, in.DispatcherID)
-	return &coordinator.RegisteredResponse{}, err
-}

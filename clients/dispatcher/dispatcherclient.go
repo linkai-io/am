@@ -2,8 +2,12 @@ package dispatcher
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"time"
 
 	"github.com/bsm/grpclb"
+	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
@@ -29,9 +33,35 @@ func (c *Client) Init(config []byte) error {
 	if err != nil {
 		return err
 	}
-
+	go debug(string(config))
 	c.client = service.NewDispatcherClient(conn)
 	return nil
+}
+
+func debug(addr string) {
+	for {
+		time.Sleep(5 * time.Second)
+		log.Printf("dispatcher client connecting to: %s\n", addr)
+		cc, err := grpc.Dial(addr, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("dispatcher client error dialing address: %v\n", err)
+			continue
+		}
+		defer cc.Close()
+
+		bc := balancerpb.NewLoadBalancerClient(cc)
+		resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
+			Target: am.DispatcherServiceKey,
+		})
+		if err != nil {
+			log.Printf("dispatcher client error in resp: %v\n", err)
+			continue
+		}
+
+		for _, srv := range resp.Servers {
+			fmt.Printf("DISPATCHER SERVERS: %d\t%s\n", srv.Score, srv.Address)
+		}
+	}
 }
 
 func (c *Client) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {

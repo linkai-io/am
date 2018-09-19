@@ -43,7 +43,7 @@ func getOrg() {
 	var err error
 	var org *am.Organization
 
-	if orgAddr == "" {
+	if addr == "" {
 		printExit("org server address must not be empty")
 	}
 
@@ -53,7 +53,7 @@ func getOrg() {
 
 	orgClient := organization.New()
 	ctx := context.Background()
-	if err = orgClient.Init([]byte(orgAddr)); err != nil {
+	if err = orgClient.Init([]byte(addr)); err != nil {
 		printExit(fmt.Sprintf("error connecting to server: %s\n", err))
 	}
 
@@ -72,7 +72,7 @@ func getOrg() {
 
 }
 func addOrg() {
-	if orgAddr == "" {
+	if addr == "" {
 		printExit("org server address must not be empty")
 	}
 
@@ -108,7 +108,7 @@ func addOrg() {
 
 	orgClient := organization.New()
 	ctx := context.Background()
-	if err := orgClient.Init([]byte(orgAddr)); err != nil {
+	if err := orgClient.Init([]byte(addr)); err != nil {
 		printExit(fmt.Sprintf("error connecting to server: %s\n", err))
 	}
 	oid, uid, _, _, err := orgClient.Create(ctx, systemContext(), orgData)
@@ -121,7 +121,7 @@ func addOrg() {
 func removeOrg() {
 	var err error
 	var oid int
-	if orgAddr == "" {
+	if addr == "" {
 		printExit("org server address must not be empty")
 	}
 
@@ -131,7 +131,7 @@ func removeOrg() {
 
 	orgClient := organization.New()
 	ctx := context.Background()
-	if err = orgClient.Init([]byte(orgAddr)); err != nil {
+	if err = orgClient.Init([]byte(addr)); err != nil {
 		printExit(fmt.Sprintf("error connecting to server: %s\n", err))
 	}
 

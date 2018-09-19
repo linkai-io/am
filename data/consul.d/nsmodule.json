@@ -1,8 +1,17 @@
 {
-    "service": 
+    "services": 
+    [{
+        "name": "nsmoduleservice", 
+        "tags": ["nsmoduleservice"],
+        "address": "172.16.238.18",
+        "port": 50051,
+        "id": "nsmoduleservice1"
+    },
     {
         "name": "nsmoduleservice", 
-        "tags": ["nsmoduleservice"], 
-        "port": 50057
-    }
+        "tags": ["nsmoduleservice"],
+        "address": "172.16.238.19",
+        "port": 50051,
+        "id": "nsmoduleservice2"
+    }]
 }

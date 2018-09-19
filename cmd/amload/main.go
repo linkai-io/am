@@ -30,7 +30,7 @@ func init() {
 	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 
-	flag.StringVar(&flags.addr, "addr", ":8383", "Bind address. Default: :8383")
+	flag.StringVar(&flags.addr, "addr", ":9999", "Bind address. Default: :9999")
 }
 
 func main() {

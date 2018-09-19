@@ -37,7 +37,7 @@ func startGroup() {
 	}
 
 	coorClient := coordinator.New()
-	if err := coorClient.Init([]byte(coorAddr)); err != nil {
+	if err := coorClient.Init([]byte(addr)); err != nil {
 		printErrExit("failed to connect to coordinator: %s\n", err)
 	}
 	ctx := context.Background()

@@ -2,13 +2,18 @@ package scangroup
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
+	"time"
 
 	"github.com/bsm/grpclb"
+	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/scangroup"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
@@ -31,7 +36,33 @@ func (c *Client) Init(config []byte) error {
 	}
 
 	c.client = service.NewScanGroupClient(conn)
+	go debug(string(config))
 	return nil
+}
+
+func debug(addr string) {
+	for {
+		time.Sleep(5 * time.Second)
+		cc, err := grpc.Dial(addr, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("scangroup client error dialing address: %v\n", err)
+			continue
+		}
+		defer cc.Close()
+
+		bc := balancerpb.NewLoadBalancerClient(cc)
+		resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
+			Target: am.ScanGroupServiceKey,
+		})
+		if err != nil {
+			log.Printf("scangroup client error in resp: %v\n", err)
+			continue
+		}
+
+		for _, srv := range resp.Servers {
+			fmt.Printf("SCANGROUP SERVERS: %d\t%s\n", srv.Score, srv.Address)
+		}
+	}
 }
 
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.GroupRequest) (oid int, group *am.ScanGroup, err error) {
@@ -39,8 +70,9 @@ func (c *Client) get(ctx context.Context, userContext am.UserContext, in *servic
 
 	err = retrier.Retry(func() error {
 		var err error
+		log.Printf("Attempting to get group %#v\n", in)
 		resp, err = c.client.Get(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to get scan group from client")
 	})
 
 	if err != nil {
@@ -77,7 +109,7 @@ func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid in
 	err = retrier.Retry(func() error {
 		var err error
 		stream, err = c.client.Groups(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to get groups from scan group client")
 	})
 
 	if err != nil {
@@ -112,7 +144,7 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, newGrou
 	err = retrier.Retry(func() error {
 		var err error
 		resp, err = c.client.Create(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to create scan group from client")
 	})
 
 	if err != nil {
@@ -133,7 +165,7 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, group *
 	err = retrier.Retry(func() error {
 		var err error
 		resp, err = c.client.Update(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to update scan group from client")
 	})
 
 	if err != nil {
@@ -154,7 +186,7 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 	err = retrier.Retry(func() error {
 		var err error
 		resp, err = c.client.Delete(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to delete scan group from client")
 	})
 
 	if err != nil {
@@ -175,7 +207,7 @@ func (c *Client) Pause(ctx context.Context, userContext am.UserContext, groupID 
 	err = retrier.Retry(func() error {
 		var err error
 		resp, err = c.client.Pause(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to pause scan group from client")
 	})
 
 	if err != nil {
@@ -196,7 +228,7 @@ func (c *Client) Resume(ctx context.Context, userContext am.UserContext, groupID
 	err = retrier.Retry(func() error {
 		var err error
 		resp, err = c.client.Resume(ctx, in)
-		return err
+		return errors.Wrap(err, "unable to resume scan group from client")
 	})
 
 	if err != nil {
