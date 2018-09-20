@@ -75,7 +75,7 @@ func FQDNTrim(name string) string {
 // amazon.co.uk == true
 // sub.amazon.co.uk == false
 func IsETLD(hostAddress string) bool {
-	tld, err := publicsuffix.EffectiveTLDPlusOne(hostAddress)
+	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return false
 	}
@@ -84,7 +84,30 @@ func IsETLD(hostAddress string) bool {
 
 // GetETLD returns just the eltd of the supplied host address
 func GetETLD(hostAddress string) (string, error) {
+	// handle bug: https://github.com/golang/go/issues/20059
+	special := SpecialETLD(hostAddress)
+	if special != hostAddress {
+		return special, nil
+	}
 	return publicsuffix.EffectiveTLDPlusOne(hostAddress)
+}
+
+// SpecialETLD case where publicsuffix doesn't fit what we
+// want to test for etlds.
+func SpecialETLD(hostAddress string) string {
+	hostAddress = FQDNTrim(hostAddress)
+
+	split := strings.Split(hostAddress, ".")
+	if len(split) < 2 {
+		return hostAddress
+	}
+
+	tld := strings.Join(split[len(split)-2:len(split)], ".")
+	if _, ok := SpecialCaseTLDs[tld]; ok {
+		return tld
+	}
+
+	return hostAddress
 }
 
 // SplitAddresses preserving etld. sub1.sub2.test.co.uk would become
@@ -92,7 +115,7 @@ func GetETLD(hostAddress string) (string, error) {
 // returns nil if hostAddress = eltd and does not return the original
 // address that was supplied.
 func SplitAddresses(hostAddress string) ([]string, error) {
-	tld, err := publicsuffix.EffectiveTLDPlusOne(hostAddress)
+	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return nil, err
 	}

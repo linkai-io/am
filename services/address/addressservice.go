@@ -114,7 +114,8 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		a := &am.ScanGroupAddress{}
 		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.HostAddress,
 			&a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &a.LastScannedTime,
-			&a.LastSeenTime, &a.ConfidenceScore, &a.UserConfidenceScore, &a.IsSOA, &a.IsWildcardZone, &a.IsHostedService, &a.Ignored); err != nil {
+			&a.LastSeenTime, &a.ConfidenceScore, &a.UserConfidenceScore, &a.IsSOA,
+			&a.IsWildcardZone, &a.IsHostedService, &a.Ignored, &a.FoundFrom, &a.NSRecord, &a.AddressHash); err != nil {
 
 			return 0, nil, err
 		}
@@ -161,7 +162,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 		addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
 			a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore, a.UserConfidenceScore,
-			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored,
+			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
 		}
 
 	}

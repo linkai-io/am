@@ -76,6 +76,17 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return ErrNoDispatcherConnected
 	}
 
+	log.Printf("Getting group status for %d\n", scanGroupID)
+	exists, status, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get group status")
+	}
+
+	if status == am.GroupStarted {
+		log.Printf("Not starting %d as it is already started\n", scanGroupID)
+		return nil
+	}
+
 	log.Printf("Getting scan group via client: %v %d\n", userContext, scanGroupID)
 	oid, group, err := s.scanGroupClient.Get(ctx, userContext, scanGroupID)
 	if err != nil {
@@ -90,12 +101,6 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 
 	if group.Paused {
 		return ErrScanGroupPaused
-	}
-
-	log.Printf("Getting group status for %d\n", scanGroupID)
-	exists, _, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get group status")
 	}
 
 	if !exists {
@@ -123,10 +128,12 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 			return errors.Wrap(err, "failed to update/put group")
 		}
 	}
+
 	log.Printf("Setting Start in state for %d\n", scanGroupID)
 	if err := s.state.Start(ctx, userContext, group.GroupID); err != nil {
 		return errors.Wrap(err, "failed to start group")
 	}
+
 	log.Printf("Dispatching in state for %d\n", scanGroupID)
 	return s.dispatcherClient.PushAddresses(ctx, userContext, scanGroupID)
 }

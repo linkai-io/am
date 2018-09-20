@@ -1,0 +1,107 @@
+package ns
+
+import (
+	"github.com/linkai-io/am/pkg/parsers"
+)
+
+var hostedDomains = map[string]struct{}{
+	"amazonaws.com":          struct{}{},
+	"elasticbeanstalk.com":   struct{}{},
+	"cloudfront.net":         struct{}{},
+	"dyndns.org":             struct{}{},
+	"cdn77.org":              struct{}{},
+	"cdn77-ssl.net":          struct{}{},
+	"cdn77.net":              struct{}{},
+	"cdn77-secure.org":       struct{}{},
+	"cloudns.asia":           struct{}{},
+	"cloudns.biz":            struct{}{},
+	"cloudns.club":           struct{}{},
+	"cloudns.cc":             struct{}{},
+	"cloudns.eu":             struct{}{},
+	"cloudns.in":             struct{}{},
+	"cloudns.info":           struct{}{},
+	"cloudns.org":            struct{}{},
+	"cloudns.pro":            struct{}{},
+	"cloudns.pw":             struct{}{},
+	"cloudns.us":             struct{}{},
+	"dyn.cosidns.de":         struct{}{},
+	"dynamisches-dns.de":     struct{}{},
+	"dnsupdater.de":          struct{}{},
+	"internet-dns.de":        struct{}{},
+	"l-o-g-i-n.de":           struct{}{},
+	"dynamic-dns.info":       struct{}{},
+	"feste-ip.net":           struct{}{},
+	"knx-server.net":         struct{}{},
+	"static-access.net":      struct{}{},
+	"dreamhosters.com":       struct{}{},
+	"dy.fi":                  struct{}{},
+	"dyndns-at-home.com":     struct{}{},
+	"dyndns-at-work.com":     struct{}{},
+	"dyndns-blog.com":        struct{}{},
+	"dyndns-free.com":        struct{}{},
+	"dyndns-home.com":        struct{}{},
+	"dyndns-ip.com":          struct{}{},
+	"dyndns-mail.com":        struct{}{},
+	"dyndns-office.com":      struct{}{},
+	"dyndns-pics.com":        struct{}{},
+	"dyndns-remote.com":      struct{}{},
+	"dyndns-server.com":      struct{}{},
+	"dyndns-web.com":         struct{}{},
+	"dyndns-wiki.com":        struct{}{},
+	"dyndns-work.com":        struct{}{},
+	"dyndns.biz":             struct{}{},
+	"dyndns.info":            struct{}{},
+	"dyndns.tv":              struct{}{},
+	"cloudflare.net":         struct{}{},
+	"amazonaws.com.cn":       struct{}{},
+	"wordpress.org":          struct{}{},
+	"github.io":              struct{}{},
+	"fastly.net":             struct{}{},
+	"fastly.com":             struct{}{},
+	"githubusercontent.com":  struct{}{},
+	"gitlab.io":              struct{}{},
+	"googleusercontent.com":  struct{}{},
+	"gstatic.com":            struct{}{},
+	"google.com":             struct{}{},
+	"blogger.com":            struct{}{},
+	"shopify.com":            struct{}{},
+	"adobeevents.com":        struct{}{},
+	"clouddn.com":            struct{}{},
+	"rackcdn.com":            struct{}{},
+	"ampproject.org":         struct{}{},
+	"fc2.com":                struct{}{},
+	"azure.com":              struct{}{},
+	"azurewebsites.net":      struct{}{},
+	"azurecontainer.io":      struct{}{},
+	"azure-mobile.net":       struct{}{},
+	"cloudapp.net":           struct{}{},
+	"herokuapp.com":          struct{}{},
+	"evennode.com":           struct{}{},
+	"fbsbx.com":              struct{}{},
+	"fastlylb.net":           struct{}{},
+	"firebaseapp.com":        struct{}{},
+	"appspot.com":            struct{}{},
+	"cloudfunctions.net":     struct{}{},
+	"cloud.goog":             struct{}{},
+	"codespot.com":           struct{}{},
+	"googleapis.com":         struct{}{},
+	"googlecode.com":         struct{}{},
+	"pagespeedmobilizer.com": struct{}{},
+	"publishproxy.com":       struct{}{},
+	"withgoogle.com":         struct{}{},
+	"withyoutube.com":        struct{}{},
+	"herokussl.com":          struct{}{},
+	"netlify.com":            struct{}{},
+}
+
+// IsHostedDomain tests if the etld of this hostname shows up in our hostedDomains list
+// TODO: move this to redis or something
+func IsHostedDomain(hostname string) bool {
+	etld, err := parsers.GetETLD(hostname)
+	if err != nil {
+		return false
+	}
+
+	_, exists := hostedDomains[etld]
+	return exists
+}

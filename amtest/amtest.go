@@ -2,11 +2,13 @@ package amtest
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/linkai-io/am/pkg/inputlist"
 	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/am"
@@ -58,6 +60,33 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 			ConfidenceScore:     100.0,
 			UserConfidenceScore: 0.0,
 		}
+	}
+	return addrs
+}
+
+func AddrsFromInputFile(orgID, groupID int, addrFile *os.File, t *testing.T) []*am.ScanGroupAddress {
+	in, _ := inputlist.ParseList(addrFile, 10000)
+	addrFile.Close()
+
+	addrs := make([]*am.ScanGroupAddress, len(in))
+	i := 0
+	for addr := range in {
+		addrs[i] = &am.ScanGroupAddress{
+			AddressID:           int64(i),
+			OrgID:               orgID,
+			GroupID:             groupID,
+			DiscoveredBy:        "input_list",
+			DiscoveryTime:       time.Now().UnixNano(),
+			ConfidenceScore:     100.0,
+			UserConfidenceScore: 0.0,
+		}
+
+		if inputlist.IsIP(addr) {
+			addrs[i].IPAddress = addr
+		} else {
+			addrs[i].HostAddress = addr
+		}
+		i++
 	}
 	return addrs
 }
@@ -359,6 +388,18 @@ func TestCompareAddresses(expected, returned map[int64]*am.ScanGroupAddress, t *
 
 		if e.LastSeenTime != r.LastSeenTime {
 			t.Fatalf("LastSeenTime by was different, %v and %v\n", e.LastSeenTime, r.LastSeenTime)
+		}
+
+		if e.NSRecord != r.NSRecord {
+			t.Fatalf("NSRecord by was different, %v and %v\n", e.NSRecord, r.NSRecord)
+		}
+
+		if e.AddressHash != r.AddressHash {
+			t.Fatalf("AddressHash by was different, %v and %v\n", e.AddressHash, r.AddressHash)
+		}
+
+		if e.FoundFrom != r.FoundFrom {
+			t.Fatalf("FoundFrom by was different, %v and %v\n", e.FoundFrom, r.FoundFrom)
 		}
 	}
 }

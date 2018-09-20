@@ -15,8 +15,7 @@ This is the primary repository for all linkai - AM services.
 * services/ the various microservices used by the AM system
 
 ## Building
-Until vgo is better supported:
-* go get -u ./... - to get dependencies
+am uses go dep until vgo is better supported.
 
 Building docker images can be done via make {servicename}
 

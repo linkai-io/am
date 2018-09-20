@@ -184,6 +184,9 @@ func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 		IsWildcardZone:      in.IsWildcardZone,
 		IsHostedService:     in.IsHostedService,
 		Ignored:             in.Ignored,
+		NSRecord:            in.NSRecord,
+		AddressHash:         in.AddressHash,
+		FoundFrom:           in.FoundFrom,
 	}
 }
 
@@ -204,6 +207,9 @@ func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
 		IsWildcardZone:      in.IsWildcardZone,
 		IsHostedService:     in.IsHostedService,
 		Ignored:             in.Ignored,
+		NSRecord:            in.NSRecord,
+		AddressHash:         in.AddressHash,
+		FoundFrom:           in.FoundFrom,
 	}
 }
 

@@ -48,7 +48,7 @@ func New(st state.Stater) *NS {
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
-	ns.dc = dnsclient.New([]string{"0.0.0.0:2053"}, 2)
+	ns.dc = dnsclient.New([]string{"0.0.0.0:2053"}, 3)
 	// populate cache
 	return nil
 }
@@ -69,7 +69,9 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) error {
 	//if ns.groupCache.GetGroupByIDs(address.OrgID, address.GroupID)
 	resolvedHosts := ns.analyzeHost(ctx, address)
 	resolvedIPs := ns.analyzeIP(ctx, address)
-	nsRecords := make([]*am.NSData, len(resolvedHosts)+len(resolvedIPs))
+	nsRecords := make([]*am.NSData, 0)
+	nsRecords = append(nsRecords, resolvedHosts...)
+	nsRecords = append(nsRecords, resolvedIPs...)
 
 	if address.HostAddress == "" {
 		// push nsRecords
@@ -89,22 +91,33 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) error {
 
 	if ok {
 		zoneRecords := ns.analyzeZone(ctx, etld, address)
-		log.Printf("got %d\n", len(zoneRecords))
+		log.Printf("got %d zone records for %s\n", len(zoneRecords), etld)
+		nsRecords = append(nsRecords, zoneRecords...)
 	}
-	log.Printf("got %d\n", len(nsRecords))
+
+	log.Printf("got %d from %#v\n", len(nsRecords), address)
+	for _, nsRecord := range nsRecords {
+		log.Printf("ALL RECORDS: %#v\n", nsRecord)
+	}
 	// push nsRecords
 	return nil
 }
 
+// recordFromAddress creates an NS record from this address, copying over the necessary details.
 func (ns *NS) recordFromAddress(address *am.ScanGroupAddress, ip, host, discoveredBy string, recordType uint) *am.NSData {
 	newAddress := &am.ScanGroupAddress{
-		OrgID:         address.OrgID,
-		GroupID:       address.GroupID,
-		DiscoveryTime: time.Now().UnixNano(),
-		DiscoveredBy:  discoveredBy,
-		LastSeenTime:  time.Now().UnixNano(),
-		IPAddress:     ip,
-		HostAddress:   host,
+		OrgID:           address.OrgID,
+		GroupID:         address.GroupID,
+		DiscoveryTime:   time.Now().UnixNano(),
+		DiscoveredBy:    discoveredBy,
+		LastSeenTime:    time.Now().UnixNano(),
+		IPAddress:       ip,
+		HostAddress:     host,
+		IsHostedService: address.IsHostedService,
+	}
+
+	if !address.IsHostedService && address.HostAddress != "" {
+		newAddress.IsHostedService = IsHostedDomain(newAddress.HostAddress)
 	}
 
 	nsRecord := &am.NSData{
@@ -140,6 +153,7 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 	if err != nil {
 		return nsData
 	}
+
 	for _, result := range axfr {
 		// TODO report axfr ns servers as a finding
 		for _, r := range result {
@@ -167,6 +181,10 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am.NSData {
 	nsData := make([]*am.NSData, 0)
 
+	if address.IPAddress == "" {
+		return nsData
+	}
+
 	r, err := ns.dc.ResolveIP(address.IPAddress)
 	if err != nil || r == nil {
 		address.LastScannedTime = time.Now().UnixNano()
@@ -180,6 +198,9 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 		if host == address.HostAddress || address.HostAddress == "" {
 			foundOriginal = true
 			address.HostAddress = host
+			if !address.IsHostedService && address.HostAddress != "" {
+				address.IsHostedService = IsHostedDomain(address.HostAddress)
+			}
 			address.LastSeenTime = time.Now().UnixNano()
 			address.LastScannedTime = time.Now().UnixNano()
 			nsRecord := &am.NSData{
@@ -207,16 +228,23 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 
 // analyzeHost resolves the host address to ips
 func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*am.NSData {
+
+	nsData := make([]*am.NSData, 0)
+	if address.HostAddress == "" {
+		return nsData
+	}
+
 	r, err := ns.dc.ResolveName(address.HostAddress)
 	if err != nil {
 		log.Printf("unable to resolve ip: %s\n", err)
 	}
 
-	nsData := make([]*am.NSData, 0)
-
 	for i, rr := range r {
 		for j, ip := range rr.IPs {
 			if i == 0 && j == 0 {
+				if !address.IsHostedService && address.HostAddress != "" {
+					address.IsHostedService = IsHostedDomain(address.HostAddress)
+				}
 				address.IPAddress = ip
 				address.LastSeenTime = time.Now().UnixNano()
 				address.LastScannedTime = time.Now().UnixNano()

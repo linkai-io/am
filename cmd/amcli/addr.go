@@ -43,7 +43,7 @@ func processAddr(args []string) {
 }
 
 func addAddrs() {
-	if addrAddr == "" {
+	if addr == "" {
 		printExit("addr server address required")
 	}
 
@@ -78,7 +78,7 @@ func addAddrs() {
 
 	addrClient := address.New()
 	ctx := context.Background()
-	if err = addrClient.Init([]byte(addrAddr)); err != nil {
+	if err = addrClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 	sgAddrs := makeAddrs(addrs, orgID, userID, groupID)
@@ -122,7 +122,7 @@ func getAddrs() {
 	grpc.EnableTracing = true
 
 	var err error
-	if addrAddr == "" {
+	if addr == "" {
 		printExit("addr server address required")
 	}
 
@@ -136,7 +136,7 @@ func getAddrs() {
 
 	addrClient := address.New()
 	ctx := context.Background()
-	if err = addrClient.Init([]byte(addrAddr)); err != nil {
+	if err = addrClient.Init([]byte(addr)); err != nil {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 

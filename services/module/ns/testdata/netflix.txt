@@ -1,0 +1,10 @@
+api.netflix.com
+www.netflix.com
+secure.netflix.com
+ichnaea.netflix.com
+beacon.netflix.com
+nflxvideo.net
+nflxext.com
+nflximg.net
+help.netflix.com
+dockhand.netflix.com

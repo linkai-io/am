@@ -35,3 +35,23 @@ func TestSplitAddresses(t *testing.T) {
 		})
 	}
 }
+
+func TestSpecialTLD(t *testing.T) {
+	host := "test.amazonaws.com"
+	etld := SpecialETLD(host)
+	if etld != "amazonaws.com" {
+		t.Fatalf("error should have returned amazonaws.com for %s\n", host)
+	}
+
+	host = "test.com"
+	etld = SpecialETLD(host)
+	if etld != "test.com" {
+		t.Fatalf("error should have returned test.com for %s\n", host)
+	}
+
+	host = "test.com."
+	etld = SpecialETLD(host)
+	if etld != "test.com" {
+		t.Fatalf("error should have returned test.com for %s\n", host)
+	}
+}

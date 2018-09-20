@@ -10,6 +10,7 @@ import (
 
 	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/pkg/parsers"
+	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/miekg/dns"
 )
 
@@ -28,14 +29,14 @@ var (
 type Client struct {
 	client  *dns.Client
 	servers []string
-	retry   int
+	retry   uint
 }
 
 // New returns a new DNS client
 func New(servers []string, retry int) *Client {
 	c := &Client{}
 	c.servers = servers
-	c.retry = retry
+	c.retry = uint(retry)
 	c.client = &dns.Client{Timeout: 5 * time.Second}
 	return c
 }
@@ -351,12 +352,10 @@ func (c *Client) exchange(name string, query uint16) (*dns.Msg, error) {
 	msg.SetQuestion(dns.Fqdn(name), query)
 	// randomize dns resolver for requests
 	server := c.servers[rand.Intn(len(c.servers))]
-	for i := 0; i < c.retry; i++ {
+	err = retrier.RetryAttempts(func() error {
 		result, _, err = c.client.Exchange(msg, server)
-		if err == nil {
-			break
-		}
-	}
+		return err
+	}, c.retry)
 
 	if err != nil {
 		return nil, err

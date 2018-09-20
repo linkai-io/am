@@ -11,6 +11,11 @@ func Retry(retryFn retry.RetryableFunc) error {
 	return retry.Do(retryFn)
 }
 
+// RetryAttempts retries attempts times
+func RetryAttempts(retryFn retry.RetryableFunc, attempts uint) error {
+	return retry.Do(retryFn, retry.Attempts(attempts))
+}
+
 // RetryUntil simple retrier until time runs out, checks every tick, does not do exponential back off
 func RetryUntil(retryFn retry.RetryableFunc, until time.Duration, tick time.Duration) error {
 	ticker := time.NewTicker(tick)

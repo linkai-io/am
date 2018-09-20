@@ -214,6 +214,9 @@ func TestUpdate(t *testing.T) {
 		IsWildcardZone:  false,
 		IsHostedService: false,
 		Ignored:         false,
+		FoundFrom:       1,
+		NSRecord:        1,
+		AddressHash:     "somehash",
 	}
 
 	updateAddresses := make([]*am.ScanGroupAddress, 1)

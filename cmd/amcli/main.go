@@ -31,7 +31,6 @@ var (
 
 	groupData      *am.ScanGroup
 	groupFile      string
-	groupAddr      string
 	groupInputFile string
 	groupName      string
 	groupID        int
@@ -40,12 +39,9 @@ var (
 	groupPause     bool
 	groupResume    bool
 
-	addrAddr  string
 	addrInput string
 	addrStart int64
 	addrLimit int
-
-	coorAddr string
 
 	spawnType    string
 	spawnNetwork string
