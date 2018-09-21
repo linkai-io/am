@@ -1,6 +1,7 @@
 package amtest
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"reflect"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/pkg/inputlist"
+	"github.com/linkai-io/am/pkg/redisclient"
 	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/am"
@@ -62,6 +64,23 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 		}
 	}
 	return addrs
+}
+
+func MockNSState() *mock.NSState {
+	state := &mock.NSState{}
+	state.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+		return nil
+	}
+
+	hosts := make(map[string]bool)
+	state.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := hosts[zone]; !ok {
+			hosts[zone] = true
+			return true, nil
+		}
+		return false, nil
+	}
+	return state
 }
 
 func AddrsFromInputFile(orgID, groupID int, addrFile *os.File, t *testing.T) []*am.ScanGroupAddress {

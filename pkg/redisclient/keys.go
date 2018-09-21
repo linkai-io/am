@@ -67,18 +67,18 @@ func (r *RedisKeys) KeywordConfig() string {
 	return r.configFmt + ":module:keyword"
 }
 
-func (r *RedisKeys) AddrList() string {
-	return r.addrFmt + "_list"
+func (r *RedisKeys) AddrWorkQueue() string {
+	return r.addrFmt + "_workqueue"
 }
 
-func (r *RedisKeys) AddrHash() string {
+func (r *RedisKeys) AddrExistsHash() string {
 	return r.addrFmt + "_hash"
 }
 
 // Addr returns the address key based on supplied addr id
 // TODO: look at better more performant options
-func (r *RedisKeys) Addr(addrID int64) string {
-	return fmt.Sprintf("%d:%d:address:%d", r.orgID, r.groupID, addrID)
+func (r *RedisKeys) Addr(addrHash string) string {
+	return fmt.Sprintf("%d:%d:address:%s", r.orgID, r.groupID, addrHash)
 }
 
 func (r *RedisKeys) AddrMatch() string {

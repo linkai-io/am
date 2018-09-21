@@ -360,16 +360,22 @@ func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	for _, addr := range addresses {
+		if addr.AddressHash == "" {
+			addr.AddressHash = convert.HashAddress(addr.IPAddress, addr.HostAddress)
+		}
 
-		if err := conn.Send("SADD", keys.AddrList(), addr.AddressID); err != nil {
+		// addrworkqueue is used to pop addresses out of the set
+		if err := conn.Send("SADD", keys.AddrWorkQueue(), addr.AddressHash); err != nil {
 			return err
 		}
 
-		if err := conn.Send("SADD", keys.AddrHash(), convert.HashAddress(addr.IPAddress, addr.HostAddress)); err != nil {
+		// addrexistshash is used for testing if an address is stored in redis
+		if err := conn.Send("SADD", keys.AddrExistsHash(), addr.AddressHash); err != nil {
 			return err
 		}
 
-		if err := conn.Send("HMSET", redis.Args{keys.Addr(addr.AddressID)}.AddFlat(addr)...); err != nil {
+		// the actual address data stored in a hashset
+		if err := conn.Send("HMSET", redis.Args{keys.Addr(addr.AddressHash)}.AddFlat(addr)...); err != nil {
 			return err
 		}
 	}
@@ -392,49 +398,44 @@ func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, sc
 
 	cachedAddrs := make(map[int64]*am.ScanGroupAddress, 0)
 	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
-	iter := 0
 
-	for {
+	resp, err := redis.Values(conn.Do("SPOP", keys.AddrWorkQueue(), "COUNT", limit))
+	if err != nil {
+		return nil, err
+	}
 
-		resp, err := redis.Values(conn.Do("SSCAN", keys.AddrList(), iter, "COUNT", limit))
-		if err != nil {
+	addressKeys, err := redis.Strings(resp, err)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := conn.Send("MULTI"); err != nil {
+		return nil, err
+	}
+
+	for _, addressID := range addressKeys {
+		if err := conn.Send("HGETALL", keys.Addr(addressID)); err != nil {
 			return nil, err
 		}
-		addressKeys, err := redis.Int64s(resp[1], err)
-		if err != nil {
-			return nil, err
-		}
+	}
 
-		iter, err = redis.Int(resp[0], err)
-		if err != nil {
-			return nil, err
-		}
+	addrs, err := redis.Values(conn.Do("EXEC"))
+	if err != nil {
+		return nil, err
+	}
 
-		if err := conn.Send("MULTI"); err != nil {
-			return nil, err
-		}
-
-		for _, addressID := range addressKeys {
-			if err := conn.Send("HGETALL", keys.Addr(addressID)); err != nil {
+	for _, addrData := range addrs {
+		if a, ok := addrData.([]interface{}); ok {
+			addr := &am.ScanGroupAddress{}
+			if err := redis.ScanStruct(a, addr); err != nil {
 				return nil, err
 			}
-		}
-		addrs, err := redis.Values(conn.Do("EXEC"))
-		if err != nil {
-			return nil, err
-		}
-
-		for _, addrData := range addrs {
-			if a, ok := addrData.([]interface{}); ok {
-				addr := &am.ScanGroupAddress{}
-				if err := redis.ScanStruct(a, addr); err != nil {
-					return nil, err
-				}
+			// check against an empty record, by ensuring the group ids
+			// match, if empty, group id will be 0.
+			if addr.GroupID == scanGroupID {
 				cachedAddrs[addr.AddressID] = addr
 			}
-		}
-		if iter == 0 {
-			break
+
 		}
 	}
 
@@ -450,7 +451,7 @@ func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddr
 	defer s.rc.Return(conn)
 
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
-	return redis.Bool(conn.Do("SISMEMBER", keys.AddrHash(), convert.HashAddress(host, ipAddress)))
+	return redis.Bool(conn.Do("SISMEMBER", keys.AddrExistsHash(), convert.HashAddress(host, ipAddress)))
 }
 
 // Subscribe to listen for group state updates

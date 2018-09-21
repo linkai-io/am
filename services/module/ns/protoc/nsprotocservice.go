@@ -17,6 +17,6 @@ func New(implementation am.ModuleService) *NSProtocService {
 }
 
 func (s *NSProtocService) Analyze(ctx context.Context, in *module.AnalyzeRequest) (*module.AnalyzedResponse, error) {
-	err := s.nsservice.Analyze(ctx, convert.AddressToDomain(in.Address))
-	return &module.AnalyzedResponse{}, err
+	addresses, err := s.nsservice.Analyze(ctx, convert.AddressToDomain(in.Address))
+	return &module.AnalyzedResponse{Addresses: addresses}, err
 }

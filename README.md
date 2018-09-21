@@ -24,6 +24,13 @@ Testing requires a local or env database is configured. For local testing make s
 then run cmd/amm and deploy all changes prior to running tests.
 After which, simply run make test.
 
+## Running locally
+First: start consul:
+consul agent -dev -config-dir=./consul.d -data-dir=consul_data/ -advertise="127.0.0.1" -client="172.16.238.1 127.0.0.1"
+Next: Run docker-compose:
+cd scripts && docker-compose up
+Next: Use amcli to issue commands (see cmd/amcli/README.md for more details)
+
 ## Secrets
 Secrets are managed via AWS Parameter Store for dev/production. For local testing create environment variables such as:
 ```json

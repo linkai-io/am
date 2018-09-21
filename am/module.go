@@ -1,6 +1,8 @@
 package am
 
-import "context"
+import (
+	"context"
+)
 
 type ModuleType int
 
@@ -87,6 +89,8 @@ type KeywordModuleConfig struct {
 	Keywords []string `json:"keywords" redis:"-"`
 }
 
+// ModuleService is the default interface for analyzing an address and spitting out potentially
+// more addresses
 type ModuleService interface {
-	Analyze(ctx context.Context, address *ScanGroupAddress) error
+	Analyze(ctx context.Context, address *ScanGroupAddress) ([]*ScanGroupAddress, error)
 }

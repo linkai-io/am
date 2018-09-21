@@ -7,8 +7,6 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
-	"github.com/linkai-io/am/mock"
-	"github.com/linkai-io/am/pkg/redisclient"
 	"github.com/linkai-io/am/services/module/ns"
 )
 
@@ -51,7 +49,7 @@ func TestNS_Analyze(t *testing.T) {
 			DiscoveredBy: "input_list",
 		},
 	}
-	state := mockNSState()
+	state := amtest.MockNSState()
 	ns := ns.New(state)
 	ns.Init(nil)
 
@@ -73,7 +71,7 @@ func TestNetflixInput(t *testing.T) {
 
 	addrs := amtest.AddrsFromInputFile(orgID, groupID, addrFile, t)
 
-	state := mockNSState()
+	state := amtest.MockNSState()
 	ns := ns.New(state)
 	ns.Init(nil)
 
@@ -150,21 +148,4 @@ func TestIsHostedDomain(t *testing.T) {
 		}
 	}
 
-}
-
-func mockNSState() *mock.NSState {
-	state := &mock.NSState{}
-	state.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
-		return nil
-	}
-
-	hosts := make(map[string]bool)
-	state.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
-		if _, ok := hosts[zone]; !ok {
-			hosts[zone] = true
-			return true, nil
-		}
-		return false, nil
-	}
-	return state
 }

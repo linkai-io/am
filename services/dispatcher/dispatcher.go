@@ -8,6 +8,7 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/services/dispatcher/state"
+	"github.com/pkg/errors"
 )
 
 // Config ...
@@ -100,13 +101,17 @@ func (s *Service) listener() {
 					log.Printf("error getting addresses from client: %s\n", err)
 					goto LISTEN
 				}
-				count += len(addrs)
-				if len(addrs) == 0 {
+				if addrs == nil {
 					break
 				}
+				count += len(addrs)
+				if count == 0 {
+					break
+				}
+				log.Printf("count: %d\n", count)
 				// get last addressid and update start for filter.
-				filter.Start = addrs[len(addrs)-1].AddressID
-				log.Printf("Putting %d addresses in state for %d\n", len(addrs), details.scanGroupID)
+				filter.Start = addrs[count-1].AddressID
+				log.Printf("Putting %d addresses in state for %d\n", count, details.scanGroupID)
 				if err := s.state.PutAddresses(ctx, details.userContext, details.scanGroupID, addrs); err != nil {
 					log.Printf("error pushing addresses last addr: %d for scangroup %d: %s\n", filter.Start, details.scanGroupID, err)
 					goto LISTEN
@@ -115,25 +120,50 @@ func (s *Service) listener() {
 
 			log.Printf("Push addresses for %d complete.\n", details.scanGroupID)
 
-			for {
-				addrMap, err := s.state.GetAddresses(ctx, details.userContext, details.scanGroupID, 1000)
-				if err != nil {
-					log.Printf("error getting addresses: %s\n", err)
-					goto LISTEN
-				}
-				log.Printf("got %d addresses for %d\n", len(addrMap), details.scanGroupID)
+			if err := s.analyzeAddresses(ctx, details.userContext, details.scanGroupID); err != nil {
+				log.Printf("error analyzing addresses: %s\n", err)
+			}
 
-				if len(addrMap) == 0 {
-					log.Printf("no more addresses for %d\n", details.scanGroupID)
-					break
-				}
+		} // send switch
+	} // end for
+}
 
-				// TODO: add concurrency here
-				for _, addr := range addrMap {
-					log.Printf("dispatching %v for ns module\n", addr)
-					s.moduleClients[am.NSModule].Analyze(ctx, addr)
-				}
+// analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned
+// TODO: add concurrency here
+func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+	for {
+		addrMap, err := s.state.GetAddresses(ctx, userContext, scanGroupID, 1000)
+		if err != nil {
+			return errors.Wrap(err, "error getting addresses")
+		}
+		log.Printf("got %d addresses for %d\n", len(addrMap), scanGroupID)
+
+		if len(addrMap) == 0 {
+			log.Printf("no more addresses for %d\n", scanGroupID)
+			break
+		}
+
+		for _, addr := range addrMap {
+			err := s.analyzeAddress(ctx, userContext, scanGroupID, addr)
+			if err != nil {
+				log.Printf("encountered error: %s while handling %#v\n", err, addr)
 			}
 		}
 	}
+	return nil
+}
+
+func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, scanGroupID int, address *am.ScanGroupAddress) error {
+	log.Printf("dispatching %v for ns module\n", address)
+	newAddrs, err := s.moduleClients[am.NSModule].Analyze(ctx, address)
+	if err != nil {
+		return errors.Wrap(err, "failed to analyze using ns module")
+	}
+
+	if err := s.state.PutAddresses(ctx, userContext, scanGroupID, newAddrs); err != nil {
+		log.Printf("error putting %d addresses for group %d\n", len(newAddrs), scanGroupID)
+	}
+
+	log.Printf("got %d addresses from %d\n", len(newAddrs), address.AddressID)
+	return nil
 }

@@ -75,6 +75,19 @@ func TestAddresses(t *testing.T) {
 	}
 	amtest.TestCompareAddresses(expected, returned, t)
 
+	// attempt to get again, they should be removed
+	returned, err = r.GetAddresses(ctx, userContext, sg.GroupID, 100)
+	if err != nil {
+		t.Fatalf("error getting addresses 2nd time: %s\n", err)
+	}
+
+	if len(returned) != 0 {
+		for k, v := range returned {
+			t.Logf("%d %#v\n", k, v)
+		}
+		t.Fatalf("error addresses still in redis %d\n", len(returned))
+	}
+
 	exists, err := r.Exists(ctx, userContext.GetOrgID(), sg.GroupID, addrs[0].HostAddress, addrs[0].IPAddress)
 	if err != nil {
 		t.Fatalf("error testing if member host: %s ip: %s exists: %s\n", addrs[0].HostAddress, addrs[0].IPAddress, err)
