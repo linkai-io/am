@@ -3,7 +3,6 @@ package redisclient
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -99,11 +98,9 @@ func (c *Client) Subscribe(ctx context.Context, onStart SubOnStart, onMessage Su
 		for {
 			switch n := psc.Receive().(type) {
 			case error:
-				log.Printf("DONE\n")
 				done <- n
 				return
 			case redis.Message:
-				log.Printf("GOT MSG\n")
 				if err := onMessage(n.Channel, n.Data); err != nil {
 					done <- err
 					return
@@ -112,7 +109,6 @@ func (c *Client) Subscribe(ctx context.Context, onStart SubOnStart, onMessage Su
 				switch n.Count {
 				case len(channels):
 					// Notify application when all channels are subscribed.
-					log.Printf("STARTING\n")
 					if err := onStart(); err != nil {
 						done <- err
 						return
@@ -135,7 +131,6 @@ loop:
 			// Send ping to test health of connection and server. If
 			// corresponding pong is not received, then receive on the
 			// connection will timeout and the receive goroutine will exit.
-			log.Printf("PING")
 			if err = psc.Ping(""); err != nil {
 				break loop
 			}

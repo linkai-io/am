@@ -11,8 +11,8 @@ type DispatcherState struct {
 	InitFn        func(config []byte) error
 	InitFnInvoked bool
 
-	GetAddressesFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[int64]*am.ScanGroupAddress, error)
-	GetAddressesInvoked bool
+	PopAddressesFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[string]*am.ScanGroupAddress, error)
+	PopAddressesInvoked bool
 
 	SubscribeFn      func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error
 	SubscribeInvoked bool
@@ -25,15 +25,21 @@ type DispatcherState struct {
 
 	PutAddressesFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error
 	PutAddressesInvoked bool
+
+	PutAddressMapFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses map[string]*am.ScanGroupAddress) error
+	PutAddressMapInvoked bool
+
+	FilterNewFn      func(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error)
+	FilterNewInvoked bool
 }
 
 func (s *DispatcherState) Init(config []byte) error {
 	return nil
 }
 
-func (s *DispatcherState) GetAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[int64]*am.ScanGroupAddress, error) {
-	s.GetAddressesInvoked = true
-	return s.GetAddressesFn(ctx, userContext, scanGroupID, limit)
+func (s *DispatcherState) PopAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[string]*am.ScanGroupAddress, error) {
+	s.PopAddressesInvoked = true
+	return s.PopAddressesFn(ctx, userContext, scanGroupID, limit)
 }
 
 func (s *DispatcherState) Subscribe(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
@@ -54,4 +60,13 @@ func (s *DispatcherState) GroupStatus(ctx context.Context, userContext am.UserCo
 func (s *DispatcherState) PutAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
 	s.PutAddressesInvoked = true
 	return s.PutAddressesFn(ctx, userContext, scanGroupID, addresses)
+}
+
+func (s *DispatcherState) PutAddressMap(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses map[string]*am.ScanGroupAddress) error {
+	s.PutAddressMapInvoked = true
+	return s.PutAddressMapFn(ctx, userContext, scanGroupID, addresses)
+}
+func (s *DispatcherState) FilterNew(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
+	s.FilterNewInvoked = true
+	return s.FilterNewFn(ctx, orgID, scanGroupID, addresses)
 }

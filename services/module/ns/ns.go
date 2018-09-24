@@ -65,14 +65,14 @@ func (ns *NS) Name() string {
 
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
 // TODO: add error if shutting down so dispatcher can retry
-func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) ([]*am.ScanGroupAddress, error) {
+func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
 	//if ns.groupCache.GetGroupByIDs(address.OrgID, address.GroupID)
 	resolvedHosts := ns.analyzeHost(ctx, address)
 	resolvedIPs := ns.analyzeIP(ctx, address)
-	nsRecords := make([]*am.ScanGroupAddress, 0)
+	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
-	nsRecords = append(nsRecords, resolvedHosts...)
-	nsRecords = append(nsRecords, resolvedIPs...)
+	addAddressToMap(nsRecords, resolvedHosts)
+	addAddressToMap(nsRecords, resolvedIPs)
 
 	if address.HostAddress == "" {
 		return nsRecords, nil
@@ -92,7 +92,7 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) ([]*am.
 	if ok {
 		zoneRecords := ns.analyzeZone(ctx, etld, address)
 		log.Printf("got %d zone records for %s\n", len(zoneRecords), etld)
-		nsRecords = append(nsRecords, zoneRecords...)
+		addAddressToMap(nsRecords, zoneRecords)
 	}
 
 	// push nsRecords
@@ -247,4 +247,10 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 		}
 	}
 	return nsData
+}
+
+func addAddressToMap(addressMap map[string]*am.ScanGroupAddress, addresses []*am.ScanGroupAddress) {
+	for _, addr := range addresses {
+		addressMap[addr.AddressHash] = addr
+	}
 }

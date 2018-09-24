@@ -92,13 +92,26 @@ func (c *Client) parseConfig(data []byte) (*Config, error) {
 	return config, nil
 }
 
-func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) error {
+func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
+	var err error
+	var resp *service.AnalyzedResponse
 	in := &service.AnalyzeRequest{
 		Address: convert.DomainToAddress(address),
 	}
 
-	return retrier.Retry(func() error {
-		_, err := c.client.Analyze(ctx, in)
+	err = retrier.Retry(func() error {
+		resp, err = c.client.Analyze(ctx, in)
 		return err
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	addrs := make(map[string]*am.ScanGroupAddress, len(resp.Addresses))
+	for key, val := range resp.Addresses {
+		addrs[key] = convert.AddressToDomain(val)
+	}
+
+	return addrs, nil
 }

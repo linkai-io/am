@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/linkai-io/am/pkg/inputlist"
 	"github.com/linkai-io/am/pkg/redisclient"
 	"github.com/linkai-io/am/pkg/secrets"
@@ -49,12 +51,14 @@ func GenerateID(t *testing.T) string {
 func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 	addrs := make([]*am.ScanGroupAddress, count)
 	for i := 0; i < count; i++ {
+		ip := fmt.Sprintf("192.168.0.%d", i)
 		addrs[i] = &am.ScanGroupAddress{
 			AddressID:           int64(i),
 			OrgID:               orgID,
 			GroupID:             groupID,
 			HostAddress:         "",
-			IPAddress:           fmt.Sprintf("192.168.0.%d", i),
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, ""),
 			DiscoveryTime:       time.Now().UnixNano(),
 			DiscoveredBy:        "input_list",
 			LastScannedTime:     0,
@@ -336,22 +340,22 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 }
 
-func TestCompareAddresses(expected, returned map[int64]*am.ScanGroupAddress, t *testing.T) {
+func TestCompareAddresses(expected, returned map[string]*am.ScanGroupAddress, t *testing.T) {
 
-	expectedKeys := make([]int64, len(expected))
+	expectedKeys := make([]string, len(expected))
 	i := 0
 	for k := range expected {
 		expectedKeys[i] = k
 		i++
 	}
-	returnedKeys := make([]int64, len(returned))
+	returnedKeys := make([]string, len(returned))
 	i = 0
 	for k := range returned {
 		returnedKeys[i] = k
 		i++
 	}
 
-	SortEqualInt64(expectedKeys, returnedKeys, t)
+	SortEqualString(expectedKeys, returnedKeys, t)
 
 	for addrID := range returned {
 		e := expected[addrID]

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/state/redis"
 
 	"github.com/linkai-io/am/am"
@@ -46,7 +47,7 @@ func TestAddresses(t *testing.T) {
 	sg := &am.ScanGroup{
 		OrgID:                1,
 		GroupID:              1,
-		GroupName:            "testredis",
+		GroupName:            "testredisaddresses",
 		CreationTime:         now,
 		ModifiedTime:         now,
 		ModuleConfigurations: amtest.CreateModuleConfig(),
@@ -64,26 +65,26 @@ func TestAddresses(t *testing.T) {
 		t.Fatalf("error pushing addresses: %s\n", err)
 	}
 
-	returned, err := r.GetAddresses(ctx, userContext, sg.GroupID, 100)
+	returned, err := r.PopAddresses(ctx, userContext, sg.GroupID, 100)
 	if err != nil {
 		t.Fatalf("error getting addresses: %s\n", err)
 	}
 
-	expected := make(map[int64]*am.ScanGroupAddress, 0)
+	expected := make(map[string]*am.ScanGroupAddress, 0)
 	for i := 0; i < len(addrs); i++ {
-		expected[addrs[i].AddressID] = addrs[i]
+		expected[addrs[i].AddressHash] = addrs[i]
 	}
 	amtest.TestCompareAddresses(expected, returned, t)
 
 	// attempt to get again, they should be removed
-	returned, err = r.GetAddresses(ctx, userContext, sg.GroupID, 100)
+	returned, err = r.PopAddresses(ctx, userContext, sg.GroupID, 100)
 	if err != nil {
 		t.Fatalf("error getting addresses 2nd time: %s\n", err)
 	}
 
 	if len(returned) != 0 {
 		for k, v := range returned {
-			t.Logf("%d %#v\n", k, v)
+			t.Logf("%s %#v\n", k, v)
 		}
 		t.Fatalf("error addresses still in redis %d\n", len(returned))
 	}
@@ -198,35 +199,102 @@ func TestGroupStatus(t *testing.T) {
 	if status != am.GroupStopped {
 		t.Fatalf("expected group stopped got: %v\n", am.GroupStatusMap[status])
 	}
+
+	// test start
+	if err := r.Start(ctx, userContext, gid); err != nil {
+		t.Fatalf("error starting group: %s\n", err)
+	}
+
+	_, status, err = r.GroupStatus(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting status: %s\n", err)
+	}
+
+	if status != am.GroupStarted {
+		t.Fatalf("expected group started got: %v\n", am.GroupStatusMap[status])
+	}
+	// test stop
+	if err := r.Stop(ctx, userContext, gid); err != nil {
+		t.Fatalf("error starting group: %s\n", err)
+	}
+
+	_, status, err = r.GroupStatus(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error getting status: %s\n", err)
+	}
+
+	if status != am.GroupStopped {
+		t.Fatalf("expected group stopped got: %v\n", am.GroupStatusMap[status])
+	}
+
 }
 
-func BenchmarkPut(b *testing.B) {
+func TestFilterNew(t *testing.T) {
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
-		b.Fatalf("error connecting to redis: %s\n", err)
+		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()
 	sg := &am.ScanGroup{
 		OrgID:                1,
 		GroupID:              1,
-		GroupName:            "testredis",
+		GroupName:            "testredisfilternew",
 		CreationTime:         now,
 		ModifiedTime:         now,
 		ModuleConfigurations: amtest.CreateModuleConfig(),
 	}
 	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := r.Put(ctx, userContext, sg); err != nil {
-			b.Fatalf("error putting sg: %s\n", err)
-		}
-
-		if err := r.Delete(ctx, userContext, sg); err != nil {
-			b.Fatalf("error deleting all keys: %s\n", err)
-		}
+	if err := r.Put(ctx, userContext, sg); err != nil {
+		t.Fatalf("error putting sg: %s\n", err)
 	}
 
+	defer r.Delete(ctx, userContext, sg)
+
+	addrs := amtest.GenerateAddrs(userContext.GetOrgID(), sg.GroupID, 10)
+	testAddrs := make(map[string]*am.ScanGroupAddress, len(addrs)+1)
+	i := 0
+	for ; i < len(addrs); i++ {
+		testAddrs[addrs[i].AddressHash] = addrs[i]
+	}
+
+	if err := r.PutAddressMap(ctx, userContext, sg.GroupID, testAddrs); err != nil {
+		t.Fatalf("error putting address map: %s\n", err)
+	}
+
+	addrHash := convert.HashAddress("11.1.1.1", "")
+	testAddrs[addrHash] = &am.ScanGroupAddress{
+		AddressID:     0,
+		OrgID:         sg.OrgID,
+		GroupID:       sg.GroupID,
+		HostAddress:   "",
+		IPAddress:     "11.1.1.1",
+		AddressHash:   addrHash,
+		DiscoveryTime: time.Now().UnixNano(),
+		DiscoveredBy:  "input_list",
+	}
+
+	returned, err := r.FilterNew(ctx, sg.OrgID, sg.GroupID, testAddrs)
+	if err != nil {
+		t.Fatalf("error calling filter new: %s\n", err)
+	}
+	if len(returned) != 1 {
+		t.Fatalf("expected only one new address, got: %d\n", len(returned))
+	}
+
+	if _, err := r.PopAddresses(ctx, userContext, sg.GroupID, 1000); err != nil {
+		t.Fatalf("error popping addresses: %s\n", err)
+	}
+
+	// ensure filternew still returns even though the addresses have been popped
+	t.Logf("%#v\n", returned)
+	returned, err = r.FilterNew(ctx, sg.OrgID, sg.GroupID, testAddrs)
+	if err != nil {
+		t.Fatalf("error calling filter new after pop: %s\n", err)
+	}
+	if len(returned) != 1 {
+		t.Fatalf("expected only one new address after pop, got: %d\n", len(returned))
+	}
 }
 
 func TestState_DoNSRecords(t *testing.T) {
@@ -298,4 +366,33 @@ func TestState_Subscribe(t *testing.T) {
 	cancel()
 
 	wg.Wait()
+}
+
+func BenchmarkPut(b *testing.B) {
+	r := redis.New()
+	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+		b.Fatalf("error connecting to redis: %s\n", err)
+	}
+	now := time.Now().UnixNano()
+	sg := &am.ScanGroup{
+		OrgID:                1,
+		GroupID:              1,
+		GroupName:            "testredis",
+		CreationTime:         now,
+		ModifiedTime:         now,
+		ModuleConfigurations: amtest.CreateModuleConfig(),
+	}
+	userContext := amtest.CreateUserContext(1, 1)
+	ctx := context.Background()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := r.Put(ctx, userContext, sg); err != nil {
+			b.Fatalf("error putting sg: %s\n", err)
+		}
+
+		if err := r.Delete(ctx, userContext, sg); err != nil {
+			b.Fatalf("error deleting all keys: %s\n", err)
+		}
+	}
+
 }

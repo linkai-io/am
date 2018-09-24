@@ -3,12 +3,13 @@ package redis
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/gomodule/redigo/redis"
 	"github.com/linkai-io/am/am"
+	"github.com/pkg/errors"
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/redisclient"
@@ -344,8 +345,7 @@ func (s *State) Delete(ctx context.Context, userContext am.UserContext, group *a
 	return err
 }
 
-// PutAddresses iterates over the addresses and puts each to it's own key oid:gid:address:<addrid> <hash>
-// also stores a set as an 'index' for retrieving them.
+// PutAddresses puts addresses that are in slice form into the work queue, exists set, and the address data
 func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
@@ -360,22 +360,7 @@ func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	for _, addr := range addresses {
-		if addr.AddressHash == "" {
-			addr.AddressHash = convert.HashAddress(addr.IPAddress, addr.HostAddress)
-		}
-
-		// addrworkqueue is used to pop addresses out of the set
-		if err := conn.Send("SADD", keys.AddrWorkQueue(), addr.AddressHash); err != nil {
-			return err
-		}
-
-		// addrexistshash is used for testing if an address is stored in redis
-		if err := conn.Send("SADD", keys.AddrExistsHash(), addr.AddressHash); err != nil {
-			return err
-		}
-
-		// the actual address data stored in a hashset
-		if err := conn.Send("HMSET", redis.Args{keys.Addr(addr.AddressHash)}.AddFlat(addr)...); err != nil {
+		if err := s.putAddress(conn, keys, addr); err != nil {
 			return err
 		}
 	}
@@ -383,28 +368,69 @@ func (s *State) PutAddresses(ctx context.Context, userContext am.UserContext, sc
 	return err
 }
 
-// GetAddresses is a rather convoluted process of extracting addresses from redis. We use a cursor to iterate over
-// a predefined set which contains all of the address id's. These address ids are then appended to the address key
-// to be able to extract the address data using HGETALL. Since this is done in a MULTI pipeline, we are returned
-// a slice of addresses and we need to iterate through each and do some interface type checking and finally call
-// ScanStruct to map it back to an am.ScanGroupAddress. We use a map in the event that multiple addresses come back
-// during the same iteration (which apparently can happen)
-func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[int64]*am.ScanGroupAddress, error) {
+// PutAddressMap puts addresses that are in map form into the work queue, exists set, and the address data
+func (s *State) PutAddressMap(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses map[string]*am.ScanGroupAddress) error {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return err
+	}
+	defer s.rc.Return(conn)
+
+	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
+
+	if err := conn.Send("MULTI"); err != nil {
+		return err
+	}
+
+	for _, addr := range addresses {
+		if err := s.putAddress(conn, keys, addr); err != nil {
+			return err
+		}
+	}
+	_, err = conn.Do("EXEC")
+	return err
+}
+
+// putAddress adds a hash if it does not have one, adds it to work queue, the exist set and the address data.
+func (s *State) putAddress(conn redis.Conn, keys *redisclient.RedisKeys, address *am.ScanGroupAddress) error {
+	if address.AddressHash == "" {
+		address.AddressHash = convert.HashAddress(address.IPAddress, address.HostAddress)
+	}
+
+	// addrworkqueue is used to pop addresses out of the set
+	if err := conn.Send("SADD", keys.AddrWorkQueue(), address.AddressHash); err != nil {
+		return err
+	}
+
+	// addrexistshash is used for testing if an address is stored in redis
+	if err := conn.Send("SADD", keys.AddrExistsHash(), address.AddressHash); err != nil {
+		return err
+	}
+
+	// the actual address data stored in a hashset
+	if err := conn.Send("HMSET", redis.Args{keys.Addr(address.AddressHash)}.AddFlat(address)...); err != nil {
+		return err
+	}
+	return nil
+}
+
+// PopAddresses pops the addresses hashes from the work queue key, uses that to call HGETALL to return the address data
+func (s *State) PopAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[string]*am.ScanGroupAddress, error) {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer s.rc.Return(conn)
 
-	cachedAddrs := make(map[int64]*am.ScanGroupAddress, 0)
+	cachedAddrs := make(map[string]*am.ScanGroupAddress, 0)
 	keys := redisclient.NewRedisKeys(userContext.GetOrgID(), scanGroupID)
 
-	resp, err := redis.Values(conn.Do("SPOP", keys.AddrWorkQueue(), "COUNT", limit))
+	resp, err := redis.Values(conn.Do("SPOP", keys.AddrWorkQueue(), limit))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to pop from work queue")
 	}
 
-	addressKeys, err := redis.Strings(resp, err)
+	addressHashKeys, err := redis.Strings(resp, err)
 	if err != nil {
 		return nil, err
 	}
@@ -413,8 +439,8 @@ func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, sc
 		return nil, err
 	}
 
-	for _, addressID := range addressKeys {
-		if err := conn.Send("HGETALL", keys.Addr(addressID)); err != nil {
+	for _, addressHash := range addressHashKeys {
+		if err := conn.Send("HGETALL", keys.Addr(addressHash)); err != nil {
 			return nil, err
 		}
 	}
@@ -433,7 +459,7 @@ func (s *State) GetAddresses(ctx context.Context, userContext am.UserContext, sc
 			// check against an empty record, by ensuring the group ids
 			// match, if empty, group id will be 0.
 			if addr.GroupID == scanGroupID {
-				cachedAddrs[addr.AddressID] = addr
+				cachedAddrs[addr.AddressHash] = addr
 			}
 
 		}
@@ -452,6 +478,70 @@ func (s *State) Exists(ctx context.Context, orgID, scanGroupID int, host, ipAddr
 
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	return redis.Bool(conn.Do("SISMEMBER", keys.AddrExistsHash(), convert.HashAddress(host, ipAddress)))
+}
+
+// FilterNew returns only new addresses
+func (s *State) FilterNew(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.rc.Return(conn)
+
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+
+	hashes := make([]interface{}, len(addresses)+1)
+	tempID, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+	// key to store hashes at
+	hashes[0] = tempID.String()
+
+	// since we already need to loop over address hashes, use it to also
+	// create a map we will use to filter out duplicates after we get the
+	// response from SINTER
+	i := 1
+	for _, v := range addresses {
+		hashes[i] = v.AddressHash
+		i++
+	}
+
+	if err := conn.Send("MULTI"); err != nil {
+		return nil, err
+	}
+
+	if err := conn.Send("SADD", hashes...); err != nil {
+		return nil, err
+	}
+
+	if err := conn.Send("SINTER", keys.AddrExistsHash(), tempID.String()); err != nil {
+		return nil, err
+	}
+
+	if err := conn.Send("DEL", tempID.String()); err != nil {
+		return nil, err
+	}
+
+	val, err := redis.Values(conn.Do("EXEC"))
+	if err != nil {
+		return nil, err
+	}
+
+	// take the 1th element which contains the results of SINTER
+	exists, err := redis.Strings(val[1], nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// remove dupelicates (already exist) from our map
+	for _, dupe := range exists {
+		if _, exist := addresses[dupe]; exist {
+			delete(addresses, dupe)
+		}
+	}
+
+	return addresses, nil
 }
 
 // Subscribe to listen for group state updates
