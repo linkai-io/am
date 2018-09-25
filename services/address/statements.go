@@ -71,10 +71,11 @@ var queryMap = map[string]string{
 
 var (
 	AddAddressesTempTableKey     = "sga_add_temp"
-	AddAddressesTempTableColumns = []string{"organization_id", "scan_group_id", "host_address", "ip_address",
+	AddAddressesTempTableColumns = []string{"address_id", "organization_id", "scan_group_id", "host_address", "ip_address",
 		"discovered_timestamp", "discovered_by", "last_scanned_timestamp", "last_seen_timestamp", "confidence_score",
 		"user_confidence_score", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored", "found_from", "ns_record", "address_hash"}
 	AddAddressesTempTable = `create temporary table sga_add_temp (
+			address_id bigint not null,
 			organization_id integer not null,
 			scan_group_id integer not null,
 			host_address varchar(512),
@@ -96,6 +97,7 @@ var (
 		) on commit drop;`
 
 	AddAddressesTempToAddress = `insert into am.scan_group_addresses as sga (
+			address_id,
 			organization_id, 
 			scan_group_id,
 			host_address,
@@ -115,6 +117,7 @@ var (
 			address_hash
 		)
 		select
+			(case when (temp.address_id<>0) then (temp.address_id) else nextval('am.scan_group_addresses_address_id_seq'::regclass) end),
 			temp.organization_id, 
 			temp.scan_group_id, 
 			temp.host_address, 
@@ -143,7 +146,8 @@ var (
 			ignored=EXCLUDED.ignored,
 			found_from=EXCLUDED.found_from,
 			ns_record=EXCLUDED.ns_record,
-			address_hash=EXCLUDED.address_hash;`
+			address_hash=EXCLUDED.address_hash,
+			address_id=(case when (sga.address_id<>0) then (sga.address_id) else nextval('am.scan_group_addresses_address_id_seq'::regclass) end);`
 
 	DeleteAddressesTempTableKey     = "sga_del_temp"
 	DeleteAddressesTempTableColumns = []string{"address_id"}

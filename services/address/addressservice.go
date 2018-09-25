@@ -163,7 +163,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 			return 0, 0, ErrAddressMissing
 		}
 
-		addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
+		addressRows[i] = []interface{}{a.AddressID, int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
 			a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore, a.UserConfidenceScore,
 			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
 		}
