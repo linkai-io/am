@@ -51,7 +51,7 @@ type ScanGroupAddress struct {
 	IsWildcardZone      bool    `json:"is_wildcard_zone"`
 	IsHostedService     bool    `json:"is_hosted_service"`
 	Ignored             bool    `json:"ignored"`
-	FoundFrom           int64   `json:"found_from"`
+	FoundFrom           string  `json:"found_from"` // address hash it was discovered from
 	NSRecord            int32   `json:"ns_record"`
 	AddressHash         string  `json:"address_hash"`
 }

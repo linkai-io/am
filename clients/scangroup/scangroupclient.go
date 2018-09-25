@@ -59,8 +59,8 @@ func debug(addr string) {
 			continue
 		}
 
-		for _, srv := range resp.Servers {
-			fmt.Printf("SCANGROUP SERVERS: %d\t%s\n", srv.Score, srv.Address)
+		if len(resp.Servers) == 0 {
+			fmt.Printf("No scangroup servers\n")
 		}
 	}
 }

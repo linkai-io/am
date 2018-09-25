@@ -57,9 +57,8 @@ func debug(addr string) {
 			log.Printf("dispatcher client error in resp: %v\n", err)
 			continue
 		}
-
-		for _, srv := range resp.Servers {
-			fmt.Printf("DISPATCHER SERVERS: %d\t%s\n", srv.Score, srv.Address)
+		if len(resp.Servers) == 0 {
+			fmt.Printf("No dispatcher servers")
 		}
 	}
 }

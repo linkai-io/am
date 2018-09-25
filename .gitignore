@@ -7,4 +7,5 @@ cmd/coordinator/coordinator
 cmd/dispatcher/dispatcher
 cmd/module/ns/ns
 cmd/amload/amload
+cmd/pipeline/pipeline
 .vscode/*

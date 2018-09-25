@@ -94,6 +94,7 @@ func AddrsFromInputFile(orgID, groupID int, addrFile *os.File, t *testing.T) []*
 	addrs := make([]*am.ScanGroupAddress, len(in))
 	i := 0
 	for addr := range in {
+
 		addrs[i] = &am.ScanGroupAddress{
 			AddressID:           int64(i),
 			OrgID:               orgID,
@@ -109,6 +110,7 @@ func AddrsFromInputFile(orgID, groupID int, addrFile *os.File, t *testing.T) []*
 		} else {
 			addrs[i].HostAddress = addr
 		}
+		addrs[i].AddressHash = convert.HashAddress(addrs[i].IPAddress, addrs[i].HostAddress)
 		i++
 	}
 	return addrs

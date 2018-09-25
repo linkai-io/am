@@ -89,7 +89,7 @@ var (
 			is_wildcard_zone boolean not null,
 			is_hosted_service boolean not null,
 			ignored boolean not null,
-			found_from bigint,
+			found_from varchar(128),
 			ns_record int,
 			address_hash varchar(128)
 			check (host_address is not null or ip_address is not null)

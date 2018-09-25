@@ -73,8 +73,8 @@ func debug(key, addr string) {
 			continue
 		}
 
-		for _, srv := range resp.Servers {
-			fmt.Printf("%s SERVERS: %d\t%s\n", key, srv.Score, srv.Address)
+		if len(resp.Servers) == 0 {
+			fmt.Printf("no %s servers\n", key)
 		}
 	}
 }
@@ -92,7 +92,7 @@ func (c *Client) parseConfig(data []byte) (*Config, error) {
 	return config, nil
 }
 
-func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
+func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	var err error
 	var resp *service.AnalyzedResponse
 	in := &service.AnalyzeRequest{
@@ -105,7 +105,7 @@ func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	addrs := make(map[string]*am.ScanGroupAddress, len(resp.Addresses))
@@ -113,5 +113,5 @@ func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map
 		addrs[key] = convert.AddressToDomain(val)
 	}
 
-	return addrs, nil
+	return convert.AddressToDomain(resp.Original), addrs, nil
 }

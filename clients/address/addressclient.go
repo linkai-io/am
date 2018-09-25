@@ -10,6 +10,7 @@ import (
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/address"
+	"github.com/linkai-io/am/protocservices/prototypes"
 	"google.golang.org/grpc"
 )
 
@@ -71,11 +72,26 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 }
 
 func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error) {
-	var stream service.Address_UpdateClient
+	var resp *service.UpdateAddressesResponse
+
+	protoAddresses := make([]*prototypes.AddressData, 0)
+
+	for i := 0; i < len(addresses); i++ {
+		if addresses[i] == nil {
+			log.Printf("nil address\n")
+			continue
+		}
+		protoAddresses = append(protoAddresses, convert.DomainToAddress(addresses[i]))
+	}
+
+	in := &service.UpdateAddressRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Address:     protoAddresses,
+	}
 
 	err = retrier.Retry(func() error {
 		var err error
-		stream, err = c.client.Update(ctx)
+		resp, err = c.client.Update(ctx, in)
 		return err
 	})
 
@@ -83,27 +99,7 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 		return 0, 0, err
 	}
 
-	for i := 0; i < len(addresses); i++ {
-		if addresses[i] == nil {
-			log.Printf("nil address\n")
-			continue
-		}
-		in := &service.UpdateAddressRequest{
-			UserContext: convert.DomainToUserContext(userContext),
-			Address:     convert.DomainToAddress(addresses[i]),
-		}
-
-		if err := stream.Send(in); err != nil {
-			return 0, 0, err
-		}
-
-	}
-	reply, err := stream.CloseAndRecv()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return int(reply.GetOrgID()), int(reply.GetCount()), nil
+	return int(resp.GetOrgID()), int(resp.GetCount()), nil
 }
 
 func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {

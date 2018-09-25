@@ -1,6 +1,14 @@
 version: '3'
 
 services:
+  unbound:
+    image: 48598a119cee
+    hostname: unbound
+    ports: 
+      - "2053:53"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.53
   redis:
     image: myredis
     hostname: redis

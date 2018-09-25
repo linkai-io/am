@@ -76,10 +76,24 @@ func TestNetflixInput(t *testing.T) {
 	ns.Init(nil)
 
 	ctx := context.Background()
+	updated := &am.ScanGroupAddress{}
+	netflix := &am.ScanGroupAddress{}
 	for _, addr := range addrs {
 		if addr.HostAddress == "www.netflix.com" {
-			ns.Analyze(ctx, addr)
+			netflix = addr
+			updated, _, err = ns.Analyze(ctx, addr)
+			if err != nil {
+				t.Fatalf("error analyzing: %s\n", err)
+			}
 		}
+	}
+
+	if updated.AddressID != netflix.AddressID {
+		t.Fatalf("expected addr id: %d got %d\n", netflix.AddressID, updated.AddressID)
+	}
+
+	if updated.IPAddress == "" {
+		t.Fatalf("did not get ip address for updated netflix\n")
 	}
 }
 

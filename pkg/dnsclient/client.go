@@ -239,8 +239,6 @@ func (c *Client) doAXFR(msg *dns.Msg, nameserver string, rc chan<- *axfrResultEr
 		ReadTimeout: 3 * time.Second,
 	}
 
-	log.Printf("testing nameserver: %s\n", nameserver)
-
 	envelope, err := tr.In(msg, nameserver+":53")
 	if err != nil {
 		log.Printf("nameserver: %s returned err: %s\n", nameserver, err)

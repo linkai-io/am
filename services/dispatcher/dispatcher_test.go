@@ -2,8 +2,8 @@ package dispatcher_test
 
 import (
 	"context"
+	"log"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -45,17 +45,19 @@ func TestDispatcherFlow(t *testing.T) {
 	modules := make(map[am.ModuleType]am.ModuleService)
 	modules[am.NSModule] = nsModule
 
-	wg := &sync.WaitGroup{}
+	count := 0
 	// init Dispatcher state system and DispatcherService
 	disState := &mock.DispatcherState{}
-	stateAddrs := make([]*am.ScanGroupAddress, 0)
-	stateHashes := make(map[string]*am.ScanGroupAddress)
+	stateAddrs := make([]*am.ScanGroupAddress, 0)        // addresses stored in state
+	stateHashes := make(map[string]*am.ScanGroupAddress) // hashes stored in state
+
 	disState.PutAddressesFn = func(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses []*am.ScanGroupAddress) error {
 		stateAddrs = append(stateAddrs, addresses...)
 		for _, addr := range addresses {
 			stateHashes[addr.AddressHash] = addr
+			count++
 		}
-		wg.Add(1)
+		log.Printf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
 		return nil
 	}
 
@@ -63,8 +65,10 @@ func TestDispatcherFlow(t *testing.T) {
 		for _, v := range addresses {
 			stateAddrs = append(stateAddrs, v)
 			stateHashes[v.AddressHash] = v
+			count++
 		}
-		wg.Add(1)
+		log.Printf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
+
 		return nil
 	}
 
@@ -81,10 +85,12 @@ func TestDispatcherFlow(t *testing.T) {
 		newAddrs := make(map[string]*am.ScanGroupAddress)
 		for _, addr := range stateAddrs {
 			newAddrs[addr.AddressHash] = addr
+			count--
 		}
-		wg.Done()
+
 		// clear out addresses
 		stateAddrs = make([]*am.ScanGroupAddress, 0)
+		log.Printf("after pop, len: %d, %v\n", len(newAddrs), newAddrs)
 		return newAddrs, nil
 	}
 	dispatcher := dispatcher.New(addrClient, modules, disState)
@@ -95,6 +101,18 @@ func TestDispatcherFlow(t *testing.T) {
 
 	// Run pipeline
 	dispatcher.PushAddresses(ctx, userContext, groupID)
-	time.Sleep(5 * time.Second)
-	wg.Wait()
+
+	ticker := time.NewTicker(time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			log.Printf("Active Addresses: %d, Groups: %d\n", dispatcher.GetActiveAddresses(), dispatcher.GetActiveGroups())
+			if dispatcher.GetActiveGroups() == 0 && dispatcher.GetActiveAddresses() == 0 {
+				for _, v := range stateHashes {
+					log.Printf("%#v\n", v)
+				}
+				return
+			}
+		}
+	}
 }

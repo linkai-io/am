@@ -214,7 +214,7 @@ func TestUpdate(t *testing.T) {
 		IsWildcardZone:  false,
 		IsHostedService: false,
 		Ignored:         false,
-		FoundFrom:       1,
+		FoundFrom:       "",
 		NSRecord:        1,
 		AddressHash:     "somehash",
 	}

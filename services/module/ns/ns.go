@@ -8,6 +8,7 @@ import (
 
 	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/parsers"
+	"github.com/miekg/dns"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
@@ -48,7 +49,7 @@ func New(st state.Stater) *NS {
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
-	ns.dc = dnsclient.New([]string{"0.0.0.0:2053"}, 3)
+	ns.dc = dnsclient.New([]string{"unbound:53"}, 3)
 	// populate cache
 	return nil
 }
@@ -65,23 +66,29 @@ func (ns *NS) Name() string {
 
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
 // TODO: add error if shutting down so dispatcher can retry
-func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
-	//if ns.groupCache.GetGroupByIDs(address.OrgID, address.GroupID)
+func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
+	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
+
+	if !ns.shouldAnalyze(address) {
+		log.Printf("will not analyze %s %s\n", address.IPAddress, address.HostAddress)
+		return address, nsRecords, nil
+	}
+
+	log.Printf("analyzing: %s %s\n", address.IPAddress, address.HostAddress)
 	resolvedHosts := ns.analyzeHost(ctx, address)
 	resolvedIPs := ns.analyzeIP(ctx, address)
-	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
 	addAddressToMap(nsRecords, resolvedHosts)
 	addAddressToMap(nsRecords, resolvedIPs)
 
 	if address.HostAddress == "" {
-		return nsRecords, nil
+		return address, nsRecords, nil
 	}
 
 	etld, err := parsers.GetETLD(address.HostAddress)
 	if err != nil || etld == "" {
 		// push nsRecords
-		return nsRecords, nil
+		return address, nsRecords, nil
 	}
 
 	ok, err := ns.st.DoNSRecords(ctx, address.OrgID, address.GroupID, nsExpire, etld)
@@ -96,7 +103,20 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (map[st
 	}
 
 	// push nsRecords
-	return nsRecords, nil
+	return address, nsRecords, nil
+}
+
+// shouldAnalyze determines if we should analyze the specific address or not
+func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
+	if address.IsHostedService || IsHostedDomain(address.HostAddress) {
+		return false
+	}
+
+	switch uint16(address.NSRecord) {
+	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
+		return false
+	}
+	return true
 }
 
 // recordFromAddress creates a new address from this address, copying over the necessary details.
@@ -112,7 +132,7 @@ func (ns *NS) newAddress(address *am.ScanGroupAddress, ip, host, discoveredBy st
 		IsHostedService: address.IsHostedService,
 		NSRecord:        int32(recordType),
 		AddressHash:     convert.HashAddress(ip, host),
-		FoundFrom:       address.AddressID,
+		FoundFrom:       address.AddressHash,
 	}
 
 	if !address.IsHostedService && address.HostAddress != "" {
@@ -200,7 +220,6 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 			address.NSRecord = int32(r.RecordType)
 			// update the hash address now that we have a proper host for it
 			address.AddressHash = convert.HashAddress(address.IPAddress, host)
-			nsData = append(nsData, address)
 			continue
 		}
 		// or we got a new hostname when attempting to resolve this ip.
@@ -238,7 +257,6 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 				address.LastScannedTime = time.Now().UnixNano()
 				address.NSRecord = int32(rr.RecordType)
 				address.AddressHash = convert.HashAddress(ip, address.HostAddress)
-				nsData = append(nsData, address)
 				continue
 			}
 

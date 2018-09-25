@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -138,6 +139,8 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 	}
 	var tx *pgx.Tx
 
+	log.Printf("adding: %d\n", len(addresses))
+
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
 		return 0, 0, err
@@ -169,7 +172,6 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddAddressesTempTableKey}, AddAddressesTempTableColumns, pgx.CopyFromRows(addressRows))
 	if err != nil {
-
 		return 0, 0, err
 	}
 

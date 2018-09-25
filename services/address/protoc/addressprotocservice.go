@@ -2,7 +2,6 @@ package protoc
 
 import (
 	"errors"
-	"io"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
@@ -46,49 +45,22 @@ func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.
 	return nil
 }
 
-func (s *AddressProtocService) Update(stream address.Address_UpdateServer) error {
+func (s *AddressProtocService) Update(ctx context.Context, in *address.UpdateAddressRequest) (*address.UpdateAddressesResponse, error) {
 	var oid int
-	var updateCount int
-	var count int32
-	var i int32
+	var count int
+	var err error
 	var userContext am.UserContext
 
-	addresses := make([]*am.ScanGroupAddress, s.MaxAddressStream)
-	for {
-		addr, err := stream.Recv()
-		if err == io.EOF {
-			if userContext == nil {
-				return ErrNilUserContext
-			}
-			// only do update if we have addresses
-			if i != 0 {
-				oid, updateCount, err = s.as.Update(stream.Context(), userContext, addresses[0:i])
-				if err != nil {
-					return err
-				}
-				count += int32(updateCount)
-			}
-			return stream.SendAndClose(&address.UpdateAddressesResponse{OrgID: int32(oid), Count: int32(count)})
-		}
-		// other error occurred
-		if err != nil {
-			return err
-		}
-		userContext = convert.UserContextToDomain(addr.UserContext)
-		if i == s.MaxAddressStream {
-			oid, updateCount, err = s.as.Update(stream.Context(), userContext, addresses)
-			if err != nil {
-				return err
-			}
-			count += int32(updateCount)
-			// reset the addresses slice and current index
-			i = 0
-			addresses = make([]*am.ScanGroupAddress, s.MaxAddressStream)
-		}
-		addresses[i] = convert.AddressToDomain(addr.Address)
-		i++
+	addresses := make([]*am.ScanGroupAddress, len(in.Address))
+	for i := 0; i < len(in.Address); i++ {
+		addresses[i] = convert.AddressToDomain(in.Address[i])
 	}
-	return nil
+	userContext = convert.UserContextToDomain(in.UserContext)
+	oid, count, err = s.as.Update(ctx, userContext, addresses)
+	if err != nil {
+		return nil, err
+	}
+	return &address.UpdateAddressesResponse{OrgID: int32(oid), Count: int32(count)}, nil
 }
 
 func (s *AddressProtocService) Delete(ctx context.Context, in *address.DeleteAddressesRequest) (*address.DeleteAddressesResponse, error) {
