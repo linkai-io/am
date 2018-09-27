@@ -1,81 +1,67 @@
 package address
 
+import "fmt"
+
+const (
+	sharedColumns = `organization_id, 
+		address_id, 
+		scan_group_id, 
+		host_address,
+		ip_address, 
+		discovered_timestamp, 
+		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
+		last_scanned_timestamp,
+		last_seen_timestamp,
+		confidence_score,
+		user_confidence_score,
+		is_soa,
+		is_wildcard_zone,
+		is_hosted_service,
+		ignored,
+		found_from,
+		ns_record,
+		address_hash`
+)
+
 var queryMap = map[string]string{
 	// am.scan_group_addresses related
-	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 and scan_group_id=$2`,
+	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
+		and scan_group_id=$2`,
 
 	// returns
-	"scanGroupAddressesAll": `select 
-		organization_id, 
-		address_id, 
-		scan_group_id, 
-		host_address,
-		ip_address, 
-		discovered_timestamp, 
-		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_scanned_timestamp,
-		last_seen_timestamp,
-		confidence_score,
-		user_confidence_score,
-		is_soa,
-		is_wildcard_zone,
-		is_hosted_service,
-		ignored,
-		found_from,
-		ns_record,
-		address_hash
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and address_id > $3 order by address_id limit $4`,
+	"scanGroupAddressesAll": fmt.Sprintf(`select 
+		%s
+		from am.scan_group_addresses as sga where organization_id=$1 and 
+		scan_group_id=$2 and 
+		address_id > $3 order by address_id limit $4`, sharedColumns),
 
-	"scanGroupAddressesSinceScannedTime": `select 
-		organization_id, 
-		address_id, 
-		scan_group_id, 
-		host_address,
-		ip_address, 
-		discovered_timestamp, 
-		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_scanned_timestamp,
-		last_seen_timestamp,
-		confidence_score,
-		user_confidence_score,
-		is_soa,
-		is_wildcard_zone,
-		is_hosted_service,
-		ignored,
-		found_from,
-		ns_record,
-		address_hash
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and last_scanned_timestamp > $3 and address_id > $4 order by address_id limit $5`,
+	"scanGroupAddressesSinceScannedTime": fmt.Sprintf(`select 
+		%s
+		from am.scan_group_addresses as sga where organization_id=$1 and
+		scan_group_id=$2 and 
+		(last_scanned_timestamp=0 OR last_scanned_timestamp > $3) and 
+		address_id > $4 order by address_id limit $5`, sharedColumns),
 
-	"scanGroupAddressesIgnored": `select 
-		organization_id, 
-		address_id, 
-		scan_group_id, 
-		host_address,
-		ip_address, 
-		discovered_timestamp, 
-		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_scanned_timestamp,
-		last_seen_timestamp,
-		confidence_score,
-		user_confidence_score,
-		is_soa,
-		is_wildcard_zone,
-		is_hosted_service,
-		ignored,
-		found_from,
-		ns_record,
-		address_hash
-		from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and ignored=$3 and address_id > $4 order by address_id limit $5`,
+	"scanGroupAddressesSinceSeenTime": fmt.Sprintf(`select 
+		%s
+		from am.scan_group_addresses as sga where organization_id=$1 and
+		scan_group_id=$2 and 
+		(last_seen_timestamp=0 OR last_seen_timestamp > $3) and 
+		address_id > $4 order by address_id limit $5`, sharedColumns),
+
+	"scanGroupAddressesIgnored": fmt.Sprintf(`select 
+		%s
+		from am.scan_group_addresses as sga where organization_id=$1 and 
+		scan_group_id=$2 and 
+		ignored=$3 and address_id > $4 order by address_id limit $5`, sharedColumns),
 }
 
 var (
 	AddAddressesTempTableKey     = "sga_add_temp"
-	AddAddressesTempTableColumns = []string{"address_id", "organization_id", "scan_group_id", "host_address", "ip_address",
+	AddAddressesTempTableColumns = []string{"organization_id", "scan_group_id", "host_address", "ip_address",
 		"discovered_timestamp", "discovered_by", "last_scanned_timestamp", "last_seen_timestamp", "confidence_score",
 		"user_confidence_score", "is_soa", "is_wildcard_zone", "is_hosted_service", "ignored", "found_from", "ns_record", "address_hash"}
 	AddAddressesTempTable = `create temporary table sga_add_temp (
-			address_id bigint not null,
 			organization_id integer not null,
 			scan_group_id integer not null,
 			host_address varchar(512),
@@ -97,7 +83,6 @@ var (
 		) on commit drop;`
 
 	AddAddressesTempToAddress = `insert into am.scan_group_addresses as sga (
-			address_id,
 			organization_id, 
 			scan_group_id,
 			host_address,
@@ -117,7 +102,6 @@ var (
 			address_hash
 		)
 		select
-			(case when (temp.address_id<>0) then (temp.address_id) else nextval('am.scan_group_addresses_address_id_seq'::regclass) end),
 			temp.organization_id, 
 			temp.scan_group_id, 
 			temp.host_address, 
@@ -146,8 +130,7 @@ var (
 			ignored=EXCLUDED.ignored,
 			found_from=EXCLUDED.found_from,
 			ns_record=EXCLUDED.ns_record,
-			address_hash=EXCLUDED.address_hash,
-			address_id=(case when (sga.address_id<>0) then (sga.address_id) else nextval('am.scan_group_addresses_address_id_seq'::regclass) end);`
+			address_hash=EXCLUDED.address_hash`
 
 	DeleteAddressesTempTableKey     = "sga_del_temp"
 	DeleteAddressesTempTableColumns = []string{"address_id"}

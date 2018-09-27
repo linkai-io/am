@@ -63,8 +63,8 @@ func init() {
 	groupCmd.StringVar(&addr, "addr", ":8383", "org server address")
 	groupCmd.StringVar(&groupFile, "file", "scangroup.json", "file with scan group details")
 	groupCmd.StringVar(&groupName, "name", "", "scan group name")
-	groupCmd.IntVar(&groupOID, "oid", -1, "org id to use for this scan group")
-	groupCmd.IntVar(&groupUID, "uid", -1, "user id to use for this scan group")
+	groupCmd.IntVar(&orgID, "oid", -1, "org id to use for this scan group")
+	groupCmd.IntVar(&userID, "uid", -1, "user id to use for this scan group")
 	groupCmd.IntVar(&groupID, "gid", -1, "group id to use for this scan group")
 	groupCmd.BoolVar(&groupPause, "pause", false, "include this argument to pause")
 	groupCmd.BoolVar(&groupResume, "resume", false, "include this argument to resume")
@@ -105,6 +105,7 @@ func main() {
 		addrCmd.PrintDefaults()
 		fmt.Println("./amcli coor: (start)")
 		coorCmd.PrintDefaults()
+		fmt.Println("./amcli run")
 		fmt.Println("insufficient arguments")
 		fmt.Println("./amcli spawn: (type)")
 		spawnCmd.PrintDefaults()
@@ -122,8 +123,10 @@ func main() {
 		processCoor(os.Args[1:])
 	case "spawn":
 		processSpawn(os.Args[1:])
+	case "run":
+		runCmd()
 	default:
-		printExit("unknown cmd, must be one of: org, group, user, addr, coor, spawn")
+		printExit("unknown cmd, must be one of: run, org, group, user, addr, coor, spawn")
 	}
 }
 

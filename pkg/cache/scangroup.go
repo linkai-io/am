@@ -3,11 +3,11 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
 	"github.com/linkai-io/am/pkg/redisclient"
+	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/am"
 )
@@ -28,7 +28,7 @@ func (s *ScanGroupCache) Put(key string, group *am.ScanGroup) {
 
 	keys := strings.Split(key, ":")
 	if len(keys) < 2 {
-		log.Printf("failed to put group, invalid key: %s\n", key)
+		log.Warn().Str("key", key).Msg("failed to put group, invalid key")
 		return
 	}
 

@@ -89,9 +89,9 @@ func generateJSON() {
 	fmt.Printf("%s\n", string(data))
 }
 
-func addGroup() {
+func addGroup() int {
 
-	if groupOID == -1 || groupUID == -1 {
+	if orgID == -1 || userID == -1 {
 		printExit("error oid and uid are required")
 	}
 
@@ -113,9 +113,9 @@ func addGroup() {
 		printErrExit("error reading data: %s\n", err)
 	}
 
-	groupData.OrgID = groupOID
-	groupData.CreatedBy = groupUID
-	groupData.ModifiedBy = groupUID
+	groupData.OrgID = orgID
+	groupData.CreatedBy = userID
+	groupData.ModifiedBy = userID
 	groupData.OriginalInputS3URL = groupInputFile
 	groupData.GroupName = groupName
 	groupData.Paused = groupPause
@@ -126,11 +126,12 @@ func addGroup() {
 		printErrExit("error connecting to server: %s\n", err)
 	}
 
-	oid, gid, err := groupClient.Create(ctx, newUserContext(groupOID, groupUID), groupData)
+	oid, gid, err := groupClient.Create(ctx, newUserContext(orgID, userID), groupData)
 	if err != nil {
 		printErrExit("failed to create group: %s\n", err)
 	}
 	fmt.Printf("Successfully created new scangroup: oid: %d gid: %d\n", oid, gid)
+	return gid
 }
 
 func removeGroup() {
@@ -142,7 +143,7 @@ func removeGroup() {
 		printExit("group server address is required")
 	}
 
-	if groupOID == -1 || groupUID == -1 {
+	if orgID == -1 || userID == -1 {
 		printExit("error oid and uid are required")
 	}
 
@@ -157,13 +158,13 @@ func removeGroup() {
 	}
 
 	if groupID != -1 {
-		oid, gid, err = groupClient.Delete(ctx, newUserContext(groupOID, groupUID), groupID)
+		oid, gid, err = groupClient.Delete(ctx, newUserContext(orgID, userID), groupID)
 	} else {
-		oid, groupData, err = groupClient.GetByName(ctx, newUserContext(groupOID, groupUID), groupName)
+		oid, groupData, err = groupClient.GetByName(ctx, newUserContext(orgID, userID), groupName)
 		if err != nil {
 			printErrExit("error getting group by name: %s\n", err)
 		}
-		oid, gid, err = groupClient.Delete(ctx, newUserContext(groupOID, groupUID), groupData.GroupID)
+		oid, gid, err = groupClient.Delete(ctx, newUserContext(orgID, userID), groupData.GroupID)
 	}
 
 	if err != nil {
@@ -180,7 +181,7 @@ func getGroup() {
 		printExit("group server address is required")
 	}
 
-	if groupOID == -1 || groupUID == -1 {
+	if orgID == -1 || userID == -1 {
 		printExit("error oid and uid are required")
 	}
 
@@ -195,9 +196,9 @@ func getGroup() {
 	}
 
 	if groupID != -1 {
-		_, groupData, err = groupClient.Get(ctx, newUserContext(groupOID, groupUID), groupID)
+		_, groupData, err = groupClient.Get(ctx, newUserContext(orgID, userID), groupID)
 	} else {
-		_, groupData, err = groupClient.GetByName(ctx, newUserContext(groupOID, groupUID), groupName)
+		_, groupData, err = groupClient.GetByName(ctx, newUserContext(orgID, userID), groupName)
 		if err != nil {
 			printErrExit("error getting group by name: %s\n", err)
 		}
@@ -218,7 +219,7 @@ func pauseGroup() {
 		printExit("group server address is required")
 	}
 
-	if groupOID == -1 || groupUID == -1 {
+	if orgID == -1 || userID == -1 {
 		printExit("error oid and uid are required")
 	}
 
@@ -236,9 +237,9 @@ func pauseGroup() {
 	}
 
 	if groupID != -1 {
-		_, groupData, err = groupClient.Get(ctx, newUserContext(groupOID, groupUID), groupID)
+		_, groupData, err = groupClient.Get(ctx, newUserContext(orgID, userID), groupID)
 	} else {
-		_, groupData, err = groupClient.GetByName(ctx, newUserContext(groupOID, groupUID), groupName)
+		_, groupData, err = groupClient.GetByName(ctx, newUserContext(orgID, userID), groupName)
 		if err != nil {
 			printErrExit("error getting group by name: %s\n", err)
 		}
@@ -247,12 +248,12 @@ func pauseGroup() {
 
 	if groupPause {
 		fmt.Printf("Pausing groupID: %d\n", groupID)
-		oid, gid, err = groupClient.Pause(ctx, newUserContext(groupOID, groupUID), groupID)
+		oid, gid, err = groupClient.Pause(ctx, newUserContext(orgID, userID), groupID)
 	}
 
 	if groupResume {
 		fmt.Printf("Resume groupID: %d\n", groupID)
-		oid, gid, err = groupClient.Resume(ctx, newUserContext(groupOID, groupUID), groupID)
+		oid, gid, err = groupClient.Resume(ctx, newUserContext(orgID, userID), groupID)
 	}
 
 	if err != nil {

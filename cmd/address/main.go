@@ -1,14 +1,14 @@
 package main
 
 import (
-	"log"
 	"net"
 	"os"
 	"time"
 
 	"github.com/linkai-io/am/am"
-
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
@@ -32,28 +32,31 @@ func init() {
 
 // main starts the Address Service
 func main() {
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "AddressService").Logger()
+
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal().Err(err).Msg("failed to listen")
 	}
 	dbstring, db := initDB()
 
 	policyManager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := policyManager.Init(); err != nil {
-		log.Fatalf("initializing policyManager failed: %s\n", err)
+		log.Fatal().Err(err).Msg("initializing policyManager failed")
 	}
 
 	roleManager := ladonauth.NewRoleManager(db, "pgx")
 	if err := roleManager.Init(); err != nil {
-		log.Fatalf("initializing roleManager failed: %s\n", err)
+		log.Fatal().Err(err).Msg("initializing roleManager failed")
 	}
 
 	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
-	log.Printf("Starting Address Service\n")
+	log.Info().Msg("Starting Service")
 
 	service := address.New(authorizer)
 	if err := service.Init([]byte(dbstring)); err != nil {
-		log.Fatalf("error initializing service: %s\n", err)
+		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 
 	s := grpc.NewServer()
@@ -66,7 +69,7 @@ func main() {
 	lbpb.RegisterLoadReportServer(s, r)
 
 	if err := s.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
 }
 
@@ -74,12 +77,12 @@ func initDB() (string, *pgx.ConnPool) {
 	sec := secrets.NewDBSecrets(env, region)
 	dbstring, err := sec.DBString(am.AddressServiceKey)
 	if err != nil {
-		log.Fatalf("unable to get dbstring: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get dbstring")
 	}
 
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
-		log.Fatalf("error parsing connection string: %s\n", err)
+		log.Fatal().Err(err).Msg("error parsing connection string")
 	}
 
 	var p *pgx.ConnPool
@@ -93,7 +96,7 @@ func initDB() (string, *pgx.ConnPool) {
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("unable to connect to postgresql: %s\n", err)
+		log.Fatal().Err(err).Msg("failed to connect to postgresql")
 	}
 	return dbstring, p
 }

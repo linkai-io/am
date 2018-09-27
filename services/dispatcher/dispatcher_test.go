@@ -2,12 +2,12 @@ package dispatcher_test
 
 import (
 	"context"
-	"log"
 	"os"
+	"sync"
 	"testing"
-	"time"
 
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/dnsclient"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/services/module/ns"
@@ -36,9 +36,14 @@ func TestDispatcherFlow(t *testing.T) {
 		}
 		return orgID, nil, nil
 	}
+
+	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (int, int, error) {
+		return orgID, len(addresses), nil
+	}
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
-	nsModule := ns.New(nsstate)
+	dc := dnsclient.New([]string{"127.0.0.53:53"}, 3)
+	nsModule := ns.New(dc, nsstate)
 	if err := nsModule.Init(nil); err != nil {
 		t.Fatalf("error initializing ns module: %s\n", err)
 	}
@@ -46,6 +51,9 @@ func TestDispatcherFlow(t *testing.T) {
 	modules[am.NSModule] = nsModule
 
 	count := 0
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
 	// init Dispatcher state system and DispatcherService
 	disState := &mock.DispatcherState{}
 	stateAddrs := make([]*am.ScanGroupAddress, 0)        // addresses stored in state
@@ -57,7 +65,7 @@ func TestDispatcherFlow(t *testing.T) {
 			stateHashes[addr.AddressHash] = addr
 			count++
 		}
-		log.Printf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
+		t.Logf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
 		return nil
 	}
 
@@ -67,7 +75,7 @@ func TestDispatcherFlow(t *testing.T) {
 			stateHashes[v.AddressHash] = v
 			count++
 		}
-		log.Printf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
+		t.Logf("TOTAL %d, len state: %d len hashes: %d\n", count, len(stateAddrs), len(stateHashes))
 
 		return nil
 	}
@@ -90,9 +98,15 @@ func TestDispatcherFlow(t *testing.T) {
 
 		// clear out addresses
 		stateAddrs = make([]*am.ScanGroupAddress, 0)
-		log.Printf("after pop, len: %d, %v\n", len(newAddrs), newAddrs)
+		t.Logf("after pop, len: %d, %v\n", len(newAddrs), newAddrs)
 		return newAddrs, nil
 	}
+
+	disState.StopFn = func(ctx context.Context, userContext am.UserContext, scanGroupId int) error {
+		wg.Done()
+		return nil
+	}
+
 	dispatcher := dispatcher.New(addrClient, modules, disState)
 	dispatcher.Init(nil)
 
@@ -102,17 +116,5 @@ func TestDispatcherFlow(t *testing.T) {
 	// Run pipeline
 	dispatcher.PushAddresses(ctx, userContext, groupID)
 
-	ticker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-ticker.C:
-			log.Printf("Active Addresses: %d, Groups: %d\n", dispatcher.GetActiveAddresses(), dispatcher.GetActiveGroups())
-			if dispatcher.GetActiveGroups() == 0 && dispatcher.GetActiveAddresses() == 0 {
-				for _, v := range stateHashes {
-					log.Printf("%#v\n", v)
-				}
-				return
-			}
-		}
-	}
+	wg.Wait()
 }

@@ -47,7 +47,7 @@ func getOrg() {
 		printExit("org server address must not be empty")
 	}
 
-	if orgData.OrgName == "" || orgData.OrgID == -1 {
+	if orgData.OrgName == "" && orgData.OrgID == -1 {
 		printExit("requires org name or org id")
 	}
 
@@ -71,7 +71,7 @@ func getOrg() {
 	fmt.Printf("%#v\n", org)
 
 }
-func addOrg() {
+func addOrg() (int, int) {
 	if addr == "" {
 		printExit("org server address must not be empty")
 	}
@@ -116,6 +116,7 @@ func addOrg() {
 		printExit(fmt.Sprintf("error creating org: %s\n", err))
 	}
 	fmt.Printf("Successfully created organization; OrgID: %d UserID: %d\n", oid, uid)
+	return oid, uid
 }
 
 func removeOrg() {

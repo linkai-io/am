@@ -2,7 +2,6 @@ package dnsclient
 
 import (
 	"errors"
-	"log"
 	"math/rand"
 	"strings"
 	"sync"
@@ -12,6 +11,7 @@ import (
 	"github.com/linkai-io/am/pkg/parsers"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/miekg/dns"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -241,7 +241,7 @@ func (c *Client) doAXFR(msg *dns.Msg, nameserver string, rc chan<- *axfrResultEr
 
 	envelope, err := tr.In(msg, nameserver+":53")
 	if err != nil {
-		log.Printf("nameserver: %s returned err: %s\n", nameserver, err)
+		log.Error().Err(err).Str("nameserver", nameserver).Msg("nameserver returned error")
 		return
 	}
 	// workerpoool waitgroup
@@ -288,7 +288,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 		ips, err := c.ResolveName(value.Ns)
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Ns))
 		if err != nil {
-			log.Printf("error resolving NS server: %s\n", err)
+			log.Error().Err(err).Msg("error resolving NS server")
 			return nil
 		}
 		for _, resolved := range ips {
@@ -298,7 +298,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 	case *dns.CNAME:
 		ips, err := c.ResolveName(value.Target)
 		if err != nil {
-			log.Printf("error resolving CNAME: %s\n", err)
+			log.Error().Err(err).Msg("error resolving CNAME")
 			return nil
 		}
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
@@ -308,7 +308,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 	case *dns.SRV:
 		ips, err := c.ResolveName(value.Target)
 		if err != nil {
-			log.Printf("error resolving SRV: %s\n", err)
+			log.Error().Err(err).Msg("error resolving SRV")
 			return nil
 		}
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
@@ -318,7 +318,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 	case *dns.MX:
 		ips, err := c.ResolveName(value.Mx)
 		if err != nil {
-			log.Printf("error resolving MX: %s\n", err)
+			log.Error().Err(err).Msg("error resolving MX")
 			return nil
 		}
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Hdr.Name))
@@ -335,7 +335,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 		axfrResult.IPs = append(axfrResult.IPs, value.Hdr.Name)
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Ptr))
 	default:
-		log.Printf("unknown type: %s\n", value.String())
+		log.Warn().Str("unknown_type", value.String()).Msg("unable to resolve")
 		return nil
 	}
 	return axfrResult

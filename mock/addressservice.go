@@ -13,7 +13,7 @@ type AddressService struct {
 	CountFn      func(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error)
 	CountInvoked bool
 
-	UpdateFn      func(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error)
+	UpdateFn      func(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error)
 	UpdateInvoked bool
 
 	DeleteFn      func(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error)
@@ -30,7 +30,7 @@ func (c *AddressService) Count(ctx context.Context, userContext am.UserContext, 
 	return c.CountFn(ctx, userContext, groupID)
 }
 
-func (c *AddressService) Update(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error) {
+func (c *AddressService) Update(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error) {
 	c.UpdateInvoked = true
 	return c.UpdateFn(ctx, userContext, addresses)
 }

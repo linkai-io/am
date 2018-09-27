@@ -64,6 +64,8 @@ type ScanGroupAddressFilter struct {
 	IgnoredValue        bool  `json:"ignored_value"`
 	WithLastScannedTime bool  `json:"with_scanned_time"`
 	SinceScannedTime    int64 `json:"since_scanned_time"`
+	WithLastSeenTime    bool  `json:"with_seen_time"`
+	SinceSeenTime       int64 `json:"since_seen_time"`
 	Start               int64 `json:"start"`
 	Limit               int   `json:"limit"`
 }
@@ -71,6 +73,6 @@ type ScanGroupAddressFilter struct {
 type AddressService interface {
 	Get(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
 	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
-	Update(ctx context.Context, userContext UserContext, addresses []*ScanGroupAddress) (oid int, count int, err error)
+	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64) (oid int, err error)
 }

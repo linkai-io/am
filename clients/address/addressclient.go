@@ -3,7 +3,6 @@ package address
 import (
 	"context"
 	"io"
-	"log"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
@@ -71,17 +70,13 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 	return oid, addresses, nil
 }
 
-func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error) {
+func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error) {
 	var resp *service.UpdateAddressesResponse
 
-	protoAddresses := make([]*prototypes.AddressData, 0)
+	protoAddresses := make(map[string]*prototypes.AddressData, len(addresses))
 
-	for i := 0; i < len(addresses); i++ {
-		if addresses[i] == nil {
-			log.Printf("nil address\n")
-			continue
-		}
-		protoAddresses = append(protoAddresses, convert.DomainToAddress(addresses[i]))
+	for key, val := range addresses {
+		protoAddresses[key] = convert.DomainToAddress(val)
 	}
 
 	in := &service.UpdateAddressRequest{

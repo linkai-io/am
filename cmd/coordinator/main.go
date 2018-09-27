@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
 	"net"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
@@ -13,6 +14,7 @@ import (
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
+	"github.com/rs/zerolog"
 
 	coordinatorprotoservice "github.com/linkai-io/am/protocservices/coordinator"
 	"github.com/linkai-io/am/services/coordinator"
@@ -35,15 +37,18 @@ func init() {
 func main() {
 	var err error
 
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "CoordinatorService").Logger()
+
 	sec := secrets.NewDBSecrets(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
-		log.Fatalf("unable to get load balancer address: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get load balancer address")
 	}
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
 	state := initState()
@@ -51,7 +56,7 @@ func main() {
 
 	service := coordinator.New(state, scanGroupClient)
 	if err := service.Init([]byte(loadBalancerAddr)); err != nil {
-		log.Fatalf("error initializing service: %s\n", err)
+		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 
 	s := grpc.NewServer()
@@ -63,9 +68,9 @@ func main() {
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
 
-	log.Printf("Starting Coordinator Service\n")
+	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
 }
 
@@ -74,15 +79,16 @@ func initState() state.Stater {
 	sec := secrets.NewDBSecrets(env, region)
 	cacheConfig, err := sec.CacheConfig()
 	if err != nil {
-		log.Fatalf("unable to get cache connection string: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get cache connection string")
 	}
 
 	err = retrier.RetryUntil(func() error {
+		log.Info().Msg("attempting to connect to redis")
 		return redisState.Init([]byte(cacheConfig))
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("error connecting to redis: %s\n", err)
+		log.Fatal().Err(err).Msg("error connecting to redis")
 	}
 	return redisState
 }
@@ -95,7 +101,7 @@ func initSGClient() am.ScanGroupService {
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("error connecting to scangroup server: %s\n", err)
+		log.Fatal().Err(err).Msg("error connecting to scangroup server")
 	}
 	return scanGroupClient
 }

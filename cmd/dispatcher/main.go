@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
@@ -37,15 +39,18 @@ func init() {
 func main() {
 	var err error
 
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "DispatcherService").Logger()
+
 	sec := secrets.NewDBSecrets(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
-		log.Fatalf("unable to get load balancer address: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get load balancer address")
 	}
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
 	state := initState()
@@ -54,10 +59,10 @@ func main() {
 
 	service := dispatcher.New(addrClient, modules, state)
 	if err := service.Init(nil); err != nil {
-		log.Fatalf("error initializing service: %s\n", err)
+		log.Fatal().Err(err).Msg("error initializing service")
 	}
 
-	log.Printf("Starting Dispatcher Service\n")
+	log.Info().Msg("Starting Service")
 
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
@@ -69,7 +74,7 @@ func main() {
 	lbpb.RegisterLoadReportServer(s, r)
 
 	if err := s.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
 }
 
@@ -82,7 +87,7 @@ func initAddrClient() am.AddressService {
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("unable to connect to address client: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to connect to address client")
 	}
 	return addrClient
 }
@@ -96,7 +101,7 @@ func initCoordClient() am.CoordinatorService {
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("unable to connect to coordinator client: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to connect to coordinator client")
 	}
 	return coordClient
 }
@@ -112,7 +117,7 @@ func initModules(state nsstate.Stater) map[am.ModuleType]am.ModuleService {
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("unable to connect to ns module client: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to connect to ns module client")
 	}
 
 	modules := make(map[am.ModuleType]am.ModuleService)
@@ -125,16 +130,16 @@ func initState() *redis.State {
 	sec := secrets.NewDBSecrets(env, region)
 	cacheConfig, err := sec.CacheConfig()
 	if err != nil {
-		log.Fatalf("unable to get cache connection string: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get cache connection string")
 	}
 
 	err = retrier.RetryUntil(func() error {
-		log.Printf("attempting to connect to redis...")
+		log.Info().Msg("attempting to connect to redis")
 		return redisState.Init([]byte(cacheConfig))
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("error connecting to redis: %s\n", err)
+		log.Fatal().Err(err).Msg("error connecting to redis")
 	}
 	return redisState
 }

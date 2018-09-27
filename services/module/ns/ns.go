@@ -3,8 +3,10 @@ package ns
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/parsers"
@@ -39,9 +41,10 @@ type NS struct {
 
 // New creates a new NS module for identifying zone information via DNS
 // and storing the results in Redis.
-func New(st state.Stater) *NS {
+func New(dc *dnsclient.Client, st state.Stater) *NS {
 	ctx, cancel := context.WithCancel(context.Background())
 	ns := &NS{st: st, exitContext: ctx, cancel: cancel}
+	ns.dc = dc
 	// start cache subscriber and listen for updates
 	ns.groupCache = cache.NewScanGroupSubscriber(ctx, st)
 	return ns
@@ -49,7 +52,6 @@ func New(st state.Stater) *NS {
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
-	ns.dc = dnsclient.New([]string{"unbound:53"}, 3)
 	// populate cache
 	return nil
 }
@@ -67,16 +69,21 @@ func (ns *NS) Name() string {
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
 // TODO: add error if shutting down so dispatcher can retry
 func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
+	nsLog := log.With().
+		Str("IPAddress", address.IPAddress).
+		Str("HostAddress", address.HostAddress).
+		Int64("AddressID", address.AddressID).
+		Str("AddressHash", address.AddressHash).Logger()
 	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
 	if !ns.shouldAnalyze(address) {
-		log.Printf("will not analyze %s %s\n", address.IPAddress, address.HostAddress)
+		nsLog.Info().Msg("will not analyze")
 		return address, nsRecords, nil
 	}
 
-	log.Printf("analyzing: %s %s\n", address.IPAddress, address.HostAddress)
-	resolvedHosts := ns.analyzeHost(ctx, address)
-	resolvedIPs := ns.analyzeIP(ctx, address)
+	nsLog.Info().Msg("will analyze")
+	resolvedHosts := ns.analyzeHost(ctx, nsLog, address)
+	resolvedIPs := ns.analyzeIP(ctx, nsLog, address)
 
 	addAddressToMap(nsRecords, resolvedHosts)
 	addAddressToMap(nsRecords, resolvedIPs)
@@ -93,12 +100,12 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.Sc
 
 	ok, err := ns.st.DoNSRecords(ctx, address.OrgID, address.GroupID, nsExpire, etld)
 	if err != nil {
-		log.Printf("unable to do ns records for %s, %s\n", etld, err)
+		nsLog.Warn().Err(err).Str("etld", etld).Msg("unable to analyze ns records")
 	}
 
 	if ok {
-		zoneRecords := ns.analyzeZone(ctx, etld, address)
-		log.Printf("got %d zone records for %s\n", len(zoneRecords), etld)
+		zoneRecords := ns.analyzeZone(ctx, nsLog, etld, address)
+		nsLog.Info().Int("zone_records", len(zoneRecords)).Str("etld", etld).Msg("got records")
 		addAddressToMap(nsRecords, zoneRecords)
 	}
 
@@ -142,13 +149,13 @@ func (ns *NS) newAddress(address *am.ScanGroupAddress, ip, host, discoveredBy st
 }
 
 // analyzeZone looks up various supporting records for a zone (mx/ns/axfr)
-func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
+func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
 
 	r, err := ns.dc.LookupMX(zone)
 	if err == nil {
 		for _, host := range r.Hosts {
-			newAddress := ns.newAddress(address, "", host, am.DiscoveryNSQueryOther, uint(r.RecordType))
+			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -156,7 +163,7 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 	r, err = ns.dc.LookupNS(zone)
 	if err == nil {
 		for _, host := range r.Hosts {
-			newAddress := ns.newAddress(address, "", host, am.DiscoveryNSQueryOther, uint(r.RecordType))
+			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -171,12 +178,12 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 		for _, r := range result {
 			if len(r.Hosts) == 1 {
 				for _, ip := range r.IPs {
-					newAddress := ns.newAddress(address, ip, r.Hosts[0], am.DiscoveryNSAXFR, uint(r.RecordType))
+					newAddress := ns.newAddress(address, ip, parsers.FQDNTrim(r.Hosts[0]), am.DiscoveryNSAXFR, uint(r.RecordType))
 					nsData = append(nsData, newAddress)
 				}
 			} else if len(r.IPs) == 1 {
 				for _, host := range r.Hosts {
-					newAddress := ns.newAddress(address, r.IPs[0], host, am.DiscoveryNSAXFR, uint(r.RecordType))
+					newAddress := ns.newAddress(address, r.IPs[0], parsers.FQDNTrim(host), am.DiscoveryNSAXFR, uint(r.RecordType))
 					nsData = append(nsData, newAddress)
 				}
 			}
@@ -190,7 +197,7 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 // if host == empty, add host to the first record
 // if ip == different host, create new address
 // if host address from address was not returned in any records, try to do a look up??
-func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
+func (ns *NS) analyzeIP(ctx context.Context, nsLog zerolog.Logger, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
 
 	if address.IPAddress == "" {
@@ -200,7 +207,7 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 	r, err := ns.dc.ResolveIP(address.IPAddress)
 	if err != nil || r == nil {
 		address.LastScannedTime = time.Now().UnixNano()
-		log.Printf("unable to resolve ip: %s\n", err)
+		nsLog.Error().Err(err).Msg("unable to resolve ip")
 		return nsData
 	}
 
@@ -211,7 +218,7 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 		// we've seen this same host before *or* never resolved this ip before
 		if host == address.HostAddress || address.HostAddress == "" && !foundOriginal {
 			foundOriginal = true
-			address.HostAddress = host
+			address.HostAddress = parsers.FQDNTrim(host)
 			if !address.IsHostedService && address.HostAddress != "" {
 				address.IsHostedService = IsHostedDomain(address.HostAddress)
 			}
@@ -224,7 +231,7 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 		}
 		// or we got a new hostname when attempting to resolve this ip.
 		// Copy details from original address into the new address
-		newAddress := ns.newAddress(address, address.IPAddress, host, am.DiscoveryNSQueryIPToName, uint(r.RecordType))
+		newAddress := ns.newAddress(address, address.IPAddress, parsers.FQDNTrim(host), am.DiscoveryNSQueryIPToName, uint(r.RecordType))
 		nsData = append(nsData, newAddress)
 	}
 
@@ -232,7 +239,7 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 }
 
 // analyzeHost resolves the host address to ips
-func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
+func (ns *NS) analyzeHost(ctx context.Context, nsLog zerolog.Logger, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 
 	nsData := make([]*am.ScanGroupAddress, 0)
 	if address.HostAddress == "" {
@@ -241,7 +248,8 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 
 	r, err := ns.dc.ResolveName(address.HostAddress)
 	if err != nil {
-		log.Printf("unable to resolve ip: %s\n", err)
+		nsLog.Error().Err(err).Msg("unable to resolve host")
+		return nsData
 	}
 
 	// we don't need to test for original here because we just take the first one

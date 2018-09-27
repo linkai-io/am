@@ -7,10 +7,11 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/services/module/ns"
 )
 
-const dnsServer = "0.0.0.0:2053"
+const dnsServer = "127.0.0.53:53"
 const localServer = "127.0.0.53:53"
 
 func TestNS_Analyze(t *testing.T) {
@@ -50,7 +51,8 @@ func TestNS_Analyze(t *testing.T) {
 		},
 	}
 	state := amtest.MockNSState()
-	ns := ns.New(state)
+	dc := dnsclient.New([]string{localServer}, 3)
+	ns := ns.New(dc, state)
 	ns.Init(nil)
 
 	ctx := context.Background()
@@ -72,7 +74,8 @@ func TestNetflixInput(t *testing.T) {
 	addrs := amtest.AddrsFromInputFile(orgID, groupID, addrFile, t)
 
 	state := amtest.MockNSState()
-	ns := ns.New(state)
+	dc := dnsclient.New([]string{"127.0.0.53:53"}, 3)
+	ns := ns.New(dc, state)
 	ns.Init(nil)
 
 	ctx := context.Background()

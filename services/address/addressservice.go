@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -100,6 +101,8 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		rows, err = s.pool.Query("scanGroupAddressesIgnored", userContext.GetOrgID(), filter.GroupID, filter.IgnoredValue, filter.Start, filter.Limit)
 	} else if filter.WithLastScannedTime {
 		rows, err = s.pool.Query("scanGroupAddressesSinceScannedTime", userContext.GetOrgID(), filter.GroupID, filter.SinceScannedTime, filter.Start, filter.Limit)
+	} else if filter.WithLastSeenTime {
+		rows, err = s.pool.Query("scanGroupAddressesSinceSeenTime", userContext.GetOrgID(), filter.GroupID, filter.SinceSeenTime, filter.Start, filter.Limit)
 	} else {
 		rows, err = s.pool.Query("scanGroupAddressesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	}
@@ -131,15 +134,19 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	return userContext.GetOrgID(), addresses, err
 }
 
-// Update the scan_group_addresses table. Will do upsert for records, allowing updates as well as
-// new addresses to be added.
-func (s *Service) Update(ctx context.Context, userContext am.UserContext, addresses []*am.ScanGroupAddress) (oid int, count int, err error) {
+// Update or insert new addresses
+func (s *Service) Update(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "create") {
 		return 0, 0, am.ErrUserNotAuthorized
 	}
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
 	var tx *pgx.Tx
 
-	log.Printf("adding: %d\n", len(addresses))
+	serviceLog.Info().Int("address_len", len(addresses)).Msg("adding")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -155,19 +162,18 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 	addressRows := make([][]interface{}, numAddresses)
 	orgID := userContext.GetOrgID()
+	i := 0
 
-	for i := 0; i < numAddresses; i++ {
-		a := addresses[i]
-
-		if a.HostAddress == "" && a.IPAddress == "" {
+	for _, a := range addresses {
+		if a == nil || (a.HostAddress == "" && a.IPAddress == "") {
 			return 0, 0, ErrAddressMissing
 		}
 
-		addressRows[i] = []interface{}{a.AddressID, int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
+		addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
 			a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore, a.UserConfidenceScore,
 			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
 		}
-
+		i++
 	}
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddAddressesTempTableKey}, AddAddressesTempTableColumns, pgx.CopyFromRows(addressRows))
@@ -197,6 +203,13 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 		return 0, am.ErrUserNotAuthorized
 	}
 	var tx *pgx.Tx
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Int("address_len", len(addressIDs)).Msg("deleting")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {

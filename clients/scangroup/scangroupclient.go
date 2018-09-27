@@ -2,9 +2,7 @@ package scangroup
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/bsm/grpclb"
@@ -14,6 +12,7 @@ import (
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/scangroup"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
 
@@ -45,7 +44,7 @@ func debug(addr string) {
 		time.Sleep(5 * time.Second)
 		cc, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
-			log.Printf("scangroup client error dialing address: %v\n", err)
+			log.Error().Err(err).Msg("scangroup client error dialing address")
 			continue
 		}
 		defer cc.Close()
@@ -55,12 +54,12 @@ func debug(addr string) {
 			Target: am.ScanGroupServiceKey,
 		})
 		if err != nil {
-			log.Printf("scangroup client error in resp: %v\n", err)
+			log.Error().Err(err).Msg("scangroup client error in resp")
 			continue
 		}
 
 		if len(resp.Servers) == 0 {
-			fmt.Printf("No scangroup servers\n")
+			log.Warn().Msg("No scangroup servers\n")
 		}
 	}
 }
@@ -70,7 +69,7 @@ func (c *Client) get(ctx context.Context, userContext am.UserContext, in *servic
 
 	err = retrier.Retry(func() error {
 		var err error
-		log.Printf("Attempting to get group %#v\n", in)
+		log.Info().Msg("Attempting to get group")
 		resp, err = c.client.Get(ctx, in)
 		return errors.Wrap(err, "unable to get scan group from client")
 	})

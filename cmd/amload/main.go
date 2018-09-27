@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net"
 	"os"
 
@@ -11,6 +10,8 @@ import (
 	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/hashicorp/consul/api"
 	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
 
@@ -23,10 +24,6 @@ var region string
 var env string
 
 func init() {
-
-}
-
-func init() {
 	region = os.Getenv("APP_REGION")
 	env = os.Getenv("APP_ENV")
 
@@ -35,9 +32,12 @@ func init() {
 
 func main() {
 	flag.Parse()
-	log.Printf("Starting AM Load Balancer Service\n")
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "AMLoadService").Logger()
+
+	log.Info().Msg("Starting Service")
 	if err := listenAndServe(); err != nil {
-		log.Fatal("FATAL", err.Error())
+		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
 }
 
@@ -45,10 +45,10 @@ func listenAndServe() error {
 	sec := secrets.NewDBSecrets(env, region)
 	consulAddr, err := sec.DiscoveryAddr()
 	if err != nil || consulAddr == "" {
-		log.Fatalf("error getting discovery server address\n")
+		log.Fatal().Msg("error getting discovery server address")
 	}
 
-	log.Printf("Discovery service found at: %s\n", consulAddr)
+	log.Info().Str("discovery_address", consulAddr).Msg("Discovery service found")
 
 	config := api.DefaultConfig()
 	config.Address = consulAddr

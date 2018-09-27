@@ -19,6 +19,9 @@ type UserContext struct {
 
 func (u *UserContext) GetTraceID() string {
 	u.GetTradeIDFnInvoked = true
+	if u.GetTraceIDFn == nil {
+		return ""
+	}
 	return u.GetTraceIDFn()
 }
 

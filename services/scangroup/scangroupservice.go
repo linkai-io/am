@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
@@ -82,6 +84,13 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	}
 	group = &am.ScanGroup{}
 
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("GroupID", groupID).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Retrieving scan group by id")
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
@@ -108,6 +117,13 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 	group = &am.ScanGroup{}
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Str("GroupName", groupName).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Retrieving scan group by name")
 
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
@@ -133,6 +149,13 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Retrieving Groups")
+
 	rows, err := s.pool.Query("scanGroupsByOrgID", userContext.GetOrgID())
 	if err != nil {
 		return 0, nil, err
@@ -161,6 +184,13 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 		return 0, 0, am.ErrUserNotAuthorized
 	}
 
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Creating Scan group")
+
 	err = s.pool.QueryRow("scanGroupIDByName", userContext.GetOrgID(), newGroup.GroupName).Scan(&oid, &gid)
 	if err != nil && err != pgx.ErrNoRows {
 		return 0, 0, err
@@ -185,6 +215,14 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 		return 0, 0, am.ErrUserNotAuthorized
 	}
 
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int("GroupID", group.GroupID).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Updating Scan group")
+
 	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedBy, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
@@ -200,6 +238,14 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	}
 	var tx *pgx.Tx
 	var name string
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int("GroupID", groupID).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Deleting scan group")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -234,6 +280,14 @@ func (s *Service) Pause(ctx context.Context, userContext am.UserContext, groupID
 		return 0, 0, am.ErrUserNotAuthorized
 	}
 
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int("GroupID", groupID).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Pausing scan group")
+
 	now := time.Now().UnixNano()
 	err = s.pool.QueryRow("pauseScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
 	if err != nil {
@@ -247,6 +301,15 @@ func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupI
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
 		return 0, 0, am.ErrUserNotAuthorized
 	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int("GroupID", groupID).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Resuming scan group")
+
 	now := time.Now().UnixNano()
 	err = s.pool.QueryRow("resumeScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
 	if err != nil {

@@ -2,9 +2,10 @@ package coordinator
 
 import (
 	"context"
-	"log"
 	"sync/atomic"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/pkg/retrier"
 
@@ -45,23 +46,23 @@ func (s *Service) Init(config []byte) error {
 	}
 	s.loadBalancerAddr = string(config)
 	s.dispatcherClient = dispatcher.New()
-	log.Printf("Initializing Coordinator Service\n")
+	log.Info().Msg("Initializing Coordinator Service")
 	go s.connectClient()
 	return nil
 }
 
 func (s *Service) connectClient() {
 	err := retrier.RetryUntil(func() error {
-		log.Printf("connecting to load balancer: %s\n", s.loadBalancerAddr)
+		log.Info().Str("load balancer", s.loadBalancerAddr).Msg("connecting to load balancer")
 		return s.dispatcherClient.Init([]byte(s.loadBalancerAddr))
 	}, time.Minute*5, time.Millisecond*250)
 
 	if err == nil {
 		atomic.AddInt32(&s.connected, 1)
-		log.Printf("Connected to dispatcher service\n")
+		log.Info().Msg("Connected to dispatcher service\n")
 		return
 	}
-	log.Printf("Unable to connect to dispatcher service\n")
+	log.Warn().Msg("Unable to connect to dispatcher service\n")
 }
 
 func (s *Service) isConnected() bool {
@@ -70,31 +71,36 @@ func (s *Service) isConnected() bool {
 
 // StartGroup initializes state system if they do not exist, or updates with scan group details
 func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
-	log.Printf("Attempting to start group: %d\n", scanGroupID)
+	groupLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("GroupID", scanGroupID).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	groupLog.Info().Msg("Attempting to start group")
 	if !s.isConnected() {
-		log.Printf("Not connected to dispatcher..")
+		groupLog.Warn().Msg("Not connected to dispatcher")
 		return ErrNoDispatcherConnected
 	}
 
-	log.Printf("Getting group status for %d\n", scanGroupID)
+	groupLog.Info().Msg("Getting group status")
 	exists, status, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get group status")
 	}
 
 	if status == am.GroupStarted {
-		log.Printf("Not starting %d as it is already started\n", scanGroupID)
+		groupLog.Info().Msg("Not starting group as it is already started")
 		return nil
 	}
 
-	log.Printf("Getting scan group via client: %v %d\n", userContext, scanGroupID)
+	groupLog.Info().Msg("Getting group via scangroupclient")
 	oid, group, err := s.scanGroupClient.Get(ctx, userContext, scanGroupID)
 	if err != nil {
-		log.Printf("error getting group: %v\n", err)
-		return err
+		return errors.Wrap(err, "err with scan group client")
 	}
 
-	log.Printf("Got scan group %d\n", scanGroupID)
+	groupLog.Info().Msg("Got scan group from client")
 	if oid != userContext.GetOrgID() {
 		return am.ErrOrgIDMismatch
 	}
@@ -105,14 +111,14 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 
 	if !exists {
 		// update/create configuration
-		log.Printf("Updating configuration for %d\n", scanGroupID)
+		groupLog.Info().Msg("Updating configuration for scangroup")
 		if err := s.state.Put(ctx, userContext, group); err != nil {
 			return errors.Wrap(err, "failed to put new group")
 		}
 	}
 
 	wantModules := true
-	log.Printf("Getting group from state for %d\n", scanGroupID)
+	groupLog.Info().Msg("Getting scangroup from state")
 	cachedGroup, err := s.state.GetGroup(ctx, userContext.GetOrgID(), scanGroupID, wantModules)
 	if err != nil {
 		return errors.Wrap(err, "failed to get cached group")
@@ -129,11 +135,11 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		}
 	}
 
-	log.Printf("Setting Start in state for %d\n", scanGroupID)
+	groupLog.Info().Msg("Setting Start in state for scangroup")
 	if err := s.state.Start(ctx, userContext, group.GroupID); err != nil {
 		return errors.Wrap(err, "failed to start group")
 	}
 
-	log.Printf("Dispatching in state for %d\n", scanGroupID)
+	groupLog.Info().Msg("Dispatching scangroup")
 	return s.dispatcherClient.PushAddresses(ctx, userContext, scanGroupID)
 }

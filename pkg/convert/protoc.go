@@ -223,6 +223,8 @@ func AddressFilterToDomain(in *prototypes.AddressFilter) *am.ScanGroupAddressFil
 		Limit:               int(in.Limit),
 		WithLastScannedTime: in.WithLastScannedTime,
 		SinceScannedTime:    in.SinceScannedTime,
+		WithLastSeenTime:    in.WithLastSeenTime,
+		SinceSeenTime:       in.SinceSeenTime,
 	}
 }
 
@@ -236,6 +238,8 @@ func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *prototypes.AddressFil
 		Limit:               int32(in.Limit),
 		WithLastScannedTime: in.WithLastScannedTime,
 		SinceScannedTime:    in.SinceScannedTime,
+		WithLastSeenTime:    in.WithLastSeenTime,
+		SinceSeenTime:       in.SinceSeenTime,
 	}
 }
 

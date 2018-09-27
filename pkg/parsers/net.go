@@ -2,7 +2,6 @@ package parsers
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -44,7 +43,6 @@ func ParseIPv6Arpa(ipv4arpa string) (string, bool) {
 		&bytes[14], &bytes[13], &bytes[12], &bytes[11], &bytes[10], &bytes[9], &bytes[8], &bytes[7], &bytes[6], &bytes[5], &bytes[4],
 		&bytes[3], &bytes[2], &bytes[1], &bytes[0])
 	if err != nil || n != 32 {
-		log.Printf("%d err: %s\n", n, err)
 		return "", false
 	}
 	return ToIPv6(bytes), true

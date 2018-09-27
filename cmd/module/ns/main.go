@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 	"os"
 	"time"
@@ -10,12 +9,15 @@ import (
 	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/clients/address"
+	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
 	moduleservice "github.com/linkai-io/am/protocservices/module"
 	"github.com/linkai-io/am/services/module/ns"
 	nsmodulerprotoc "github.com/linkai-io/am/services/module/ns/protoc"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -33,25 +35,26 @@ func init() {
 func main() {
 	var err error
 
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "NSModuleService").Logger()
+
 	sec := secrets.NewDBSecrets(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
-		log.Fatalf("unable to get load balancer address: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get load balancer address")
 	}
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
 	state := initState()
-
-	service := ns.New(state)
+	dc := dnsclient.New([]string{"unbound:53"}, 3)
+	service := ns.New(dc, state)
 	if err := service.Init(nil); err != nil {
-		log.Fatalf("error initializing service: %s\n", err)
+		log.Fatal().Err(err).Msg("initializing service failed")
 	}
-
-	log.Printf("Starting NS Module Service\n")
 
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
@@ -62,8 +65,9 @@ func main() {
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
 
+	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
 }
 
@@ -76,7 +80,7 @@ func initAddrClient() am.AddressService {
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("unable to connect to address client: %s\n", err)
+		log.Fatal().Err(err).Msg("error connecting to address server")
 	}
 	return addrClient
 }
@@ -86,7 +90,7 @@ func initState() *redis.State {
 	sec := secrets.NewDBSecrets(env, region)
 	cacheConfig, err := sec.CacheConfig()
 	if err != nil {
-		log.Fatalf("unable to get cache connection string: %s\n", err)
+		log.Fatal().Err(err).Msg("unable to get cache connection string")
 	}
 
 	err = retrier.RetryUntil(func() error {
@@ -94,7 +98,7 @@ func initState() *redis.State {
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatalf("error connecting to redis: %s\n", err)
+		log.Fatal().Err(err).Msg("error connecting to redis")
 	}
 	return redisState
 }

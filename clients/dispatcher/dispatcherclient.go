@@ -2,8 +2,6 @@ package dispatcher
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/bsm/grpclb"
@@ -11,6 +9,7 @@ import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/rs/zerolog/log"
 
 	service "github.com/linkai-io/am/protocservices/dispatcher"
 	"google.golang.org/grpc"
@@ -41,10 +40,9 @@ func (c *Client) Init(config []byte) error {
 func debug(addr string) {
 	for {
 		time.Sleep(5 * time.Second)
-		log.Printf("dispatcher client connecting to: %s\n", addr)
 		cc, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
-			log.Printf("dispatcher client error dialing address: %v\n", err)
+			log.Error().Err(err).Msg("dispatcher client error dialing address")
 			continue
 		}
 		defer cc.Close()
@@ -54,11 +52,11 @@ func debug(addr string) {
 			Target: am.DispatcherServiceKey,
 		})
 		if err != nil {
-			log.Printf("dispatcher client error in resp: %v\n", err)
+			log.Error().Err(err).Msg("dispatcher client error in resp")
 			continue
 		}
 		if len(resp.Servers) == 0 {
-			fmt.Printf("No dispatcher servers")
+			log.Warn().Msg("No dispatcher servers found")
 		}
 	}
 }

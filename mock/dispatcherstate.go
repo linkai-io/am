@@ -31,6 +31,9 @@ type DispatcherState struct {
 
 	FilterNewFn      func(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error)
 	FilterNewInvoked bool
+
+	StopFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int) error
+	StopInvoked bool
 }
 
 func (s *DispatcherState) Init(config []byte) error {
@@ -50,6 +53,11 @@ func (s *DispatcherState) Subscribe(ctx context.Context, onStartFn redisclient.S
 func (s *DispatcherState) GetGroup(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
 	s.GetGroupInvoked = true
 	return s.GetGroupFn(ctx, orgID, scanGroupID, wantModules)
+}
+
+func (s *DispatcherState) Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+	s.StopInvoked = true
+	return s.StopFn(ctx, userContext, scanGroupID)
 }
 
 func (s *DispatcherState) GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, error) {

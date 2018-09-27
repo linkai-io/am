@@ -2,13 +2,13 @@ package organization
 
 import (
 	"context"
-	"log"
 	"time"
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
+	"github.com/rs/zerolog/log"
 )
 
 // Service for interfacing with postgresql/rds
@@ -63,7 +63,6 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
-			log.Printf("%s\n", k)
 			return err
 		}
 	}
@@ -186,7 +185,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 		// must clean up this org since we committed the transaction
 		deleteErr := s.forceDelete(ctx, oid)
 		if deleteErr != nil {
-			log.Printf("unable to delete organization: %s\n", err)
+			log.Error().Err(err).Msg("unable to delete organization")
 		}
 		return 0, 0, "", "", err
 	}

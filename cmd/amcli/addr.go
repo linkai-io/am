@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/linkai-io/am/am"
 	"google.golang.org/grpc"
 
@@ -91,11 +93,11 @@ func addAddrs() {
 	fmt.Printf("Successfully added %d addresses for OrgID: %d\n", count, oid)
 }
 
-func makeAddrs(in map[string]struct{}, orgID, userID, groupID int) []*am.ScanGroupAddress {
-	addrs := make([]*am.ScanGroupAddress, len(in))
+func makeAddrs(in map[string]struct{}, orgID, userID, groupID int) map[string]*am.ScanGroupAddress {
+	addrs := make(map[string]*am.ScanGroupAddress, len(in))
 	i := 0
 	for addr := range in {
-		addrs[i] = &am.ScanGroupAddress{
+		sgAddr := &am.ScanGroupAddress{
 			OrgID:               orgID,
 			GroupID:             groupID,
 			DiscoveredBy:        "input_list",
@@ -105,10 +107,12 @@ func makeAddrs(in map[string]struct{}, orgID, userID, groupID int) []*am.ScanGro
 		}
 
 		if inputlist.IsIP(addr) {
-			addrs[i].IPAddress = addr
+			sgAddr.IPAddress = addr
 		} else {
-			addrs[i].HostAddress = addr
+			sgAddr.HostAddress = addr
 		}
+		sgAddr.AddressHash = convert.HashAddress(sgAddr.IPAddress, sgAddr.HostAddress)
+		addrs[sgAddr.AddressHash] = sgAddr
 		i++
 	}
 	return addrs

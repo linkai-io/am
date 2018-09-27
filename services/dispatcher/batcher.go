@@ -2,12 +2,12 @@ package dispatcher
 
 import (
 	"context"
-	"log"
 	"sync/atomic"
 	"time"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/rs/zerolog/log"
 )
 
 type Batcher struct {
@@ -45,19 +45,19 @@ func (b *Batcher) Add(result *am.ScanGroupAddress) {
 	}
 }
 
-func (b *Batcher) Drain() []*am.ScanGroupAddress {
-	results := make([]*am.ScanGroupAddress, 0)
+func (b *Batcher) Drain() map[string]*am.ScanGroupAddress {
+	results := make(map[string]*am.ScanGroupAddress, 0)
 	for {
 		select {
 		case result := <-b.results:
-			results = append(results, result)
+			results[result.AddressHash] = result
 			atomic.AddInt32(&b.count, -1)
 			if len(results) >= b.batchCount {
-				log.Printf("Uploader Drained: %d results\n", len(results))
+				log.Info().Int("count", len(results)).Msg("Uploader Drained")
 				return results
 			}
 		default:
-			log.Printf("Uploader Drained: %d results\n", len(results))
+			log.Info().Int("count", len(results)).Msg("Uploader Drained")
 			return results
 		}
 	}
@@ -90,7 +90,7 @@ func (b *Batcher) Done() {
 	close(b.doneCh)
 }
 
-func (b *Batcher) update(addresses []*am.ScanGroupAddress) {
+func (b *Batcher) update(addresses map[string]*am.ScanGroupAddress) {
 	var err error
 	var count int
 
@@ -103,15 +103,15 @@ func (b *Batcher) update(addresses []*am.ScanGroupAddress) {
 	err = retrier.Retry(func() error {
 		_, count, err = b.addressClient.Update(ctx, b.userContext, addresses)
 		if err != nil {
-			log.Printf("ERROR inserting addresses, during retry: %v\n", err)
+			log.Error().Err(err).Msg("inserting addresses failed, retrying")
 		}
 		return err
 	})
 
 	if err != nil {
-		log.Printf("Unable to insert batch of addresses: %v\n", err)
+		log.Error().Err(err).Msg("Unable to insert batch of addresses")
 		return
 	}
 
-	log.Printf("inserted %d addresses for gid: %d\n", count, addresses[0].GroupID)
+	log.Info().Int("count", count).Msg("inserted addresses")
 }

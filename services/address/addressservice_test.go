@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/linkai-io/am/am"
 
 	"github.com/linkai-io/am/amtest"
@@ -78,7 +80,7 @@ func TestAdd(t *testing.T) {
 		t.Fatalf("count should be zero for empty scangroup got: %d\n", count)
 	}
 
-	addresses := make([]*am.ScanGroupAddress, 0)
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
 	now := time.Now().UnixNano()
 	for i := 0; i < 100; i++ {
 		a := &am.ScanGroupAddress{
@@ -86,6 +88,7 @@ func TestAdd(t *testing.T) {
 			GroupID:             groupID,
 			HostAddress:         "",
 			IPAddress:           fmt.Sprintf("192.168.1.%d", i),
+			AddressHash:         convert.HashAddress(fmt.Sprintf("192.168.1.%d", i), ""),
 			DiscoveryTime:       now,
 			DiscoveredBy:        "input_list",
 			LastScannedTime:     0,
@@ -98,7 +101,7 @@ func TestAdd(t *testing.T) {
 			Ignored:             false,
 		}
 
-		addresses = append(addresses, a)
+		addresses[a.AddressHash] = a
 	}
 
 	_, count, err = service.Update(ctx, userContext, addresses)
@@ -187,6 +190,7 @@ func TestUpdate(t *testing.T) {
 		GroupID:         groupID,
 		HostAddress:     "",
 		IPAddress:       "",
+		AddressHash:     convert.HashAddress("", ""),
 		DiscoveryTime:   now,
 		DiscoveredBy:    "input_list",
 		LastSeenTime:    0,
@@ -195,8 +199,9 @@ func TestUpdate(t *testing.T) {
 		IsHostedService: false,
 		Ignored:         false,
 	}
-	emptyAddresses := make([]*am.ScanGroupAddress, 1)
-	emptyAddresses[0] = emptyAddress
+	emptyAddresses := make(map[string]*am.ScanGroupAddress, 1)
+
+	emptyAddresses[emptyAddress.AddressHash] = emptyAddress
 	if _, _, err := service.Update(ctx, userContext, emptyAddresses); err != address.ErrAddressMissing {
 		t.Fatalf("did not get ErrAddressMissing when host/ip not set")
 	}
@@ -207,6 +212,7 @@ func TestUpdate(t *testing.T) {
 		GroupID:         groupID,
 		HostAddress:     "example.com",
 		IPAddress:       "",
+		AddressHash:     convert.HashAddress("", "example.com"),
 		DiscoveryTime:   now,
 		DiscoveredBy:    "input_list",
 		LastSeenTime:    0,
@@ -216,11 +222,10 @@ func TestUpdate(t *testing.T) {
 		Ignored:         false,
 		FoundFrom:       "",
 		NSRecord:        1,
-		AddressHash:     "somehash",
 	}
 
-	updateAddresses := make([]*am.ScanGroupAddress, 1)
-	updateAddresses[0] = updateAddress
+	updateAddresses := make(map[string]*am.ScanGroupAddress, 1)
+	updateAddresses[updateAddress.AddressHash] = updateAddress
 	if _, _, err := service.Update(ctx, userContext, updateAddresses); err != nil {
 		t.Fatalf("error creating address: %s\n", err)
 	}
@@ -248,7 +253,9 @@ func TestUpdate(t *testing.T) {
 	returned[0].IsWildcardZone = true
 	returned[0].IsHostedService = true
 
-	if _, _, err := service.Update(ctx, userContext, returned); err != nil {
+	returnMap := make(map[string]*am.ScanGroupAddress)
+	returnMap[returned[0].AddressHash] = returned[0]
+	if _, _, err := service.Update(ctx, userContext, returnMap); err != nil {
 		t.Fatalf("error updating time for address: %s\n", err)
 	}
 
@@ -257,6 +264,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("error getting returned addresses after updating time")
 	}
 	compareAddresses(returned[0], returned2[0], t)
+
 }
 
 func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {

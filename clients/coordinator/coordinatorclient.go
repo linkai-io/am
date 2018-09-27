@@ -2,12 +2,12 @@ package coordinator
 
 import (
 	"context"
-	"log"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/rs/zerolog/log"
 
 	service "github.com/linkai-io/am/protocservices/coordinator"
 	"google.golang.org/grpc"
@@ -43,7 +43,7 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 
 	return retrier.Retry(func() error {
 		_, err := c.client.StartGroup(ctx, in)
-		log.Printf("error starting group: %v\n", err)
+		log.Error().Err(err).Msg("error starting group in client")
 		return err
 	})
 }

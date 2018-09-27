@@ -3,12 +3,12 @@ package cache
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
 	"github.com/linkai-io/am/am"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 // ScanGroupSubscriber manage scan group cache and state
@@ -42,7 +42,7 @@ func (s *ScanGroupSubscriber) ChannelOnMessage(channel string, data []byte) erro
 	case am.RNScanGroupGroups:
 		key := string(data)
 		if err := s.updateGroupFromState(key); err != nil {
-			log.Printf("error updating group from state: %s\n", err)
+			log.Error().Err(err).Msg("updating group from state failed")
 		}
 	}
 	return nil

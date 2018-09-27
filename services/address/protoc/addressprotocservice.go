@@ -51,9 +51,9 @@ func (s *AddressProtocService) Update(ctx context.Context, in *address.UpdateAdd
 	var err error
 	var userContext am.UserContext
 
-	addresses := make([]*am.ScanGroupAddress, len(in.Address))
-	for i := 0; i < len(in.Address); i++ {
-		addresses[i] = convert.AddressToDomain(in.Address[i])
+	addresses := make(map[string]*am.ScanGroupAddress, len(in.Address))
+	for k, v := range in.Address {
+		addresses[k] = convert.AddressToDomain(v)
 	}
 	userContext = convert.UserContextToDomain(in.UserContext)
 	oid, count, err = s.as.Update(ctx, userContext, addresses)

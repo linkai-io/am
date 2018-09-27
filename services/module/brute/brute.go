@@ -4,13 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"log"
 	"os"
 	"strings"
 	"sync/atomic"
 
-	"golang.org/x/time/rate"
 	"github.com/linkai-io/am/pkg/dnsclient"
+	"golang.org/x/time/rate"
 )
 
 type Analyzer struct {
@@ -58,24 +57,21 @@ func (a *Analyzer) AnalyzeZone(zone string) {
 }
 
 func (a *Analyzer) resolver(domainCh chan string, doneCh chan struct{}) {
-	log.Printf("starting resolver...\n")
 	for {
 		select {
 		case domain := <-domainCh:
-			//log.Printf("domain: %s\n", domain)
 			r, err := a.ns.ResolveName(domain)
 			if err != nil && err != dnsclient.ErrEmptyRecords {
-				log.Printf("%#v\n", err)
 				continue
 			}
 			if r != nil && len(r) > 0 {
 				atomic.AddInt32(&a.found, 1)
-				for _, record := range r {
-					log.Printf("%#v\n", record)
-				}
+				/*
+					for _, record := range r {
+						log.Info().Printf("%#v\n", record)
+					}*/
 			}
 		case <-doneCh:
-			log.Printf("exit\n")
 			return
 		}
 	}
@@ -83,5 +79,4 @@ func (a *Analyzer) resolver(domainCh chan string, doneCh chan struct{}) {
 
 func (a *Analyzer) Quit() {
 	a.doneCh <- struct{}{}
-	log.Printf("%d results\n", a.found)
 }

@@ -1,7 +1,6 @@
 package dnsclient
 
 import (
-	"log"
 	"net"
 	"strings"
 	"testing"
@@ -9,7 +8,7 @@ import (
 	"github.com/linkai-io/am/pkg/parsers"
 )
 
-const dnsServer = "0.0.0.0:2053"
+const dnsServer = "127.0.0.53:53"
 const localServer = "127.0.0.53:53"
 
 func TestResolveName(t *testing.T) {
@@ -178,7 +177,7 @@ func TestDoAXFR(t *testing.T) {
 	}
 
 	for ns, axfr := range r {
-		log.Printf("%s %#v\n", ns, axfr)
+		t.Logf("%s %#v\n", ns, axfr)
 	}
 
 }

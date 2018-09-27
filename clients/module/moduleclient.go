@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/bsm/grpclb"
@@ -14,6 +12,7 @@ import (
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/module"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
 
@@ -59,7 +58,7 @@ func debug(key, addr string) {
 		time.Sleep(5 * time.Second)
 		cc, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
-			log.Printf("error dialing address: %v\n", err)
+			log.Error().Err(err).Msg("error dialing address")
 			continue
 		}
 		defer cc.Close()
@@ -69,12 +68,12 @@ func debug(key, addr string) {
 			Target: key,
 		})
 		if err != nil {
-			log.Printf("error in resp: %v\n", err)
+			log.Error().Err(err).Msg("error in response from load balancer")
 			continue
 		}
 
 		if len(resp.Servers) == 0 {
-			fmt.Printf("no %s servers\n", key)
+			log.Warn().Msgf("no %s servers", key)
 		}
 	}
 }
