@@ -52,7 +52,6 @@ func main() {
 	}
 
 	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
-	log.Info().Msg("Starting Service")
 
 	service := address.New(authorizer)
 	if err := service.Init([]byte(dbstring)); err != nil {
@@ -68,6 +67,7 @@ func main() {
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
 
+	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
 		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}

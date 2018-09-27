@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/pkg/retrier"
@@ -17,25 +18,33 @@ import (
 )
 
 var (
-	modules                  = []string{"ns", "dnsbrute", "port", "web"}
-	ErrScanGroupPaused       = errors.New("scan group is currently paused")
-	ErrNoDispatcherConnected = errors.New("service unavailable, no dispatchers connected")
+	ErrScanGroupPaused         = errors.New("scan group is currently paused")
+	ErrScanGroupAlreadyStarted = errors.New("scan group is already running")
+	ErrNoDispatcherConnected   = errors.New("service unavailable, no dispatchers connected")
 )
 
 // Service for coordinating all scans
 type Service struct {
+	systemOrgID      int
+	systemUserID     int
 	loadBalancerAddr string
 	state            state.Stater
-	dispatcherClient am.DispatcherService
 	scanGroupClient  am.ScanGroupService
+
 	connected        int32
+	dispatcherClient am.DispatcherService
+
+	stopCh chan struct{}
 }
 
 // New returns
-func New(state state.Stater, scanGroupClient am.ScanGroupService) *Service {
+func New(state state.Stater, scanGroupClient am.ScanGroupService, systemOrgID, systemUserID int) *Service {
 	return &Service{
 		state:           state,
 		scanGroupClient: scanGroupClient,
+		systemOrgID:     systemOrgID,
+		systemUserID:    systemUserID,
+		stopCh:          make(chan struct{}),
 	}
 }
 
@@ -48,6 +57,7 @@ func (s *Service) Init(config []byte) error {
 	s.dispatcherClient = dispatcher.New()
 	log.Info().Msg("Initializing Coordinator Service")
 	go s.connectClient()
+	go s.poller()
 	return nil
 }
 
@@ -67,6 +77,40 @@ func (s *Service) connectClient() {
 
 func (s *Service) isConnected() bool {
 	return atomic.LoadInt32(&s.connected) == 1
+}
+
+func (s *Service) poller() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			log.Info().Msg("Scanning to start groups")
+			s.startGroups()
+		case <-s.stopCh:
+			return
+		}
+	}
+}
+
+func (s *Service) startGroups() {
+	ctx := context.Background()
+	userContext := &am.UserContextData{OrgID: s.systemOrgID, UserID: s.systemUserID, TraceID: createID()}
+
+	groups, err := s.scanGroupClient.AllGroups(ctx, userContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: false})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get groups")
+		return
+	}
+
+	for _, group := range groups {
+		proxyUserContext := &am.UserContextData{OrgID: group.OrgID, UserID: group.CreatedBy, TraceID: createID()}
+		if err := s.StartGroup(ctx, proxyUserContext, group.GroupID); err != nil {
+			if err != ErrScanGroupAlreadyStarted {
+				log.Warn().Err(err).Msg("failed to start group")
+			}
+		}
+	}
 }
 
 // StartGroup initializes state system if they do not exist, or updates with scan group details
@@ -90,8 +134,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	if status == am.GroupStarted {
-		groupLog.Info().Msg("Not starting group as it is already started")
-		return nil
+		return ErrScanGroupAlreadyStarted
 	}
 
 	groupLog.Info().Msg("Getting group via scangroupclient")
@@ -142,4 +185,13 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 
 	groupLog.Info().Msg("Dispatching scangroup")
 	return s.dispatcherClient.PushAddresses(ctx, userContext, scanGroupID)
+}
+
+func createID() string {
+	id, err := uuid.NewV4()
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to generate new traceid")
+		return "empty_coordinator_trace_id"
+	}
+	return id.String()
 }

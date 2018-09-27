@@ -1,17 +1,24 @@
 package scangroup
 
+import "fmt"
+
+const (
+	defaultColumns = `organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted`
+)
+
 var queryMap = map[string]string{
 	// am.scan_group related
-	"scanGroupByID": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted
-	 	from am.scan_group where organization_id=$1 and scan_group_id=$2 and deleted=false`,
+	"allScanGroups": fmt.Sprintf(`select %s from am.scan_group where deleted=false`, defaultColumns),
+
+	"allScanGroupsWithPaused": fmt.Sprintf(`select %s from am.scan_group where deleted=false and paused=$1`, defaultColumns),
+
+	"scanGroupByID": fmt.Sprintf(`select %s	from am.scan_group where organization_id=$1 and scan_group_id=$2 and deleted=false`, defaultColumns),
+
+	"scanGroupByName": fmt.Sprintf(`select %s from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false`, defaultColumns),
+
+	"scanGroupsByOrgID": fmt.Sprintf(`select %s from am.scan_group where organization_id=$1 and deleted=false`, defaultColumns),
 
 	"scanGroupIDByName": "select organization_id, scan_group_id from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false",
-
-	"scanGroupByName": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted 
-	 	from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false`,
-
-	"scanGroupsByOrgID": `select organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted  
-		from am.scan_group where organization_id=$1 and deleted=false`,
 
 	"scanGroupName": `select organization_id, scan_group_name from am.scan_group where organization_id=$1 and scan_group_id=$2`,
 

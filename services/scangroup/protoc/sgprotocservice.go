@@ -3,10 +3,10 @@ package protoc
 import (
 	"errors"
 
-	context "golang.org/x/net/context"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/scangroup"
+	context "golang.org/x/net/context"
 )
 
 var (
@@ -63,6 +63,20 @@ func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupR
 		return nil, err
 	}
 	return &scangroup.GroupDeletedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
+}
+
+func (s *SGProtocService) AllGroups(in *scangroup.AllGroupsRequest, stream scangroup.ScanGroup_AllGroupsServer) error {
+	groups, err := s.sgs.AllGroups(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.ScanGroupFilterToDomain(in.Filter))
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		if err := stream.Send(&scangroup.AllGroupsResponse{Group: convert.DomainToScanGroup(g)}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.ScanGroup_GroupsServer) error {

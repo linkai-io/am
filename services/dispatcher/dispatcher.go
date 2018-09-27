@@ -26,6 +26,7 @@ type pushDetails struct {
 
 // Service for dispatching and handling responses from worker modules
 type Service struct {
+	defaultDuration  time.Duration
 	config           *Config
 	addressClient    am.AddressService
 	moduleClients    map[am.ModuleType]am.ModuleService
@@ -40,12 +41,13 @@ type Service struct {
 // New for coordinating the work of workers
 func New(addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
-		state:         stater,
-		addressClient: addrClient,
-		moduleClients: modClients,
-		pushCh:        make(chan *pushDetails),
-		closeCh:       make(chan struct{}),
-		completedCh:   make(chan *am.ScanGroupAddress),
+		defaultDuration: time.Duration(-5) * time.Minute,
+		state:           stater,
+		addressClient:   addrClient,
+		moduleClients:   modClients,
+		pushCh:          make(chan *pushDetails),
+		closeCh:         make(chan struct{}),
+		completedCh:     make(chan *am.ScanGroupAddress),
 	}
 }
 
@@ -94,20 +96,15 @@ func (s *Service) listener() {
 			s.IncActiveGroups()
 			ctx := context.Background()
 			now := time.Now()
+
 			// TODO: do smart calculation on size of scan group addresses
-			then := now.Add(time.Duration(-4) * time.Hour).UnixNano()
-			filter := &am.ScanGroupAddressFilter{
-				OrgID:            details.userContext.GetOrgID(),
-				GroupID:          details.scanGroupID,
-				Start:            0,
-				Limit:            1000,
-				WithLastSeenTime: true,
-				SinceSeenTime:    then,
-			}
+			then := now.Add(s.defaultDuration).UnixNano()
+
+			filter := newFilter(details.userContext, details.scanGroupID, then)
 
 			// push addresses to state
 			groupLog.Info().Msg("Pushing addresses to state")
-			// for now, one per scan group id, todo move to own service.
+			// for now, one batcher per scan group id, todo move to own service.
 			batcher := NewBatcher(details.userContext, s.addressClient, 10)
 			batcher.Init()
 			for {
@@ -117,6 +114,7 @@ func (s *Service) listener() {
 					goto DONE
 				}
 				if addrs == nil || len(addrs) == 0 {
+					groupLog.Info().Msg("no addresses matched address service filter")
 					break
 				}
 				numAddrs := len(addrs)
@@ -138,6 +136,7 @@ func (s *Service) listener() {
 			}
 
 		DONE:
+			groupLog.Info().Msg("Group analysis complete")
 			batcher.Done()
 
 			if err := s.state.Stop(ctx, details.userContext, details.scanGroupID); err != nil {
@@ -184,7 +183,9 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 		return nil, errors.Wrap(err, "failed to analyze using ns module")
 	}
 
-	s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
+	if len(possibleNewAddrs) > 0 {
+		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
+	}
 
 	return updatedAddress, nil
 }
@@ -225,4 +226,15 @@ func (s *Service) DecActiveAddresses() {
 
 func (s *Service) GetActiveAddresses() int32 {
 	return atomic.LoadInt32(&s.activeAddrCount)
+}
+
+func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
+	return &am.ScanGroupAddressFilter{
+		OrgID:            userContext.GetOrgID(),
+		GroupID:          scanGroupID,
+		Start:            0,
+		Limit:            1000,
+		WithLastSeenTime: true,
+		SinceSeenTime:    then,
+	}
 }

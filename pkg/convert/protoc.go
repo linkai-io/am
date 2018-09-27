@@ -331,3 +331,17 @@ func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
 		Deleted:             in.Deleted,
 	}
 }
+
+func DomainToScanGroupFilter(in *am.ScanGroupFilter) *scangroup.ScanGroupFilter {
+	return &scangroup.ScanGroupFilter{
+		WithPaused:  in.WithPaused,
+		PausedValue: in.PausedValue,
+	}
+}
+
+func ScanGroupFilterToDomain(in *scangroup.ScanGroupFilter) *am.ScanGroupFilter {
+	return &am.ScanGroupFilter{
+		WithPaused:  in.WithPaused,
+		PausedValue: in.PausedValue,
+	}
+}

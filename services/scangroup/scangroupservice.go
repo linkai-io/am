@@ -144,6 +144,45 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 	return group.OrgID, group, err
 }
 
+// AllGroups is a system method for returning groups that match the supplied filter.
+func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, groupFilter *am.ScanGroupFilter) (groups []*am.ScanGroup, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupAllGroups, "read") {
+		return nil, am.ErrUserNotAuthorized
+	}
+
+	var rows *pgx.Rows
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Retrieving All Groups")
+
+	if groupFilter.WithPaused {
+		rows, err = s.pool.Query("allScanGroupsWithPaused", groupFilter.PausedValue)
+	} else {
+		rows, err = s.pool.Query("allScanGroups")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	groups = make([]*am.ScanGroup, 0)
+	for rows.Next() {
+		group := &am.ScanGroup{}
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+			return nil, err
+		}
+
+		groups = append(groups, group)
+	}
+
+	return groups, nil
+}
+
 // Groups returns all groups for an organization.
 func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
@@ -275,6 +314,7 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	return userContext.GetOrgID(), groupID, err
 }
 
+// Pause the scan group so it does not get executed by the coordinator
 func (s *Service) Pause(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
 		return 0, 0, am.ErrUserNotAuthorized
@@ -297,6 +337,7 @@ func (s *Service) Pause(ctx context.Context, userContext am.UserContext, groupID
 	return oid, gid, err
 }
 
+// Resume the scan group so it will get executed by the coordinator
 func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
 		return 0, 0, am.ErrUserNotAuthorized

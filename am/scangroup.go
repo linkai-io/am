@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	RNScanGroupGroups   = "lrn:service:scangroup:feature:groups"
-	ScanGroupServiceKey = "scangroupservice"
+	RNScanGroupGroups    = "lrn:service:scangroup:feature:groups"
+	RNScanGroupAllGroups = "lrn:service:scangroup:feature:allgroups"
+	ScanGroupServiceKey  = "scangroupservice"
 )
 
 type GroupStatus int
@@ -46,13 +47,19 @@ type ScanGroup struct {
 	Deleted              bool                 `json:"deleted"`
 }
 
+// ScanGroupFilter for returning only select values from the AllGroups service method
+type ScanGroupFilter struct {
+	WithPaused  bool `json:"with_paused"`
+	PausedValue bool `json:"paused_value"`
+}
+
 // ScanGroupService manages input lists and configurations for an organization and group. OrgIDs should
 // always be returned for ensuring data integrity for requesters
 type ScanGroupService interface {
 	Init(config []byte) error
-	//IsAuthorized(ctx context.Context, userContext UserContext, resource, action string) bool
 	Get(ctx context.Context, userContext UserContext, groupID int) (oid int, group *ScanGroup, err error)
 	GetByName(ctx context.Context, userContext UserContext, groupName string) (oid int, group *ScanGroup, err error)
+	AllGroups(ctx context.Context, userContext UserContext, filter *ScanGroupFilter) (groups []*ScanGroup, err error)
 	Groups(ctx context.Context, userContext UserContext) (oid int, groups []*ScanGroup, err error)
 	Create(ctx context.Context, userContext UserContext, newGroup *ScanGroup) (oid int, gid int, err error)
 	Update(ctx context.Context, userContext UserContext, group *ScanGroup) (oid int, gid int, err error)

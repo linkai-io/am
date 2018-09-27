@@ -145,6 +145,8 @@ services:
        - "50055:50051"
      environment:
       - APP_ENV=local
+      - _am_local_system_userid=1
+      - _am_local_system_orgid=1
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}

@@ -16,6 +16,9 @@ type ScanGroupService struct {
 	GetByNameFn      func(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error)
 	GetByNameInvoked bool
 
+	AllGroupsFn      func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupFilter) (groups []*am.ScanGroup, err error)
+	AllGroupsInvoked bool
+
 	GroupsFn      func(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error)
 	GroupsInvoked bool
 
@@ -51,6 +54,11 @@ func (s *ScanGroupService) Get(ctx context.Context, userContext am.UserContext, 
 func (s *ScanGroupService) GetByName(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error) {
 	s.GetByNameInvoked = true
 	return s.GetByNameFn(ctx, userContext, groupName)
+}
+
+func (s *ScanGroupService) AllGroups(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupFilter) (groups []*am.ScanGroup, err error) {
+	s.AllGroupsInvoked = true
+	return s.AllGroupsFn(ctx, userContext, filter)
 }
 
 func (s *ScanGroupService) Groups(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error) {

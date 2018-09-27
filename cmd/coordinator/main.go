@@ -46,6 +46,16 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to get load balancer address")
 	}
 
+	systemOrgID, err := sec.SystemOrgID()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get system org id")
+	}
+
+	systemUserID, err := sec.SystemUserID()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get system user id")
+	}
+
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to listen")
@@ -54,7 +64,7 @@ func main() {
 	state := initState()
 	scanGroupClient := initSGClient()
 
-	service := coordinator.New(state, scanGroupClient)
+	service := coordinator.New(state, scanGroupClient, systemOrgID, systemUserID)
 	if err := service.Init([]byte(loadBalancerAddr)); err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}

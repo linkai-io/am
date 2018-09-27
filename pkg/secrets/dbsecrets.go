@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"fmt"
+	"strconv"
 )
 
 // DBSecrets for accessing database connection strings
@@ -63,4 +64,20 @@ func (s *DBSecrets) LoadBalancerAddr() (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+func (s *DBSecrets) SystemOrgID() (int, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/system/orgid", s.Environment))
+	if err != nil {
+		return -1, err
+	}
+	return strconv.Atoi(string(data))
+}
+
+func (s *DBSecrets) SystemUserID() (int, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/system/userid", s.Environment))
+	if err != nil {
+		return -1, err
+	}
+	return strconv.Atoi(string(data))
 }

@@ -98,6 +98,41 @@ func (c *Client) GetByName(ctx context.Context, userContext am.UserContext, grou
 	return c.get(ctx, userContext, in)
 }
 
+func (c *Client) AllGroups(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupFilter) (groups []*am.ScanGroup, err error) {
+	var stream service.ScanGroup_AllGroupsClient
+
+	in := &service.AllGroupsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Filter:      convert.DomainToScanGroupFilter(filter),
+	}
+
+	err = retrier.Retry(func() error {
+		var err error
+		stream, err = c.client.AllGroups(ctx, in)
+		return errors.Wrap(err, "unable to get all groups from scan group client")
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	groups = make([]*am.ScanGroup, 0)
+	for {
+		group, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, convert.ScanGroupToDomain(group.GetGroup()))
+	}
+
+	return groups, nil
+
+}
+
 func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid int, groups []*am.ScanGroup, err error) {
 	var stream service.ScanGroup_GroupsClient
 
