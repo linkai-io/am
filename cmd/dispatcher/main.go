@@ -58,7 +58,11 @@ func main() {
 	modules := initModules(state)
 
 	service := dispatcher.New(addrClient, modules, state)
-	if err := service.Init(nil); err != nil {
+	err = retrier.Retry(func() error {
+		return service.Init(nil)
+	})
+
+	if err != nil {
 		log.Fatal().Err(err).Msg("error initializing service")
 	}
 

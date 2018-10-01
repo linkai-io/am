@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/am"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -34,6 +35,8 @@ func init() {
 
 // main starts the UserService
 func main() {
+	var service *user.Service
+
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "UserService").Logger()
 
@@ -43,20 +46,25 @@ func main() {
 	}
 	dbstring, db := initDB()
 
-	policyManager := ladonauth.NewPolicyManager(db, "pgx")
-	if err := policyManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing policyManager failed")
-	}
+	err = retrier.Retry(func() error {
+		policyManager := ladonauth.NewPolicyManager(db, "pgx")
+		if err := policyManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing policyManager failed")
+		}
 
-	roleManager := ladonauth.NewRoleManager(db, "pgx")
-	if err := roleManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing roleManager failed")
-	}
+		roleManager := ladonauth.NewRoleManager(db, "pgx")
+		if err := roleManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing roleManager failed")
+		}
 
-	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
+		authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
 
-	service := user.New(authorizer)
-	if err := service.Init([]byte(dbstring)); err != nil {
+		service = user.New(authorizer)
+
+		return service.Init([]byte(dbstring))
+	})
+
+	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 

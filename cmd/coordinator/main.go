@@ -65,7 +65,10 @@ func main() {
 	scanGroupClient := initSGClient()
 
 	service := coordinator.New(state, scanGroupClient, systemOrgID, systemUserID)
-	if err := service.Init([]byte(loadBalancerAddr)); err != nil {
+	err = retrier.Retry(func() error {
+		return service.Init([]byte(loadBalancerAddr))
+	})
+	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 

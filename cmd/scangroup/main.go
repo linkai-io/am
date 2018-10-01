@@ -15,6 +15,7 @@ import (
 	scangroupprotoservice "github.com/linkai-io/am/protocservices/scangroup"
 	"github.com/linkai-io/am/services/scangroup"
 	scangroupprotoc "github.com/linkai-io/am/services/scangroup/protoc"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -33,6 +34,8 @@ func init() {
 
 // main starts the ScanGroupService
 func main() {
+	var service *scangroup.Service
+
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "ScanGroupService").Logger()
 
@@ -42,20 +45,24 @@ func main() {
 	}
 	dbstring, db := initDB()
 
-	policyManager := ladonauth.NewPolicyManager(db, "pgx")
-	if err := policyManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing policyManager failed")
-	}
+	err = retrier.Retry(func() error {
+		policyManager := ladonauth.NewPolicyManager(db, "pgx")
+		if err := policyManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing policyManager failed")
+		}
 
-	roleManager := ladonauth.NewRoleManager(db, "pgx")
-	if err := roleManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing roleManager failed")
-	}
+		roleManager := ladonauth.NewRoleManager(db, "pgx")
+		if err := roleManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing roleManager failed")
+		}
 
-	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
+		authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
 
-	service := scangroup.New(authorizer)
-	if err := service.Init([]byte(dbstring)); err != nil {
+		service = scangroup.New(authorizer)
+
+		return service.Init([]byte(dbstring))
+	})
+	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 

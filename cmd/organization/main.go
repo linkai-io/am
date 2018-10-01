@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/am"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -34,6 +35,8 @@ func init() {
 
 // main starts the OrganizationService
 func main() {
+	var service *organization.Service
+
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "OrganizationService").Logger()
 
@@ -43,21 +46,26 @@ func main() {
 	}
 	dbstring, db := initDB()
 
-	policyManager := ladonauth.NewPolicyManager(db, "pgx")
-	if err := policyManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing policyManager failed")
-	}
+	err = retrier.Retry(func() error {
+		policyManager := ladonauth.NewPolicyManager(db, "pgx")
+		if err := policyManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing policyManager failed")
+		}
 
-	roleManager := ladonauth.NewRoleManager(db, "pgx")
-	if err := roleManager.Init(); err != nil {
-		log.Fatal().Err(err).Msg("initializing roleManager failed")
-	}
+		roleManager := ladonauth.NewRoleManager(db, "pgx")
+		if err := roleManager.Init(); err != nil {
+			return errors.Wrap(err, "initializing roleManager failed")
+		}
 
-	authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
-	log.Info().Msg("Starting Service")
+		authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
+		log.Info().Msg("Starting Service")
 
-	service := organization.New(roleManager, authorizer)
-	if err := service.Init([]byte(dbstring)); err != nil {
+		service = organization.New(roleManager, authorizer)
+
+		return service.Init([]byte(dbstring))
+	})
+
+	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 

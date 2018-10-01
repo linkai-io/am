@@ -52,7 +52,10 @@ func main() {
 	state := initState()
 	dc := dnsclient.New([]string{"unbound:53"}, 3)
 	service := ns.New(dc, state)
-	if err := service.Init(nil); err != nil {
+	err = retrier.Retry(func() error {
+		return service.Init(nil)
+	})
+	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}
 
