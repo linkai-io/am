@@ -6,77 +6,91 @@ import (
 	"context"
 	"os"
 	"strings"
-	"sync/atomic"
 
+	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/dnsclient"
+	"github.com/linkai-io/am/services/module/brute/state"
 	"golang.org/x/time/rate"
 )
 
-type Analyzer struct {
-	ns         *dnsclient.Client
+type Bruter struct {
+	st         state.Stater
+	dc         *dnsclient.Client
 	subdomains []string
 	domainCh   chan string
 	doneCh     chan struct{}
 	limiter    *rate.Limiter
 	found      int32
+
+	// for closing subscriptions to listen for group updates
+	exitContext context.Context
+	cancel      context.CancelFunc
+	// concurrent safe cache of scan groups updated via Subscribe callbacks
+	groupCache *cache.ScanGroupSubscriber
 }
 
-func New(ns *dnsclient.Client) *Analyzer {
-	return &Analyzer{ns: ns}
+func New(dc *dnsclient.Client, st state.Stater) *Bruter {
+	ctx, cancel := context.WithCancel(context.Background())
+	b := &Bruter{st: st, exitContext: ctx, cancel: cancel}
+	b.dc = dc
+	// start cache subscriber and listen for updates
+	b.groupCache = cache.NewScanGroupSubscriber(ctx, st)
+	return b
 }
 
-func (a *Analyzer) Init(limit int, bruteFile *os.File) error {
+func (b *Bruter) Init(limit int, bruteFile *os.File) error {
 	defer bruteFile.Close()
 	fileScanner := bufio.NewScanner(bruteFile)
-	a.subdomains = make([]string, 0)
-	a.limiter = rate.NewLimiter(rate.Limit(limit), 20)
+	b.subdomains = make([]string, 0)
+	b.limiter = rate.NewLimiter(rate.Limit(limit), 20)
 	for fileScanner.Scan() {
-		a.subdomains = append(a.subdomains, strings.TrimSpace(fileScanner.Text()))
+		b.subdomains = append(b.subdomains, strings.TrimSpace(fileScanner.Text()))
 	}
-	a.domainCh = make(chan string, limit)
-	a.doneCh = make(chan struct{})
+	b.domainCh = make(chan string, limit)
+	b.doneCh = make(chan struct{})
 
 	for i := 0; i < limit; i++ {
-		go a.resolver(a.domainCh, a.doneCh)
+		go b.resolver(b.domainCh, b.doneCh)
 	}
 	return nil
 }
 
-func (a *Analyzer) AnalyzeZone(zone string) {
+func (b *Bruter) AnalyzeZone(zone string) {
 	var buf bytes.Buffer
 	ctx := context.Background()
 
-	for i := 0; i < len(a.subdomains); i++ {
-		a.limiter.Wait(ctx)
-		buf.WriteString(a.subdomains[i])
+	for i := 0; i < len(b.subdomains); i++ {
+		b.limiter.Wait(ctx)
+		buf.WriteString(b.subdomains[i])
 		buf.WriteString(".")
 		buf.WriteString(zone)
-		a.domainCh <- buf.String()
+		b.domainCh <- buf.String()
 		buf.Reset()
 	}
 }
 
-func (a *Analyzer) resolver(domainCh chan string, doneCh chan struct{}) {
-	for {
+func (b *Bruter) resolver(domainCh chan string, doneCh chan struct{}) {
+	/*for {
 		select {
 		case domain := <-domainCh:
-			r, err := a.ns.ResolveName(domain)
+			r, err := b.ns.ResolveName(domain)
 			if err != nil && err != dnsclient.ErrEmptyRecords {
 				continue
 			}
 			if r != nil && len(r) > 0 {
-				atomic.AddInt32(&a.found, 1)
+				atomic.AddInt32(&b.found, 1)
 				/*
 					for _, record := range r {
 						log.Info().Printf("%#v\n", record)
-					}*/
+					}
 			}
 		case <-doneCh:
 			return
 		}
 	}
+	*/
 }
 
-func (a *Analyzer) Quit() {
-	a.doneCh <- struct{}{}
+func (b *Bruter) Quit() {
+	b.doneCh <- struct{}{}
 }

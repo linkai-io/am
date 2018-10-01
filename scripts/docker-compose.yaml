@@ -78,7 +78,7 @@ services:
       - ammigration
       - amloadservice
      ports:
-       - "50051:50051"
+       - "50050:50051"
      networks:
       app_net:
         ipv4_address: 172.16.238.11

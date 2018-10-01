@@ -54,12 +54,12 @@ func TestNS_Analyze(t *testing.T) {
 	dc := dnsclient.New([]string{localServer}, 3)
 	ns := ns.New(dc, state)
 	ns.Init(nil)
-
+	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
 
 	for _, tt := range tests {
 		t.Logf("%d\n", tt.AddressID)
-		ns.Analyze(ctx, tt)
+		ns.Analyze(ctx, userContext, tt)
 	}
 }
 

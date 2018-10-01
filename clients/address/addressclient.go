@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
@@ -10,15 +11,17 @@ import (
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/address"
 	"github.com/linkai-io/am/protocservices/prototypes"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 
 type Client struct {
-	client service.AddressClient
+	client         service.AddressClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 10)}
 }
 
 func (c *Client) Init(config []byte) error {
@@ -44,10 +47,14 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 		Filter:      convert.DomainToAddressFilter(filter),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Get(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Get(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get addresses from client")
 	})
 
 	if err != nil {
@@ -84,10 +91,14 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 		Address:     protoAddresses,
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Update(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Update(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update addresses from client")
 	})
 
 	if err != nil {
@@ -105,10 +116,15 @@ func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID 
 		GroupID:     int32(groupID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Count(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Count(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to count addresses from client")
+
 	})
 
 	if err != nil {
@@ -120,16 +136,22 @@ func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID 
 
 func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error) {
 	var resp *service.DeleteAddressesResponse
+
 	in := &service.DeleteAddressesRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		GroupID:     int32(groupID),
 		AddressIDs:  addressIDs,
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Delete(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Delete(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to delete addresses from client")
+
 	})
 
 	if err != nil {

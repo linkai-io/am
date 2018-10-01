@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"context"
 	"encoding/json"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -54,6 +55,7 @@ func New(addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleSer
 // Init this dispatcher and register it with coordinator
 func (s *Service) Init(config []byte) error {
 	go s.listener()
+	go s.debug()
 	return nil
 }
 
@@ -66,11 +68,30 @@ func (s *Service) parseConfig(data []byte) (*Config, error) {
 	return config, nil
 }
 
+func (s *Service) debug() {
+	t := time.NewTicker(time.Second * 10)
+	stackTicker := time.NewTicker(time.Minute * 15)
+	defer t.Stop()
+	defer stackTicker.Stop()
+	for {
+		select {
+		case <-s.closeCh:
+			return
+		case <-stackTicker.C:
+			buf := make([]byte, 1<<20)
+			stacklen := runtime.Stack(buf, true)
+			log.Printf("*** goroutine dump...\n%s\n*** end\n", buf[:stacklen])
+		case <-t.C:
+			log.Info().Int32("groups", s.GetActiveGroups()).Int32("addrs", s.GetActiveAddresses()).Msg("stats")
+		}
+	}
+}
+
 // PushAddresses to state
 func (s *Service) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	log.Info().Msgf("pushing details for %d", scanGroupID)
 	s.pushCh <- &pushDetails{userContext: userContext, scanGroupID: scanGroupID}
-	log.Info().Msgf("pushed details for %d\n", scanGroupID)
+	log.Info().Msgf("pushed details for %dn", scanGroupID)
 	return nil
 }
 
@@ -87,11 +108,13 @@ func (s *Service) listener() {
 			log.Info().Msg("Closing down...")
 			return
 		case details := <-s.pushCh:
+
 			groupLog := log.With().
 				Int("UserID", details.userContext.GetUserID()).
 				Int("GroupID", details.scanGroupID).
 				Int("OrgID", details.userContext.GetOrgID()).
 				Str("TraceID", details.userContext.GetTraceID()).Logger()
+			groupLog.Info().Msg("Starting Analysis")
 
 			s.IncActiveGroups()
 			ctx := context.Background()
@@ -121,7 +144,7 @@ func (s *Service) listener() {
 
 				// get last addressid and update start for filter.
 				filter.Start = addrs[numAddrs-1].AddressID
-				groupLog.Info().Int("addresses", numAddrs).Msg("putting in state")
+				groupLog.Info().Int("addresses", numAddrs).Msg("Putting in state")
 
 				if err := s.state.PutAddresses(ctx, details.userContext, details.scanGroupID, addrs); err != nil {
 					groupLog.Error().Err(err).Int64("filter.Start", filter.Start).Msg("error pushing addresses")
@@ -141,6 +164,8 @@ func (s *Service) listener() {
 
 			if err := s.state.Stop(ctx, details.userContext, details.scanGroupID); err != nil {
 				groupLog.Error().Err(err).Msg("error stopping group")
+			} else {
+				groupLog.Info().Msg("stopped group")
 			}
 			s.DecActiveGroups()
 		} // end switch
@@ -157,28 +182,50 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 		}
 
 		if len(addrMap) == 0 {
-			groupLog.Info().Msg("no more addresses")
+			groupLog.Info().Msg("no more addresses from work queue")
 			break
 		}
 
 		for _, addr := range addrMap {
 			s.IncActiveAddresses()
-			address, err := s.analyzeAddress(ctx, userContext, groupLog, scanGroupID, addr)
+			updatedAddress, err := s.analyzeAddress(ctx, userContext, groupLog, scanGroupID, addr)
 			if err != nil {
+				// TODO: need to figure out how to handle not losing hosts, but also not scanning forever if
+				// they are always problematic.
 				groupLog.Error().Err(err).Str("ip", addr.IPAddress).Str("host", addr.HostAddress)
+				s.DecActiveAddresses()
+				continue
 			}
-			address.LastScannedTime = time.Now().UnixNano()
-			batcher.Add(address)
+
+			updatedAddress.LastSeenTime = time.Now().UnixNano()
+			batcher.Add(updatedAddress)
+
+			// this happens iff input_list/manual hosts only have one of ip or host
+			if addr.AddressHash != updatedAddress.AddressHash {
+				s.updateOriginal(batcher, addr)
+			}
 			s.DecActiveAddresses()
 		}
 	}
 	return nil
 }
 
+// updateOriginal since we can not update the original input hosts (or manually added)
+// but we don't want our last seen check to keep re-adding the hosts for scans.
+func (s *Service) updateOriginal(batcher *Batcher, originalAddress *am.ScanGroupAddress) {
+	switch originalAddress.DiscoveredBy {
+	case am.DiscoveryNSInputList, am.DiscoveryNSManual:
+		now := time.Now().UnixNano()
+		originalAddress.LastScannedTime = now
+		originalAddress.LastSeenTime = now
+		batcher.Add(originalAddress)
+	}
+}
+
 // analyzeAddress
 func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
 	groupLog.Info().Str("ip", address.IPAddress).Str("host", address.HostAddress).Msg("analyzing")
-	updatedAddress, possibleNewAddrs, err := s.moduleClients[am.NSModule].Analyze(ctx, address)
+	updatedAddress, possibleNewAddrs, err := s.moduleClients[am.NSModule].Analyze(ctx, userContext, address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using ns module")
 	}

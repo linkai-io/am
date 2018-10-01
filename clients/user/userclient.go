@@ -3,10 +3,12 @@ package user
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/pkg/errors"
 
 	"github.com/linkai-io/am/am"
 	service "github.com/linkai-io/am/protocservices/user"
@@ -14,11 +16,12 @@ import (
 )
 
 type Client struct {
-	client service.UserServiceClient
+	client         service.UserServiceClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 10)}
 }
 
 func (c *Client) Init(config []byte) error {
@@ -38,10 +41,14 @@ func (c *Client) Init(config []byte) error {
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.UserRequest) (oid int, user *am.User, err error) {
 	var resp *service.UserResponse
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Get(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Get(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get users from user client")
 	})
 
 	if err != nil {
@@ -76,10 +83,14 @@ func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *a
 		UserFilter:  convert.DomainToUserFilter(filter),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.List(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.List(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to list users from user client")
 	})
 
 	if err != nil {
@@ -108,11 +119,14 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, user *a
 		UserContext: convert.DomainToUserContext(userContext),
 		User:        convert.DomainToUser(user),
 	}
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
 
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Create(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Create(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to create user from user client")
 	})
 
 	if err != nil {
@@ -131,10 +145,14 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, user *a
 		UserID:      int32(userID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Update(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Update(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update user from user client")
 	})
 
 	if err != nil {
@@ -151,10 +169,14 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, userID 
 		UserID:      int32(userID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Delete(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Delete(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to delete user from user client")
 	})
 
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/bsm/grpclb"
-	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
@@ -17,11 +16,12 @@ import (
 )
 
 type Client struct {
-	client service.ScanGroupClient
+	client         service.ScanGroupClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 10)}
 }
 
 func (c *Client) Init(config []byte) error {
@@ -35,43 +35,21 @@ func (c *Client) Init(config []byte) error {
 	}
 
 	c.client = service.NewScanGroupClient(conn)
-	go debug(string(config))
 	return nil
-}
-
-func debug(addr string) {
-	for {
-		time.Sleep(5 * time.Second)
-		cc, err := grpc.Dial(addr, grpc.WithInsecure())
-		if err != nil {
-			log.Error().Err(err).Msg("scangroup client error dialing address")
-			continue
-		}
-		defer cc.Close()
-
-		bc := balancerpb.NewLoadBalancerClient(cc)
-		resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
-			Target: am.ScanGroupServiceKey,
-		})
-		if err != nil {
-			log.Error().Err(err).Msg("scangroup client error in resp")
-			continue
-		}
-
-		if len(resp.Servers) == 0 {
-			log.Warn().Msg("No scangroup servers\n")
-		}
-	}
 }
 
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.GroupRequest) (oid int, group *am.ScanGroup, err error) {
 	var resp *service.GroupResponse
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		log.Info().Msg("Attempting to get group")
-		resp, err = c.client.Get(ctx, in)
-		return errors.Wrap(err, "unable to get scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Get(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get scangroup from client")
 	})
 
 	if err != nil {
@@ -106,13 +84,17 @@ func (c *Client) AllGroups(ctx context.Context, userContext am.UserContext, filt
 		Filter:      convert.DomainToScanGroupFilter(filter),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		stream, err = c.client.AllGroups(ctx, in)
-		return errors.Wrap(err, "unable to get all groups from scan group client")
+		var retryErr error
+		stream, retryErr = c.client.AllGroups(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get all scangroups from client")
 	})
 
 	if err != nil {
+		log.Error().Err(err).Msg("UNABLE TO GET GROUPS")
 		return nil, err
 	}
 
@@ -139,11 +121,14 @@ func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid in
 	in := &service.GroupsRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 	}
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
 
 	err = retrier.Retry(func() error {
-		var err error
-		stream, err = c.client.Groups(ctx, in)
-		return errors.Wrap(err, "unable to get groups from scan group client")
+		var retryErr error
+
+		stream, retryErr = c.client.Groups(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get groups from scangroup client")
 	})
 
 	if err != nil {
@@ -174,11 +159,14 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, newGrou
 		UserContext: convert.DomainToUserContext(userContext),
 		Group:       convert.DomainToScanGroup(newGroup),
 	}
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
 
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Create(ctx, in)
-		return errors.Wrap(err, "unable to create scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Create(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to create groups from scangroup client")
 	})
 
 	if err != nil {
@@ -196,10 +184,14 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, group *
 		Group:       convert.DomainToScanGroup(group),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Update(ctx, in)
-		return errors.Wrap(err, "unable to update scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Update(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update group from scangroup client")
 	})
 
 	if err != nil {
@@ -217,10 +209,14 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 		GroupID:     int32(groupID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Delete(ctx, in)
-		return errors.Wrap(err, "unable to delete scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Delete(ctxDeadline, in)
+		cancel()
+		return errors.Wrap(retryErr, "unable to delete group from scangroup client")
 	})
 
 	if err != nil {
@@ -238,10 +234,14 @@ func (c *Client) Pause(ctx context.Context, userContext am.UserContext, groupID 
 		GroupID:     int32(groupID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Pause(ctx, in)
-		return errors.Wrap(err, "unable to pause scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Pause(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to pause group from scangroup client")
 	})
 
 	if err != nil {
@@ -259,10 +259,14 @@ func (c *Client) Resume(ctx context.Context, userContext am.UserContext, groupID
 		GroupID:     int32(groupID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Resume(ctx, in)
-		return errors.Wrap(err, "unable to resume scan group from client")
+		var retryErr error
+
+		resp, retryErr = c.client.Resume(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to resume group from scangroup client")
 	})
 
 	if err != nil {

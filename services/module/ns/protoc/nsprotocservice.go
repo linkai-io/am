@@ -17,7 +17,7 @@ func New(implementation am.ModuleService) *NSProtocService {
 }
 
 func (s *NSProtocService) Analyze(ctx context.Context, in *module.AnalyzeRequest) (*module.AnalyzedResponse, error) {
-	address, addresses, err := s.nsservice.Analyze(ctx, convert.AddressToDomain(in.Address))
+	address, addresses, err := s.nsservice.Analyze(ctx, convert.UserContextToDomain(in.UserContext), convert.AddressToDomain(in.Address))
 	protocAddrs := make(map[string]*prototypes.AddressData, len(addresses))
 	for k, v := range addresses {
 		protocAddrs[k] = convert.DomainToAddress(v)

@@ -34,7 +34,7 @@ func init() {
 // main starts the ScanGroupService
 func main() {
 	zerolog.TimeFieldFormat = ""
-	log.Logger = log.With().Str("service", "AddressService").Logger()
+	log.Logger = log.With().Str("service", "ScanGroupService").Logger()
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {

@@ -39,14 +39,14 @@ var queryMap = map[string]string{
 		%s
 		from am.scan_group_addresses as sga where organization_id=$1 and
 		scan_group_id=$2 and 
-		(last_scanned_timestamp=0 OR last_scanned_timestamp > $3) and 
+		(last_scanned_timestamp=0 OR last_scanned_timestamp < $3) and 
 		address_id > $4 order by address_id limit $5`, sharedColumns),
 
 	"scanGroupAddressesSinceSeenTime": fmt.Sprintf(`select 
 		%s
 		from am.scan_group_addresses as sga where organization_id=$1 and
 		scan_group_id=$2 and 
-		(last_seen_timestamp=0 OR last_seen_timestamp > $3) and 
+		(last_seen_timestamp=0 OR last_seen_timestamp < $3) and 
 		address_id > $4 order by address_id limit $5`, sharedColumns),
 
 	"scanGroupAddressesIgnored": fmt.Sprintf(`select 

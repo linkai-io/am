@@ -2,9 +2,11 @@ package dispatcher_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -117,4 +119,17 @@ func TestDispatcherFlow(t *testing.T) {
 	dispatcher.PushAddresses(ctx, userContext, groupID)
 
 	wg.Wait()
+}
+
+func TestTime(t *testing.T) {
+	now := time.Now()
+	var nowN int64
+	// TODO: do smart calculation on size of scan group addresses
+	then := now.Add(-1 * time.Minute).UnixNano()
+	nowN = 1538094686180867747 //now.UnixNano() //1538093557888605642
+	fmt.Printf("%d\n", nowN)
+	fmt.Printf("%d\n", then)
+	if nowN < then {
+		fmt.Printf("scanning!")
+	}
 }

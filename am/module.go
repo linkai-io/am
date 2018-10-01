@@ -92,5 +92,5 @@ type KeywordModuleConfig struct {
 // ModuleService is the default interface for analyzing an address and spitting out potentially
 // more addresses
 type ModuleService interface {
-	Analyze(ctx context.Context, address *ScanGroupAddress) (*ScanGroupAddress, map[string]*ScanGroupAddress, error)
+	Analyze(ctx context.Context, userContext UserContext, address *ScanGroupAddress) (*ScanGroupAddress, map[string]*ScanGroupAddress, error)
 }

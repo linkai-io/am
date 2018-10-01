@@ -2,23 +2,25 @@ package coordinator
 
 import (
 	"context"
+	"time"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
-	"github.com/rs/zerolog/log"
+	"github.com/pkg/errors"
 
 	service "github.com/linkai-io/am/protocservices/coordinator"
 	"google.golang.org/grpc"
 )
 
 type Client struct {
-	client service.CoordinatorClient
+	client         service.CoordinatorClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 10)}
 }
 
 func (c *Client) Init(config []byte) error {
@@ -36,14 +38,19 @@ func (c *Client) Init(config []byte) error {
 }
 
 func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+	var resp *service.GroupStartedResponse
+
 	in := &service.StartGroupRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		GroupID:     int32(scanGroupID),
 	}
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
 
 	return retrier.Retry(func() error {
-		_, err := c.client.StartGroup(ctx, in)
-		log.Error().Err(err).Msg("error starting group in client")
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.StartGroup(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to start group from coordinator client")
 	})
 }

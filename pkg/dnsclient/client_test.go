@@ -1,6 +1,7 @@
 package dnsclient
 
 import (
+	"context"
 	"net"
 	"strings"
 	"testing"
@@ -27,7 +28,8 @@ func TestResolveName(t *testing.T) {
 
 	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
-		r, err := c.ResolveName(test.in)
+		ctx := context.Background()
+		r, err := c.ResolveName(ctx, test.in)
 		if err != nil {
 			if !test.isError {
 				t.Fatalf("%s error: %s\n", test.in, err)
@@ -67,7 +69,8 @@ func TestResolveIPv4(t *testing.T) {
 	}
 	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
-		r, err := c.ResolveIP(test.in)
+		ctx := context.Background()
+		r, err := c.ResolveIP(ctx, test.in)
 
 		if err != nil {
 			if !test.isError {
@@ -102,7 +105,8 @@ func TestResolveIPv6(t *testing.T) {
 
 	c := New([]string{dnsServer}, 3)
 	for _, test := range tests {
-		r, err := c.ResolveIP(test.in)
+		ctx := context.Background()
+		r, err := c.ResolveIP(ctx, test.in)
 
 		if err != nil {
 			if !test.isError {
@@ -138,7 +142,8 @@ func TestLookupNS(t *testing.T) {
 	c := New([]string{dnsServer}, 3)
 
 	for _, test := range tests {
-		r, err := c.LookupNS(test.in)
+		ctx := context.Background()
+		r, err := c.LookupNS(ctx, test.in)
 
 		if err != nil {
 			if !test.isError {
@@ -161,7 +166,8 @@ func TestLookupNS(t *testing.T) {
 
 func TestDoAXFR(t *testing.T) {
 	c := New([]string{dnsServer}, 3)
-	r, err := c.DoAXFR("zonetransfer.me")
+	ctx := context.Background()
+	r, err := c.DoAXFR(ctx, "zonetransfer.me")
 	if err != nil {
 		t.Fatalf("error: %s\n", err)
 	}
@@ -170,8 +176,8 @@ func TestDoAXFR(t *testing.T) {
 			t.Logf("ns: %s %#v %d %d %s\n", ns, results, len(results.Hosts), len(results.IPs), results.Type())
 		}
 	}
-
-	r, err = c.DoAXFR("linkai.io")
+	ctx = context.Background()
+	r, err = c.DoAXFR(ctx, "linkai.io")
 	if err != nil {
 		t.Fatalf("error %s\n", err)
 	}

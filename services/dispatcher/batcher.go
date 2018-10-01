@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/rs/zerolog/log"
 )
 
@@ -61,7 +60,6 @@ func (b *Batcher) Drain() map[string]*am.ScanGroupAddress {
 			return results
 		}
 	}
-	return nil
 }
 
 func (b *Batcher) Count() int32 {
@@ -100,14 +98,7 @@ func (b *Batcher) update(addresses map[string]*am.ScanGroupAddress) {
 
 	ctx := context.Background()
 
-	err = retrier.Retry(func() error {
-		_, count, err = b.addressClient.Update(ctx, b.userContext, addresses)
-		if err != nil {
-			log.Error().Err(err).Msg("inserting addresses failed, retrying")
-		}
-		return err
-	})
-
+	_, count, err = b.addressClient.Update(ctx, b.userContext, addresses)
 	if err != nil {
 		log.Error().Err(err).Msg("Unable to insert batch of addresses")
 		return

@@ -3,10 +3,12 @@ package organization
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/pkg/errors"
 
 	"github.com/linkai-io/am/am"
 	service "github.com/linkai-io/am/protocservices/organization"
@@ -14,11 +16,12 @@ import (
 )
 
 type Client struct {
-	client service.OrganizationClient
+	client         service.OrganizationClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 10)}
 }
 
 func (c *Client) Init(config []byte) error {
@@ -37,10 +40,15 @@ func (c *Client) Init(config []byte) error {
 
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.OrgRequest) (oid int, org *am.Organization, err error) {
 	var resp *service.OrgResponse
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Get(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Get(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get organizations from client")
 	})
 
 	if err != nil {
@@ -79,15 +87,20 @@ func (c *Client) GetByID(ctx context.Context, userContext am.UserContext, orgID 
 
 func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) ([]*am.Organization, error) {
 	var resp service.Organization_ListClient
+	var err error
+
 	in := &service.OrgListRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		OrgFilter:   convert.DomainToOrgFilter(filter),
 	}
 
-	err := retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.List(ctx, in)
-		return err
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.Retry(func() error {
+		var retryErr error
+		resp, retryErr = c.client.List(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to list organizations from client")
 	})
 
 	if err != nil {
@@ -116,10 +129,14 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, org *am
 		Org:         convert.DomainToOrganization(org),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Create(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Create(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to create organizations from client")
 	})
 
 	if err != nil {
@@ -136,10 +153,14 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, org *am
 		Org:         convert.DomainToOrganization(org),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Update(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Update(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update organizations from client")
 	})
 
 	if err != nil {
@@ -155,10 +176,14 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, orgID i
 		OrgID:       int32(orgID),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		var err error
-		resp, err = c.client.Delete(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Delete(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to delete organizations from client")
 	})
 
 	if err != nil {

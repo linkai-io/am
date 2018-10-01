@@ -5,6 +5,8 @@ import (
 )
 
 var hostedDomains = map[string]struct{}{
+	"akamaitechnologies.com": struct{}{},
+	"akamaistream.net":       struct{}{},
 	"amazonaws.com":          struct{}{},
 	"elasticbeanstalk.com":   struct{}{},
 	"cloudfront.net":         struct{}{},

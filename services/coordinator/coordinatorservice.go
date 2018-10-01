@@ -105,6 +105,7 @@ func (s *Service) startGroups() {
 
 	for _, group := range groups {
 		proxyUserContext := &am.UserContextData{OrgID: group.OrgID, UserID: group.CreatedBy, TraceID: createID()}
+		log.Info().Int("GroupID", group.GroupID).Msg("starting group")
 		if err := s.StartGroup(ctx, proxyUserContext, group.GroupID); err != nil {
 			if err != ErrScanGroupAlreadyStarted {
 				log.Warn().Err(err).Msg("failed to start group")

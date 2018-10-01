@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/bsm/grpclb"
-	balancerpb "github.com/bsm/grpclb/grpclb_balancer_v1"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
@@ -22,11 +21,12 @@ type Config struct {
 }
 
 type Client struct {
-	client service.ModuleClient
+	client         service.ModuleClient
+	defaultTimeout time.Duration
 }
 
 func New() *Client {
-	return &Client{}
+	return &Client{defaultTimeout: (time.Second * 60)}
 }
 
 func (c *Client) Init(data []byte) error {
@@ -48,34 +48,8 @@ func (c *Client) Init(data []byte) error {
 	if err != nil {
 		return err
 	}
-	go debug(key, config.Addr)
 	c.client = service.NewModuleClient(conn)
 	return nil
-}
-
-func debug(key, addr string) {
-	for {
-		time.Sleep(5 * time.Second)
-		cc, err := grpc.Dial(addr, grpc.WithInsecure())
-		if err != nil {
-			log.Error().Err(err).Msg("error dialing address")
-			continue
-		}
-		defer cc.Close()
-
-		bc := balancerpb.NewLoadBalancerClient(cc)
-		resp, err := bc.Servers(context.Background(), &balancerpb.ServersRequest{
-			Target: key,
-		})
-		if err != nil {
-			log.Error().Err(err).Msg("error in response from load balancer")
-			continue
-		}
-
-		if len(resp.Servers) == 0 {
-			log.Warn().Msgf("no %s servers", key)
-		}
-	}
 }
 
 func (c *Client) parseConfig(data []byte) (*Config, error) {
@@ -91,16 +65,25 @@ func (c *Client) parseConfig(data []byte) (*Config, error) {
 	return config, nil
 }
 
-func (c *Client) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
+func (c *Client) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	var err error
 	var resp *service.AnalyzedResponse
 	in := &service.AnalyzeRequest{
-		Address: convert.DomainToAddress(address),
+		UserContext: convert.DomainToUserContext(userContext),
+		Address:     convert.DomainToAddress(address),
 	}
 
+	ctxDeadline, cancel := context.WithTimeout(context.Background(), c.defaultTimeout)
+	defer cancel()
+
 	err = retrier.Retry(func() error {
-		resp, err = c.client.Analyze(ctx, in)
-		return err
+		var retryErr error
+
+		resp, retryErr = c.client.Analyze(ctxDeadline, in)
+		if retryErr != nil {
+			log.Info().Msgf("module analyze returned, cancel? %v", ctxDeadline.Err())
+		}
+		return retryErr
 	})
 
 	if err != nil {

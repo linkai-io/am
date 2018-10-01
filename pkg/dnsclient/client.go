@@ -1,6 +1,7 @@
 package dnsclient
 
 import (
+	"context"
 	"errors"
 	"math/rand"
 	"strings"
@@ -42,36 +43,40 @@ func New(servers []string, retry int) *Client {
 }
 
 // IsWildcard tests if a domain is a wildcard domain
-func (c *Client) IsWildcard(domain string) bool {
+func (c *Client) IsWildcard(ctx context.Context, domain string) bool {
 	return false
 }
 
 // ResolveName attempts to resolve a name to ip addresses. It will
 // attempt to resolve both IPv4 and IPv6 addresses to the name
-func (c *Client) ResolveName(name string) ([]*Results, error) {
+func (c *Client) ResolveName(ctx context.Context, name string) ([]*Results, error) {
+	recvd := 0
 	results := make([]*Results, 0)
 	resultErrors := make(chan *resultError, 2)
 
-	go c.queryA(name, resultErrors)
-	go c.queryAAAA(name, resultErrors)
-
-	recvd := 0
-	for r := range resultErrors {
-		if r.Error == nil {
-			results = append(results, r.Result)
-		}
-		recvd++
-		if recvd == 2 {
-			goto DONE
+	go c.queryA(ctx, name, resultErrors)
+	go c.queryAAAA(ctx, name, resultErrors)
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	for {
+		select {
+		case <-ctxDeadline.Done():
+			return results, ctxDeadline.Err()
+		case r := <-resultErrors:
+			recvd++
+			if r.Error == nil {
+				results = append(results, r.Result)
+			}
+			if recvd == 2 {
+				close(resultErrors)
+				return results, nil
+			}
 		}
 	}
-DONE:
-	close(resultErrors)
-	return results, nil
 }
 
-func (c *Client) queryA(name string, rc chan *resultError) {
-	result, err := c.exchange(name, dns.TypeA)
+func (c *Client) queryA(ctx context.Context, name string, rc chan *resultError) {
+	result, err := c.exchange(ctx, name, dns.TypeA)
 	if err != nil {
 		rc <- &resultError{Result: nil, Error: err}
 		return
@@ -88,8 +93,8 @@ func (c *Client) queryA(name string, rc chan *resultError) {
 	rc <- &resultError{Result: results, Error: nil}
 }
 
-func (c *Client) queryAAAA(name string, rc chan *resultError) {
-	result, err := c.exchange(name, dns.TypeAAAA)
+func (c *Client) queryAAAA(ctx context.Context, name string, rc chan *resultError) {
+	result, err := c.exchange(ctx, name, dns.TypeAAAA)
 	if err != nil {
 		rc <- &resultError{Result: nil, Error: err}
 		return
@@ -108,13 +113,16 @@ func (c *Client) queryAAAA(name string, rc chan *resultError) {
 
 // ResolveIP returns RRs for an IP address by parsing IP type and
 // calling ipv4 or ipv6
-func (c *Client) ResolveIP(ip string) (*Results, error) {
+func (c *Client) ResolveIP(ctx context.Context, ip string) (*Results, error) {
 	name, err := dns.ReverseAddr(ip)
 	if err != nil {
 		return nil, ErrInvalidIP
 	}
 
-	result, err := c.exchange(name, dns.TypePTR)
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	result, err := c.exchange(ctxDeadline, name, dns.TypePTR)
 	if err != nil {
 		return nil, err
 	}
@@ -132,8 +140,10 @@ func (c *Client) ResolveIP(ip string) (*Results, error) {
 }
 
 // LookupNS returns NS RRs for a zone
-func (c *Client) LookupNS(zone string) (*Results, error) {
-	result, err := c.exchange(zone, dns.TypeNS)
+func (c *Client) LookupNS(ctx context.Context, zone string) (*Results, error) {
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	result, err := c.exchange(ctxDeadline, zone, dns.TypeNS)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +159,10 @@ func (c *Client) LookupNS(zone string) (*Results, error) {
 }
 
 // LookupMX returns MX RRs for a zone
-func (c *Client) LookupMX(zone string) (*Results, error) {
-	result, err := c.exchange(zone, dns.TypeMX)
+func (c *Client) LookupMX(ctx context.Context, zone string) (*Results, error) {
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	result, err := c.exchange(ctxDeadline, zone, dns.TypeMX)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +178,11 @@ func (c *Client) LookupMX(zone string) (*Results, error) {
 }
 
 // LookupSRV returns SRV RRs for a zone
-func (c *Client) LookupSRV(zone string) (*Results, error) {
-	result, err := c.exchange(zone, dns.TypeSRV)
+func (c *Client) LookupSRV(ctx context.Context, zone string) (*Results, error) {
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	result, err := c.exchange(ctxDeadline, zone, dns.TypeSRV)
 	if err != nil {
 		return nil, err
 	}
@@ -186,11 +201,14 @@ func (c *Client) LookupSRV(zone string) (*Results, error) {
 // getting the domains NS records, and attempts an AXFR against
 // each server. We use a waitgroup for NS servers and a workerpool
 // for doing resolution on various records returned by AXFR.
-func (c *Client) DoAXFR(name string) (map[string][]*Results, error) {
-	nsAddrs, err := c.LookupNS(name)
+func (c *Client) DoAXFR(ctx context.Context, name string) (map[string][]*Results, error) {
+	nsAddrs, err := c.LookupNS(ctx, name)
 	if err != nil {
 		return nil, err
 	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*60)
+	defer cancel()
 
 	results := make(map[string][]*Results)
 
@@ -208,7 +226,7 @@ func (c *Client) DoAXFR(name string) (map[string][]*Results, error) {
 		if dns.IsFqdn(nameserver) {
 			nameserver = nameserver[:len(nameserver)-1]
 		}
-		go c.doAXFR(msg, nameserver, rc, pool, wg)
+		go c.doAXFR(ctxDeadline, msg, nameserver, rc, pool, wg)
 	}
 
 	go func() {
@@ -228,7 +246,7 @@ func (c *Client) DoAXFR(name string) (map[string][]*Results, error) {
 // RR record has been processed and wait for all records to be resolved. Each RR from an AXFR
 // is submitted to the workerpool task as a closure where it can process, then write the results
 // to the out chan.
-func (c *Client) doAXFR(msg *dns.Msg, nameserver string, rc chan<- *axfrResultError, pool *workerpool.WorkerPool, nswg *sync.WaitGroup) {
+func (c *Client) doAXFR(ctx context.Context, msg *dns.Msg, nameserver string, rc chan<- *axfrResultError, pool *workerpool.WorkerPool, nswg *sync.WaitGroup) {
 	defer nswg.Done()
 
 	results := &axfrResultError{NSAddress: nameserver, Result: make([]*Results, 0)}
@@ -255,7 +273,7 @@ func (c *Client) doAXFR(msg *dns.Msg, nameserver string, rc chan<- *axfrResultEr
 			wpwg.Add(1)
 			task := func(rr dns.RR, wpwg *sync.WaitGroup, out chan<- *Results) func() {
 				return func() {
-					if r := c.processAXFRRR(rr); r != nil {
+					if r := c.processAXFRRR(ctx, rr); r != nil {
 						out <- r
 					}
 					wpwg.Done()
@@ -278,14 +296,14 @@ func (c *Client) doAXFR(msg *dns.Msg, nameserver string, rc chan<- *axfrResultEr
 	rc <- results
 }
 
-func (c *Client) processAXFRRR(rr dns.RR) *Results {
+func (c *Client) processAXFRRR(ctx context.Context, rr dns.RR) *Results {
 	axfrResult := &Results{}
 	axfrResult.RequestType = dns.TypeAXFR
 	axfrResult.RecordType = rr.Header().Rrtype
 
 	switch value := rr.(type) {
 	case *dns.NS:
-		ips, err := c.ResolveName(value.Ns)
+		ips, err := c.ResolveName(ctx, value.Ns)
 		axfrResult.Hosts = append(axfrResult.Hosts, parsers.FQDNTrim(value.Ns))
 		if err != nil {
 			log.Error().Err(err).Msg("error resolving NS server")
@@ -296,7 +314,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 		}
 
 	case *dns.CNAME:
-		ips, err := c.ResolveName(value.Target)
+		ips, err := c.ResolveName(ctx, value.Target)
 		if err != nil {
 			log.Error().Err(err).Msg("error resolving CNAME")
 			return nil
@@ -306,7 +324,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 			axfrResult.IPs = append(axfrResult.IPs, resolved.IPs...)
 		}
 	case *dns.SRV:
-		ips, err := c.ResolveName(value.Target)
+		ips, err := c.ResolveName(ctx, value.Target)
 		if err != nil {
 			log.Error().Err(err).Msg("error resolving SRV")
 			return nil
@@ -316,7 +334,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 			axfrResult.IPs = append(axfrResult.IPs, resolved.IPs...)
 		}
 	case *dns.MX:
-		ips, err := c.ResolveName(value.Mx)
+		ips, err := c.ResolveName(ctx, value.Mx)
 		if err != nil {
 			log.Error().Err(err).Msg("error resolving MX")
 			return nil
@@ -342,7 +360,7 @@ func (c *Client) processAXFRRR(rr dns.RR) *Results {
 }
 
 // Initiates an exchange with a dns resolver
-func (c *Client) exchange(name string, query uint16) (*dns.Msg, error) {
+func (c *Client) exchange(ctx context.Context, name string, query uint16) (*dns.Msg, error) {
 	var result *dns.Msg
 	var err error
 
@@ -351,7 +369,7 @@ func (c *Client) exchange(name string, query uint16) (*dns.Msg, error) {
 	// randomize dns resolver for requests
 	server := c.servers[rand.Intn(len(c.servers))]
 	err = retrier.RetryAttempts(func() error {
-		result, _, err = c.client.Exchange(msg, server)
+		result, _, err = c.client.ExchangeContext(ctx, msg, server)
 		return err
 	}, c.retry)
 

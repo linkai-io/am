@@ -13,5 +13,6 @@
         "address": "172.16.238.19",
         "port": 50051,
         "id": "nsmoduleservice2"
-    }]
+    }
+   ]
 }

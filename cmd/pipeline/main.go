@@ -2,8 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"runtime"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/linkai-io/am/am"
@@ -14,7 +19,96 @@ import (
 	"github.com/linkai-io/am/services/module/ns"
 )
 
+func runNSModuleOnly() {
+	orgID := 1
+	userID := 1
+	groupID := 1
+
+	addrFile, err := os.Open("testdata/netflix.txt")
+	if err != nil {
+		log.Fatalf("error opening test file: %s\n", err)
+	}
+
+	addresses := amtest.AddrsFromInputFile(orgID, groupID, addrFile, nil)
+	addresses = append(addresses, &am.ScanGroupAddress{
+		OrgID:       1,
+		GroupID:     1,
+		IPAddress:   "52.34.40.193",
+		HostAddress: "api.netflix.com",
+		AddressID:   845,
+		AddressHash: "3461663941664141674",
+	})
+	callCount := 0
+	addrClient := &mock.AddressService{}
+	addrClient.GetFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupAddress, error) {
+		if callCount == 0 {
+			callCount++
+			return orgID, addresses, nil
+		}
+		return orgID, nil, nil
+	}
+	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addrs map[string]*am.ScanGroupAddress) (int, int, error) {
+		log.Printf("adding %d addresses\n", len(addrs))
+		return orgID, len(addrs), nil
+	}
+	// init NS module state system & NS module
+	nsstate := amtest.MockNSState()
+	dc := dnsclient.New([]string{"127.0.0.53:53"}, 3)
+	nsModule := ns.New(dc, nsstate)
+	if err := nsModule.Init(nil); err != nil {
+		log.Fatalf("error initializing ns module: %s\n", err)
+	}
+	errc := make(chan error)
+
+	go func() {
+		log.Println("Listening signals...")
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		errc <- fmt.Errorf("Signal %v", <-c)
+	}()
+
+	addrCh := make(chan *am.ScanGroupAddress)
+
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(orgID, userID)
+
+	ticker := time.NewTicker(time.Second * 10)
+	defer ticker.Stop()
+	go func() {
+		for _, addr := range addresses {
+			addrCh <- addr
+		}
+	}()
+
+	fmt.Printf("processing...\n")
+	for {
+		select {
+		case <-errc:
+			buf := make([]byte, 1<<20)
+			stacklen := runtime.Stack(buf, true)
+			log.Printf("*** goroutine dump...\n%s\n*** end\n", buf[:stacklen])
+			fmt.Printf("Done\n")
+			return
+		case addr := <-addrCh:
+			nsModule.Analyze(ctx, userContext, addr)
+		case <-ticker.C:
+			go func() {
+				fmt.Printf("Pushing addresses\n")
+				for _, addr := range addresses {
+					addrCh <- addr
+				}
+			}()
+		}
+	}
+	//nsModule.Analyze(ctx, userContext, addr)
+}
+
 func main() {
+	const nsOnly = true
+	if nsOnly == true {
+		runNSModuleOnly()
+		return
+	}
 	orgID := 1
 	userID := 1
 	groupID := 1
@@ -33,6 +127,10 @@ func main() {
 			return orgID, addresses, nil
 		}
 		return orgID, nil, nil
+	}
+	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addrs map[string]*am.ScanGroupAddress) (int, int, error) {
+		log.Printf("adding %d addresses\n", len(addrs))
+		return orgID, len(addrs), nil
 	}
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
@@ -92,6 +190,13 @@ func main() {
 		log.Printf("after pop, len: %d, %v\n", len(newAddrs), newAddrs)
 		return newAddrs, nil
 	}
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	disState.StopFn = func(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+		wg.Done()
+		return nil
+	}
+
 	dispatcher := dispatcher.New(addrClient, modules, disState)
 	dispatcher.Init(nil)
 
@@ -101,17 +206,5 @@ func main() {
 	// Run pipeline
 	dispatcher.PushAddresses(ctx, userContext, groupID)
 
-	ticker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-ticker.C:
-			log.Printf("Active Addresses: %d, Groups: %d\n", dispatcher.GetActiveAddresses(), dispatcher.GetActiveGroups())
-			if dispatcher.GetActiveGroups() == 0 && dispatcher.GetActiveAddresses() == 0 {
-				for _, v := range stateHashes {
-					log.Printf("%#v\n", v)
-				}
-				return
-			}
-		}
-	}
+	wg.Wait()
 }

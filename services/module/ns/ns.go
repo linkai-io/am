@@ -3,6 +3,7 @@ package ns
 import (
 	"context"
 	"errors"
+	"runtime"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -52,6 +53,7 @@ func New(dc *dnsclient.Client, st state.Stater) *NS {
 
 // Init the redisclient and dns client.
 func (ns *NS) Init(config []byte) error {
+	go ns.debug()
 	// populate cache
 	return nil
 }
@@ -66,23 +68,43 @@ func (ns *NS) Name() string {
 	return "NS"
 }
 
+func (ns *NS) debug() {
+	stackTicker := time.NewTicker(time.Minute * 15)
+	defer stackTicker.Stop()
+	for {
+		select {
+		case <-ns.exitContext.Done():
+			return
+		case <-stackTicker.C:
+			buf := make([]byte, 1<<20)
+			stacklen := runtime.Stack(buf, true)
+			log.Printf("*** goroutine dump...\n%s\n*** end\n", buf[:stacklen])
+		}
+	}
+}
+
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
 // TODO: add error if shutting down so dispatcher can retry
-func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
+func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	nsLog := log.With().
+		Int("OrgID", userContext.GetOrgID()).
+		Int("UserID", userContext.GetUserID()).
+		Str("TraceID", userContext.GetTraceID()).
 		Str("IPAddress", address.IPAddress).
 		Str("HostAddress", address.HostAddress).
 		Int64("AddressID", address.AddressID).
 		Str("AddressHash", address.AddressHash).Logger()
 	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
+	address.LastScannedTime = time.Now().UnixNano()
 	if !ns.shouldAnalyze(address) {
 		nsLog.Info().Msg("will not analyze")
 		return address, nsRecords, nil
 	}
 
-	nsLog.Info().Msg("will analyze")
+	nsLog.Info().Msg("will analyze host")
 	resolvedHosts := ns.analyzeHost(ctx, nsLog, address)
+	nsLog.Info().Msg("will analyze ip")
 	resolvedIPs := ns.analyzeIP(ctx, nsLog, address)
 
 	addAddressToMap(nsRecords, resolvedHosts)
@@ -104,12 +126,14 @@ func (ns *NS) Analyze(ctx context.Context, address *am.ScanGroupAddress) (*am.Sc
 	}
 
 	if ok {
+		nsLog.Info().Msg("will analyze zone")
 		zoneRecords := ns.analyzeZone(ctx, nsLog, etld, address)
 		nsLog.Info().Int("zone_records", len(zoneRecords)).Str("etld", etld).Msg("got records")
 		addAddressToMap(nsRecords, zoneRecords)
 	}
 
 	// push nsRecords
+	nsLog.Info().Msg("returning records")
 	return address, nsRecords, nil
 }
 
@@ -152,23 +176,24 @@ func (ns *NS) newAddress(address *am.ScanGroupAddress, ip, host, discoveredBy st
 func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
 
-	r, err := ns.dc.LookupMX(zone)
+	nsLog.Info().Msg("will analyze mx")
+	r, err := ns.dc.LookupMX(ctx, zone)
 	if err == nil {
 		for _, host := range r.Hosts {
 			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
-
-	r, err = ns.dc.LookupNS(zone)
+	nsLog.Info().Msg("will analyze ns")
+	r, err = ns.dc.LookupNS(ctx, zone)
 	if err == nil {
 		for _, host := range r.Hosts {
 			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
-
-	axfr, err := ns.dc.DoAXFR(zone)
+	nsLog.Info().Msg("will analyze axfr")
+	axfr, err := ns.dc.DoAXFR(ctx, zone)
 	if err != nil {
 		return nsData
 	}
@@ -204,9 +229,8 @@ func (ns *NS) analyzeIP(ctx context.Context, nsLog zerolog.Logger, address *am.S
 		return nsData
 	}
 
-	r, err := ns.dc.ResolveIP(address.IPAddress)
+	r, err := ns.dc.ResolveIP(ctx, address.IPAddress)
 	if err != nil || r == nil {
-		address.LastScannedTime = time.Now().UnixNano()
 		nsLog.Error().Err(err).Msg("unable to resolve ip")
 		return nsData
 	}
@@ -223,7 +247,6 @@ func (ns *NS) analyzeIP(ctx context.Context, nsLog zerolog.Logger, address *am.S
 				address.IsHostedService = IsHostedDomain(address.HostAddress)
 			}
 			address.LastSeenTime = time.Now().UnixNano()
-			address.LastScannedTime = time.Now().UnixNano()
 			address.NSRecord = int32(r.RecordType)
 			// update the hash address now that we have a proper host for it
 			address.AddressHash = convert.HashAddress(address.IPAddress, host)
@@ -246,7 +269,7 @@ func (ns *NS) analyzeHost(ctx context.Context, nsLog zerolog.Logger, address *am
 		return nsData
 	}
 
-	r, err := ns.dc.ResolveName(address.HostAddress)
+	r, err := ns.dc.ResolveName(ctx, address.HostAddress)
 	if err != nil {
 		nsLog.Error().Err(err).Msg("unable to resolve host")
 		return nsData
@@ -262,7 +285,6 @@ func (ns *NS) analyzeHost(ctx context.Context, nsLog zerolog.Logger, address *am
 				}
 				address.IPAddress = ip
 				address.LastSeenTime = time.Now().UnixNano()
-				address.LastScannedTime = time.Now().UnixNano()
 				address.NSRecord = int32(rr.RecordType)
 				address.AddressHash = convert.HashAddress(ip, address.HostAddress)
 				continue
