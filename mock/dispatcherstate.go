@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/pkg/redisclient"
+	"github.com/linkai-io/am/pkg/state"
 )
 
 type DispatcherState struct {
@@ -14,7 +14,7 @@ type DispatcherState struct {
 	PopAddressesFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[string]*am.ScanGroupAddress, error)
 	PopAddressesInvoked bool
 
-	SubscribeFn      func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error
+	SubscribeFn      func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error
 	SubscribeInvoked bool
 
 	GetGroupFn      func(ctx context.Context, orgID, scanGroupID int, wantModules bool) (*am.ScanGroup, error)
@@ -45,7 +45,7 @@ func (s *DispatcherState) PopAddresses(ctx context.Context, userContext am.UserC
 	return s.PopAddressesFn(ctx, userContext, scanGroupID, limit)
 }
 
-func (s *DispatcherState) Subscribe(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+func (s *DispatcherState) Subscribe(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
 	s.SubscribeInvoked = true
 	return s.SubscribeFn(ctx, onStartFn, onMessageFn, channels...)
 }

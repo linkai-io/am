@@ -2,7 +2,7 @@ version: '3'
 
 services:
   unbound:
-    image: 48598a119cee
+    image: c41305851f91
     hostname: unbound
     ports: 
       - "2053:53"
@@ -29,7 +29,7 @@ services:
       - APP_ENV=local
       - _am_local_discovery_config=${_am_local_discovery_config}
   postgresdev:
-    image: postgres 
+    image: 084ec18124c8
     hostname: postgresdev
     ports:
       - "5432:5432"

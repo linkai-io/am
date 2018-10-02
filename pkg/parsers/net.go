@@ -138,3 +138,18 @@ func SplitAddresses(hostAddress string) ([]string, error) {
 	}
 	return addresses, nil
 }
+
+func GetDepth(hostAddress string) (int, error) {
+	tld, err := GetETLD(hostAddress)
+	if err != nil {
+		return 0, err
+	}
+
+	if hostAddress == tld {
+		return 1, nil
+	}
+
+	subdomains := strings.TrimSuffix(hostAddress, "."+tld)
+	subs := strings.Split(subdomains, ".")
+	return len(subs) + 1, nil // 1 for tld
+}

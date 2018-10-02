@@ -16,6 +16,7 @@ import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/dnsclient"
+	"github.com/linkai-io/am/services/module"
 	"github.com/linkai-io/am/services/module/ns/state"
 )
 
@@ -107,8 +108,8 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 	nsLog.Info().Msg("will analyze ip")
 	resolvedIPs := ns.analyzeIP(ctx, nsLog, address)
 
-	addAddressToMap(nsRecords, resolvedHosts)
-	addAddressToMap(nsRecords, resolvedIPs)
+	module.AddAddressToMap(nsRecords, resolvedHosts)
+	module.AddAddressToMap(nsRecords, resolvedIPs)
 
 	if address.HostAddress == "" {
 		return address, nsRecords, nil
@@ -129,7 +130,7 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 		nsLog.Info().Msg("will analyze zone")
 		zoneRecords := ns.analyzeZone(ctx, nsLog, etld, address)
 		nsLog.Info().Int("zone_records", len(zoneRecords)).Str("etld", etld).Msg("got records")
-		addAddressToMap(nsRecords, zoneRecords)
+		module.AddAddressToMap(nsRecords, zoneRecords)
 	}
 
 	// push nsRecords
@@ -139,7 +140,7 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 // shouldAnalyze determines if we should analyze the specific address or not
 func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
-	if address.IsHostedService || IsHostedDomain(address.HostAddress) {
+	if address.IsHostedService || module.IsHostedDomain(address.HostAddress) {
 		return false
 	}
 
@@ -150,28 +151,6 @@ func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
 	return true
 }
 
-// recordFromAddress creates a new address from this address, copying over the necessary details.
-func (ns *NS) newAddress(address *am.ScanGroupAddress, ip, host, discoveredBy string, recordType uint) *am.ScanGroupAddress {
-	newAddress := &am.ScanGroupAddress{
-		OrgID:           address.OrgID,
-		GroupID:         address.GroupID,
-		DiscoveryTime:   time.Now().UnixNano(),
-		DiscoveredBy:    discoveredBy,
-		LastSeenTime:    time.Now().UnixNano(),
-		IPAddress:       ip,
-		HostAddress:     host,
-		IsHostedService: address.IsHostedService,
-		NSRecord:        int32(recordType),
-		AddressHash:     convert.HashAddress(ip, host),
-		FoundFrom:       address.AddressHash,
-	}
-
-	if !address.IsHostedService && address.HostAddress != "" {
-		newAddress.IsHostedService = IsHostedDomain(newAddress.HostAddress)
-	}
-	return newAddress
-}
-
 // analyzeZone looks up various supporting records for a zone (mx/ns/axfr)
 func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
@@ -180,7 +159,7 @@ func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string
 	r, err := ns.dc.LookupMX(ctx, zone)
 	if err == nil {
 		for _, host := range r.Hosts {
-			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
+			newAddress := module.NewAddressFromDNS(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -188,7 +167,7 @@ func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string
 	r, err = ns.dc.LookupNS(ctx, zone)
 	if err == nil {
 		for _, host := range r.Hosts {
-			newAddress := ns.newAddress(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
+			newAddress := module.NewAddressFromDNS(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -203,12 +182,12 @@ func (ns *NS) analyzeZone(ctx context.Context, nsLog zerolog.Logger, zone string
 		for _, r := range result {
 			if len(r.Hosts) == 1 {
 				for _, ip := range r.IPs {
-					newAddress := ns.newAddress(address, ip, parsers.FQDNTrim(r.Hosts[0]), am.DiscoveryNSAXFR, uint(r.RecordType))
+					newAddress := module.NewAddressFromDNS(address, ip, parsers.FQDNTrim(r.Hosts[0]), am.DiscoveryNSAXFR, uint(r.RecordType))
 					nsData = append(nsData, newAddress)
 				}
 			} else if len(r.IPs) == 1 {
 				for _, host := range r.Hosts {
-					newAddress := ns.newAddress(address, r.IPs[0], parsers.FQDNTrim(host), am.DiscoveryNSAXFR, uint(r.RecordType))
+					newAddress := module.NewAddressFromDNS(address, r.IPs[0], parsers.FQDNTrim(host), am.DiscoveryNSAXFR, uint(r.RecordType))
 					nsData = append(nsData, newAddress)
 				}
 			}
@@ -244,7 +223,7 @@ func (ns *NS) analyzeIP(ctx context.Context, nsLog zerolog.Logger, address *am.S
 			foundOriginal = true
 			address.HostAddress = parsers.FQDNTrim(host)
 			if !address.IsHostedService && address.HostAddress != "" {
-				address.IsHostedService = IsHostedDomain(address.HostAddress)
+				address.IsHostedService = module.IsHostedDomain(address.HostAddress)
 			}
 			address.LastSeenTime = time.Now().UnixNano()
 			address.NSRecord = int32(r.RecordType)
@@ -254,7 +233,7 @@ func (ns *NS) analyzeIP(ctx context.Context, nsLog zerolog.Logger, address *am.S
 		}
 		// or we got a new hostname when attempting to resolve this ip.
 		// Copy details from original address into the new address
-		newAddress := ns.newAddress(address, address.IPAddress, parsers.FQDNTrim(host), am.DiscoveryNSQueryIPToName, uint(r.RecordType))
+		newAddress := module.NewAddressFromDNS(address, address.IPAddress, parsers.FQDNTrim(host), am.DiscoveryNSQueryIPToName, uint(r.RecordType))
 		nsData = append(nsData, newAddress)
 	}
 
@@ -281,7 +260,7 @@ func (ns *NS) analyzeHost(ctx context.Context, nsLog zerolog.Logger, address *am
 		for j, ip := range rr.IPs {
 			if i == 0 && j == 0 {
 				if !address.IsHostedService && address.HostAddress != "" {
-					address.IsHostedService = IsHostedDomain(address.HostAddress)
+					address.IsHostedService = module.IsHostedDomain(address.HostAddress)
 				}
 				address.IPAddress = ip
 				address.LastSeenTime = time.Now().UnixNano()
@@ -290,15 +269,9 @@ func (ns *NS) analyzeHost(ctx context.Context, nsLog zerolog.Logger, address *am
 				continue
 			}
 
-			newAddress := ns.newAddress(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(rr.RecordType))
+			newAddress := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(rr.RecordType))
 			nsData = append(nsData, newAddress)
 		}
 	}
 	return nsData
-}
-
-func addAddressToMap(addressMap map[string]*am.ScanGroupAddress, addresses []*am.ScanGroupAddress) {
-	for _, addr := range addresses {
-		addressMap[addr.AddressHash] = addr
-	}
 }

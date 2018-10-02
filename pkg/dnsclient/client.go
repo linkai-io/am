@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/linkai-io/am/pkg/generators"
+
 	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/pkg/parsers"
 	"github.com/linkai-io/am/pkg/retrier"
@@ -44,7 +46,27 @@ func New(servers []string, retry int) *Client {
 
 // IsWildcard tests if a domain is a wildcard domain
 func (c *Client) IsWildcard(ctx context.Context, domain string) bool {
-	return false
+	resultError := make(chan *resultError, 1)
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	randomSubDomain := generators.InsecureAlphabetString(8)
+	log.Info().Msgf("domain: %s", randomSubDomain)
+	go c.queryA(ctxDeadline, randomSubDomain+"."+domain, resultError)
+
+	for {
+		select {
+		case <-ctxDeadline.Done():
+			return false
+		case r := <-resultError:
+			log.Info().Msgf("%v %v", r, r.Result)
+			if r.Result != nil {
+				return true
+			}
+			return false
+		}
+	}
 }
 
 // ResolveName attempts to resolve a name to ip addresses. It will
@@ -54,10 +76,12 @@ func (c *Client) ResolveName(ctx context.Context, name string) ([]*Results, erro
 	results := make([]*Results, 0)
 	resultErrors := make(chan *resultError, 2)
 
-	go c.queryA(ctx, name, resultErrors)
-	go c.queryAAAA(ctx, name, resultErrors)
 	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
+
+	go c.queryA(ctxDeadline, name, resultErrors)
+	go c.queryAAAA(ctxDeadline, name, resultErrors)
+
 	for {
 		select {
 		case <-ctxDeadline.Done():

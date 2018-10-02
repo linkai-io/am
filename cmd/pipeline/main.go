@@ -30,6 +30,8 @@ func runNSModuleOnly() {
 	}
 
 	addresses := amtest.AddrsFromInputFile(orgID, groupID, addrFile, nil)
+	addrFile.Close()
+
 	addresses = append(addresses, &am.ScanGroupAddress{
 		OrgID:       1,
 		GroupID:     1,
@@ -119,6 +121,8 @@ func main() {
 	}
 
 	addresses := amtest.AddrsFromInputFile(orgID, groupID, addrFile, nil)
+	addrFile.Close()
+
 	callCount := 0
 	addrClient := &mock.AddressService{}
 	addrClient.GetFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupAddress, error) {

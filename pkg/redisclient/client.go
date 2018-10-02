@@ -6,15 +6,13 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/linkai-io/am/pkg/state"
 )
 
 var (
 	// ErrNilConnection pool returned nil for a connection.
 	ErrNilConnection = errors.New("pool returned nil for redis connection")
 )
-
-type SubOnStart func() error
-type SubOnMessage func(channel string, data []byte) error
 
 // Client wraps access to the ElasticCache/redis server.
 type Client struct {
@@ -74,7 +72,7 @@ func (c *Client) Return(conn redis.Conn) error {
 }
 
 // Subscribe with cancel ability to channels
-func (c *Client) Subscribe(ctx context.Context, onStart SubOnStart, onMessage SubOnMessage, channels ...string) error {
+func (c *Client) Subscribe(ctx context.Context, onStart state.SubOnStart, onMessage state.SubOnMessage, channels ...string) error {
 	// A ping is set to the server with this period to test for the health of
 	// the connection and server.
 	const healthCheckPeriod = time.Minute

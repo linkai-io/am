@@ -8,6 +8,7 @@ import (
 	"github.com/linkai-io/am/amtest"
 
 	"github.com/linkai-io/am/pkg/cache"
+	"github.com/linkai-io/am/pkg/state"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/mock"
@@ -46,7 +47,7 @@ func TestScanGroupSubscriber(t *testing.T) {
 		return expected, nil
 	}
 
-	cacher.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+	cacher.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
 		return nil
 	}
 

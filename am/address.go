@@ -31,6 +31,10 @@ const (
 	DiscoveryNSQueryIPToName = "ns_query_ip_to_name"
 	DiscoveryNSQueryNameToIP = "ns_query_name_to_ip"
 	DiscoveryNSAXFR          = "ns_query_axfr"
+	DiscoveryBruteSubDomain  = "dns_brute_forcer"
+	DiscoveryBruteMutator    = "dns_mutator"
+	DiscoveryWebCrawler      = "web_crawler"
+	DisoveryGitHooks         = "git_hooks"
 )
 
 // ScanGroupAddress contains details on addresses belonging to the scan group

@@ -13,6 +13,7 @@ import (
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/redisclient"
+	"github.com/linkai-io/am/pkg/state"
 )
 
 var (
@@ -545,30 +546,44 @@ func (s *State) FilterNew(ctx context.Context, orgID, scanGroupID int, addresses
 }
 
 // Subscribe to listen for group state updates
-func (s *State) Subscribe(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+func (s *State) Subscribe(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
 	return s.rc.Subscribe(ctx, onStartFn, onMessageFn, channels...)
 }
 
-// IsValid checks if the zone is valid for testing (not done before)
-// and not an ignored zone (aws, etc).
-func (s *State) IsValid(zone string) bool {
-	conn := s.rc.Get()
-	s.rc.Return(conn)
-	return true
+// DoNSRecords org:group:module:ns:zone:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't do NS records for this zone.
+func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.NSZone(zone), zone)
 }
 
-// DoNSRecords org:group:ns:zone:<zonename> recorded bool EXPIRE 4 H?
-func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+// DoBruteDomain org:group:module:dnsbrute:zones:brute:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't do NS records for this zone.
+func (s *State) DoBruteDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.BruteZone(zone), zone)
+}
+
+// DoMutateDomain org:group:module:dnsbrute:zones:mutate:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't do NS records for this zone.
+func (s *State) DoMutateDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.MutateZone(zone), zone)
+}
+
+// Sets and checks if a value exists in a key. If it already exists, we don't need to do whatever 'key's work is, as
+// it's already been done.
+func (s *State) do(ctx context.Context, orgID, scanGroupID int, expireSeconds int, key, zone string) (bool, error) {
 	conn, err := s.rc.GetContext(ctx)
 	if err != nil {
 		return false, err
 	}
 	defer s.rc.Return(conn)
 
-	// create redis keys for this org/group
-	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
-
-	ret, err := redis.String(conn.Do("SET", keys.NSZone(zone), time.Now().UnixNano(), "NX", "PX", expireSeconds))
+	ret, err := redis.String(conn.Do("SET", key, time.Now().UnixNano(), "NX", "PX", expireSeconds))
 	if err != nil {
 		// redis will return ErrNil if value is already set.
 		if err == redis.ErrNil {

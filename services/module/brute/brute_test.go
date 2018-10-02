@@ -1,37 +1,97 @@
 package brute_test
 
 import (
+	"context"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/linkai-io/am/pkg/convert"
+
+	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/pkg/dnsclient"
 
 	"github.com/linkai-io/am/services/module/brute"
 )
 
-func TestAnalyzeZone(t *testing.T) {
-	ns := dnsclient.New([]string{"127.0.0.1:2053",
-		"8.8.8.8:53",
-		"64.6.64.6:53",      // Verisign
-		"208.67.222.222:53", // OpenDNS Home
-		"77.88.8.8:53",      // Yandex.DNS
-		"74.82.42.42:53",    // Hurricane Electric
-		"1.0.0.1:53",        // Cloudflare Secondary
-		"8.8.4.4:53",        // Google Secondary
-		"208.67.220.220:53", // OpenDNS Home Secondary
-		"77.88.8.1:53"},     // Yandex.DNS Secondary
-		2)
-
-	a := brute.New(ns)
-	bruteFile, err := os.Open("testdata/1000.txt")
+func TestAnalyze(t *testing.T) {
+	orgID := 1
+	userID := 1
+	groupID := 1
+	input, err := os.Open("testdata/10.txt")
 	if err != nil {
-		t.Fatalf("error opening test data file: %s\n", err)
+		t.Fatalf("error opening input: %s\n", err)
+	}
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 1)
+	st := amtest.MockBruteState()
+
+	b := brute.New(dc, st)
+	if err := b.Init(input); err != nil {
+		t.Fatalf("error initializing brute forcer: %v\n", err)
 	}
 
-	if err := a.Init(125, bruteFile); err != nil {
-		t.Fatalf("error init'ing brute analyzer: %s\n", err)
+	addrs := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("linkai.io"), t)
+	// special case because herokuapp.com matches a TLD
+	heroku := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("ignore.herokuapp.com"), t)
+	heroku[0].HostAddress = "herokuapp.com"
+	heroku[0].AddressHash = convert.HashAddress("", "herokuapp.com")
+
+	zonetransferme := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("zonetransfer.me"), t)
+
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(orgID, userID)
+
+	tests := []struct {
+		in           *am.ScanGroupAddress
+		isError      bool
+		isWildcard   bool
+		hasResultLen int
+	}{
+		{addrs[0], false, false, 12},
+		{addrs[0], false, false, 0}, // second check should be ignored and return 0 records because it's in cache
+		{heroku[0], false, true, 0},
+		{zonetransferme[0], false, false, 1},
 	}
 
-	//a.AnalyzeZone("linkai.io")
-	a.Quit()
+	for _, test := range tests {
+		original, results, err := b.Analyze(ctx, userContext, test.in)
+		if err != nil {
+			if !test.isError {
+				t.Fatalf("%v error: %v\n", test.in, err)
+			}
+			continue
+		}
+
+		for _, r := range results {
+			t.Logf("%#v\n", r)
+		}
+		if original.IsWildcardZone != test.isWildcard {
+			t.Fatalf("expected wildcard %v got %v\n", test.isWildcard, original.IsWildcardZone)
+		}
+
+		if len(results) != test.hasResultLen {
+			t.Fatalf("expected %d results got %d\n", test.hasResultLen, len(results))
+		}
+	}
+
+}
+func TestBuildSubDomainList(t *testing.T) {
+	expected := 4
+	list := []string{"a", "b"}
+	custom := []string{"c", "d"}
+	results := brute.BuildSubDomainList(list, custom)
+	if len(results) != expected {
+		t.Fatalf("did not get proper size back, expected %d got %d\n", expected, len(results))
+	}
+	expectedDomains := []string{"a", "b", "c", "d"}
+	if !amtest.SortEqualString(expectedDomains, results, t) {
+		t.Fatalf("expected %v got %v\n", expectedDomains, results)
+	}
+
+	// test with empty custom domains
+	results = brute.BuildSubDomainList(expectedDomains, []string{})
+	if len(results) != expected {
+		t.Fatalf("did not get proper size back, expected %d got %d\n", expected, len(results))
+	}
 }

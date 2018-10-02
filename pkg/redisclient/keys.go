@@ -35,6 +35,7 @@ func (r *RedisKeys) NSZones() string {
 	return r.configFmt + ":module:ns:zones"
 }
 
+// NSZone key for determining if we should do ns records or not
 func (r *RedisKeys) NSZone(zone string) string {
 	return r.configFmt + ":module:ns:zones:" + zone
 }
@@ -49,6 +50,16 @@ func (r *RedisKeys) BruteConfig() string {
 
 func (r *RedisKeys) BruteConfigHosts() string {
 	return r.BruteConfig() + ":custom_hosts"
+}
+
+// BruteZone key for determining if we should brute force or not
+func (r *RedisKeys) BruteZone(zone string) string {
+	return r.configFmt + ":module:dnsbrute:zones:brute:" + zone
+}
+
+// MutateZone key for determining if we should mutate zone or not
+func (r *RedisKeys) MutateZone(zone string) string {
+	return r.configFmt + ":module:dnsbrute:zones:mutate:" + zone
 }
 
 func (r *RedisKeys) PortConfig() string {

@@ -9,7 +9,7 @@ import (
 	"github.com/linkai-io/am/pkg/parsers"
 )
 
-const dnsServer = "127.0.0.53:53"
+const dnsServer = "1.1.1.1:53"
 const localServer = "127.0.0.53:53"
 
 func TestResolveName(t *testing.T) {
@@ -56,6 +56,27 @@ func TestResolveName(t *testing.T) {
 	}
 }
 
+func TestIsWildcard(t *testing.T) {
+	c := New([]string{"1.1.1.1:53"}, 1)
+	tests := []struct {
+		in  string
+		out bool
+	}{
+		{"linkai.io", false},
+		{"herokuapp.com", true},
+	}
+
+	for _, test := range tests {
+		ctx := context.Background()
+		r := c.IsWildcard(ctx, test.in)
+
+		if r != test.out {
+			t.Fatalf("%s expected %v got %v\n", test.in, test.out, r)
+		}
+		t.Logf("%#v\n", r)
+	}
+
+}
 func TestResolveIPv4(t *testing.T) {
 	tests := []struct {
 		in      string

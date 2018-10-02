@@ -2,17 +2,18 @@ package amtest
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"os"
+	"io"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
 
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/state"
 
 	"github.com/linkai-io/am/pkg/inputlist"
-	"github.com/linkai-io/am/pkg/redisclient"
 	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/am"
@@ -70,27 +71,64 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 	return addrs
 }
 
-func MockNSState() *mock.NSState {
-	state := &mock.NSState{}
-	state.SubscribeFn = func(ctx context.Context, onStartFn redisclient.SubOnStart, onMessageFn redisclient.SubOnMessage, channels ...string) error {
+func MockBruteState() *mock.BruteState {
+	mockState := &mock.BruteState{}
+	mockState.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
 		return nil
 	}
 
+	mockState.GetGroupFn = func(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+		return nil, errors.New("group not found")
+	}
+
+	bruteHosts := make(map[string]bool)
+	mutateHosts := make(map[string]bool)
+	mockState.DoBruteDomainFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := bruteHosts[zone]; !ok {
+			bruteHosts[zone] = true
+			return true, nil
+		}
+		return false, nil
+	}
+
+	mockState.DoMutateDomainFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := mutateHosts[zone]; !ok {
+			mutateHosts[zone] = true
+			return true, nil
+		}
+		return false, nil
+	}
+	return mockState
+}
+
+func MockNSState() *mock.NSState {
+	mockState := &mock.NSState{}
+	mockState.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
+		return nil
+	}
+
+	mockState.GetGroupFn = func(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+		return nil, errors.New("group not found")
+	}
+
 	hosts := make(map[string]bool)
-	state.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	mockState.DoNSRecordsFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
 		if _, ok := hosts[zone]; !ok {
 			hosts[zone] = true
 			return true, nil
 		}
 		return false, nil
 	}
-	return state
+	return mockState
 }
 
-func AddrsFromInputFile(orgID, groupID int, addrFile *os.File, t *testing.T) []*am.ScanGroupAddress {
-	in, _ := inputlist.ParseList(addrFile, 10000)
-	addrFile.Close()
-
+func AddrsFromInputFile(orgID, groupID int, addrFile io.Reader, t *testing.T) []*am.ScanGroupAddress {
+	in, err := inputlist.ParseList(addrFile, 10000)
+	if err != nil {
+		for _, r := range err {
+			t.Fatalf("parser errors: %v\n", r)
+		}
+	}
 	addrs := make([]*am.ScanGroupAddress, len(in))
 	i := 0
 	for addr := range in {
@@ -342,6 +380,7 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 }
 
+// TestCompareAddresses tests all addresses in both maps' details
 func TestCompareAddresses(expected, returned map[string]*am.ScanGroupAddress, t *testing.T) {
 
 	expectedKeys := make([]string, len(expected))
@@ -362,70 +401,74 @@ func TestCompareAddresses(expected, returned map[string]*am.ScanGroupAddress, t 
 	for addrID := range returned {
 		e := expected[addrID]
 		r := returned[addrID]
+		TestCompareAddress(e, r, t)
+	}
+}
 
-		if !Float32Equals(e.ConfidenceScore, r.ConfidenceScore) {
-			t.Fatalf("ConfidenceScore by was different, %v and %v\n", e.ConfidenceScore, r.ConfidenceScore)
-		}
+// TestCompareAddress details
+func TestCompareAddress(e, r *am.ScanGroupAddress, t *testing.T) {
+	if !Float32Equals(e.ConfidenceScore, r.ConfidenceScore) {
+		t.Fatalf("ConfidenceScore by was different, %v and %v\n", e.ConfidenceScore, r.ConfidenceScore)
+	}
 
-		if !Float32Equals(e.UserConfidenceScore, r.UserConfidenceScore) {
-			t.Fatalf("UserConfidenceScore by was different, %v and %v\n", e.UserConfidenceScore, r.UserConfidenceScore)
-		}
+	if !Float32Equals(e.UserConfidenceScore, r.UserConfidenceScore) {
+		t.Fatalf("UserConfidenceScore by was different, %v and %v\n", e.UserConfidenceScore, r.UserConfidenceScore)
+	}
 
-		if e.DiscoveredBy != r.DiscoveredBy {
-			t.Fatalf("DiscoveredBy by was different, %v and %v\n", e.DiscoveredBy, r.DiscoveredBy)
-		}
+	if e.DiscoveredBy != r.DiscoveredBy {
+		t.Fatalf("DiscoveredBy by was different, %v and %v\n", e.DiscoveredBy, r.DiscoveredBy)
+	}
 
-		if e.DiscoveryTime != r.DiscoveryTime {
-			t.Fatalf("DiscoveryTime by was different, %v and %v\n", e.DiscoveryTime, r.DiscoveryTime)
-		}
+	if e.DiscoveryTime != r.DiscoveryTime {
+		t.Fatalf("DiscoveryTime by was different, %v and %v\n", e.DiscoveryTime, r.DiscoveryTime)
+	}
 
-		if e.GroupID != r.GroupID {
-			t.Fatalf("GroupID by was different, %v and %v\n", e.GroupID, r.GroupID)
-		}
+	if e.GroupID != r.GroupID {
+		t.Fatalf("GroupID by was different, %v and %v\n", e.GroupID, r.GroupID)
+	}
 
-		if e.HostAddress != r.HostAddress {
-			t.Fatalf("HostAddress by was different, %v and %v\n", e.HostAddress, r.HostAddress)
-		}
+	if e.HostAddress != r.HostAddress {
+		t.Fatalf("HostAddress by was different, %v and %v\n", e.HostAddress, r.HostAddress)
+	}
 
-		if e.IPAddress != r.IPAddress {
-			t.Fatalf("IPAddress by was different, %v and %v\n", e.IPAddress, r.IPAddress)
-		}
+	if e.IPAddress != r.IPAddress {
+		t.Fatalf("IPAddress by was different, %v and %v\n", e.IPAddress, r.IPAddress)
+	}
 
-		if e.Ignored != r.Ignored {
-			t.Fatalf("Ignored by was different, %v and %v\n", e.Ignored, r.Ignored)
-		}
+	if e.Ignored != r.Ignored {
+		t.Fatalf("Ignored by was different, %v and %v\n", e.Ignored, r.Ignored)
+	}
 
-		if e.IsHostedService != r.IsHostedService {
-			t.Fatalf("IsHostedService by was different, %v and %v\n", e.IsHostedService, r.IsHostedService)
-		}
+	if e.IsHostedService != r.IsHostedService {
+		t.Fatalf("IsHostedService by was different, %v and %v\n", e.IsHostedService, r.IsHostedService)
+	}
 
-		if e.IsSOA != r.IsSOA {
-			t.Fatalf("IsSOA by was different, %v and %v\n", e.IsSOA, r.IsSOA)
-		}
+	if e.IsSOA != r.IsSOA {
+		t.Fatalf("IsSOA by was different, %v and %v\n", e.IsSOA, r.IsSOA)
+	}
 
-		if e.IsWildcardZone != r.IsWildcardZone {
-			t.Fatalf("IsWildcardZone by was different, %v and %v\n", e.IsWildcardZone, r.IsWildcardZone)
-		}
+	if e.IsWildcardZone != r.IsWildcardZone {
+		t.Fatalf("IsWildcardZone by was different, %v and %v\n", e.IsWildcardZone, r.IsWildcardZone)
+	}
 
-		if e.LastScannedTime != r.LastScannedTime {
-			t.Fatalf("LastScannedTime by was different, %v and %v\n", e.LastScannedTime, r.LastScannedTime)
-		}
+	if e.LastScannedTime != r.LastScannedTime {
+		t.Fatalf("LastScannedTime by was different, %v and %v\n", e.LastScannedTime, r.LastScannedTime)
+	}
 
-		if e.LastSeenTime != r.LastSeenTime {
-			t.Fatalf("LastSeenTime by was different, %v and %v\n", e.LastSeenTime, r.LastSeenTime)
-		}
+	if e.LastSeenTime != r.LastSeenTime {
+		t.Fatalf("LastSeenTime by was different, %v and %v\n", e.LastSeenTime, r.LastSeenTime)
+	}
 
-		if e.NSRecord != r.NSRecord {
-			t.Fatalf("NSRecord by was different, %v and %v\n", e.NSRecord, r.NSRecord)
-		}
+	if e.NSRecord != r.NSRecord {
+		t.Fatalf("NSRecord by was different, %v and %v\n", e.NSRecord, r.NSRecord)
+	}
 
-		if e.AddressHash != r.AddressHash {
-			t.Fatalf("AddressHash by was different, %v and %v\n", e.AddressHash, r.AddressHash)
-		}
+	if e.AddressHash != r.AddressHash {
+		t.Fatalf("AddressHash by was different, %v and %v\n", e.AddressHash, r.AddressHash)
+	}
 
-		if e.FoundFrom != r.FoundFrom {
-			t.Fatalf("FoundFrom by was different, %v and %v\n", e.FoundFrom, r.FoundFrom)
-		}
+	if e.FoundFrom != r.FoundFrom {
+		t.Fatalf("FoundFrom by was different, %v and %v\n", e.FoundFrom, r.FoundFrom)
 	}
 }
 

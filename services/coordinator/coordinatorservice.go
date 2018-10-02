@@ -150,6 +150,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	if group.Paused {
+		// TODO: empty work queue if it exists
 		return ErrScanGroupPaused
 	}
 

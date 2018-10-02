@@ -29,6 +29,8 @@ func TestDispatcherFlow(t *testing.T) {
 	}
 
 	addresses := amtest.AddrsFromInputFile(orgID, groupID, addrFile, t)
+	addrFile.Close()
+	
 	callCount := 0
 	addrClient := &mock.AddressService{}
 	addrClient.GetFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupAddress, error) {

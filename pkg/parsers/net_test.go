@@ -6,6 +6,36 @@ import (
 	"github.com/linkai-io/am/amtest"
 )
 
+func TestGetDepth(t *testing.T) {
+	type args struct {
+		hostAddress string
+	}
+	tests := []struct {
+		name    string
+		args    string
+		want    int
+		wantErr bool
+	}{
+		{"tld", "co.uk", 0, true},
+		{"eltd", "amazon.co.uk", 1, false},
+		{"multi", "test.www.amazon.co.uk", 3, false},
+		{"single", "www.amazon.co.uk", 2, false},
+		{"multi2", "test1.test2.www.amazon.co.uk", 4, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetDepth(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SplitAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.want != got {
+				t.Errorf("want: %v, got: %v", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestSplitAddresses(t *testing.T) {
 	type args struct {
 		hostAddress string
