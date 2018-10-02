@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -139,6 +140,10 @@ func SplitAddresses(hostAddress string) ([]string, error) {
 	return addresses, nil
 }
 
+// GetDepth returns how many subdomains the host address has:
+// ex: test1.test2.example.com would return 3.
+// ex2: test2.example.com would return 2
+// ex3: test1.amazon.co.uk would return 2
 func GetDepth(hostAddress string) (int, error) {
 	tld, err := GetETLD(hostAddress)
 	if err != nil {
@@ -152,4 +157,30 @@ func GetDepth(hostAddress string) (int, error) {
 	subdomains := strings.TrimSuffix(hostAddress, "."+tld)
 	subs := strings.Split(subdomains, ".")
 	return len(subs) + 1, nil // 1 for tld
+}
+
+// GetSubDomain returns the last sub domain part of a host address
+func GetSubDomain(hostAddress string) (string, error) {
+	sub, _, err := GetSubDomainAndDomain(hostAddress)
+	return sub, err
+}
+
+// GetSubDomainAndDomain returns the subdomain + the rest of the domain, or error
+func GetSubDomainAndDomain(hostAddress string) (string, string, error) {
+	tld, err := GetETLD(hostAddress)
+	if err != nil {
+		return "", "", err
+	}
+
+	if hostAddress == tld {
+		return "", "", errors.New("no subdomain")
+	}
+
+	subdomains := strings.TrimSuffix(hostAddress, "."+tld)
+	subs := strings.Split(subdomains, ".")
+	if len(subs) == 1 {
+		return subs[0], tld, nil
+	}
+	domain := strings.TrimLeft(strings.Join(subs[1:], ".")+"."+tld, ".")
+	return subs[0], domain, nil
 }

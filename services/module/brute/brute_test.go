@@ -38,6 +38,7 @@ func TestAnalyze(t *testing.T) {
 	heroku[0].AddressHash = convert.HashAddress("", "herokuapp.com")
 
 	zonetransferme := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("zonetransfer.me"), t)
+	mutate := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("intns1.zonetransfer.me"), t)
 
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(orgID, userID)
@@ -52,6 +53,7 @@ func TestAnalyze(t *testing.T) {
 		{addrs[0], false, false, 0}, // second check should be ignored and return 0 records because it's in cache
 		{heroku[0], false, true, 0},
 		{zonetransferme[0], false, false, 1},
+		{mutate[0], false, false, 1},
 	}
 
 	for _, test := range tests {
@@ -63,15 +65,12 @@ func TestAnalyze(t *testing.T) {
 			continue
 		}
 
-		for _, r := range results {
-			t.Logf("%#v\n", r)
-		}
 		if original.IsWildcardZone != test.isWildcard {
 			t.Fatalf("expected wildcard %v got %v\n", test.isWildcard, original.IsWildcardZone)
 		}
 
 		if len(results) != test.hasResultLen {
-			t.Fatalf("expected %d results got %d\n", test.hasResultLen, len(results))
+			t.Fatalf("%v expected %d results got %d\n", test.in.HostAddress, test.hasResultLen, len(results))
 		}
 	}
 

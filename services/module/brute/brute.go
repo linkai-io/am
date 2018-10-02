@@ -93,6 +93,10 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 	}
 	bruteRecords = b.bruteDomain(ctx, logger, bmc, address)
 
+	mutateRecords := b.mutateDomain(ctx, logger, bmc, address)
+	for k, v := range mutateRecords {
+		bruteRecords[k] = v
+	}
 	return address, bruteRecords, nil
 }
 
@@ -134,7 +138,55 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 		return bruteRecords
 	}
 
-	pool := workerpool.New(int(bmc.RequestsPerSecond))
+	subdomains := BuildSubDomainList(b.subdomains, bmc.CustomSubNames)
+	log.Info().Msg("start brute forcing")
+	bruteRecords = b.bruteDomains(ctx, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
+	log.Info().Msg("brute forcing complete")
+	return bruteRecords
+}
+
+func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
+	mutateRecords := make(map[string]*am.ScanGroupAddress, 0)
+	depth, err := parsers.GetDepth(address.HostAddress)
+	if err != nil || int32(depth) > bmc.MaxDepth {
+		logger.Info().Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
+		return mutateRecords
+	}
+
+	subDomain, domain, err := parsers.GetSubDomainAndDomain(address.HostAddress)
+	if err != nil {
+		logger.Warn().Err(err).Msg("not mutating")
+		return mutateRecords
+	}
+
+	subdomains := NumberMutation(subDomain)
+	if len(subdomains) == 0 {
+		return mutateRecords
+	}
+
+	unmutatedSubDomain := UnmutateNumber(subDomain)
+
+	shouldMutate, err := b.st.DoMutateDomain(ctx, address.OrgID, address.GroupID, oneHour, unmutatedSubDomain)
+	if err != nil {
+		logger.Warn().Err(err).Msg("unable to check do mutate domain")
+		return mutateRecords
+	}
+
+	if !shouldMutate {
+		logger.Info().Msg("not brute forcing domain, as it is already complete")
+		return mutateRecords
+	}
+
+	log.Info().Msg("start mutating")
+	mutateRecords = b.bruteDomains(ctx, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
+	log.Info().Msg("mutating complete")
+	return mutateRecords
+}
+
+func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
+	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
+
+	pool := workerpool.New(requestsPerSecond)
 
 	type results struct {
 		R        []*dnsclient.Results
@@ -144,8 +196,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 
 	out := make(chan *results)
 	wg := &sync.WaitGroup{}
-	subdomains := BuildSubDomainList(b.subdomains, bmc.CustomSubNames)
-	log.Info().Msg("start brute forcing")
+
 	for _, subdomain := range subdomains {
 		wg.Add(1)
 
@@ -156,7 +207,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 				wg.Done()
 			}
 		}
-		pool.Submit(task(ctx, subdomain+"."+address.HostAddress, wg, out))
+		pool.Submit(task(ctx, subdomain+"."+hostAddress, wg, out))
 	}
 
 	go func() {
@@ -171,17 +222,13 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 
 		for _, rr := range result.R {
 			for _, ip := range rr.IPs {
-				newAddress := module.NewAddressFromDNS(address, ip, result.Hostname, am.DiscoveryBruteSubDomain, uint(rr.RecordType))
+				newAddress := module.NewAddressFromDNS(address, ip, result.Hostname, discoveryMethod, uint(rr.RecordType))
 				bruteRecords[newAddress.AddressHash] = newAddress
 			}
 		}
 	}
-	log.Info().Msg("brute forcing complete")
-	return bruteRecords
-}
 
-func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
-	return nil
+	return bruteRecords
 }
 
 // BuildSubDomainList merges the base list with any custom domains in the scan group config

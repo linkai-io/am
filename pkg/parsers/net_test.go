@@ -36,6 +36,75 @@ func TestGetDepth(t *testing.T) {
 	}
 }
 
+func TestGetSubDomain(t *testing.T) {
+	type args struct {
+		hostAddress string
+	}
+
+	tests := []struct {
+		name    string
+		args    string
+		want    string
+		wantErr bool
+	}{
+		{"tld", "co.uk", "", true},
+		{"eltd", "amazon.co.uk", "", true},
+		{"multi", "test.www.amazon.co.uk", "test", false},
+		{"single", "www.amazon.co.uk", "www", false},
+		{"multi2", "test1.test2.www.amazon.co.uk", "test1", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetSubDomain(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetSubDomain() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.want != got {
+				t.Errorf("want: %v, got: %v", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestGetSubDomainAndDomain(t *testing.T) {
+	type args struct {
+		hostAddress string
+	}
+
+	tests := []struct {
+		name       string
+		args       string
+		wantSub    string
+		wantDomain string
+		wantErr    bool
+	}{
+		{"tld", "co.uk", "", "", true},
+		{"eltd", "amazon.co.uk", "", "", true},
+		{"multi", "test.www.amazon.co.uk", "test", "www.amazon.co.uk", false},
+		{"single", "www.amazon.co.uk", "www", "amazon.co.uk", false},
+		{"multi2", "test1.test2.www.amazon.co.uk", "test1", "test2.www.amazon.co.uk", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSub, gotDomain, err := GetSubDomainAndDomain(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetSubDomain() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantSub != gotSub {
+				t.Errorf("want: %v, got: %v", tt.wantSub, gotSub)
+			}
+
+			if tt.wantDomain != gotDomain {
+				t.Errorf("want: %v, got: %v", tt.wantDomain, gotDomain)
+			}
+		})
+	}
+}
+
 func TestSplitAddresses(t *testing.T) {
 	type args struct {
 		hostAddress string
