@@ -18,6 +18,8 @@ func TestGetDepth(t *testing.T) {
 	}{
 		{"tld", "co.uk", 0, true},
 		{"eltd", "amazon.co.uk", 1, false},
+		{"eltdherokusub", "app.herokuapp.com", 2, false},
+		{"eltdheroku", "herokuapp.com", 1, false},
 		{"multi", "test.www.amazon.co.uk", 3, false},
 		{"single", "www.amazon.co.uk", 2, false},
 		{"multi2", "test1.test2.www.amazon.co.uk", 4, false},
@@ -26,7 +28,7 @@ func TestGetDepth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetDepth(tt.args)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SplitAddresses() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetDepth() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.want != got {
@@ -48,7 +50,7 @@ func TestGetSubDomain(t *testing.T) {
 		wantErr bool
 	}{
 		{"tld", "co.uk", "", true},
-		{"eltd", "amazon.co.uk", "", true},
+		{"eltd", "amazon.co.uk", "", false},
 		{"multi", "test.www.amazon.co.uk", "test", false},
 		{"single", "www.amazon.co.uk", "www", false},
 		{"multi2", "test1.test2.www.amazon.co.uk", "test1", false},
@@ -81,7 +83,7 @@ func TestGetSubDomainAndDomain(t *testing.T) {
 		wantErr    bool
 	}{
 		{"tld", "co.uk", "", "", true},
-		{"eltd", "amazon.co.uk", "", "", true},
+		{"eltd", "amazon.co.uk", "", "amazon.co.uk", false},
 		{"multi", "test.www.amazon.co.uk", "test", "www.amazon.co.uk", false},
 		{"single", "www.amazon.co.uk", "www", "amazon.co.uk", false},
 		{"multi2", "test1.test2.www.amazon.co.uk", "test1", "test2.www.amazon.co.uk", false},

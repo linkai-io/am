@@ -39,7 +39,8 @@ func TestAnalyze(t *testing.T) {
 
 	zonetransferme := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("zonetransfer.me"), t)
 	mutate := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("intns1.zonetransfer.me"), t)
-
+	linkedin := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("linkedin.com"), t)
+	maxdepth := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("1.1.linkai.io"), t)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(orgID, userID)
 
@@ -49,11 +50,22 @@ func TestAnalyze(t *testing.T) {
 		isWildcard   bool
 		hasResultLen int
 	}{
+		{heroku[0], false, true, 0},
 		{addrs[0], false, false, 12},
 		{addrs[0], false, false, 0}, // second check should be ignored and return 0 records because it's in cache
-		{heroku[0], false, true, 0},
 		{zonetransferme[0], false, false, 1},
 		{mutate[0], false, false, 1},
+		{linkedin[0], false, false, 10},
+		{maxdepth[0], false, false, 0},
+	}
+
+	tests = []struct {
+		in           *am.ScanGroupAddress
+		isError      bool
+		isWildcard   bool
+		hasResultLen int
+	}{
+		{linkedin[0], false, false, 10},
 	}
 
 	for _, test := range tests {

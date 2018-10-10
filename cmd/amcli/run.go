@@ -1,13 +1,19 @@
 package main
 
+import (
+	"os"
+
+	"github.com/linkai-io/am/pkg/generators"
+)
+
 func runCmd() {
-	orgData.OrgName = "test"
+	orgData.OrgName = "test" + generators.InsecureAlphabetString(8)
 	orgData.FirstName = "first_name"
 	orgData.LastName = "last_name"
-	orgData.OwnerEmail = "test@test.com"
+	orgData.OwnerEmail = "test@" + orgData.OrgName + ".com"
 	groupFile = "scangroup.json"
 	groupName = "test_group"
-	addrInput = "hosts.txt"
+	addrInput = os.Args[2]
 	addr = ":8383"
 
 	orgID, userID = addOrg()

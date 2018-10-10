@@ -310,6 +310,7 @@ func (c *Client) doAXFR(ctx context.Context, msg *dns.Msg, nameserver string, rc
 	go func() {
 		wpwg.Wait()
 		close(out)
+		pool.Stop()
 	}()
 
 	// will not exit range until wpwg.Wait() / out is closed.

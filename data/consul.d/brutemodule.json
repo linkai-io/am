@@ -1,0 +1,18 @@
+{
+    "services": 
+    [{
+        "name": "brutemoduleservice", 
+        "tags": ["brutemoduleservice"],
+        "address": "172.16.238.20",
+        "port": 50051,
+        "id": "brutemoduleservice1"
+    },
+    {
+        "name": "brutemoduleservice", 
+        "tags": ["brutemoduleservice"],
+        "address": "172.16.238.21",
+        "port": 50051,
+        "id": "brutemoduleservice2"
+    }
+   ]
+}

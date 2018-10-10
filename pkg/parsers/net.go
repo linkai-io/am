@@ -1,7 +1,6 @@
 package parsers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -84,6 +83,9 @@ func IsETLD(hostAddress string) bool {
 // GetETLD returns just the eltd of the supplied host address
 func GetETLD(hostAddress string) (string, error) {
 	// handle bug: https://github.com/golang/go/issues/20059
+	if _, ok := SpecialCaseTLDs[hostAddress]; ok {
+		return hostAddress, nil
+	}
 	special := SpecialETLD(hostAddress)
 	if special != hostAddress {
 		return special, nil
@@ -173,7 +175,7 @@ func GetSubDomainAndDomain(hostAddress string) (string, string, error) {
 	}
 
 	if hostAddress == tld {
-		return "", "", errors.New("no subdomain")
+		return "", hostAddress, nil
 	}
 
 	subdomains := strings.TrimSuffix(hostAddress, "."+tld)

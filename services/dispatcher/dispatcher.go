@@ -224,7 +224,7 @@ func (s *Service) updateOriginal(batcher *Batcher, originalAddress *am.ScanGroup
 
 // analyzeAddress
 func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
-	groupLog.Info().Str("ip", address.IPAddress).Str("host", address.HostAddress).Msg("analyzing")
+	groupLog.Info().Str("ip", address.IPAddress).Str("host", address.HostAddress).Msg("analyzing ns records")
 	updatedAddress, possibleNewAddrs, err := s.moduleClients[am.NSModule].Analyze(ctx, userContext, address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using ns module")
@@ -233,7 +233,16 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 	if len(possibleNewAddrs) > 0 {
 		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
 	}
+	groupLog.Info().Str("ip", updatedAddress.IPAddress).Str("host", updatedAddress.HostAddress).Msg("brute forcing")
 
+	updatedAddress, possibleNewAddrs, err = s.moduleClients[am.BruteModule].Analyze(ctx, userContext, updatedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to analyze using brute module")
+	}
+
+	if len(possibleNewAddrs) > 0 {
+		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
+	}
 	return updatedAddress, nil
 }
 

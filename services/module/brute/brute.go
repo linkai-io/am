@@ -3,7 +3,7 @@ package brute
 import (
 	"bufio"
 	"context"
-	"os"
+	"io"
 	"strings"
 	"sync"
 
@@ -48,8 +48,7 @@ func New(dc *dnsclient.Client, st state.Stater) *Bruter {
 }
 
 // Init the brute forcer with the initial input subdomain list
-func (b *Bruter) Init(bruteFile *os.File) error {
-	defer bruteFile.Close()
+func (b *Bruter) Init(bruteFile io.Reader) error {
 	fileScanner := bufio.NewScanner(bruteFile)
 	b.subdomains = make([]string, 0)
 
@@ -81,7 +80,7 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 		Str("AddressHash", address.AddressHash).Logger()
 
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
-	if !b.shouldAnalyze(ctx, address) {
+	if !b.shouldAnalyze(ctx, logger, address) {
 		logger.Info().Msg("not analyzing")
 		return address, bruteRecords, nil
 	}
@@ -102,13 +101,8 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 
 // shouldAnalyze determines if we should analyze the specific address or not. Updates address.IsWildcardZone
 // if tested.
-func (b *Bruter) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
+func (b *Bruter) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress) bool {
 	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
-		return false
-	}
-
-	if isWildcard := b.dc.IsWildcard(ctx, address.HostAddress); isWildcard {
-		address.IsWildcardZone = true
 		return false
 	}
 
@@ -116,6 +110,16 @@ func (b *Bruter) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress
 	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
 		return false
 	}
+
+	if address.UserConfidenceScore > 75 {
+		return true
+	}
+
+	if address.ConfidenceScore < 75 {
+		logger.Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
+		return false
+	}
+
 	return true
 }
 
@@ -123,7 +127,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
 	depth, err := parsers.GetDepth(address.HostAddress)
 	if err != nil || int32(depth) > bmc.MaxDepth {
-		logger.Info().Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
+		logger.Info().Err(err).Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
 		return bruteRecords
 	}
 
@@ -138,9 +142,15 @@ func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am
 		return bruteRecords
 	}
 
+	if isWildcard := b.dc.IsWildcard(ctx, address.HostAddress); isWildcard {
+		address.IsWildcardZone = true
+		logger.Info().Msg("not brute forcing due to wildcard zone")
+		return bruteRecords
+	}
+
 	subdomains := BuildSubDomainList(b.subdomains, bmc.CustomSubNames)
 	log.Info().Msg("start brute forcing")
-	bruteRecords = b.bruteDomains(ctx, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
+	bruteRecords = b.bruteDomains(ctx, logger, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
 	log.Info().Msg("brute forcing complete")
 	return bruteRecords
 }
@@ -156,6 +166,11 @@ func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *a
 	subDomain, domain, err := parsers.GetSubDomainAndDomain(address.HostAddress)
 	if err != nil {
 		logger.Warn().Err(err).Msg("not mutating")
+		return mutateRecords
+	}
+
+	if subDomain == "" {
+		logger.Info().Msg("no subdomain, not mutating")
 		return mutateRecords
 	}
 
@@ -177,15 +192,23 @@ func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *a
 		return mutateRecords
 	}
 
+	// although we are checking is wildcard 2x, this is the 'rare' case since we've usually already
+	// checked this host for mutations.
+	if isWildcard := b.dc.IsWildcard(ctx, address.HostAddress); isWildcard {
+		address.IsWildcardZone = true
+		return mutateRecords
+	}
+
 	log.Info().Msg("start mutating")
-	mutateRecords = b.bruteDomains(ctx, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
+	mutateRecords = b.bruteDomains(ctx, logger, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
 	log.Info().Msg("mutating complete")
 	return mutateRecords
 }
 
-func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
+func (b *Bruter) bruteDomains(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
 
+	logger.Info().Int("requests_per_second", requestsPerSecond).Msg("creating worker pool")
 	pool := workerpool.New(requestsPerSecond)
 
 	type results struct {
@@ -196,9 +219,8 @@ func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress,
 
 	out := make(chan *results)
 	wg := &sync.WaitGroup{}
-
+	wg.Add(len(subdomains))
 	for _, subdomain := range subdomains {
-		wg.Add(1)
 
 		task := func(ctx context.Context, bruteDomain string, wg *sync.WaitGroup, out chan<- *results) func() {
 			return func() {
@@ -213,6 +235,8 @@ func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress,
 	go func() {
 		wg.Wait()
 		close(out)
+		pool.Stop()
+		logger.Info().Msg("all tasks completed")
 	}()
 
 	for result := range out {
@@ -222,7 +246,9 @@ func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress,
 
 		for _, rr := range result.R {
 			for _, ip := range rr.IPs {
+				logger.Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("adding new record")
 				newAddress := module.NewAddressFromDNS(address, ip, result.Hostname, discoveryMethod, uint(rr.RecordType))
+				newAddress.ConfidenceScore = module.CalculateConfidence(logger, address, newAddress)
 				bruteRecords[newAddress.AddressHash] = newAddress
 			}
 		}

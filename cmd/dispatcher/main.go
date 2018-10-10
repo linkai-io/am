@@ -126,6 +126,21 @@ func initModules(state nsstate.Stater) map[am.ModuleType]am.ModuleService {
 
 	modules := make(map[am.ModuleType]am.ModuleService)
 	modules[am.NSModule] = nsClient
+
+	bruteClient := module.New()
+	cfg = &module.Config{Addr: loadBalancerAddr, ModuleType: am.BruteModule, Timeout: 600}
+	data, _ = json.Marshal(cfg)
+
+	err = retrier.RetryUntil(
+		func() error {
+			return bruteClient.Init(data)
+		}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to connect to brute module client")
+	}
+
+	modules[am.BruteModule] = bruteClient
 	return modules
 }
 

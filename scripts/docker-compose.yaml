@@ -2,7 +2,7 @@ version: '3'
 
 services:
   unbound:
-    image: c41305851f91
+    image: linkai_unbound
     hostname: unbound
     ports: 
       - "2053:53"
@@ -210,6 +210,38 @@ services:
         ipv4_address: 172.16.238.19
      ports:
        - "50059:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  brutemoduleservice1:
+     image: linkai_brutemoduleservice
+     hostname: linkai_brutemoduleservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.20
+     ports:
+       - "50060:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+  brutemoduleservice2:
+     image: linkai_brutemoduleservice
+     hostname: linkai_brutemoduleservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.21
+     ports:
+       - "50061:50051"
      environment:
       - APP_ENV=local
       - _am_local_discovery_config=${_am_local_discovery_config}

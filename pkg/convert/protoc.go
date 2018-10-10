@@ -345,3 +345,26 @@ func ScanGroupFilterToDomain(in *scangroup.ScanGroupFilter) *am.ScanGroupFilter 
 		PausedValue: in.PausedValue,
 	}
 }
+
+func DomainToCTServer(in *am.CTServer) *prototypes.CTServer {
+	return &prototypes.CTServer{
+		ID:              int32(in.ID),
+		URL:             in.URL,
+		Index:           in.Index,
+		IndexUpdated:    in.IndexUpdated,
+		Step:            int32(in.Step),
+		TreeSize:        in.TreeSize,
+		TreeSizeUpdated: in.TreeSizeUpdated,
+	}
+}
+func CTServerToDomain(in *prototypes.CTServer) *am.CTServer {
+	return &am.CTServer{
+		ID:              int(in.ID),
+		URL:             in.URL,
+		Index:           in.Index,
+		IndexUpdated:    in.IndexUpdated,
+		Step:            int(in.Step),
+		TreeSize:        in.TreeSize,
+		TreeSizeUpdated: in.TreeSizeUpdated,
+	}
+}

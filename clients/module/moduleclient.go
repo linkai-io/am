@@ -18,11 +18,14 @@ import (
 type Config struct {
 	Addr       string
 	ModuleType am.ModuleType
+	Timeout    int
 }
 
 type Client struct {
 	client         service.ModuleClient
 	defaultTimeout time.Duration
+	config         *Config
+	key            string
 }
 
 func New() *Client {
@@ -30,21 +33,26 @@ func New() *Client {
 }
 
 func (c *Client) Init(data []byte) error {
-	config, err := c.parseConfig(data)
+	var err error
+	c.config, err = c.parseConfig(data)
 	if err != nil {
 		return err
 	}
 
+	if c.config.Timeout != 0 {
+		c.defaultTimeout = (time.Second * time.Duration(c.config.Timeout))
+	}
+
 	balancer := grpc.RoundRobin(grpclb.NewResolver(&grpclb.Options{
-		Address: config.Addr,
+		Address: c.config.Addr,
 	}))
 
-	key := am.KeyFromModuleType(config.ModuleType)
-	if key == "" {
+	c.key = am.KeyFromModuleType(c.config.ModuleType)
+	if c.key == "" {
 		return errors.New("unknown module type passed to init")
 	}
 
-	conn, err := grpc.Dial(key, grpc.WithInsecure(), grpc.WithBalancer(balancer))
+	conn, err := grpc.Dial(c.key, grpc.WithInsecure(), grpc.WithBalancer(balancer))
 	if err != nil {
 		return err
 	}
@@ -81,7 +89,7 @@ func (c *Client) Analyze(ctx context.Context, userContext am.UserContext, addres
 
 		resp, retryErr = c.client.Analyze(ctxDeadline, in)
 		if retryErr != nil {
-			log.Info().Msgf("module analyze returned, cancel? %v", ctxDeadline.Err())
+			log.Warn().Str("client", c.key).Err(retryErr).Msg("module analyze returned error")
 		}
 		return retryErr
 	})
