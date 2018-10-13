@@ -110,6 +110,7 @@ func (e *Extractor) Run(ctx context.Context) (*am.CTServer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating client")
 	}
+	
 	// start extractors
 	for i := 0; i < e.maxExtractors; i++ {
 		e.wg.Add(1)
@@ -165,7 +166,6 @@ func (e *Extractor) Extract(ctx context.Context) {
 
 			return errors.Wrap(err, "error getting entries")
 		}
-
 		return nil
 	})
 

@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -185,4 +186,72 @@ func GetSubDomainAndDomain(hostAddress string) (string, string, error) {
 	}
 	domain := strings.TrimLeft(strings.Join(subs[1:], ".")+"."+tld, ".")
 	return subs[0], domain, nil
+}
+
+// ExtractHostsFromResponses returns potential hosts from a response
+func ExtractHostsFromResponses(needles []*regexp.Regexp, haystacks []string) map[string]struct{} {
+	hosts := make(map[string]struct{}, 0)
+	for _, haystack := range haystacks {
+		found := ExtractHostsFromResponse(needles, haystack)
+		if len(found) > 0 {
+			for k, v := range found {
+				hosts[k] = v
+			}
+		}
+	}
+	return hosts
+}
+
+// ExtractHostsFromResponse returns potential hosts from a response
+// TODO: make this a bit more robust.
+func ExtractHostsFromResponse(needles []*regexp.Regexp, haystack string) map[string]struct{} {
+
+	hosts := make(map[string]struct{}, 0)
+	for _, needle := range needles {
+		indexes := needle.FindAllStringIndex(haystack, -1)
+		if len(indexes) == 0 {
+			continue
+		}
+
+		for _, index := range indexes {
+
+			if len(index) != 2 {
+				continue
+			}
+
+			prefixLen := 50
+			matchLen := index[1] - index[0]
+			start := index[0] - prefixLen
+
+			if index[0] < prefixLen {
+				prefixLen = index[0]
+				start = index[0] - prefixLen
+			}
+			end := index[1]
+
+			match := haystack[start:end]
+
+			// walk backwards from our match and stop when we find a non-valid character
+			for i := prefixLen - 1; i >= 0; i-- {
+				switch match[i] {
+				case '<', '>', '/', '\\', '\'',
+					'"', ':', '_', '=', '*',
+					' ', '\t', '\r', '\n':
+					start = start + i + 1
+					goto FOUND
+				case '%':
+					start = start + i + 3 // remove hex
+					goto FOUND
+				}
+			}
+		FOUND:
+			// make sure we don't go past the actual size of the domain via the prefixlen loop
+			if len(haystack[start:end]) < matchLen {
+				continue
+			}
+			//log.Printf("FOUND: %s\norig: %s\n", haystack[start:end], haystack[index[0]-30:index[1]])
+			hosts[strings.TrimLeft(haystack[start:end], ".")] = struct{}{}
+		}
+	}
+	return hosts
 }

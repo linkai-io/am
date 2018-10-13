@@ -1,10 +1,52 @@
 package parsers
 
 import (
+	"io/ioutil"
+	"regexp"
 	"testing"
 
 	"github.com/linkai-io/am/amtest"
 )
+
+func TestExtractHostsFromResponse(t *testing.T) {
+	needles := make([]*regexp.Regexp, 1)
+	needles[0], _ = regexp.Compile("independent\\.co\\.uk")
+	data, err := ioutil.ReadFile("testdata/indep_responses.txt")
+	if err != nil {
+		t.Fatalf("error opening test file")
+	}
+
+	hosts := ExtractHostsFromResponse(needles, string(data))
+	for k, _ := range hosts {
+		t.Logf("found: %s\n", k)
+	}
+	if len(hosts) != 12 {
+		t.Fatalf("expected 12 hosts, got: %d\n", len(hosts))
+	}
+
+	hosts = ExtractHostsFromResponse(needles, string("http://www.independent.co.uk"))
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host got: %d\n", len(hosts))
+	}
+
+	hosts = ExtractHostsFromResponse(needles, string("w.independent.co.uk"))
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host got: %d\n", len(hosts))
+	}
+
+	hosts = ExtractHostsFromResponse(needles, string("%w.independent.co.uk"))
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host got: %d\n", len(hosts))
+	}
+	for k, _ := range hosts {
+		t.Logf("%s\n", k)
+	}
+
+	hosts = ExtractHostsFromResponse(needles, string("%windependent.co.uk"))
+	if len(hosts) != 0 {
+		t.Fatalf("expected 1 host got: %d\n", len(hosts))
+	}
+}
 
 func TestGetDepth(t *testing.T) {
 	type args struct {
