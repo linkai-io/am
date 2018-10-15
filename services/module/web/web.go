@@ -3,6 +3,8 @@ package web
 import (
 	"context"
 
+	"github.com/linkai-io/am/pkg/browser"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -19,9 +21,9 @@ const (
 // Web will brute force and mutate subdomains to attempt to find
 // additional hosts
 type Web struct {
-	st state.Stater
-	dc *dnsclient.Client
-
+	st       state.Stater
+	dc       *dnsclient.Client
+	browsers browser.Browser
 	// for closing subscriptions to listen for group updates
 	exitContext context.Context
 	cancel      context.CancelFunc
@@ -30,18 +32,17 @@ type Web struct {
 }
 
 // New brute force module
-func New(dc *dnsclient.Client, st state.Stater) *Web {
+func New(browsers browser.Browser, dc *dnsclient.Client, st state.Stater) *Web {
 	ctx, cancel := context.WithCancel(context.Background())
-	b := &Web{st: st, exitContext: ctx, cancel: cancel}
+	b := &Web{browsers: browsers, st: st, exitContext: ctx, cancel: cancel}
 	b.dc = dc
 	// start cache subscriber and listen for updates
 	b.groupCache = cache.NewScanGroupSubscriber(ctx, st)
 	return b
 }
 
-// Init the brute forcer with the initial input subdomain list
+// Init the web module
 func (w *Web) Init() error {
-
 	return nil
 }
 
@@ -67,7 +68,7 @@ func (w *Web) defaultWebConfig() *am.WebModuleConfig {
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 
 	portCfg := w.defaultPortConfig()
-	webCfg := w.defaultWebConfig()
+	// := w.defaultWebConfig()
 	logger := log.With().
 		Int("OrgID", userContext.GetOrgID()).
 		Int("UserID", userContext.GetUserID()).
@@ -85,11 +86,17 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	if group, err := w.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
 		logger.Warn().Err(err).Msg("unable to find group id in cache, using default settings")
+	} else {
+		portCfg = group.ModuleConfigurations.PortModule
+	}
+
+	for _, port := range portCfg.CustomPorts {
+		// do stuff
+		logger.Info().Int32("port", port).Msg("analyzing")
 	}
 
 	return address, WebRecords, nil
 
-	return nil, nil, nil
 }
 
 // shouldAnalyze determines if we should analyze the specific address or not. Updates address.IsWildcardZone

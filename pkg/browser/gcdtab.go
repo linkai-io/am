@@ -14,14 +14,16 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/convert"
 	"github.com/wirepair/gcd"
 	"github.com/wirepair/gcd/gcdapi"
 )
 
 var (
-	ErrTabCrashed = errors.New("tab crashed")
-	ErrTabClosing = errors.New("closing")
-	ErrTimedOut   = errors.New("request timed out")
+	ErrNavigationTimedOut = errors.New("navigation timed out")
+	ErrTabCrashed         = errors.New("tab crashed")
+	ErrTabClosing         = errors.New("closing")
+	ErrTimedOut           = errors.New("request timed out")
 )
 
 type Tab struct {
@@ -50,6 +52,7 @@ func NewTab(tab *gcd.ChromeTarget, address *am.ScanGroupAddress) *Tab {
 // LoadPage capture network traffic and take screen shot of DOM and image
 func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	navParams := &gcdapi.PageNavigateParams{Url: url, TransitionType: "typed"}
+	log.Info().Str("url", url).Msg("navigating")
 	_, _, _, err := t.t.Page.NavigateWithParams(navParams)
 	if err != nil {
 		log.Warn().Err(err).Str("host_address", t.address.HostAddress).
@@ -57,10 +60,11 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 			Str("url", url).Msg("failed to load page")
 		return err
 	}
-
-	return t.WaitReady(ctx, time.Second*1)
+	log.Info().Str("url", url).Msg("navigating complete")
+	return t.WaitReady(ctx, time.Second*3)
 }
 
+// TakeScreenshot returns a png image, base64 encoded, or error if failed
 func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
 	_, _, rect, err := t.t.Page.GetLayoutMetrics()
 	if err != nil {
@@ -92,12 +96,12 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	ticker := time.NewTicker(150 * time.Millisecond)
 	defer ticker.Stop()
 
-	navTimer := time.After(10 * time.Second)
+	navTimer := time.After(30 * time.Second)
 	log.Info().Msg("waiting for nav to complete")
 	// wait navigation to complete.
 	select {
 	case <-navTimer:
-		return errors.New("navigation load timed out")
+		return ErrNavigationTimedOut
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-t.exitCh:
@@ -158,10 +162,10 @@ func (t *Tab) GetNetworkTraffic() []*am.HTTPResponse {
 func (t *Tab) InjectIP(scheme, port string) {
 
 	httpPattern := &gcdapi.NetworkRequestPattern{
-		UrlPattern: "http://" + t.address.HostAddress,
+		UrlPattern: "http://" + t.address.HostAddress + "*",
 	}
 	httpsPattern := &gcdapi.NetworkRequestPattern{
-		UrlPattern: "https://" + t.address.HostAddress,
+		UrlPattern: "https://" + t.address.HostAddress + "*",
 	}
 
 	patterns := make([]*gcdapi.NetworkRequestPattern, 2)
@@ -177,11 +181,10 @@ func (t *Tab) InjectIP(scheme, port string) {
 	t.t.Subscribe("Network.requestIntercepted", func(target *gcd.ChromeTarget, payload []byte) {
 		r := &gcdapi.NetworkRequestInterceptedEvent{}
 		if err := json.Unmarshal(payload, r); err != nil {
-			log.Printf("failed to unmarshal")
+			log.Warn().Err(err).Msg("failed to unmarshal network request intercepted")
 			return
 		}
 
-		log.Printf("INTERCEPTED GOT: %v\n", r.Params)
 		headers := r.Params.Request.Headers
 		parsedURL, err := url.Parse(r.Params.Request.Url)
 		if err != nil {
@@ -191,13 +194,18 @@ func (t *Tab) InjectIP(scheme, port string) {
 		}
 
 		ipURL := strings.Replace(r.Params.Request.Url, t.address.HostAddress, t.address.IPAddress, 1)
-
+		log.Info().Str("host_address", t.address.HostAddress).
+			Str("ip_address", t.address.IPAddress).
+			Msg("intercepted and replacing IP")
 		p := &gcdapi.NetworkContinueInterceptedRequestParams{
 			InterceptionId: r.Params.InterceptionId,
 			Url:            ipURL,
 			Headers:        headers,
 		}
 		target.Network.ContinueInterceptedRequestWithParams(p)
+		log.Info().Str("host_address", t.address.HostAddress).
+			Str("ip_address", t.address.IPAddress).
+			Msg("continue called")
 	})
 }
 
@@ -215,8 +223,8 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 	})
 
 	t.t.Subscribe("Network.responseReceived", func(target *gcd.ChromeTarget, payload []byte) {
-		defer t.container.DecRequest()
 
+		defer t.container.DecRequest()
 		t.container.IncRequest()
 
 		message := &gcdapi.NetworkResponseReceivedEvent{}
@@ -228,43 +236,13 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		defer cancel()
 
 		p := message.Params
-		response := &am.HTTPResponse{
-			Address:    address,
-			Port:       port,
-			RequestID:  p.RequestId,
-			URL:        p.Response.Url,
-			Headers:    p.Response.Headers,
-			MimeType:   p.Response.MimeType,
-			Status:     p.Response.Status,
-			StatusText: p.Response.StatusText,
-		}
 
 		log.Info().Str("request_id", p.RequestId).Str("url", p.Response.Url).Msg("waiting")
 		if err := t.container.WaitFor(timeoutCtx, p.RequestId); err != nil {
 			return
 		}
 
-		var err error
-		var encoded bool
-		var body []byte
-		var bodyStr string
-
-		bodyStr, encoded, err = t.t.Network.GetResponseBody(p.RequestId)
-		if err != nil {
-			log.Warn().Str("url", p.Response.Url).Err(err).Msg("failed to get body")
-		}
-
-		body = []byte(bodyStr)
-		if encoded {
-			body, _ = base64.StdEncoding.DecodeString(bodyStr)
-		}
-
-		// we don't want to capture anything other than text based files.
-		if !strings.HasPrefix(http.DetectContentType(body), "text") {
-			response.Body = ""
-		} else {
-			response.Body = bodyStr
-		}
+		response := t.buildResponse(address, port, message)
 		t.container.Add(response)
 	})
 
@@ -276,6 +254,99 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		log.Info().Str("request_id", message.Params.RequestId).Msg("finished")
 		t.container.BodyReady(message.Params.RequestId)
 	})
+}
+
+// buildResponse fills out a new am.HTTPResponse with all relevant details
+func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, message *gcdapi.NetworkResponseReceivedEvent) *am.HTTPResponse {
+	var host string
+	var responsePort string
+	var scheme string
+
+	p := message.Params
+	u, err := url.Parse(p.Response.Url)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("host_address", address.HostAddress).
+			Str("ip_address", address.IPAddress).
+			Str("port", requestedPort).
+			Msg("failed to parse url, results may be inaccurate")
+
+		host = address.HostAddress
+		responsePort = requestedPort
+		scheme = "http"
+	} else {
+		host = u.Host
+		responsePort = u.Port()
+		scheme = u.Scheme
+	}
+
+	response := &am.HTTPResponse{
+		Scheme:        scheme,
+		RequestedPort: requestedPort,
+		Host:          host,
+		ResponsePort:  responsePort,
+		RequestID:     p.RequestId,
+		URL:           p.Response.Url,
+		Headers:       p.Response.Headers,
+		MimeType:      p.Response.MimeType,
+		Status:        p.Response.Status,
+		StatusText:    p.Response.StatusText,
+	}
+
+	response.Body = t.encodeResponseBody(message)
+
+	if p.Type == "Document" {
+		response.IsDocument = true
+		response.WebCertificate = t.extractCertificate(message)
+	}
+
+	response.ResponseTimestamp = time.Now().UnixNano()
+
+	return response
+}
+
+func (t *Tab) extractCertificate(message *gcdapi.NetworkResponseReceivedEvent) *am.WebCertificate {
+	p := message.Params
+
+	u, err := url.Parse(p.Response.Url)
+	if err != nil {
+		return nil
+	}
+
+	if u.Hostname() == t.address.HostAddress &&
+		u.Scheme == "https" &&
+		strings.HasPrefix(p.Response.Url, "https") &&
+		p.Response.SecurityDetails != nil {
+		return convert.NetworkCertificateToWebCertificate(p.Response.SecurityDetails)
+	}
+
+	return nil
+}
+
+func (t *Tab) encodeResponseBody(p *gcdapi.NetworkResponseReceivedEvent) string {
+
+	var err error
+	var encoded bool
+	var body []byte
+	var bodyStr string
+
+	bodyStr, encoded, err = t.t.Network.GetResponseBody(p.Params.RequestId)
+	if err != nil {
+		log.Warn().Str("url", p.Params.Response.Url).Err(err).Msg("failed to get body")
+	}
+
+	body = []byte(bodyStr)
+	if encoded {
+		body, _ = base64.StdEncoding.DecodeString(bodyStr)
+	}
+
+	// we don't want to capture anything other than text based files.
+	if !strings.HasPrefix(http.DetectContentType(body), "text") {
+		bodyStr = ""
+	}
+
+	return bodyStr
 }
 
 func (t *Tab) domUpdated() func(target *gcd.ChromeTarget, payload []byte) {
