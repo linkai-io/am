@@ -48,7 +48,7 @@
   version = "v1.6.0"
 
 [[projects]]
-  digest = "1:fa4315caa4f6c740eee089969d7314ae5c575f05d4f3cf82f82b6c3209e4b19f"
+  digest = "1:ad95f288383885ed78d8bc26a5803a48b80b9480d802e1706f5a8438b31543a9"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -73,12 +73,16 @@
     "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/s3",
     "service/ssm",
     "service/sts",
   ]
@@ -568,6 +572,7 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/ssm",
     "github.com/bsm/grpclb",
     "github.com/bsm/grpclb/balancer",
@@ -597,6 +602,7 @@
     "github.com/spaolacci/murmur3",
     "github.com/wirepair/gcd",
     "github.com/wirepair/gcd/gcdapi",
+    "github.com/wirepair/gcd/gcdmessage",
     "golang.org/x/net/context",
     "golang.org/x/net/publicsuffix",
     "google.golang.org/grpc",

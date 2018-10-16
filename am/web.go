@@ -1,21 +1,31 @@
 package am
 
+const (
+	RNWebData             = "lrn:service:webdata:feature:"
+	RNWebDataResponses    = "lrn:service:webdata:feature:responses"
+	RNWebDataCertificates = "lrn:service:webdata:feature:certificates"
+	RNWebDataSnapshots    = "lrn:service:webdata:feature:snapshots"
+	WebDataServiceKey     = "webdataservice"
+)
+
 // HTTPResponse represents a captured network response
 type HTTPResponse struct {
-	Scheme            string
-	Host              string
-	ResponsePort      string
-	RequestedPort     string
-	RequestID         string
-	Status            int
-	StatusText        string
-	URL               string
-	Headers           map[string]interface{}
-	MimeType          string
-	Body              string
-	ResponseTimestamp int64
-	IsDocument        bool
-	WebCertificate    *WebCertificate
+	Scheme            string                 `json:"scheme"`
+	Host              string                 `json:"host"`
+	ResponsePort      string                 `json:"response_port"`
+	RequestedPort     string                 `json:"requested_port"`
+	RequestID         string                 `json:"request_id,omitempty"`
+	Status            int                    `json:"status"`
+	StatusText        string                 `json:"status_text"`
+	URL               string                 `json:"url"`
+	Headers           map[string]interface{} `json:"headers"`
+	MimeType          string                 `json:"mime_type"`
+	RawBody           string                 `json:"raw_body,omitempty"`
+	RawBodyLink       string                 `json:"raw_body_link"`
+	RawBodyHash       string                 `json:"raw_body_hash"`
+	ResponseTimestamp int64                  `json:"response_timestamp"`
+	IsDocument        bool                   `json:"is_document"`
+	WebCertificate    *WebCertificate        `json:"web_certificate"`
 }
 
 type WebCertificate struct {
@@ -28,14 +38,17 @@ type WebCertificate struct {
 	SubjectName                       string   `json:"subjectName"`                       // Certificate subject name.
 	SanList                           []string `json:"sanList"`                           // Subject Alternative Name (SAN) DNS names and IP addresses.
 	Issuer                            string   `json:"issuer"`                            // Name of the issuing CA.
-	ValidFrom                         float64  `json:"validFrom"`                         // Certificate valid from date.
-	ValidTo                           float64  `json:"validTo"`                           // Certificate valid to (expiration) date
+	ValidFrom                         int64    `json:"validFrom"`                         // Certificate valid from date.
+	ValidTo                           int64    `json:"validTo"`                           // Certificate valid to (expiration) date
 	CertificateTransparencyCompliance string   `json:"certificateTransparencyCompliance"` // Whether the request complied with Certificate Transparency policy enum values: unknown, not-compliant, compliant
 }
 
 type WebData struct {
-	Address       *ScanGroupAddress
-	Responses     []*HTTPResponse
-	Image         string
-	SerializedDOM string
+	Address           *ScanGroupAddress `json:"address"`
+	Responses         []*HTTPResponse   `json:"responses"`
+	Snapshot          string            `json:"snapshot,omitempty"`
+	SnapshotLink      string            `json:"snapshot_link"`
+	SerializedDOM     string            `json:"serialized_dom,omitempty"`
+	SerializedDOMLink string            `json:"serialized_dom_link"`
+	ResponseTimestamp int64             `json:"response_timeestamp"`
 }

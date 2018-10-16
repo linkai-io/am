@@ -292,9 +292,8 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 		MimeType:      p.Response.MimeType,
 		Status:        p.Response.Status,
 		StatusText:    p.Response.StatusText,
+		RawBody:       t.encodeResponseBody(message),
 	}
-
-	response.Body = t.encodeResponseBody(message)
 
 	if p.Type == "Document" {
 		response.IsDocument = true
@@ -314,10 +313,9 @@ func (t *Tab) extractCertificate(message *gcdapi.NetworkResponseReceivedEvent) *
 		return nil
 	}
 
-	if u.Hostname() == t.address.HostAddress &&
-		u.Scheme == "https" &&
-		strings.HasPrefix(p.Response.Url, "https") &&
-		p.Response.SecurityDetails != nil {
+	if u.Hostname() == t.address.HostAddress && u.Scheme == "https" &&
+		strings.HasPrefix(p.Response.Url, "https") && p.Response.SecurityDetails != nil {
+
 		return convert.NetworkCertificateToWebCertificate(p.Response.SecurityDetails)
 	}
 

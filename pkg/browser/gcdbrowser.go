@@ -176,9 +176,6 @@ func (b *GCDBrowser) signalRestart(ctx context.Context) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*90)
 	defer cancel()
 
-	// drain browsers that are in our pool anything 'in use' will need to wait to complete.
-	//b.drain()
-
 	for {
 		select {
 		case <-ticker.C:
@@ -249,10 +246,11 @@ func (b *GCDBrowser) Load(ctx context.Context, address *am.ScanGroupAddress, sch
 	}
 
 	webData := &am.WebData{
-		Address:       address,
-		SerializedDOM: tab.SerializeDOM(),
-		Responses:     tab.GetNetworkTraffic(),
-		Image:         img,
+		Address:           address,
+		SerializedDOM:     tab.SerializeDOM(),
+		Responses:         tab.GetNetworkTraffic(),
+		Snapshot:          img,
+		ResponseTimestamp: time.Now().UnixNano(),
 	}
 
 	log.Info().Msg("closed tab")

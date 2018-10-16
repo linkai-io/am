@@ -2,6 +2,9 @@ package web
 
 import (
 	"context"
+	"strconv"
+
+	"github.com/linkai-io/am/pkg/retrier"
 
 	"github.com/linkai-io/am/pkg/browser"
 
@@ -17,6 +20,8 @@ import (
 const (
 	oneHour = 60 * 60
 )
+
+var schemes = []string{"http", "https"}
 
 // Web will brute force and mutate subdomains to attempt to find
 // additional hosts
@@ -64,7 +69,7 @@ func (w *Web) defaultWebConfig() *am.WebModuleConfig {
 }
 
 // Analyze will attempt to find additional domains by extracting hosts from a website as well
-// as capture any network traffic
+// as capture any network traffic, save images, dom, and responses to s3/disk
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 
 	portCfg := w.defaultPortConfig()
@@ -93,6 +98,19 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	for _, port := range portCfg.CustomPorts {
 		// do stuff
 		logger.Info().Int32("port", port).Msg("analyzing")
+		portStr := strconv.Itoa(int(port))
+		for _, scheme := range schemes {
+			webData := &am.WebData{}
+			retryErr := retrier.RetryAttempts(func() error {
+				var err error
+				webData, err = w.browsers.Load(ctx, address, scheme, portStr)
+				return err
+			}, 3)
+			if retryErr != nil {
+				continue
+			}
+
+		}
 	}
 
 	return address, WebRecords, nil

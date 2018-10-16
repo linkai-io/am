@@ -17,8 +17,8 @@ func NetworkCertificateToWebCertificate(in *gcdapi.NetworkSecurityDetails) *am.W
 		SubjectName:                       in.SubjectName,
 		SanList:                           in.SanList,
 		Issuer:                            in.Issuer,
-		ValidFrom:                         in.ValidFrom,
-		ValidTo:                           in.ValidTo,
+		ValidFrom:                         int64(in.ValidFrom),
+		ValidTo:                           int64(in.ValidTo),
 		CertificateTransparencyCompliance: in.CertificateTransparencyCompliance,
 	}
 }

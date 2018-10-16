@@ -14,6 +14,7 @@ var (
 	ErrScanGroupExists        = errors.New("scan group name already exists")
 	ErrScanGroupVersionLinked = errors.New("scan group version is linked to this scan group")
 	ErrAddressCopyCount       = errors.New("copy count of addresses did not match expected amount")
+	ErrEmptyAddress           = errors.New("address data was nil")
 
 	// Organization Specific
 	ErrOrganizationExists = errors.New("organization already exists")
