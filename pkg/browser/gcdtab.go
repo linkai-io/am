@@ -49,6 +49,11 @@ func NewTab(tab *gcd.ChromeTarget, address *am.ScanGroupAddress) *Tab {
 	return t
 }
 
+// Close the exit channel
+func (t *Tab) Close() {
+	close(t.exitCh)
+}
+
 // LoadPage capture network traffic and take screen shot of DOM and image
 func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	navParams := &gcdapi.PageNavigateParams{Url: url, TransitionType: "typed"}
@@ -62,33 +67,6 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	}
 	log.Info().Str("url", url).Msg("navigating complete")
 	return t.WaitReady(ctx, time.Second*3)
-}
-
-// TakeScreenshot returns a png image, base64 encoded, or error if failed
-func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
-	_, _, rect, err := t.t.Page.GetLayoutMetrics()
-	if err != nil {
-		return "", err
-	}
-
-	params := &gcdapi.PageCaptureScreenshotParams{
-		Format:  "png",
-		Quality: 100,
-		Clip: &gcdapi.PageViewport{
-			X:      rect.X,
-			Y:      rect.Y,
-			Width:  rect.Width,
-			Height: rect.Height,
-			Scale:  float64(1)},
-		FromSurface: true,
-	}
-
-	return t.t.Page.CaptureScreenshotWithParams(params)
-}
-
-// Close the exit channel
-func (t *Tab) Close() {
-	close(t.exitCh)
 }
 
 // WaitReady waits for the page to load, DOM to be stable, and no network traffic in progress
@@ -112,6 +90,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	}
 
 	stableTimer := time.After(5 * time.Second)
+
 	// wait for DOM & network stability
 	log.Info().Msg("waiting for DOM & network stability")
 	for {
@@ -125,8 +104,8 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 		case <-stableTimer:
 			return ErrTimedOut
 		case <-ticker.C:
-			log.Info().Int32("requests", t.container.GetRequests()).Msg("tick")
 			if changeTime, ok := t.lastNodeChangeTimeVal.Load().(time.Time); ok {
+				log.Info().Int32("requests", t.container.GetRequests()).Msgf("tick %s", time.Now().Sub(changeTime))
 				if time.Now().Sub(changeTime) >= stableAfter && t.container.GetRequests() == 0 {
 					// times up, should be stable now
 					return nil
@@ -134,6 +113,30 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 			}
 		}
 	}
+}
+
+// TakeScreenshot returns a png image, base64 encoded, or error if failed
+func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
+	_, _, rect, err := t.t.Page.GetLayoutMetrics()
+	if err != nil {
+		return "", err
+	}
+	log.Info().Msgf("got metrics: %#v", rect)
+	params := &gcdapi.PageCaptureScreenshotParams{
+		Format:  "png",
+		Quality: 100,
+		Clip: &gcdapi.PageViewport{
+			X:      0,
+			Y:      0,
+			Width:  1024,
+			Height: 768,
+			Scale:  float64(1)},
+		FromSurface: true,
+	}
+
+	log.Info().Msgf("calling capture")
+
+	return t.t.Page.CaptureScreenshotWithParams(params)
 }
 
 // SerializeDOM and return it as string
@@ -196,13 +199,15 @@ func (t *Tab) InjectIP(scheme, port string) {
 		ipURL := strings.Replace(r.Params.Request.Url, t.address.HostAddress, t.address.IPAddress, 1)
 		log.Info().Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
+			Str("url", ipURL).
 			Msg("intercepted and replacing IP")
 		p := &gcdapi.NetworkContinueInterceptedRequestParams{
 			InterceptionId: r.Params.InterceptionId,
-			Url:            ipURL,
+			Url:            ipURL, // r.Params.Request.Url, // ipURL,
 			Headers:        headers,
 		}
 		target.Network.ContinueInterceptedRequestWithParams(p)
+
 		log.Info().Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
 			Msg("continue called")
@@ -218,12 +223,16 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		MaxTotalBufferSize:    -1,
 	})
 
-	t.t.Subscribe("Network.requestWillBeSent", func(target *gcd.ChromeTarget, payload []byte) {
+	t.t.Subscribe("network.loadingFailed", func(target *gcd.ChromeTarget, payload []byte) {
+		log.Info().Msgf("failed: %s\n", string(payload))
+	})
 
+	t.t.Subscribe("Network.requestWillBeSent", func(target *gcd.ChromeTarget, payload []byte) {
+		log.Info().Msg("requestWillBeSent")
 	})
 
 	t.t.Subscribe("Network.responseReceived", func(target *gcd.ChromeTarget, payload []byte) {
-
+		log.Info().Msg("responseReceived")
 		defer t.container.DecRequest()
 		t.container.IncRequest()
 

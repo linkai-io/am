@@ -87,7 +87,7 @@ func (r *RedisKeys) AddrExistsHash() string {
 }
 
 // Addr returns the address key based on supplied addr id
-// TODO: look at better more performant options
+// TODO: look at better more performant options other than Sprintf
 func (r *RedisKeys) Addr(addrHash string) string {
 	return fmt.Sprintf("%d:%d:address:%s", r.orgID, r.groupID, addrHash)
 }

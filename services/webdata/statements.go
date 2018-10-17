@@ -24,6 +24,9 @@ const (
 )
 
 var queryMap = map[string]string{
+	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_link, snapshot_link)
+		values ($1, $2, $3, $4, $5, $6, false)`
+		
 	// am.scan_group_addresses related
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
 		and scan_group_id=$2`,

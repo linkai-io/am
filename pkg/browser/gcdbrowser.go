@@ -2,6 +2,7 @@ package browser
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync/atomic"
@@ -16,17 +17,29 @@ import (
 	"github.com/wirepair/gcd"
 )
 
-var startupFlags = []string{"--test-type",
-	"--ignore-certificate-errors",
+var startupFlags = []string{"--ignore-certificate-errors",
+	"--test-type",
+	"--disable-background-networking",
+	"--disable-sync",
+	"--no-sandbox",
+	"--disable-default-apps",
+	"--disable-popup-blocking",
+	"--enable-automation",
+	"--metrics-recording-only",
 	"--allow-running-insecure-content",
 	"--disable-new-tab-first-run",
 	"--no-first-run",
-	"--disable-translate",
+	"--window-size=1024,768",
+	"--disable-features=TranslateUI",
 	"--safebrowsing-disable-auto-update",
 	"--disable-component-update",
 	"--safebrowsing-disable-download-protection",
-	"--deterministic-fetch",
-	"--headless",
+	"--disable-gpu",
+	//"--deterministic-fetch",
+	"--password-store=basic",
+	// TODO: re-investigate headless periodically, currently intercepting TLS requests and replacing
+	// hostnames with ip addresses fails.
+	//"--headless",
 }
 
 var (
@@ -55,21 +68,29 @@ func NewGCDBrowser(maxTabs, maxTabErrors int) *GCDBrowser {
 	return b
 }
 
+// UseDisplay (to be called before Init()) tells chrome to start using an Xvfb display
+func (b *GCDBrowser) UseDisplay(display string) {
+	b.g.AddEnvironmentVars([]string{fmt.Sprintf("DISPLAY=%s", display)})
+}
+
+// Init starts the browser/tab pool
 func (b *GCDBrowser) Init() error {
 	return b.Start()
 }
 
+// SetAPITimeout tells gcd how long to wait for a response from the browser for all API calls
 func (b *GCDBrowser) SetAPITimeout(duration time.Duration) {
 	b.tabTimeout = duration
 }
 
+// Start the browser with a random profile directory and create tabs
 func (b *GCDBrowser) Start() error {
 	b.profileDir = b.randProfile()
 	b.g.AddFlags(startupFlags)
 	if err := b.g.StartProcess("/usr/bin/chromium-browser", b.profileDir, "9022"); err != nil {
 		return errors.Wrap(err, "failed to start browser")
 	}
-
+	time.Sleep(100 * time.Second)
 	b.createTabs()
 	return nil
 }
@@ -83,6 +104,7 @@ func (b *GCDBrowser) randProfile() string {
 	return profile
 }
 
+// Close removfes the profile directory and exits
 func (b *GCDBrowser) Close() error {
 	os.RemoveAll(b.profileDir)
 	return b.g.ExitProcess()
@@ -101,7 +123,7 @@ func (b *GCDBrowser) createTabs() {
 	}
 	atomic.StoreInt32(&b.closing, 0)
 	atomic.StoreInt32(&b.tabErrors, 0)
-	time.Sleep(time.Second * 2) // give time for browser to settle
+	time.Sleep(time.Second * 5) // give time for browser to settle
 }
 
 // Acquire a tab, unless context expired. If expired, increment our tab error count
@@ -240,7 +262,10 @@ func (b *GCDBrowser) Load(ctx context.Context, address *am.ScanGroupAddress, sch
 		}
 	}
 
+	log.Info().Str("url", url).Msg("taking screenshot")
+	b.g.ActivateTab(t)
 	img, err := tab.TakeScreenshot(ctx)
+	log.Info().Str("url", url).Msg("screenshot taken")
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
