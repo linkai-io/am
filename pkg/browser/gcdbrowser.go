@@ -17,6 +17,7 @@ import (
 	"github.com/wirepair/gcd"
 )
 
+/*
 var startupFlags = []string{"--ignore-certificate-errors",
 	"--test-type",
 	"--disable-background-networking",
@@ -41,7 +42,7 @@ var startupFlags = []string{"--ignore-certificate-errors",
 	// hostnames with ip addresses fails.
 	//"--headless",
 }
-
+*/
 var (
 	ErrBrowserRestarting = errors.New("browser currently restarting")
 )
