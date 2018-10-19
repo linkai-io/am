@@ -25,8 +25,8 @@ const (
 
 var queryMap = map[string]string{
 	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_link, snapshot_link)
-		values ($1, $2, $3, $4, $5, $6, false)`
-		
+		values ($1, $2, $3, $4, $5, $6, false)`,
+
 	// am.scan_group_addresses related
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
 		and scan_group_id=$2`,
@@ -72,7 +72,8 @@ var (
 			response_timestamp bigint,
 			is_document boolean,
 			scheme varchar(12),
-			host varchar(512),
+			ip_address varchar(256),
+			host_address varchar(512),
 			response_port int,
 			requested_port int,
 			url bytea not null,
@@ -80,8 +81,8 @@ var (
 			status int, 
 			status_text text,
 			mime_type text,
-			data_hash varchar(512),
-			raw_data_link text
+			raw_body_hash varchar(512),
+			raw_body_link text
 		) on commit drop;`
 
 	AddResponsesTempToStatus = `insert into am.web_status_text as resp (status_text)
@@ -97,6 +98,7 @@ var (
 			response_timestamp,
 			is_document,
 			scheme,
+			ip_address,
 			host,
 			response_port,
 			requested_port,
@@ -105,8 +107,8 @@ var (
 			status,
 			status_text_id,
 			mime_type_id,
-			data_hash,
-			raw_data_link
+			raw_body_hash,
+			raw_body_link
 		)
 		select
 			temp.organization_id, 
@@ -115,6 +117,7 @@ var (
 			temp.response_timestamp,
 			temp.is_document, 
 			temp.scheme,
+			temp.ip_address,
 			temp.host,
 			temp.response_port,
 			temp.requested_port,
@@ -123,8 +126,8 @@ var (
 			temp.status,
 			(select status_text_id from am.web_status_text where status_text=temp.status_text),
 			(select mime_type_id from am.web_mime_type where mime_type=temp.mime_type),
-			temp.data_hash,
-			temp.raw_data_link,
+			temp.raw_body_hash,
+			temp.raw_body_link,
 			false
 		from resp_add_temp as temp on conflict do nothing`
 )

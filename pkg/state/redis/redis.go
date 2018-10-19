@@ -559,7 +559,7 @@ func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireS
 }
 
 // DoBruteDomain org:group:module:dnsbrute:zones:brute:<zonename> sets the zone as already being checked or, if it already exists
-// return that we shouldn't do NS records for this zone.
+// return that we shouldn't do analysis.
 func (s *State) DoBruteDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
 	// create redis keys for this org/group
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
@@ -567,11 +567,19 @@ func (s *State) DoBruteDomain(ctx context.Context, orgID, scanGroupID int, expir
 }
 
 // DoMutateDomain org:group:module:dnsbrute:zones:mutate:<zonename> sets the zone as already being checked or, if it already exists
-// return that we shouldn't do NS records for this zone.
+// return that we shouldn't do analysis.
 func (s *State) DoMutateDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
 	// create redis keys for this org/group
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.MutateZone(zone), zone)
+}
+
+// DoWebDomain org:group:module:web:zones:analyze:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't do analysis.
+func (s *State) DoWebDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.WebZone(zone), zone)
 }
 
 // Sets and checks if a value exists in a key. If it already exists, we don't need to do whatever 'key's work is, as

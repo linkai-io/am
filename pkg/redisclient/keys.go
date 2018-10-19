@@ -62,6 +62,11 @@ func (r *RedisKeys) MutateZone(zone string) string {
 	return r.configFmt + ":module:dnsbrute:zones:mutate:" + zone
 }
 
+// WebZone key for determining if we should mutate zone or not
+func (r *RedisKeys) WebZone(zone string) string {
+	return r.configFmt + ":module:web:zones:analysis:" + zone
+}
+
 func (r *RedisKeys) PortConfig() string {
 	return r.configFmt + ":module:port:config"
 }

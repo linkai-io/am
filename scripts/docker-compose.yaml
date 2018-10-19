@@ -29,7 +29,7 @@ services:
       - APP_ENV=local
       - _am_local_discovery_config=${_am_local_discovery_config}
   postgresdev:
-    image: 084ec18124c8
+    image: postgresdev
     hostname: postgresdev
     ports:
       - "5432:5432"

@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"testing"
@@ -46,12 +48,18 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 		t.Fatalf("error initializing browser: %v\n", err)
 	}
 
+	go testTLSServer()
+
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
 
 	address := &am.ScanGroupAddress{
-		HostAddress: "example.com",
-		IPAddress:   "93.184.216.34",
+		//HostAddress: "example.com",
+		//IPAddress:   "example.edu",
+		//IPAddress:   "93.184.216.34",
+		//IPAddress: "192.168.62.130",
+		HostAddress: "www.veracode.com",
+		IPAddress:   "104.17.7.6",
 	}
 
 	d, err := b.Load(timeoutCtx, address, "https", "443")
@@ -61,7 +69,7 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 
 	t.Logf("responses: %d\n", len(d.Responses))
 	for _, r := range d.Responses {
-		t.Logf("RESPONSE: %#v\n", r)
+		//t.Logf("RESPONSE: %#v\n", r)
 		if r.WebCertificate != nil {
 			t.Logf("%#v\n", r.WebCertificate)
 		}
@@ -72,7 +80,30 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 	}
 }
 
+func TestGCDBrowserPoolClosedPort(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(1)
+	defer b.Close(ctx)
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "example.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	_, err := b.Load(timeoutCtx, address, "http", "8555")
+	if err == nil {
+		t.Fatalf("did not get expected error")
+	}
+}
+
 func TestGCDBrowserPoolNavFailure(t *testing.T) {
+
 	ctx := context.Background()
 	b := NewGCDBrowserPool(2)
 	b.SetAPITimeout(time.Second * 3)
@@ -263,5 +294,21 @@ func TestGCDBrowserPoolXvfb(t *testing.T) {
 		case <-timeout.Done():
 			t.Fatalf("failed to get results after 20 seconds")
 		}
+	}
+}
+
+func testTLSServer() {
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		log.Printf("REQUSET FROM SERVER SIDE: %#v\n", req)
+		log.Printf("HEADERS FROM SERVER SIDE %#v\n", req.Header)
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("This is an example server.\n"))
+
+	})
+
+	log.Printf("LISTENING")
+	err := http.ListenAndServeTLS(":8444", "testdata/server.crt", "testdata/server.key", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
 	}
 }

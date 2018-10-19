@@ -101,6 +101,28 @@ func MockBruteState() *mock.BruteState {
 	return mockState
 }
 
+func MockWebState() *mock.WebState {
+	mockState := &mock.WebState{}
+	mockState.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
+		return nil
+	}
+
+	mockState.GetGroupFn = func(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+		return nil, errors.New("group not found")
+	}
+
+	webHosts := make(map[string]bool)
+	mockState.DoWebDomainFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := webHosts[zone]; !ok {
+			webHosts[zone] = true
+			return true, nil
+		}
+		return false, nil
+	}
+
+	return mockState
+}
+
 func MockNSState() *mock.NSState {
 	mockState := &mock.NSState{}
 	mockState.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {

@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/wirepair/gcd/gcdmessage"
 
 	"github.com/linkai-io/am/am"
@@ -18,29 +20,45 @@ import (
 	"github.com/wirepair/gcd"
 )
 
-var startupFlags = []string{"--ignore-certificate-errors",
+var startupFlags = []string{
+	//"--allow-insecure-localhost",
+	"--enable-automation",
+	"--enable-features=NetworkService",
 	"--test-type",
+	//"--ignore-certificate-errors",
+	//"--ignore-ssl-errors",
+	//"--ignore-certificate-errors-spki-list",
+	"--disable-client-side-phishing-detection",
+	"--disable-component-update",
+	"--disable-infobars",
+	"--disable-ntp-popular-sites",
+	"--disable-ntp-most-likely-favicons-from-server",
+	"--disable-sync-app-list",
+	"--disable-domain-reliability",
 	"--disable-background-networking",
 	"--disable-sync",
-	"--no-sandbox",
+	"--disable-new-browser-first-run",
 	"--disable-default-apps",
 	"--disable-popup-blocking",
-	"--enable-automation",
-	"--metrics-recording-only",
+	"--disable-extensions",
+	"--disable-features=TranslateUI",
+	"--disable-gpu",
+	"--disable-dev-shm-usage",
+	"--no-sandbox",
+	//"--metrics-recording-only",
 	"--allow-running-insecure-content",
-	"--disable-new-Browser-first-run",
 	"--no-first-run",
 	"--window-size=1024,768",
-	"--disable-features=TranslateUI",
 	"--safebrowsing-disable-auto-update",
-	"--disable-component-update",
 	"--safebrowsing-disable-download-protection",
-	"--disable-gpu",
 	//"--deterministic-fetch",
+
 	"--password-store=basic",
+	//"--proxy-server=localhost:8080",
 	// TODO: re-investigate headless periodically, currently intercepting TLS requests and replacing
 	// hostnames with ip addresses fails.
-	//"--headless",
+	"--headless",
+	"about:blank",
 }
 
 var (
@@ -62,7 +80,7 @@ func NewGCDBrowserPool(maxBrowsers int) *GCDBrowserPool {
 
 	b.maxBrowsers = maxBrowsers
 	b.browserTimeout = time.Second * 30
-	b.browsers = make(chan *gcd.Gcd, maxBrowsers)
+	b.browsers = make(chan *gcd.Gcd, b.maxBrowsers)
 	return b
 }
 
@@ -95,7 +113,7 @@ func (b *GCDBrowserPool) Start() error {
 		log.Info().Int("i", i).Msg("browser created")
 	}
 
-	time.Sleep(time.Second * 5) // give time for browser to settle
+	time.Sleep(time.Second * 2) // give time for browser to settle
 	return nil
 }
 
@@ -114,8 +132,7 @@ func (b *GCDBrowserPool) Acquire(ctx context.Context) *gcd.Gcd {
 	}
 }
 
-// Return a browser Browser, if we fail to return the browser increment the Browser error
-// count.
+// Return a browser
 func (b *GCDBrowserPool) Return(ctx context.Context, browser *gcd.Gcd) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -168,7 +185,7 @@ func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan str
 		browser.AddEnvironmentVars([]string{b.display})
 	}
 
-	if err := browser.StartProcess("/usr/bin/chromium-browser", b.randProfile(), b.randPort()); err != nil {
+	if err := browser.StartProcess("/usr/bin/google-chrome", b.randProfile(), b.randPort()); err != nil {
 		log.Error().Err(err).Msg("failed to start browser")
 		return
 	}
@@ -178,8 +195,6 @@ func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan str
 }
 
 // Load an address of scheme and port, returning an image, the dom, all text based responses or an error.
-// Care is taken if we have an unsBrowserle browser and will signal a restart of the entire browser process
-// if we reach max Browser errors
 func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress, scheme, port string) (*am.WebData, error) {
 	var browser *gcd.Gcd
 
@@ -211,6 +226,10 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		if chromeErr, ok := err.(*gcdmessage.ChromeApiTimeoutErr); ok {
 			return nil, errors.Wrap(chromeErr, "failed to load page due to timeout")
 		}
+
+		if errors.Cause(err) == ErrNavigating {
+			return nil, err
+		}
 	}
 
 	log.Info().Str("url", url).Msg("taking screenshot")
@@ -219,25 +238,27 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
-
+	dom := tab.SerializeDOM()
 	webData := &am.WebData{
 		Address:           address,
-		SerializedDOM:     tab.SerializeDOM(),
+		SerializedDOM:     dom,
+		SerializedDOMHash: convert.HashData([]byte(dom)),
 		Responses:         tab.GetNetworkTraffic(),
 		Snapshot:          img,
 		ResponseTimestamp: time.Now().UnixNano(),
 	}
 
-	log.Info().Msg("closed Browser")
+	log.Info().Msg("closed browser")
 	return webData, nil
 }
 
-// buildURL and signal the Browser to inject IP address if we have an IP/Host pair
+// buildURL and signal the browser to inject IP address if we have an IP/Host pair
+// TODO: renable injecting IP once fixed/resolved...
 func (b *GCDBrowserPool) buildURL(tab *Tab, address *am.ScanGroupAddress, scheme, port string) string {
 	url := scheme + "://"
 	if address.HostAddress != "" {
 		url += address.HostAddress
-		tab.InjectIP(scheme, port)
+		//tab.InjectIP(scheme, port)
 	} else {
 		// no host address, just use IP
 		url += address.IPAddress

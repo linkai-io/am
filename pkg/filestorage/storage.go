@@ -2,12 +2,12 @@ package filestorage
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"log"
 	"strconv"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/pkg/convert"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 
 type Storage interface {
 	Init(config []byte) error
-	Write(data []byte) error
+	Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error)
 }
 
 // ShardName takes an input name and shards it 5 levels
@@ -39,11 +39,11 @@ func ShardName(name string) (string, error) {
 
 // PathFromData takes in an address and raw bytes to create a hashed / sharded
 // path name
-func PathFromData(address *am.ScanGroupAddress, data []byte) string {
-	if data == nil || len(data) == 0 {
+func PathFromData(address *am.ScanGroupAddress, name string) string {
+	if len(name) == 0 {
 		return "null"
 	}
-	name := convert.HashData(data)
+
 	log.Printf("name: %s\n", name)
 	sharded, err := ShardName(name)
 	if err != nil {

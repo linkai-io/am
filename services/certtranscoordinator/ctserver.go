@@ -141,7 +141,7 @@ func (s *CTServers) update(ctx context.Context, server *am.CTServer) {
 func getLatestCTLogList() ([]string, error) {
 	hc := &http.Client{}
 
-	llData, err := x509util.ReadFileOrURL(loglist.AllLogListURL, hc)
+	llData, err := x509util.ReadFileOrURL(loglist.LogListURL, hc)
 	if err != nil {
 		return nil, err
 	}

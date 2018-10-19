@@ -21,6 +21,9 @@ type Stater interface {
 	// AddWebDomain adds this zone/tld to our list of web domains that are safe to search for
 	//AddWebDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error)
 
+	// DoWebDomain until intercepting requests and injecting IPs is fixed, only bother doing web analysis one per domain
+	DoWebDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error)
+
 	// Subscribe for updates
 	Subscribe(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error
 

@@ -24,6 +24,7 @@ var (
 	ErrTabCrashed         = errors.New("tab crashed")
 	ErrTabClosing         = errors.New("closing")
 	ErrTimedOut           = errors.New("request timed out")
+	ErrNavigating         = errors.New("error in navigation")
 )
 
 type Tab struct {
@@ -58,14 +59,19 @@ func (t *Tab) Close() {
 func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	navParams := &gcdapi.PageNavigateParams{Url: url, TransitionType: "typed"}
 	log.Info().Str("url", url).Msg("navigating")
-	_, _, _, err := t.t.Page.NavigateWithParams(navParams)
+	_, _, errText, err := t.t.Page.NavigateWithParams(navParams)
 	if err != nil {
 		log.Warn().Err(err).Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
 			Str("url", url).Msg("failed to load page")
 		return err
 	}
-	log.Info().Str("url", url).Msg("navigating complete")
+
+	if errText != "" {
+		return errors.Wrap(ErrNavigating, errText)
+	}
+
+	log.Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
 	return t.WaitReady(ctx, time.Second*3)
 }
 
@@ -161,19 +167,20 @@ func (t *Tab) GetNetworkTraffic() []*am.HTTPResponse {
 
 // InjectIP replaces the address.HostAddress with the IP address so we can catalogue all variants
 // of the host/ip pairs.
-// TODO: handle punycode when doing strings.Replace.
+// TODO: Replacing hostnames with ip addresses for HTTPS does *not* work
 func (t *Tab) InjectIP(scheme, port string) {
 
 	httpPattern := &gcdapi.NetworkRequestPattern{
 		UrlPattern: "http://" + t.address.HostAddress + "*",
 	}
-	httpsPattern := &gcdapi.NetworkRequestPattern{
-		UrlPattern: "https://" + t.address.HostAddress + "*",
-	}
-
+	/*
+		httpsPattern := &gcdapi.NetworkRequestPattern{
+			UrlPattern: "https://" + t.address.HostAddress + "*",
+		}
+	*/
 	patterns := make([]*gcdapi.NetworkRequestPattern, 2)
 	patterns[0] = httpPattern
-	patterns[1] = httpsPattern
+	//patterns[1] = httpsPattern
 
 	interceptParams := &gcdapi.NetworkSetRequestInterceptionParams{
 		Patterns: patterns,
@@ -187,12 +194,27 @@ func (t *Tab) InjectIP(scheme, port string) {
 			log.Warn().Err(err).Msg("failed to unmarshal network request intercepted")
 			return
 		}
+		log.Info().Msgf("INTERCEPTED DATA: %#v", string(payload))
+
+		if !r.Params.IsNavigationRequest {
+			p := &gcdapi.NetworkContinueInterceptedRequestParams{
+				InterceptionId: r.Params.InterceptionId,
+			}
+			target.Network.ContinueInterceptedRequestWithParams(p)
+			return
+		}
+
+		log.Info().Msgf("REDIRECT?: %s", r.Params.RedirectUrl)
 
 		headers := r.Params.Request.Headers
+
 		parsedURL, err := url.Parse(r.Params.Request.Url)
+
 		if err != nil {
+			headers["Host"] = t.address.HostAddress + ":" + port
 			headers["host"] = t.address.HostAddress + ":" + port
 		} else {
+			headers["Host"] = parsedURL.Host
 			headers["host"] = parsedURL.Host // will return host:port
 		}
 
@@ -200,13 +222,17 @@ func (t *Tab) InjectIP(scheme, port string) {
 		log.Info().Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
 			Str("url", ipURL).
-			Msg("intercepted and replacing IP")
+			Msgf("intercepted and replacing IP: %#v\n", headers)
+
 		p := &gcdapi.NetworkContinueInterceptedRequestParams{
 			InterceptionId: r.Params.InterceptionId,
 			Url:            ipURL, // r.Params.Request.Url, // ipURL,
 			Headers:        headers,
 		}
-		target.Network.ContinueInterceptedRequestWithParams(p)
+		if r, err := target.Network.ContinueInterceptedRequestWithParams(p); err == nil {
+			data, _ := json.Marshal(r.Result)
+			log.Info().Msgf("===============================ContinueInterceptedRequestWithParams RESPONSE: %#v", string(data))
+		}
 
 		log.Info().Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
@@ -229,10 +255,12 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 
 	t.t.Subscribe("Network.requestWillBeSent", func(target *gcd.ChromeTarget, payload []byte) {
 		log.Info().Msg("requestWillBeSent")
+		log.Info().Msgf("REQUEST DATA: %#v\n", string(payload))
 	})
 
 	t.t.Subscribe("Network.responseReceived", func(target *gcd.ChromeTarget, payload []byte) {
 		log.Info().Msg("responseReceived")
+		log.Info().Msgf("RESPONSE DATA: %#v\n", string(payload))
 		defer t.container.DecRequest()
 		t.container.IncRequest()
 
@@ -281,7 +309,7 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 			Str("port", requestedPort).
 			Msg("failed to parse url, results may be inaccurate")
 
-		host = address.HostAddress
+		host = ""
 		responsePort = requestedPort
 		scheme = "http"
 	} else {
@@ -291,22 +319,23 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 	}
 
 	response := &am.HTTPResponse{
-		Scheme:        scheme,
-		RequestedPort: requestedPort,
-		Host:          host,
-		ResponsePort:  responsePort,
-		RequestID:     p.RequestId,
-		URL:           p.Response.Url,
-		Headers:       p.Response.Headers,
-		MimeType:      p.Response.MimeType,
-		Status:        p.Response.Status,
-		StatusText:    p.Response.StatusText,
-		RawBody:       t.encodeResponseBody(message),
+		Scheme:         scheme,
+		RequestedPort:  requestedPort,
+		IPAddress:      p.Response.RemoteIPAddress,
+		HostAddress:    host,
+		ResponsePort:   responsePort,
+		RequestID:      p.RequestId,
+		URL:            p.Response.Url,
+		Headers:        p.Response.Headers,
+		MimeType:       p.Response.MimeType,
+		Status:         p.Response.Status,
+		StatusText:     p.Response.StatusText,
+		RawBody:        t.encodeResponseBody(message),
+		WebCertificate: t.extractCertificate(message),
 	}
 
 	if p.Type == "Document" {
 		response.IsDocument = true
-		response.WebCertificate = t.extractCertificate(message)
 	}
 
 	response.ResponseTimestamp = time.Now().UnixNano()
@@ -367,6 +396,26 @@ func (t *Tab) subscribeBrowserEvents() {
 	t.t.DOM.Enable()
 	t.t.Inspector.Enable()
 	t.t.Page.Enable()
+	t.t.Security.Enable()
+
+	//t.t.Security.SetIgnoreCertificateErrors(true)
+	t.t.Security.SetOverrideCertificateErrors(true)
+
+	t.t.Subscribe("Security.certificateError", func(target *gcd.ChromeTarget, payload []byte) {
+		resp := &gcdapi.SecurityCertificateErrorEvent{}
+		err := json.Unmarshal(payload, resp)
+		if err != nil {
+			return
+		}
+		log.Info().Str("type", resp.Params.ErrorType).Msg("handling certificate error")
+		p := &gcdapi.SecurityHandleCertificateErrorParams{
+			EventId: resp.Params.EventId,
+			Action:  "continue",
+		}
+
+		t.t.Security.HandleCertificateErrorWithParams(p)
+		log.Info().Msg("certificate error handled")
+	})
 
 	t.t.Subscribe("Inspector.targetCrashed", func(target *gcd.ChromeTarget, payload []byte) {
 		select {

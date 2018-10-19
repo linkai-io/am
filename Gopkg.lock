@@ -361,7 +361,7 @@
   version = "v1.2.2"
 
 [[projects]]
-  digest = "1:3a34e8d0cb50512f6c121914f9262c197d412c0ca836eda3bef2bbc7a4b4c959"
+  digest = "1:2d60c78b08f7cf14a58da81a49f1f1276bba6dff9625aca35636162ce415f808"
   name = "github.com/wirepair/gcd"
   packages = [
     ".",
@@ -369,8 +369,8 @@
     "gcdmessage",
   ]
   pruneopts = "UT"
-  revision = "9026a861ff51882148fadb365c47cf8b16388950"
-  version = "v1.0.1"
+  revision = "4c25a51b535a262645a591d527b9348c45b1e76e"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:ac5cb21cbe4f095b6e5f1ae5102a85dfd598d39b5ad0d64df3d41ee046586f30"

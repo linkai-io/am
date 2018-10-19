@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/linkai-io/am/pkg/retrier"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -29,23 +31,25 @@ func (s *S3Storage) Init(config []byte) error {
 	return err
 }
 
-func (s *S3Storage) Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) error {
-	fileName := PathFromData(address, data)
+func (s *S3Storage) Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+	hashName := convert.HashData(data)
+	fileName := PathFromData(address, hashName)
 	if fileName == "null" {
-		return nil
+		return "", "", nil
 	}
 	headObjectInput := &s3.HeadObjectInput{}
 	s3session := s3.New(s.session)
 
+	link := ""
 	out, err := s3session.HeadObject(headObjectInput)
 	if err != nil {
-		return s.uploadWithRetry(ctx, s3session, fileName, data)
+		return hashName, link, s.uploadWithRetry(ctx, s3session, fileName, data)
 	}
 	// already exists don't bother uploading again
 	if out != nil {
-		return nil
+		return "", "", nil
 	}
-	return nil
+	return "", "", nil
 }
 
 func (s *S3Storage) uploadWithRetry(ctx context.Context, s3session *s3.S3, fileName string, data []byte) error {

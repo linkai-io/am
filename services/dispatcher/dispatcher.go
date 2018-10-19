@@ -243,6 +243,17 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 	if len(possibleNewAddrs) > 0 {
 		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
 	}
+
+	groupLog.Info().Str("ip", updatedAddress.IPAddress).Str("host", updatedAddress.HostAddress).Msg("analyzing web systems")
+	updatedAddress, possibleNewAddrs, err = s.moduleClients[am.WebModule].Analyze(ctx, userContext, updatedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to analyze using web module")
+	}
+
+	if len(possibleNewAddrs) > 0 {
+		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
+	}
+
 	return updatedAddress, nil
 }
 
