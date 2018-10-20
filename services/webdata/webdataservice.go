@@ -16,6 +16,7 @@ var (
 	ErrFilterMissingGroupID = errors.New("address filter missing GroupID")
 	ErrAddressMissing       = errors.New("address did not have IPAddress or HostAddress set")
 	ErrNoResponses          = errors.New("no responses extracted from webdata")
+	ErrCopyCount            = errors.New("count of records copied did not match expected")
 )
 
 // Service for interfacing with postgresql/rds
@@ -87,14 +88,96 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return 0, nil, nil
+
+	var rows *pgx.Rows
+	var err error
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	if filter.WithResponseTime {
+		rows, err = s.pool.Query("responsesSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
+	} else {
+		rows, err = s.pool.Query("responsesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+	}
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	responses := make([]*am.HTTPResponse, 0)
+
+	for i := 0; rows.Next(); i++ {
+		r := &am.HTTPResponse{}
+		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
+			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &r.ResponsePort, &r.RequestedPort,
+			&r.URL, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
+
+			return 0, nil, err
+		}
+
+		if r.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		responses = append(responses, r)
+	}
+
+	return userContext.GetOrgID(), responses, err
 }
 
 func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContext, filter *am.WebCertificateFilter) (int, []*am.WebCertificate, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataCertificates, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return 0, nil, nil
+
+	var rows *pgx.Rows
+	var err error
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	if filter.WithResponseTime {
+		rows, err = s.pool.Query("responsesSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
+	} else {
+		rows, err = s.pool.Query("responsesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+	}
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	responses := make([]*am.HTTPResponse, 0)
+
+	for i := 0; rows.Next(); i++ {
+		r := &am.HTTPResponse{}
+		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
+			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &r.ResponsePort, &r.RequestedPort,
+			&r.URL, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
+
+			return 0, nil, err
+		}
+
+		if r.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		responses = append(responses, r)
+	}
+
+	return userContext.GetOrgID(), responses, err
 }
 
 func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, filter *am.WebSnapshotFilter) (int, []*am.WebSnapshot, error) {
@@ -104,9 +187,9 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	return 0, nil, nil
 }
 
-// Update webdata in the database, includes serialized dom & snapshot links, all responses and links, and web certificates
+// Add webdata tos the database, includes serialized dom & snapshot links, all responses and links, and web certificates
 // extracted by the web module
-func (s *Service) Update(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
+func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "create") {
 		return 0, am.ErrUserNotAuthorized
 	}
@@ -139,7 +222,7 @@ func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, 
 	oid := webData.Address.OrgID
 	gid := webData.Address.GroupID
 	aid := webData.Address.AddressID
-	_, err = s.pool.ExecEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, aid, webData.ResponseTimestamp, webData.SerializedDOMLink, webData.SnapshotLink)
+	_, err = s.pool.ExecEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, aid, webData.ResponseTimestamp, webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return v
@@ -176,7 +259,7 @@ func (s *Service) addResponses(ctx context.Context, userContext am.UserContext, 
 	}
 
 	if copyCount != len(webData.Responses) {
-		return 0, am.ErrAddressCopyCount
+		return 0, ErrCopyCount
 	}
 
 	if _, err := tx.Exec(AddResponsesTempToStatus); err != nil {
@@ -231,7 +314,7 @@ func (s *Service) addCertificates(ctx context.Context, userContext am.UserContex
 	}
 
 	if copyCount != len(certificateRows) {
-		return am.ErrAddressCopyCount
+		return ErrCopyCount
 	}
 
 	if _, err := tx.Exec(AddTempToCertificates); err != nil {

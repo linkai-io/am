@@ -35,6 +35,26 @@ const (
 	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
 	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted) values 
 	($1, $2, $3, $4, $5, $6, $7, $8, false, false) returning scan_group_id`
+	CreateAddressStmt = `insert into am.scan_group_addresses as sga (
+		organization_id, 
+		scan_group_id,
+		host_address,
+		ip_address,
+		discovered_timestamp,
+		discovery_id,
+		last_scanned_timestamp,
+		last_seen_timestamp,
+		confidence_score,
+		user_confidence_score,
+		is_soa,
+		is_wildcard_zone,
+		is_hosted_service,
+		ignored,
+		found_from,
+		ns_record,
+		address_hash
+	) values ($1, $2, $3, $4, $5, (select discovery_id from am.scan_address_discovered_by where discovered_by=$6), $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) returning address_id;`
+
 	DeleteOrgStmt  = "select am.delete_org((select organization_id from am.organizations where organization_name=$1))"
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
@@ -321,6 +341,40 @@ func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) i
 		t.Fatalf("error creating scan group: %s\n", err)
 	}
 	return groupID
+}
+
+func CreateScanGroupAddress(p *pgx.ConnPool, orgID, groupID int, t *testing.T) *am.ScanGroupAddress {
+	host := "example.com"
+	ip := "93.184.216.34"
+	address := &am.ScanGroupAddress{
+		OrgID:               orgID,
+		GroupID:             groupID,
+		HostAddress:         host,
+		IPAddress:           ip,
+		AddressHash:         convert.HashAddress(ip, host),
+		DiscoveryTime:       time.Now().UnixNano(),
+		DiscoveredBy:        "input_list",
+		LastScannedTime:     0,
+		LastSeenTime:        0,
+		ConfidenceScore:     100.0,
+		UserConfidenceScore: 0.0,
+	}
+	id := CreateScanGroupAddressWithAddress(p, address, t)
+	address.AddressID = id
+	return address
+}
+
+func CreateScanGroupAddressWithAddress(p *pgx.ConnPool, a *am.ScanGroupAddress, t *testing.T) int64 {
+	var id int64
+	err := p.QueryRow(CreateAddressStmt, a.OrgID, a.GroupID, a.HostAddress, a.IPAddress,
+		a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore,
+		a.UserConfidenceScore, a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom,
+		a.NSRecord, a.AddressHash).Scan(&id)
+
+	if err != nil {
+		t.Fatalf("error creating scan group address: %v\n", err)
+	}
+	return id
 }
 
 // TestCompareOrganizations does not compare fields that are unknown prior to creation

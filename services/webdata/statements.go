@@ -2,68 +2,55 @@ package webdata
 
 import "fmt"
 
-const (
-	sharedColumns = `organization_id, 
-		address_id, 
-		scan_group_id, 
-		host_address,
-		ip_address, 
-		discovered_timestamp, 
-		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_scanned_timestamp,
-		last_seen_timestamp,
-		confidence_score,
-		user_confidence_score,
-		is_soa,
-		is_wildcard_zone,
-		is_hosted_service,
-		ignored,
-		found_from,
-		ns_record,
-		address_hash`
+var (
+	sharedColumns = `response_id,
+    organization_id,
+    scan_group_id,
+    address_id,
+    response_timestamp,
+    is_document,
+    scheme,
+    ip_address,
+    host_address,
+    response_port,
+    requested_port,
+    url,
+    headers,
+    status, 
+    wst.status_text,
+    wmt.mime_type,
+    raw_body_hash,
+    raw_body_link,
+    is_deleted`
 )
 
 var queryMap = map[string]string{
-	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_link, snapshot_link)
-		values ($1, $2, $3, $4, $5, $6, false)`,
+	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, is_deleted)
+		values ($1, $2, $3, $4, $5, $6, $7, false)`,
 
-	// am.scan_group_addresses related
-	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
-		and scan_group_id=$2`,
+	"responsesSinceResponseTime": fmt.Sprintf(`select %s from am.web_responses as wb 
+		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
+		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+			where organization_id=$1 and
+			scan_group_id=$2 and 
+			response_timestamp > $3 and 
+			is_deleted = false and
+			response_id > $4 join order by response_id limit $5`, sharedColumns),
 
-	// returns
-	"scanGroupAddressesAll": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and 
-		scan_group_id=$2 and 
-		address_id > $3 order by address_id limit $4`, sharedColumns),
-
-	"scanGroupAddressesSinceScannedTime": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and
-		scan_group_id=$2 and 
-		(last_scanned_timestamp=0 OR last_scanned_timestamp < $3) and 
-		address_id > $4 order by address_id limit $5`, sharedColumns),
-
-	"scanGroupAddressesSinceSeenTime": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and
-		scan_group_id=$2 and 
-		(last_seen_timestamp=0 OR last_seen_timestamp < $3) and 
-		address_id > $4 order by address_id limit $5`, sharedColumns),
-
-	"scanGroupAddressesIgnored": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and 
-		scan_group_id=$2 and 
-		ignored=$3 and address_id > $4 order by address_id limit $5`, sharedColumns),
+	"responsesAll": fmt.Sprintf(`select %s from am.web_responses as wb 
+			join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
+			join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+				where organization_id=$1 and
+				scan_group_id=$2 and 
+				is_deleted = false and
+				response_id > $3 join order by response_id limit $4`, sharedColumns),
 }
 
 var (
 	AddResponsesTempTableKey     = "resp_add_temp"
 	AddResponsesTempTableColumns = []string{"organization_id", "scan_group_id", "address_id", "response_timestamp",
-		"is_document", "scheme", "host", "response_port", "requested_port",
-		"url", "headers", "status", "status_text", "mime_type", "data_hash", "raw_data_link"}
+		"is_document", "scheme", "ip_address", "host_address", "response_port", "requested_port",
+		"url", "headers", "status", "status_text", "mime_type", "raw_body_hash", "raw_body_link"}
 
 	AddResponsesTempTable = `create temporary table resp_add_temp (
 			organization_id int,
@@ -99,7 +86,7 @@ var (
 			is_document,
 			scheme,
 			ip_address,
-			host,
+			host_address,
 			response_port,
 			requested_port,
 			url,
@@ -108,7 +95,8 @@ var (
 			status_text_id,
 			mime_type_id,
 			raw_body_hash,
-			raw_body_link
+			raw_body_link,
+			is_deleted
 		)
 		select
 			temp.organization_id, 
@@ -118,7 +106,7 @@ var (
 			temp.is_document, 
 			temp.scheme,
 			temp.ip_address,
-			temp.host,
+			temp.host_address,
 			temp.response_port,
 			temp.requested_port,
 			temp.url,
