@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"log"
 	"strconv"
 
 	"github.com/linkai-io/am/am"
@@ -44,7 +43,6 @@ func PathFromData(address *am.ScanGroupAddress, name string) string {
 		return "null"
 	}
 
-	log.Printf("name: %s\n", name)
 	sharded, err := ShardName(name)
 	if err != nil {
 		return "null"

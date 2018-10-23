@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/filestorage"
 	"github.com/linkai-io/am/pkg/state"
 
 	"github.com/linkai-io/am/pkg/inputlist"
@@ -89,6 +90,27 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 		}
 	}
 	return addrs
+}
+
+func MockStorage() *mock.Storage {
+	mockStorage := &mock.Storage{}
+	mockStorage.InitFn = func(config []byte) error {
+		return nil
+	}
+
+	mockStorage.WriteFn = func(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+		if data == nil || len(data) == 0 {
+			return "", "", nil
+		}
+
+		hashName := convert.HashData(data)
+		fileName := filestorage.PathFromData(address, hashName)
+		if fileName == "null" {
+			return "", "", nil
+		}
+		return hashName, fileName, nil
+	}
+	return mockStorage
 }
 
 func MockBruteState() *mock.BruteState {
@@ -372,7 +394,10 @@ func CreateScanGroupAddressWithAddress(p *pgx.ConnPool, a *am.ScanGroupAddress, 
 		a.NSRecord, a.AddressHash).Scan(&id)
 
 	if err != nil {
-		t.Fatalf("error creating scan group address: %v\n", err)
+		if pgxErr, ok := err.(*pgx.PgError); ok {
+			t.Fatalf("error creating scan group address: %v\n", pgxErr)
+		}
+		t.Fatalf("error creaing scan group address:%v\n", err)
 	}
 	return id
 }

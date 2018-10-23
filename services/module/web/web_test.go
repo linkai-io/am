@@ -25,7 +25,9 @@ func TestWebAnalyze(t *testing.T) {
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 1)
 
 	r := amtest.MockWebState()
-	w := web.New(b, dc, r)
+	s := amtest.MockStorage()
+
+	w := web.New(b, dc, r, s)
 	if err := w.Init(); err != nil {
 		t.Fatalf("failed to init web module: %v\n", err)
 	}

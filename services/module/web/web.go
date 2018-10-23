@@ -70,7 +70,7 @@ func (w *Web) Init() error {
 func (w *Web) defaultPortConfig() *am.PortModuleConfig {
 	return &am.PortModuleConfig{
 		RequestsPerSecond: 50,
-		CustomPorts:       []int32{80, 443, 8443, 8000, 9200},
+		CustomPorts:       []int32{80, 443},
 	}
 }
 
@@ -187,19 +187,32 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 }
 
 func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
+	var hash string
+	var link string
+	var err error
+
 	newAddresses := make(map[string]*am.ScanGroupAddress, 0)
 
 	if webData == nil {
 		return nil, ErrEmptyWebData
 	}
 
-	etld, err := parsers.GetETLD(address.HostAddress)
+	_, link, err = w.storage.Write(ctx, address, []byte(webData.Snapshot))
 	if err != nil {
-		return nil, ErrEmptyHostAddress
+		logger.Warn().Err(err).Msg("failed to write snapshot data to storage")
 	}
+	webData.SnapshotLink = link
+
+	hash, link, err = w.storage.Write(ctx, address, []byte(webData.SerializedDOM))
+	if err != nil {
+		logger.Warn().Err(err).Msg("failed to write serialized dom data to storage")
+
+	}
+	webData.SerializedDOMHash = hash
+	webData.SerializedDOMLink = link
 
 	if webData.Responses != nil {
-		extractedHosts := w.processResponses(ctx, logger, address, etld, webData)
+		extractedHosts := w.processResponses(ctx, logger, address, webData)
 		resolvedAddresses := w.resolveNewDomains(ctx, logger, address, extractedHosts, am.DiscoveryWebCrawler)
 		for k, v := range resolvedAddresses {
 			newAddresses[k] = v
@@ -208,21 +221,34 @@ func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, address
 	return newAddresses, nil
 }
 
-// processResponses iterates over all responses, extracting additional domains and creating a hash of the body data and saving
-// it to a file storage
-func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, etld string, webData *am.WebData) map[string]struct{} {
+// processResponses iterates over all responses, extracting additional domains and creating a hash of the
+// body data and save it to file storage
+func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, webData *am.WebData) map[string]struct{} {
+	var extractHosts bool
+	var zone string
+	var needles []*regexp.Regexp
+
 	allHosts := make(map[string]struct{}, 0)
 
-	zone := strings.Replace(etld, ".", "\\.", -1)
-
-	needle, err := regexp.Compile(zone)
-	if err != nil {
-		return allHosts
+	etld, err := parsers.GetETLD(address.HostAddress)
+	if err == nil {
+		extractHosts = true
 	}
 
-	needles := make([]*regexp.Regexp, 1)
-	needles[0] = needle
+	if extractHosts {
+		zone = strings.Replace(etld, ".", "\\.", -1)
 
+		needle, err := regexp.Compile(zone)
+		if err != nil {
+			return allHosts
+		}
+
+		needles = make([]*regexp.Regexp, 1)
+		needles[0] = needle
+	}
+
+	// iterate over responses and save to filestorage. If we have a proper etld,
+	// extract hosts from the body and certificates.
 	for _, resp := range webData.Responses {
 		if resp == nil {
 			continue
@@ -231,11 +257,12 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 		hash, link, err := w.storage.Write(ctx, address, []byte(resp.RawBody))
 		if err != nil {
 			logger.Warn().Err(err).Msg("unable to process hash/link for raw data")
-			resp.RawBodyHash = ""
-			resp.RawBodyLink = ""
-		} else {
-			resp.RawBodyHash = hash
-			resp.RawBodyLink = link
+		}
+		resp.RawBodyHash = hash
+		resp.RawBodyLink = link
+
+		if !extractHosts {
+			continue
 		}
 
 		found := parsers.ExtractHostsFromResponse(needles, resp.RawBody)

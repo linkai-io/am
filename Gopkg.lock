@@ -2,24 +2,6 @@
 
 
 [[projects]]
-  digest = "1:de134cc5dd7363e270ea1c9e44376924b29c60521e64f880c6c6297b3cb69120"
-  name = "cloud.google.com/go"
-  packages = [
-    "bigquery",
-    "civil",
-    "compute/metadata",
-    "internal",
-    "internal/atomiccache",
-    "internal/fields",
-    "internal/optional",
-    "internal/trace",
-    "internal/version",
-  ]
-  pruneopts = "UT"
-  revision = "dfffe386c33fb24c34ee501e5723df5b97b98514"
-  version = "v0.30.0"
-
-[[projects]]
   digest = "1:6c0f1bc4d83abbdcb860204b7935b5cf072d449e225c33946b68968aa06d20a0"
   name = "github.com/armon/go-metrics"
   packages = ["."]
@@ -172,40 +154,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:cc6ce1accd53f373b9688c250ffb1c3127bc05e649c8b11f3f9678b988ab717d"
-  name = "github.com/google/certificate-transparency-go"
-  packages = [
-    ".",
-    "asn1",
-    "client",
-    "client/configpb",
-    "gossip/minimal/x509ext",
-    "jsonclient",
-    "loglist",
-    "tls",
-    "x509",
-    "x509/pkix",
-    "x509util",
-  ]
-  pruneopts = "UT"
-  revision = "3629d6846518309d22c16fee15d1007262a459d2"
-  version = "v1.0.21"
-
-[[projects]]
   digest = "1:3a26588bc48b96825977c1b3df964f8fd842cd6860cc26370588d3563433cf11"
   name = "github.com/google/uuid"
   packages = ["."]
   pruneopts = "UT"
   revision = "d460ce9f8df2e77fb1ba55ca87fafed96c607494"
   version = "v1.0.0"
-
-[[projects]]
-  digest = "1:e145e9710a10bc114a6d3e2738aadf8de146adaa031854ffdf7bbfe15da85e63"
-  name = "github.com/googleapis/gax-go"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "317e0006254c44a0ac427cc52a0e083ff0b9622f"
-  version = "v2.0.0"
 
 [[projects]]
   digest = "1:d56baf8f9ef8bcf6f7c00ed2411220f5e35cc4912076de12c5a41be722eee9ec"
@@ -373,34 +327,10 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:ac5cb21cbe4f095b6e5f1ae5102a85dfd598d39b5ad0d64df3d41ee046586f30"
-  name = "go.opencensus.io"
-  packages = [
-    ".",
-    "internal",
-    "internal/tagencoding",
-    "plugin/ochttp",
-    "plugin/ochttp/propagation/b3",
-    "stats",
-    "stats/internal",
-    "stats/view",
-    "tag",
-    "trace",
-    "trace/internal",
-    "trace/propagation",
-    "trace/tracestate",
-  ]
-  pruneopts = "UT"
-  revision = "79993219becaa7e29e3b60cb67f5b8e82dee11d6"
-  version = "v0.17.0"
-
-[[projects]]
   branch = "master"
-  digest = "1:3e00ab9f2d4ddaccf631d45c847af13a490400370ecb754bd7268f3a4df06039"
+  digest = "1:d5891c5bca9c62e5d394ca26491d2b710a1dc08cedeb0ca8f9ac4c3305120b02"
   name = "golang.org/x/crypto"
   packages = [
-    "cryptobyte",
-    "cryptobyte/asn1",
     "ed25519",
     "ed25519/internal/edwards25519",
   ]
@@ -409,12 +339,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0270589494f4637fea49148c6a344e5fc0c9fdf802d34bf75e6d19a796c1ff32"
+  digest = "1:a84a562e7a6a9c2e412bcc1147d6014da94af6c689c2c8e1f67acb9a1abd51b6"
   name = "golang.org/x/net"
   packages = [
     "bpf",
     "context",
-    "context/ctxhttp",
     "http/httpguts",
     "http2",
     "http2/hpack",
@@ -430,20 +359,6 @@
   ]
   pruneopts = "UT"
   revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
-
-[[projects]]
-  branch = "master"
-  digest = "1:39273b3e6c96fed52bd8f7793fc463c40b1a27a7caa51302b81d45306b9646b4"
-  name = "golang.org/x/oauth2"
-  packages = [
-    ".",
-    "google",
-    "internal",
-    "jws",
-    "jwt",
-  ]
-  pruneopts = "UT"
-  revision = "c57b0facaced709681d9f90397429b9430a74754"
 
 [[projects]]
   branch = "master"
@@ -478,50 +393,9 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:bcd015ccd1a9af310e759585abe1f3f6bd220e3ab9a9e56c17bbe35ef308aa22"
-  name = "google.golang.org/api"
-  packages = [
-    "bigquery/v2",
-    "gensupport",
-    "googleapi",
-    "googleapi/internal/uritemplates",
-    "googleapi/transport",
-    "internal",
-    "iterator",
-    "option",
-    "transport/http",
-    "transport/http/internal/propagation",
-  ]
-  pruneopts = "UT"
-  revision = "6873a707eacedb17acac10177bd8d45885f629ee"
-
-[[projects]]
-  digest = "1:193950893ea275f89ed92e5da11ed8fa1436872f755a9ea5d4afa83dc9d9c3a8"
-  name = "google.golang.org/appengine"
-  packages = [
-    ".",
-    "internal",
-    "internal/app_identity",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/modules",
-    "internal/remote_api",
-    "internal/urlfetch",
-    "urlfetch",
-  ]
-  pruneopts = "UT"
-  revision = "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06"
-  version = "v1.2.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:138db0dfd722be8c37b9af8a9f8b6082bbfa02dfd074c13b441e072ac78b75af"
+  digest = "1:1e6b0176e8c5dd8ff551af65c76f8b73a99bcf4d812cedff1b91711b7df4804c"
   name = "google.golang.org/genproto"
-  packages = [
-    "googleapis/rpc/code",
-    "googleapis/rpc/status",
-  ]
+  packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
   revision = "c7e5094acea1ca1b899e2259d80a6b0f882f81f8"
 
@@ -566,7 +440,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "cloud.google.com/go/bigquery",
     "github.com/avast/retry-go",
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-lambda-go/lambda",
@@ -584,12 +457,6 @@
     "github.com/gofrs/uuid",
     "github.com/golang/protobuf/proto",
     "github.com/gomodule/redigo/redis",
-    "github.com/google/certificate-transparency-go",
-    "github.com/google/certificate-transparency-go/client",
-    "github.com/google/certificate-transparency-go/jsonclient",
-    "github.com/google/certificate-transparency-go/loglist",
-    "github.com/google/certificate-transparency-go/x509",
-    "github.com/google/certificate-transparency-go/x509util",
     "github.com/hashicorp/consul/api",
     "github.com/jackc/pgx",
     "github.com/jackc/pgx/pgtype",

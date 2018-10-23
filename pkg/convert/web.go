@@ -13,7 +13,7 @@ func NetworkCertificateToWebCertificate(in *gcdapi.NetworkSecurityDetails) *am.W
 		KeyExchangeGroup:                  in.KeyExchangeGroup,
 		Cipher:                            in.Cipher,
 		Mac:                               in.Mac,
-		CertificateId:                     in.CertificateId,
+		CertificateValue:                  in.CertificateId,
 		SubjectName:                       in.SubjectName,
 		SanList:                           in.SanList,
 		Issuer:                            in.Issuer,

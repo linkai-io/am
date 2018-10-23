@@ -209,9 +209,12 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	log.Info().Msg("acquired browser")
 	defer b.Return(ctx, browser)
 	t, err := browser.GetFirstTab()
+	defer browser.CloseTab(t) // closes websocket go routines
+
 	t.SetApiTimeout(b.browserTimeout)
 
 	tab := NewTab(t, address)
+	defer tab.Close()
 	log.Info().Msg("capturing traffic")
 	tab.CaptureNetworkTraffic(ctx, address, port)
 

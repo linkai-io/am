@@ -2,13 +2,6 @@ package browser
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -25,8 +18,8 @@ func TestGCDBrowserPool(t *testing.T) {
 	}
 
 	address := &am.ScanGroupAddress{
-		HostAddress: "independent.co.uk",
-		IPAddress:   "151.101.65.184",
+		HostAddress: "example.com",
+		IPAddress:   "93.184.216.34",
 	}
 
 	webData, err := b.Load(ctx, address, "http", "80")
@@ -36,8 +29,6 @@ func TestGCDBrowserPool(t *testing.T) {
 	for _, resp := range webData.Responses {
 		t.Logf("%v\n", resp.URL)
 	}
-	t.Logf("sleeping...\n")
-	time.Sleep(time.Second * 1)
 }
 
 func TestGCDBrowserPoolTLS(t *testing.T) {
@@ -48,18 +39,16 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 		t.Fatalf("error initializing browser: %v\n", err)
 	}
 
-	go testTLSServer()
-
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
 
 	address := &am.ScanGroupAddress{
 		//HostAddress: "example.com",
-		//IPAddress:   "example.edu",
-		//IPAddress:   "93.184.216.34",
+		HostAddress: "example.com",
+		IPAddress:   "93.184.216.34",
 		//IPAddress: "192.168.62.130",
-		HostAddress: "www.veracode.com",
-		IPAddress:   "104.17.7.6",
+		//HostAddress: "www.veracode.com",
+		//IPAddress:   "104.17.7.6",
 	}
 
 	d, err := b.Load(timeoutCtx, address, "https", "443")
@@ -183,10 +172,10 @@ func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 	results := 0
 	for {
 		select {
-		case result := <-resultsCh:
-			t.Logf("got result: %v\n", result.Snapshot)
-			data, _ := base64.StdEncoding.DecodeString(result.Snapshot)
-			ioutil.WriteFile(fmt.Sprintf("%d.png", results), data, 0677)
+		case <-resultsCh:
+			//t.Logf("got result: %v\n", result.Snapshot)
+			//data, _ := base64.StdEncoding.DecodeString(result.Snapshot)
+			//ioutil.WriteFile(fmt.Sprintf("%d.png", results), data, 0677)
 			results++
 			if results == 3 {
 				return
@@ -197,6 +186,8 @@ func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 	}
 }
 
+/*
+Disabled since using headless chrome and not Xvfb (maybe...) 20181021
 func TestGCDBrowserPoolXvfb(t *testing.T) {
 	ctx := context.Background()
 
@@ -286,7 +277,6 @@ func TestGCDBrowserPoolXvfb(t *testing.T) {
 		case result := <-resultsCh:
 			t.Logf("got result: %v\n", result.Snapshot)
 			data, _ := base64.StdEncoding.DecodeString(result.Snapshot)
-			ioutil.WriteFile(fmt.Sprintf("%d.png", results), data, 0677)
 			results++
 			if results == 10 {
 				return
@@ -312,3 +302,4 @@ func testTLSServer() {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
+*/

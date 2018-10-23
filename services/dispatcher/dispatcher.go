@@ -186,6 +186,8 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 			break
 		}
 
+		groupLog.Info().Int("address_count", len(addrMap)).Msg("popped from state")
+
 		for _, addr := range addrMap {
 			s.IncActiveAddresses()
 			updatedAddress, err := s.analyzeAddress(ctx, userContext, groupLog, scanGroupID, addr)

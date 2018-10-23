@@ -84,6 +84,7 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
+// GetResponses that match the provided filter.
 func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.HTTPResponse, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -115,12 +116,20 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 
 	for i := 0; rows.Next(); i++ {
 		r := &am.HTTPResponse{}
+		var responsePort int
+		var requestedPort int
+		var url []byte
+
 		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
-			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &r.ResponsePort, &r.RequestedPort,
-			&r.URL, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
+			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort, &requestedPort,
+			&url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
 
 			return 0, nil, err
 		}
+
+		r.ResponsePort = strconv.Itoa(responsePort)
+		r.RequestedPort = strconv.Itoa(requestedPort)
+		r.URL = string(url)
 
 		if r.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
@@ -132,6 +141,7 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 	return userContext.GetOrgID(), responses, err
 }
 
+// GetCertificates that match the provided filter.
 func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContext, filter *am.WebCertificateFilter) (int, []*am.WebCertificate, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataCertificates, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -149,9 +159,9 @@ func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContex
 	}
 
 	if filter.WithResponseTime {
-		rows, err = s.pool.Query("responsesSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
+		rows, err = s.pool.Query("certificatesSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
 	} else {
-		rows, err = s.pool.Query("responsesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+		rows, err = s.pool.Query("certificatesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	}
 	defer rows.Close()
 
@@ -159,32 +169,76 @@ func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContex
 		return 0, nil, err
 	}
 
-	responses := make([]*am.HTTPResponse, 0)
+	certificates := make([]*am.WebCertificate, 0)
 
 	for i := 0; rows.Next(); i++ {
-		r := &am.HTTPResponse{}
-		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
-			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &r.ResponsePort, &r.RequestedPort,
-			&r.URL, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
+		w := &am.WebCertificate{}
+		var port int
+		if err := rows.Scan(&w.CertificateID, &w.OrgID, &w.GroupID, &w.ResponseTimestamp,
+			&w.HostAddress, &port, &w.Protocol, &w.KeyExchange, &w.KeyExchangeGroup,
+			&w.Cipher, &w.Mac, &w.CertificateValue, &w.SubjectName, &w.SanList, &w.Issuer,
+			&w.ValidFrom, &w.ValidTo, &w.CertificateTransparencyCompliance, &w.IsDeleted); err != nil {
 
 			return 0, nil, err
 		}
 
-		if r.OrgID != userContext.GetOrgID() {
+		w.Port = strconv.Itoa(port)
+
+		if w.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
 
-		responses = append(responses, r)
+		certificates = append(certificates, w)
 	}
 
-	return userContext.GetOrgID(), responses, err
+	return userContext.GetOrgID(), certificates, err
 }
 
+// GetSnapshots that match the provided filter
 func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, filter *am.WebSnapshotFilter) (int, []*am.WebSnapshot, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataSnapshots, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return 0, nil, nil
+	var rows *pgx.Rows
+	var err error
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	if filter.WithResponseTime {
+		rows, err = s.pool.Query("snapshotsSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
+	} else {
+		rows, err = s.pool.Query("snapshotsAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+	}
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	snapshots := make([]*am.WebSnapshot, 0)
+
+	for i := 0; rows.Next(); i++ {
+		w := &am.WebSnapshot{}
+		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressID, &w.ResponseTimestamp,
+			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted); err != nil {
+
+			return 0, nil, err
+		}
+
+		if w.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		snapshots = append(snapshots, w)
+	}
+
+	return userContext.GetOrgID(), snapshots, err
 }
 
 // Add webdata tos the database, includes serialized dom & snapshot links, all responses and links, and web certificates
@@ -310,6 +364,7 @@ func (s *Service) addCertificates(ctx context.Context, userContext am.UserContex
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddCertificatesTempTableKey}, AddCertificatesTempTableColumns, pgx.CopyFromRows(certificateRows))
 	if err != nil {
+		logger.Warn().Err(err).Msg("failed copy from")
 		return err
 	}
 
@@ -324,7 +379,7 @@ func (s *Service) addCertificates(ctx context.Context, userContext am.UserContex
 		return err
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]interface{}, [][]interface{}) {
@@ -354,8 +409,8 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 		})
 		if r.WebCertificate != nil {
 			c := r.WebCertificate
-			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), r.ResponseTimestamp, r.HostAddress, responsePort, requestedPort,
-				c.Protocol, c.KeyExchange, c.KeyExchangeGroup, c.Cipher, c.Mac, c.CertificateId, c.SubjectName, c.SanList, c.Issuer, c.ValidFrom, c.ValidTo, c.CertificateTransparencyCompliance})
+			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), r.ResponseTimestamp, r.HostAddress, responsePort,
+				c.Protocol, c.KeyExchange, c.KeyExchangeGroup, c.Cipher, c.Mac, c.CertificateValue, c.SubjectName, c.SanList, c.Issuer, c.ValidFrom, c.ValidTo, c.CertificateTransparencyCompliance})
 		}
 	}
 

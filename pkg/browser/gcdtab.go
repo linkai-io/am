@@ -111,7 +111,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 			return ErrTimedOut
 		case <-ticker.C:
 			if changeTime, ok := t.lastNodeChangeTimeVal.Load().(time.Time); ok {
-				log.Info().Int32("requests", t.container.GetRequests()).Msgf("tick %s", time.Now().Sub(changeTime))
+				//log.Info().Int32("requests", t.container.GetRequests()).Msgf("tick %s", time.Now().Sub(changeTime))
 				if time.Now().Sub(changeTime) >= stableAfter && t.container.GetRequests() == 0 {
 					// times up, should be stable now
 					return nil
@@ -123,11 +123,13 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 
 // TakeScreenshot returns a png image, base64 encoded, or error if failed
 func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
-	_, _, rect, err := t.t.Page.GetLayoutMetrics()
-	if err != nil {
-		return "", err
-	}
-	log.Info().Msgf("got metrics: %#v", rect)
+	/*
+		_, _, rect, err := t.t.Page.GetLayoutMetrics()
+		if err != nil {
+			return "", err
+		}
+	*/
+
 	params := &gcdapi.PageCaptureScreenshotParams{
 		Format:  "png",
 		Quality: 100,
@@ -139,8 +141,6 @@ func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
 			Scale:  float64(1)},
 		FromSurface: true,
 	}
-
-	log.Info().Msgf("calling capture")
 
 	return t.t.Page.CaptureScreenshotWithParams(params)
 }
@@ -254,13 +254,10 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 	})
 
 	t.t.Subscribe("Network.requestWillBeSent", func(target *gcd.ChromeTarget, payload []byte) {
-		log.Info().Msg("requestWillBeSent")
-		log.Info().Msgf("REQUEST DATA: %#v\n", string(payload))
 	})
 
 	t.t.Subscribe("Network.responseReceived", func(target *gcd.ChromeTarget, payload []byte) {
-		log.Info().Msg("responseReceived")
-		log.Info().Msgf("RESPONSE DATA: %#v\n", string(payload))
+		//log.Info().Msgf("RESPONSE DATA: %#v\n", string(payload))
 		defer t.container.DecRequest()
 		t.container.IncRequest()
 
@@ -273,9 +270,19 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		defer cancel()
 
 		p := message.Params
+		url := p.Response.Url
 
-		log.Info().Str("request_id", p.RequestId).Str("url", p.Response.Url).Msg("waiting")
+		if strings.HasPrefix(p.Response.Url, "data") {
+			url = "(dataurl)"
+		}
+
+		log.Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
 		if err := t.container.WaitFor(timeoutCtx, p.RequestId); err != nil {
+			return
+		}
+
+		// ignore data urls
+		if strings.HasPrefix(p.Response.Url, "data") {
 			return
 		}
 
@@ -319,28 +326,44 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 	}
 
 	response := &am.HTTPResponse{
-		Scheme:         scheme,
-		RequestedPort:  requestedPort,
-		IPAddress:      p.Response.RemoteIPAddress,
-		HostAddress:    host,
-		ResponsePort:   responsePort,
-		RequestID:      p.RequestId,
-		URL:            p.Response.Url,
-		Headers:        p.Response.Headers,
-		MimeType:       p.Response.MimeType,
-		Status:         p.Response.Status,
-		StatusText:     p.Response.StatusText,
-		RawBody:        t.encodeResponseBody(message),
-		WebCertificate: t.extractCertificate(message),
+		Scheme:            scheme,
+		IPAddress:         p.Response.RemoteIPAddress,
+		HostAddress:       host,
+		RequestedPort:     requestedPort,
+		ResponsePort:      responsePort,
+		RequestID:         p.RequestId,
+		URL:               p.Response.Url,
+		Headers:           t.encodeHeaders(p.Response.Headers),
+		MimeType:          p.Response.MimeType,
+		Status:            p.Response.Status,
+		StatusText:        p.Response.StatusText,
+		RawBody:           t.encodeResponseBody(message),
+		WebCertificate:    t.extractCertificate(message),
+		ResponseTimestamp: time.Now().UnixNano(),
 	}
 
 	if p.Type == "Document" {
 		response.IsDocument = true
 	}
 
-	response.ResponseTimestamp = time.Now().UnixNano()
-
 	return response
+}
+
+func (t *Tab) encodeHeaders(gcdHeaders map[string]interface{}) map[string]string {
+	headers := make(map[string]string, len(gcdHeaders))
+	for k, v := range gcdHeaders {
+		switch rv := v.(type) {
+		case string:
+			headers[k] = rv
+		case []string:
+			headers[k] = strings.Join(rv, ",")
+		case nil:
+			headers[k] = ""
+		default:
+			log.Warn().Str("header_name", k).Msg("unable to encode header value")
+		}
+	}
+	return headers
 }
 
 func (t *Tab) extractCertificate(message *gcdapi.NetworkResponseReceivedEvent) *am.WebCertificate {

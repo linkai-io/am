@@ -23,13 +23,13 @@ type HTTPResponse struct {
 	IPAddress         string            `json:"ip_address"`
 	ResponsePort      string            `json:"response_port"`
 	RequestedPort     string            `json:"requested_port"`
-	RequestID         string            `json:"request_id,omitempty"`
+	RequestID         string            `json:"request_id,omitempty"` // only used internally by browser package
 	Status            int               `json:"status"`
 	StatusText        string            `json:"status_text"`
 	URL               string            `json:"url"`
 	Headers           map[string]string `json:"headers"`
 	MimeType          string            `json:"mime_type"`
-	RawBody           string            `json:"raw_body,omitempty"`
+	RawBody           string            `json:"raw_body,omitempty"` // only used internally by browser package
 	RawBodyLink       string            `json:"raw_body_link"`
 	RawBodyHash       string            `json:"raw_body_hash"`
 	ResponseTimestamp int64             `json:"response_timestamp"`
@@ -42,13 +42,16 @@ type HTTPResponse struct {
 type WebCertificate struct {
 	OrgID                             int      `json:"organization_id,omitempty"`
 	GroupID                           int      `json:"group_id,omitempty"`
-	CertID                            int64    `json:"cert_id,omitempty"`                 // from DB
+	CertificateID                     int64    `json:"certificate_id,omitempty"` // from DB
+	ResponseTimestamp                 int64    `json:"response_timestamp,omitempty"`
+	HostAddress                       string   `json:"host_address"`
+	Port                              string   `json:"port"`
 	Protocol                          string   `json:"protocol"`                          // Protocol name (e.g. "TLS 1.2" or "QUIC").
 	KeyExchange                       string   `json:"keyExchange"`                       // Key Exchange used by the connection, or the empty string if not applicable.
 	KeyExchangeGroup                  string   `json:"keyExchangeGroup,omitempty"`        // (EC)DH group used by the connection, if applicable.
 	Cipher                            string   `json:"cipher"`                            // Cipher name.
 	Mac                               string   `json:"mac,omitempty"`                     // TLS MAC. Note that AEAD ciphers do not have separate MACs.
-	CertificateId                     int      `json:"certificateId"`                     // from browser                    // Certificate ID value.
+	CertificateValue                  int      `json:"certificateId"`                     // from browser                    // Certificate ID value.
 	SubjectName                       string   `json:"subjectName"`                       // Certificate subject name.
 	SanList                           []string `json:"sanList"`                           // Subject Alternative Name (SAN) DNS names and IP addresses.
 	Issuer                            string   `json:"issuer"`                            // Name of the issuing CA.
@@ -62,9 +65,9 @@ type WebCertificate struct {
 type WebData struct {
 	Address           *ScanGroupAddress `json:"address"`
 	Responses         []*HTTPResponse   `json:"responses"`
-	Snapshot          string            `json:"snapshot,omitempty"`
+	Snapshot          string            `json:"snapshot,omitempty"` // only used internally by browser package
 	SnapshotLink      string            `json:"snapshot_link"`
-	SerializedDOM     string            `json:"serialized_dom,omitempty"`
+	SerializedDOM     string            `json:"serialized_dom,omitempty"` // only used internally by browser package
 	SerializedDOMHash string            `json:"serialized_dom_hash"`
 	SerializedDOMLink string            `json:"serialized_dom_link"`
 	ResponseTimestamp int64             `json:"response_timeestamp"`

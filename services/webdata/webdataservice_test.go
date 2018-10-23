@@ -3,9 +3,11 @@ package webdata_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/mock"
@@ -16,6 +18,15 @@ import (
 var env string
 var dbstring string
 
+type OrgData struct {
+	OrgName     string
+	OrgID       int
+	GroupName   string
+	GroupID     int
+	UserContext am.UserContext
+	DB          *pgx.ConnPool
+}
+
 func init() {
 	var err error
 	flag.StringVar(&env, "env", "local", "environment we are running tests in")
@@ -25,6 +36,30 @@ func init() {
 	if err != nil {
 		panic("error getting dbstring secret")
 	}
+}
+
+func initOrg(orgName, groupName string, t *testing.T) (*webdata.Service, *OrgData) {
+	orgData := &OrgData{
+		OrgName:   orgName,
+		GroupName: groupName,
+	}
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := webdata.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	orgData.DB = amtest.InitDB(env, t)
+
+	amtest.CreateOrg(orgData.DB, orgName, t)
+	orgData.OrgID = amtest.GetOrgID(orgData.DB, orgName, t)
+	orgData.GroupID = amtest.CreateScanGroup(orgData.DB, orgName, groupName, t)
+	orgData.UserContext = amtest.CreateUserContext(orgData.OrgID, 1)
+
+	return service, orgData
 }
 
 func TestNew(t *testing.T) {
@@ -42,41 +77,131 @@ func TestNew(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	ctx := context.Background()
+	service, org := initOrg("webdataadd", "webdataadd", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
-	orgName := "addweb"
-	groupName := "addweb"
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
 
-	auth := amtest.MockEmptyAuthorizer()
-
-	service := webdata.New(auth)
-
-	if err := service.Init([]byte(dbstring)); err != nil {
-		t.Fatalf("error initalizing address service: %s\n", err)
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
 	}
 
-	db := amtest.InitDB(env, t)
-	defer db.Close()
+	// test adding again
+	_, err = service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+}
 
-	amtest.CreateOrg(db, orgName, t)
-	orgID := amtest.GetOrgID(db, orgName, t)
-	//defer amtest.DeleteOrg(db, orgName, t)
+func TestGetSnapshots(t *testing.T) {
+	ctx := context.Background()
+	service, org := initOrg("webdatagetsnapshots", "webdatagetsnapshots", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
-	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
-	userContext := amtest.CreateUserContext(orgID, 1)
-	address := amtest.CreateScanGroupAddress(db, orgID, groupID, t)
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
 
-	headers := make(map[string]interface{}, 0)
-	headers["host"] = "example.com"
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+
+	filter := &am.WebSnapshotFilter{
+		OrgID:             org.OrgID,
+		GroupID:           org.GroupID,
+		WithResponseTime:  false,
+		SinceResponseTime: 0,
+		Start:             0,
+		Limit:             1000,
+	}
+	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 1 {
+		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
+	}
+}
+
+func TestGetCertificates(t *testing.T) {
+	ctx := context.Background()
+	service, org := initOrg("webdatagetcerts", "webdatagetcerts", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+
+	filter := &am.WebCertificateFilter{
+		OrgID:             org.OrgID,
+		GroupID:           org.GroupID,
+		WithResponseTime:  false,
+		SinceResponseTime: 0,
+		Start:             0,
+		Limit:             1000,
+	}
+	_, certs, err := service.GetCertificates(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting certs: %#v\n", err)
+	}
+
+	if len(certs) != 1 {
+		t.Fatalf("expected 1 certs got: %d\n", len(certs))
+	}
+}
+
+func TestGetResponses(t *testing.T) {
+	ctx := context.Background()
+	service, org := initOrg("webdatagetresponses", "webdatagetresponses", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+
+	filter := &am.WebResponseFilter{
+		OrgID:             org.OrgID,
+		GroupID:           org.GroupID,
+		WithResponseTime:  false,
+		SinceResponseTime: 0,
+		Start:             0,
+		Limit:             1000,
+	}
+
+	_, certs, err := service.GetResponses(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	if len(certs) != 1 {
+		t.Fatalf("expected 1 response got: %d\n", len(certs))
+	}
+}
+
+func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip string) *am.WebData {
+	headers := make(map[string]string, 0)
+	headers["host"] = host
 
 	response := &am.HTTPResponse{
 		Scheme:            "http",
-		HostAddress:       "example.com",
-		IPAddress:         "93.184.216.34",
+		HostAddress:       host,
+		IPAddress:         ip,
 		ResponsePort:      "80",
 		RequestedPort:     "80",
 		Status:            200,
 		StatusText:        "HTTP 200 OK",
-		URL:               "http://example.com/",
+		URL:               fmt.Sprintf("http://%s/", host),
 		Headers:           headers,
 		MimeType:          "text/html",
 		RawBody:           "",
@@ -90,9 +215,9 @@ func TestAdd(t *testing.T) {
 			KeyExchangeGroup:                  "keg",
 			Cipher:                            "aes",
 			Mac:                               "1234",
-			CertificateId:                     0,
-			SubjectName:                       "example.com",
-			SanList:                           []string{"www.example.com", "example.com"},
+			CertificateValue:                  0,
+			SubjectName:                       host,
+			SanList:                           []string{"www." + host, host},
 			ValidFrom:                         time.Now().UnixNano(),
 			ValidTo:                           time.Now().UnixNano(),
 			CertificateTransparencyCompliance: "unknown",
@@ -112,14 +237,5 @@ func TestAdd(t *testing.T) {
 		ResponseTimestamp: time.Now().UnixNano(),
 	}
 
-	_, err := service.Add(ctx, userContext, webData)
-	if err != nil {
-		t.Fatalf("failed: %v\n", err)
-	}
-
-	// test adding again
-	_, err = service.Add(ctx, userContext, webData)
-	if err != nil {
-		t.Fatalf("failed: %v\n", err)
-	}
+	return webData
 }
