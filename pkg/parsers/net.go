@@ -1,12 +1,18 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"regexp"
 	"strings"
 
 	"github.com/miekg/dns"
 	"golang.org/x/net/publicsuffix"
+)
+
+var (
+	ErrHostIsIPAddress = errors.New("provided host is an ip address")
 )
 
 const (
@@ -74,6 +80,7 @@ func FQDNTrim(name string) string {
 // amazon.co.uk == true
 // sub.amazon.co.uk == false
 func IsETLD(hostAddress string) bool {
+	hostAddress = strings.ToLower(hostAddress)
 	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return false
@@ -83,6 +90,11 @@ func IsETLD(hostAddress string) bool {
 
 // GetETLD returns just the eltd of the supplied host address
 func GetETLD(hostAddress string) (string, error) {
+	if ip := net.ParseIP(hostAddress); ip != nil {
+		return "", ErrHostIsIPAddress
+	}
+
+	hostAddress = strings.ToLower(hostAddress)
 	// handle bug: https://github.com/golang/go/issues/20059
 	if _, ok := SpecialCaseTLDs[hostAddress]; ok {
 		return hostAddress, nil
@@ -98,6 +110,7 @@ func GetETLD(hostAddress string) (string, error) {
 // want to test for etlds.
 func SpecialETLD(hostAddress string) string {
 	hostAddress = FQDNTrim(hostAddress)
+	hostAddress = strings.ToLower(hostAddress)
 
 	split := strings.Split(hostAddress, ".")
 	if len(split) < 2 {
@@ -117,6 +130,7 @@ func SpecialETLD(hostAddress string) string {
 // returns nil if hostAddress = eltd and does not return the original
 // address that was supplied.
 func SplitAddresses(hostAddress string) ([]string, error) {
+	hostAddress = strings.ToLower(hostAddress)
 	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return nil, err
@@ -148,6 +162,7 @@ func SplitAddresses(hostAddress string) ([]string, error) {
 // ex2: test2.example.com would return 2
 // ex3: test1.amazon.co.uk would return 2
 func GetDepth(hostAddress string) (int, error) {
+	hostAddress = strings.ToLower(hostAddress)
 	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return 0, err
@@ -164,12 +179,14 @@ func GetDepth(hostAddress string) (int, error) {
 
 // GetSubDomain returns the last sub domain part of a host address
 func GetSubDomain(hostAddress string) (string, error) {
+	hostAddress = strings.ToLower(hostAddress)
 	sub, _, err := GetSubDomainAndDomain(hostAddress)
 	return sub, err
 }
 
 // GetSubDomainAndDomain returns the subdomain + the rest of the domain, or error
 func GetSubDomainAndDomain(hostAddress string) (string, string, error) {
+	hostAddress = strings.ToLower(hostAddress)
 	tld, err := GetETLD(hostAddress)
 	if err != nil {
 		return "", "", err
@@ -250,7 +267,8 @@ func ExtractHostsFromResponse(needles []*regexp.Regexp, haystack string) map[str
 				continue
 			}
 			//log.Printf("FOUND: %s\norig: %s\n", haystack[start:end], haystack[index[0]-30:index[1]])
-			hosts[strings.TrimLeft(haystack[start:end], ".")] = struct{}{}
+			newHost := strings.ToLower(strings.TrimLeft(haystack[start:end], "."))
+			hosts[newHost] = struct{}{}
 		}
 	}
 	return hosts

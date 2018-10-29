@@ -238,7 +238,7 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 	if extractHosts {
 		zone = strings.Replace(etld, ".", "\\.", -1)
 
-		needle, err := regexp.Compile(zone)
+		needle, err := regexp.Compile("(?i)" + zone)
 		if err != nil {
 			return allHosts
 		}
@@ -318,7 +318,8 @@ func (w *Web) resolveNewDomains(ctx context.Context, logger zerolog.Logger, addr
 				wg.Done()
 			}
 		}
-		pool.Submit(task(ctx, newHost, wg, out))
+		h := newHost
+		pool.Submit(task(ctx, h, wg, out))
 	}
 
 	go func() {

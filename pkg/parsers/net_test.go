@@ -10,7 +10,7 @@ import (
 
 func TestExtractHostsFromResponse(t *testing.T) {
 	needles := make([]*regexp.Regexp, 1)
-	needles[0], _ = regexp.Compile("independent\\.co\\.uk")
+	needles[0], _ = regexp.Compile("(?i)independent\\.co\\.uk")
 	data, err := ioutil.ReadFile("testdata/indep_responses.txt")
 	if err != nil {
 		t.Fatalf("error opening test file")
@@ -59,6 +59,7 @@ func TestGetDepth(t *testing.T) {
 		wantErr bool
 	}{
 		{"tld", "co.uk", 0, true},
+		{"tld2", "co.id", 0, true},
 		{"eltd", "amazon.co.uk", 1, false},
 		{"eltdherokusub", "app.herokuapp.com", 2, false},
 		{"eltdheroku", "herokuapp.com", 1, false},
@@ -127,6 +128,7 @@ func TestGetSubDomainAndDomain(t *testing.T) {
 		{"tld", "co.uk", "", "", true},
 		{"eltd", "amazon.co.uk", "", "amazon.co.uk", false},
 		{"multi", "test.www.amazon.co.uk", "test", "www.amazon.co.uk", false},
+		{"etld2", "WWW.BTNPROPERTI.CO.ID", "www", "btnproperti.co.id", false},
 		{"single", "www.amazon.co.uk", "www", "amazon.co.uk", false},
 		{"multi2", "test1.test2.www.amazon.co.uk", "test1", "test2.www.amazon.co.uk", false},
 	}
@@ -197,4 +199,5 @@ func TestSpecialTLD(t *testing.T) {
 	if etld != "test.com" {
 		t.Fatalf("error should have returned test.com for %s\n", host)
 	}
+
 }

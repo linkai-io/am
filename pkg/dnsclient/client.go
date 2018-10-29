@@ -303,7 +303,8 @@ func (c *Client) doAXFR(ctx context.Context, msg *dns.Msg, nameserver string, rc
 					wpwg.Done()
 				}
 			}
-			pool.Submit(task(rr, wpwg, out))
+			r := rr
+			pool.Submit(task(r, wpwg, out))
 		}
 	}
 

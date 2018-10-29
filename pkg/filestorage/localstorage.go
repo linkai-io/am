@@ -27,6 +27,7 @@ func (s *LocalStorage) Write(ctx context.Context, address *am.ScanGroupAddress, 
 	if data == nil || len(data) == 0 {
 		return "", "", nil
 	}
+	
 	hashName := convert.HashData(data)
 	fileName := PathFromData(address, hashName)
 	if fileName == "null" {
