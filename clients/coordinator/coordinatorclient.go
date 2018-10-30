@@ -38,7 +38,6 @@ func (c *Client) Init(config []byte) error {
 }
 
 func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
-	var resp *service.GroupStartedResponse
 
 	in := &service.StartGroupRequest{
 		UserContext: convert.DomainToUserContext(userContext),
@@ -50,7 +49,7 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 	return retrier.Retry(func() error {
 		var retryErr error
 
-		resp, retryErr = c.client.StartGroup(ctxDeadline, in)
+		_, retryErr = c.client.StartGroup(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to start group from coordinator client")
 	})
 }

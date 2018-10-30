@@ -21,7 +21,9 @@ const (
     (201, 'dns_mutator'),
     -- web modules 300 - 999
     (300, 'web_crawler'),
-    -- other, feature modules
+	-- other, feature modules
+	(400, 'bigdata'),
+	(401, 'bigdata_certificate_transparency'),
 	(1000, 'git_hooks');
 */
 const (
@@ -35,6 +37,8 @@ const (
 	DiscoveryBruteMutator    = "dns_mutator"
 	DiscoveryWebCrawler      = "web_crawler"
 	DisoveryGitHooks         = "git_hooks"
+	DiscoveryBigData         = "bigdata"
+	DiscoveryBigDataCT       = "bigdata_certificate_transparency"
 )
 
 // ScanGroupAddress contains details on addresses belonging to the scan group

@@ -1,10 +1,13 @@
 package module
 
 import (
+	"context"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/parsers"
 	"github.com/rs/zerolog"
 )
@@ -56,4 +59,66 @@ func CalculateConfidence(logger zerolog.Logger, address, newAddress *am.ScanGrou
 		return address.ConfidenceScore
 	}
 	return 0
+}
+
+type results struct {
+	R        []*dnsclient.Results
+	Hostname string
+	Err      error
+}
+
+type ResolverData struct {
+	Address           *am.ScanGroupAddress
+	RequestsPerSecond int
+	NewAddresses      map[string]struct{}
+	DiscoveryMethod   string
+}
+
+// ResolveNewAddresses is a generic resolver function for looking up hostnames to ip addresses and collecting them as a map to return
+// to caller
+func ResolveNewAddresses(ctx context.Context, logger zerolog.Logger, dns *dnsclient.Client, data *ResolverData) map[string]*am.ScanGroupAddress {
+	newRecords := make(map[string]*am.ScanGroupAddress, 0)
+
+	numHosts := len(data.NewAddresses)
+	rps := data.RequestsPerSecond
+	if numHosts < rps {
+		rps = numHosts
+	}
+	pool := workerpool.New(rps)
+
+	out := make(chan *results, numHosts)
+
+	// submit all hosts to our worker pool
+	for newHost := range data.NewAddresses {
+		task := func(ctx context.Context, host string, out chan<- *results) func() {
+			return func() {
+				r, err := dns.ResolveName(ctx, host)
+				out <- &results{Hostname: host, R: r, Err: err}
+			}
+		}
+		h := newHost
+		pool.Submit(task(ctx, h, out))
+	}
+
+	pool.StopWait()
+	close(out)
+
+	logger.Info().Msg("all tasks completed")
+
+	for result := range out {
+		if result.Err != nil {
+			continue
+		}
+
+		for _, rr := range result.R {
+			for _, ip := range rr.IPs {
+				logger.Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("found new record")
+				newAddress := NewAddressFromDNS(data.Address, ip, result.Hostname, data.DiscoveryMethod, uint(rr.RecordType))
+				newAddress.ConfidenceScore = CalculateConfidence(logger, data.Address, newAddress)
+				newRecords[newAddress.AddressHash] = newAddress
+			}
+		}
+	}
+
+	return newRecords
 }

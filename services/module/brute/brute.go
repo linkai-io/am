@@ -5,9 +5,7 @@ import (
 	"context"
 	"io"
 	"strings"
-	"sync"
 
-	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -206,55 +204,18 @@ func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *a
 }
 
 func (b *Bruter) bruteDomains(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
-	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
 
-	logger.Info().Int("requests_per_second", requestsPerSecond).Msg("creating worker pool")
-	pool := workerpool.New(requestsPerSecond)
-
-	type results struct {
-		R        []*dnsclient.Results
-		Hostname string
-		Err      error
-	}
-
-	out := make(chan *results)
-	wg := &sync.WaitGroup{}
-	wg.Add(len(subdomains))
+	newHosts := make(map[string]struct{}, len(subdomains))
 	for _, subdomain := range subdomains {
-
-		task := func(ctx context.Context, bruteDomain string, wg *sync.WaitGroup, out chan<- *results) func() {
-			return func() {
-				r, err := b.dc.ResolveName(ctx, bruteDomain)
-				out <- &results{Hostname: bruteDomain, R: r, Err: err}
-				wg.Done()
-			}
-		}
-		pool.Submit(task(ctx, subdomain+"."+hostAddress, wg, out))
+		newHosts[subdomain+"."+hostAddress] = struct{}{}
 	}
 
-	go func() {
-		wg.Wait()
-		close(out)
-		pool.Stop()
-		logger.Info().Msg("all tasks completed")
-	}()
-
-	for result := range out {
-		if result.Err != nil {
-			continue
-		}
-
-		for _, rr := range result.R {
-			for _, ip := range rr.IPs {
-				logger.Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("adding new record")
-				newAddress := module.NewAddressFromDNS(address, ip, result.Hostname, discoveryMethod, uint(rr.RecordType))
-				newAddress.ConfidenceScore = module.CalculateConfidence(logger, address, newAddress)
-				bruteRecords[newAddress.AddressHash] = newAddress
-			}
-		}
-	}
-
-	return bruteRecords
+	return module.ResolveNewAddresses(ctx, logger, b.dc, &module.ResolverData{
+		Address:           address,
+		RequestsPerSecond: requestsPerSecond,
+		NewAddresses:      newHosts,
+		DiscoveryMethod:   discoveryMethod,
+	})
 }
 
 // BuildSubDomainList merges the base list with any custom domains in the scan group config

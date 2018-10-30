@@ -6,11 +6,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/linkai-io/am/pkg/filestorage"
 
-	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/browser"
 	"github.com/linkai-io/am/pkg/cache"
@@ -84,6 +82,12 @@ func (w *Web) defaultWebConfig() *am.WebModuleConfig {
 	}
 }
 
+func (w *Web) defaultNSConfig() *am.NSModuleConfig {
+	return &am.NSModuleConfig{
+		RequestsPerSecond: 50,
+	}
+}
+
 // shouldAnalyze determines if we should analyze the specific address or not.
 func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress) bool {
 	if address.IsWildcardZone {
@@ -127,6 +131,7 @@ func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address 
 // as capture any network traffic, save images, dom, and responses to s3/disk
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	portCfg := w.defaultPortConfig()
+	nsCfg := w.defaultNSConfig()
 
 	logger := log.With().
 		Int("OrgID", userContext.GetOrgID()).
@@ -148,6 +153,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 		logger.Warn().Err(err).Msg("unable to find group id in cache, using default settings")
 	} else {
 		portCfg = group.ModuleConfigurations.PortModule
+		nsCfg = group.ModuleConfigurations.NSModule
 	}
 
 	for _, port := range portCfg.CustomPorts {
@@ -173,7 +179,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
-			hosts, err := w.processWebData(ctx, logger, address, webData)
+			hosts, err := w.processWebData(ctx, logger, nsCfg, address, webData)
 			if err != nil {
 				continue
 			}
@@ -186,7 +192,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	return address, webRecords, nil
 }
 
-func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
+func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
 	var hash string
 	var link string
 	var err error
@@ -213,7 +219,13 @@ func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, address
 
 	if webData.Responses != nil {
 		extractedHosts := w.processResponses(ctx, logger, address, webData)
-		resolvedAddresses := w.resolveNewDomains(ctx, logger, address, extractedHosts, am.DiscoveryWebCrawler)
+		resolvedAddresses := module.ResolveNewAddresses(ctx, logger, w.dc, &module.ResolverData{
+			Address:           address,
+			RequestsPerSecond: int(nsCfg.RequestsPerSecond),
+			NewAddresses:      extractedHosts,
+			DiscoveryMethod:   am.DiscoveryWebCrawler,
+		})
+
 		for k, v := range resolvedAddresses {
 			newAddresses[k] = v
 		}
@@ -288,61 +300,4 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 		}
 	}
 	return allHosts
-}
-
-func (w *Web) resolveNewDomains(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, newAddresses map[string]struct{}, discoveryMethod string) map[string]*am.ScanGroupAddress {
-	webRecords := make(map[string]*am.ScanGroupAddress, 0)
-
-	numAddresses := len(newAddresses)
-	rps := 10
-	if numAddresses < 10 {
-		rps = len(newAddresses)
-	}
-	pool := workerpool.New(rps)
-
-	type results struct {
-		R        []*dnsclient.Results
-		Hostname string
-		Err      error
-	}
-
-	out := make(chan *results)
-	wg := &sync.WaitGroup{}
-	wg.Add(numAddresses)
-
-	for newHost := range newAddresses {
-		task := func(ctx context.Context, host string, wg *sync.WaitGroup, out chan<- *results) func() {
-			return func() {
-				r, err := w.dc.ResolveName(ctx, host)
-				out <- &results{Hostname: host, R: r, Err: err}
-				wg.Done()
-			}
-		}
-		h := newHost
-		pool.Submit(task(ctx, h, wg, out))
-	}
-
-	go func() {
-		wg.Wait()
-		close(out)
-		pool.Stop()
-		logger.Info().Msg("all tasks completed")
-	}()
-
-	for result := range out {
-		if result.Err != nil {
-			continue
-		}
-
-		for _, rr := range result.R {
-			for _, ip := range rr.IPs {
-				logger.Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("found new record")
-				newAddress := module.NewAddressFromDNS(address, ip, result.Hostname, discoveryMethod, uint(rr.RecordType))
-				newAddress.ConfidenceScore = module.CalculateConfidence(logger, address, newAddress)
-				webRecords[newAddress.AddressHash] = newAddress
-			}
-		}
-	}
-
-	return webRecords
 }

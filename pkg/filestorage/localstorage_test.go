@@ -21,7 +21,7 @@ func TestLocalStorage(t *testing.T) {
 		GroupID: 1,
 	}
 	data := []byte("some data")
-	if err := s.Write(context.Background(), address, data); err != nil {
+	if _, _, err := s.Write(context.Background(), address, data); err != nil {
 		t.Fatalf("error writing file: %v\n", err)
 	}
 

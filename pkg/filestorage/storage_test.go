@@ -32,7 +32,7 @@ func TestPathFromData(t *testing.T) {
 		GroupID: 1,
 	}
 
-	out := filestorage.PathFromData(address, data)
+	out := filestorage.PathFromData(address, string(data))
 	if out != expected {
 		t.Fatalf("expected %v got %v\n", expected, out)
 	}
@@ -40,7 +40,7 @@ func TestPathFromData(t *testing.T) {
 	expected = "null"
 	dataStr := ""
 
-	out = filestorage.PathFromData(address, []byte(dataStr))
+	out = filestorage.PathFromData(address, dataStr)
 	if out != expected {
 		t.Fatalf("expected %v got %v\n", expected, out)
 	}
