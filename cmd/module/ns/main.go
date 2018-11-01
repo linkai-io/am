@@ -15,7 +15,7 @@ import (
 	"github.com/linkai-io/am/pkg/state/redis"
 	moduleservice "github.com/linkai-io/am/protocservices/module"
 	"github.com/linkai-io/am/services/module/ns"
-	nsmodulerprotoc "github.com/linkai-io/am/services/module/ns/protoc"
+	modulerprotoc "github.com/linkai-io/am/services/module/protoc"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -62,7 +62,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	nsmodulerp := nsmodulerprotoc.New(service)
+	nsmodulerp := modulerprotoc.New(service)
 	moduleservice.RegisterModuleServer(s, nsmodulerp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

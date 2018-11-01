@@ -3,20 +3,19 @@ package main
 import (
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/clients/address"
+	bdc "github.com/linkai-io/am/clients/bigdata"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
 	moduleservice "github.com/linkai-io/am/protocservices/module"
-	"github.com/linkai-io/am/services/module/brute"
-	modulerprotoc "github.com/linkai-io/am/services/module/protoc"
+	"github.com/linkai-io/am/services/module/bigdata"
+	moduleprotoc "github.com/linkai-io/am/services/module/protoc"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -32,12 +31,12 @@ func init() {
 	env = os.Getenv("APP_ENV")
 }
 
-// main starts the BruteModuleService
+// main starts the NSModuleService
 func main() {
 	var err error
 
 	zerolog.TimeFieldFormat = ""
-	log.Logger = log.With().Str("service", "BruteModuleService").Logger()
+	log.Logger = log.With().Str("service", "BigDataModuleService").Logger()
 
 	sec := secrets.NewDBSecrets(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
@@ -51,10 +50,10 @@ func main() {
 	}
 
 	state := initState()
-	dc := dnsclient.New([]string{"unbound:53"}, 1)
-	service := brute.New(dc, state)
+	dc := dnsclient.New([]string{"unbound:53"}, 3)
+	service := bigdata.New(dc, state)
 	err = retrier.Retry(func() error {
-		return service.Init(strings.NewReader(list_ten))
+		return service.Init(nil)
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
@@ -63,8 +62,8 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	brutemodulerp := modulerprotoc.New(service)
-	moduleservice.RegisterModuleServer(s, brutemodulerp)
+	nsmodulerp := moduleprotoc.New(service)
+	moduleservice.RegisterModuleServer(s, nsmodulerp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
@@ -75,18 +74,18 @@ func main() {
 	}
 }
 
-func initAddrClient() am.AddressService {
-	addrClient := address.New()
+func initBigDataClient() am.BigDataService {
+	bigDataClient := bdc.New()
 
 	err := retrier.RetryUntil(
 		func() error {
-			return addrClient.Init([]byte(loadBalancerAddr))
+			return bigDataClient.Init([]byte(loadBalancerAddr))
 		}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to address server")
+		log.Fatal().Err(err).Msg("error connecting to bigdata server")
 	}
-	return addrClient
+	return bigDataClient
 }
 
 func initState() *redis.State {

@@ -18,7 +18,7 @@ func New(implementation am.BigDataService) *BigDataProtocService {
 	return &BigDataProtocService{bds: implementation}
 }
 
-func (s *BigDataProtocService) Add(ctx context.Context, in *bigdata.AddCTRequest) (*bigdata.CTAddedResponse, error) {
+func (s *BigDataProtocService) AddCT(ctx context.Context, in *bigdata.AddCTRequest) (*bigdata.CTAddedResponse, error) {
 	err := s.bds.AddCT(ctx, convert.UserContextToDomain(in.UserContext), in.ETLD, time.Unix(0, in.QueryTime), convert.CTRecordsToDomain(in.Records))
 	if err != nil {
 		return nil, err

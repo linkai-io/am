@@ -8,16 +8,16 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type BruteProtocService struct {
-	bruteservice am.ModuleService
+type ModuleProtocService struct {
+	module am.ModuleService
 }
 
-func New(implementation am.ModuleService) *BruteProtocService {
-	return &BruteProtocService{bruteservice: implementation}
+func New(implementation am.ModuleService) *ModuleProtocService {
+	return &ModuleProtocService{module: implementation}
 }
 
-func (s *BruteProtocService) Analyze(ctx context.Context, in *module.AnalyzeRequest) (*module.AnalyzedResponse, error) {
-	address, addresses, err := s.bruteservice.Analyze(ctx, convert.UserContextToDomain(in.UserContext), convert.AddressToDomain(in.Address))
+func (s *ModuleProtocService) Analyze(ctx context.Context, in *module.AnalyzeRequest) (*module.AnalyzedResponse, error) {
+	address, addresses, err := s.module.Analyze(ctx, convert.UserContextToDomain(in.UserContext), convert.AddressToDomain(in.Address))
 	protocAddrs := make(map[string]*prototypes.AddressData, len(addresses))
 	for k, v := range addresses {
 		protocAddrs[k] = convert.DomainToAddress(v)
