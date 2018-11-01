@@ -56,26 +56,11 @@ func (b *Bruter) Init(bruteFile io.Reader) error {
 	return nil
 }
 
-func (b *Bruter) defaultModuleConfig() *am.BruteModuleConfig {
-	return &am.BruteModuleConfig{
-		MaxDepth:          2,
-		RequestsPerSecond: 50,
-		CustomSubNames:    make([]string, 0),
-	}
-}
-
 // Analyze will attempt to find additional domains by brute forcing hosts. Note that while we will not brute force past
 // max depth, we *will* attempt to mutate hosts past max depth.
 func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
-	bmc := b.defaultModuleConfig()
-	logger := log.With().
-		Int("OrgID", userContext.GetOrgID()).
-		Int("UserID", userContext.GetUserID()).
-		Str("TraceID", userContext.GetTraceID()).
-		Str("IPAddress", address.IPAddress).
-		Str("HostAddress", address.HostAddress).
-		Int64("AddressID", address.AddressID).
-		Str("AddressHash", address.AddressHash).Logger()
+	bmc := module.DefaultBruteConfig()
+	logger := module.DefaultLogger(userContext, address)
 
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
 	if !b.shouldAnalyze(ctx, logger, address) {
@@ -88,6 +73,7 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 	} else {
 		bmc = group.ModuleConfigurations.BruteModule
 	}
+
 	bruteRecords = b.bruteDomain(ctx, logger, bmc, address)
 
 	mutateRecords := b.mutateDomain(ctx, logger, bmc, address)

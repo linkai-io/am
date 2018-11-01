@@ -20,10 +20,29 @@ const (
 )
 
 var queryMap = map[string]string{
-	"getCertificates": fmt.Sprintf(`select query_timestamp,certificate_id,%s from am.certificates as certs
-		inner join am.certificate_queries as queries on certs.etld=queries.etld where etld=$1`, commonColumns),
+	"getCertificates": `select queries.query_timestamp,
+			certs.certificate_id,
+			certs.inserted_timestamp,
+			certs.etld,
+			certs.cert_hash,
+			certs.serial_number,
+			certs.not_before,
+			certs.not_after,
+			certs.country,
+			certs.organization,
+			certs.organizational_unit,
+			certs.common_name,
+			certs.verified_dns_names,
+			certs.unverified_dns_names,
+			certs.ip_addresses, 
+			certs.email_addresses from am.certificates as certs
+		inner join am.certificate_queries as queries on 
+			certs.etld=queries.etld where certs.etld=$1`,
+
 	"insertQuery": `insert into am.certificate_queries (etld, query_timestamp) values ($1, $2) on conflict 
 	(etld) do update set query_timestamp=EXCLUDED.query_timestamp`,
+	"deleteQuery": "delete from am.certificate_queries where etld=$1",
+	"deleteETLD":  "delete from am.certificates where etld=$1",
 }
 
 var (
@@ -37,8 +56,8 @@ var (
 			etld varchar(512) not null,
 			cert_hash varchar(256) not null unique,
 			serial_number varchar(256),
-			not_before timestamptz,
-			not_after timestamptz,
+			not_before bigint,
+			not_after bigint,
 			country varchar(256),
 			organization text,
 			organizational_unit text,

@@ -87,14 +87,8 @@ func (ns *NS) debug() {
 // Analyze an address, extracts NS, MX, A, AAAA, CNAME records
 // TODO: add error if shutting down so dispatcher can retry
 func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
-	logger := log.With().
-		Int("OrgID", userContext.GetOrgID()).
-		Int("UserID", userContext.GetUserID()).
-		Str("TraceID", userContext.GetTraceID()).
-		Str("IPAddress", address.IPAddress).
-		Str("HostAddress", address.HostAddress).
-		Int64("AddressID", address.AddressID).
-		Str("AddressHash", address.AddressHash).Logger()
+	logger := module.DefaultLogger(userContext, address)
+
 	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
 	address.LastScannedTime = time.Now().UnixNano()

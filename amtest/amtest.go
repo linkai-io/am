@@ -7,6 +7,7 @@ import (
 	"io"
 	"reflect"
 	"sort"
+	"strconv"
 	"testing"
 	"time"
 
@@ -184,6 +185,123 @@ func MockNSState() *mock.NSState {
 		return false, nil
 	}
 	return mockState
+}
+
+func MockBigDataState() *mock.BigDataState {
+	mockState := &mock.BigDataState{}
+	mockState.SubscribeFn = func(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
+		return nil
+	}
+
+	mockState.GetGroupFn = func(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+		return nil, errors.New("group not found")
+	}
+
+	hosts := make(map[string]bool)
+	mockState.DoCTDomainFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+		if _, ok := hosts[zone]; !ok {
+			hosts[zone] = true
+			return true, nil
+		}
+		return false, nil
+	}
+	return mockState
+}
+
+func BuildCTRecords(etld string, insertedTS int64, count int) map[string]*am.CTRecord {
+	records := make(map[string]*am.CTRecord, count)
+	for i := 0; i < count; i++ {
+		numStr := strconv.Itoa(i)
+
+		records[numStr] = &am.CTRecord{
+			CertificateID:      0,
+			InsertedTime:       insertedTS,
+			CertHash:           numStr,
+			SerialNumber:       "1234",
+			NotBefore:          time.Now().UnixNano(),
+			NotAfter:           time.Now().UnixNano(),
+			Country:            "JP",
+			Organization:       "ORG",
+			OrganizationalUnit: "ORG-U",
+			CommonName:         etld,
+			VerifiedDNSNames:   numStr + "." + etld + " test." + etld,
+			UnverifiedDNSNames: "",
+			IPAddresses:        "",
+			EmailAddresses:     "",
+			ETLD:               etld,
+		}
+
+	}
+	return records
+}
+
+func TestCompareCTRecords(expected, returned map[string]*am.CTRecord, t *testing.T) {
+	if len(expected) != len(returned) {
+		t.Fatalf("lengths did not match expected: %d returned: %d\n", len(expected), len(returned))
+	}
+
+	for k, e := range expected {
+		r, ok := returned[k]
+		if !ok {
+			t.Fatalf("expected record %v was not in our returned map\n", e.CertHash)
+		}
+
+		if e.CertHash != r.CertHash {
+			t.Fatalf("CertHash: %v did not match returned: %v\n", e.CertHash, r.CertHash)
+		}
+
+		if e.CommonName != r.CommonName {
+			t.Fatalf("CommonName: %v did not match returned: %v\n", e.CommonName, r.CommonName)
+		}
+
+		if e.Country != r.Country {
+			t.Fatalf("Country: %v did not match returned: %v\n", e.Country, r.Country)
+		}
+
+		if e.EmailAddresses != r.EmailAddresses {
+			t.Fatalf("EmailAddresses: %v did not match returned: %v\n", e.EmailAddresses, r.EmailAddresses)
+		}
+
+		if e.ETLD != r.ETLD {
+			t.Fatalf("ETLD: %v did not match returned: %v\n", e.ETLD, r.ETLD)
+		}
+
+		if e.InsertedTime != r.InsertedTime {
+			t.Fatalf("InsertedTime: %v did not match returned: %v\n", e.InsertedTime, r.InsertedTime)
+		}
+
+		if e.IPAddresses != r.IPAddresses {
+			t.Fatalf("IPAddresses: %v did not match returned: %v\n", e.IPAddresses, r.IPAddresses)
+		}
+
+		if e.NotAfter != r.NotAfter {
+			t.Fatalf("NotAfter: %v did not match returned: %v\n", e.NotAfter, r.NotAfter)
+		}
+
+		if e.NotBefore != r.NotBefore {
+			t.Fatalf("NotBefore: %v did not match returned: %v\n", e.NotBefore, r.NotBefore)
+		}
+
+		if e.Organization != r.Organization {
+			t.Fatalf("Organization: %v did not match returned: %v\n", e.Organization, r.Organization)
+		}
+
+		if e.OrganizationalUnit != r.OrganizationalUnit {
+			t.Fatalf("OrganizationalUnit: %v did not match returned: %v\n", e.OrganizationalUnit, r.OrganizationalUnit)
+		}
+
+		if e.SerialNumber != r.SerialNumber {
+			t.Fatalf("SerialNumber: %v did not match returned: %v\n", e.SerialNumber, r.SerialNumber)
+		}
+
+		if e.UnverifiedDNSNames != r.UnverifiedDNSNames {
+			t.Fatalf("UnverifiedDNSNames: %v did not match returned: %v\n", e.UnverifiedDNSNames, r.UnverifiedDNSNames)
+		}
+
+		if e.VerifiedDNSNames != r.VerifiedDNSNames {
+			t.Fatalf("VerifiedDNSNames: %v did not match returned: %v\n", e.VerifiedDNSNames, r.VerifiedDNSNames)
+		}
+	}
 }
 
 func AddrsFromInputFile(orgID, groupID int, addrFile io.Reader, t *testing.T) []*am.ScanGroupAddress {

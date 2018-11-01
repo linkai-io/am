@@ -11,7 +11,7 @@ import (
 	"github.com/linkai-io/am/services/module/ns"
 )
 
-const dnsServer = "127.0.0.53:53"
+const dnsServer = "1.1.1.1:53"
 const localServer = "127.0.0.53:53"
 
 func TestNS_Analyze(t *testing.T) {

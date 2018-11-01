@@ -51,7 +51,7 @@ func TestDispatcherFlow(t *testing.T) {
 	}
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
-	dc := dnsclient.New([]string{"127.0.0.53:53"}, 3)
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 3)
 	nsModule := ns.New(dc, nsstate)
 	if err := nsModule.Init(nil); err != nil {
 		t.Fatalf("error initializing ns module: %s\n", err)

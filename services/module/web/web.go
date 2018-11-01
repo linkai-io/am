@@ -19,7 +19,6 @@ import (
 	"github.com/linkai-io/am/services/module/web/state"
 	"github.com/miekg/dns"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -65,29 +64,6 @@ func (w *Web) Init() error {
 	return nil
 }
 
-func (w *Web) defaultPortConfig() *am.PortModuleConfig {
-	return &am.PortModuleConfig{
-		RequestsPerSecond: 50,
-		CustomPorts:       []int32{80, 443},
-	}
-}
-
-func (w *Web) defaultWebConfig() *am.WebModuleConfig {
-	return &am.WebModuleConfig{
-		TakeScreenShots:       true,
-		RequestsPerSecond:     50,
-		MaxLinks:              1,
-		ExtractJS:             true,
-		FingerprintFrameworks: true,
-	}
-}
-
-func (w *Web) defaultNSConfig() *am.NSModuleConfig {
-	return &am.NSModuleConfig{
-		RequestsPerSecond: 50,
-	}
-}
-
 // shouldAnalyze determines if we should analyze the specific address or not.
 func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress) bool {
 	if address.IsWildcardZone {
@@ -130,17 +106,9 @@ func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address 
 // Analyze will attempt to find additional domains by extracting hosts from a website as well
 // as capture any network traffic, save images, dom, and responses to s3/disk
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
-	portCfg := w.defaultPortConfig()
-	nsCfg := w.defaultNSConfig()
-
-	logger := log.With().
-		Int("OrgID", userContext.GetOrgID()).
-		Int("UserID", userContext.GetUserID()).
-		Str("TraceID", userContext.GetTraceID()).
-		Str("IPAddress", address.IPAddress).
-		Str("HostAddress", address.HostAddress).
-		Int64("AddressID", address.AddressID).
-		Str("AddressHash", address.AddressHash).Logger()
+	portCfg := module.DefaultPortConfig()
+	nsCfg := module.DefaultNSConfig()
+	logger := module.DefaultLogger(userContext, address)
 
 	webRecords := make(map[string]*am.ScanGroupAddress, 0)
 

@@ -1,4 +1,4 @@
-package brute
+package bigdata
 
 import (
 	"context"
@@ -57,29 +57,16 @@ func New(dc *dnsclient.Client, st state.Stater, bdClient am.BigDataService, bqQu
 }
 
 // Init the bigdata service with bigquery details
-func (b *BigData) Init() error {
+func (b *BigData) Init(config []byte) error {
 
 	return nil
-}
-
-func (b *BigData) defaultModuleConfig() *am.NSModuleConfig {
-	return &am.NSModuleConfig{
-		RequestsPerSecond: 10,
-	}
 }
 
 // Analyze will attempt to find additional domains by looking in various public data sets we've collected. We only
 // do this for ETLDs.
 func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
-	nsCfg := b.defaultModuleConfig()
-	logger := log.With().
-		Int("OrgID", userContext.GetOrgID()).
-		Int("UserID", userContext.GetUserID()).
-		Str("TraceID", userContext.GetTraceID()).
-		Str("IPAddress", address.IPAddress).
-		Str("HostAddress", address.HostAddress).
-		Int64("AddressID", address.AddressID).
-		Str("AddressHash", address.AddressHash).Logger()
+	nsCfg := module.DefaultNSConfig()
+	logger := module.DefaultLogger(userContext, address)
 
 	bigDataRecords := make(map[string]*am.ScanGroupAddress, 0)
 
@@ -112,8 +99,8 @@ func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, addre
 }
 
 func (b *BigData) doCTAnalysis(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, etld string) (map[string]*am.ScanGroupAddress, error) {
+	var queryTime time.Time
 	ctRecords := make(map[string]*am.CTRecord, 0)
-
 	records := make(map[string]*am.ScanGroupAddress, 0)
 
 	shouldCT, err := b.st.DoCTDomain(ctx, address.OrgID, address.GroupID, oneHour, etld)
@@ -125,8 +112,6 @@ func (b *BigData) doCTAnalysis(ctx context.Context, userContext am.UserContext, 
 		logger.Info().Msg("not analyzing etld, as it is already complete")
 		return records, nil
 	}
-
-	var queryTime time.Time
 
 	retryErr := retrier.Retry(func() error {
 		queryTime, ctRecords, err = b.bdClient.GetCT(ctx, userContext, etld)
@@ -140,29 +125,30 @@ func (b *BigData) doCTAnalysis(ctx context.Context, userContext am.UserContext, 
 	}
 
 	// we've never looked up this etld before
-	if len(ctRecords) == 0 {
-		queryTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, nil)
+	if ctRecords == nil || len(ctRecords) == 0 {
+		logger.Info().Str("etld", etld).Msg("first time etld seen, searching big query")
+		queryTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, time.Local)
 	}
 
 	// check if we should add new CTRecords and update the ctRecords with new records found from bigquery
-	b.addNewCTRecords(ctx, userContext, logger, ctRecords, queryTime, etld)
-	newAddresses, err := b.processCTRecords(ctx, nsCfg, logger, address, ctRecords, etld)
+	allRecords := b.addNewCTRecords(ctx, userContext, logger, ctRecords, queryTime, etld)
+	newAddresses, err := b.processCTRecords(ctx, nsCfg, logger, address, allRecords, etld)
 	return newAddresses, err
 }
 
 // addNewCTRecords queries BigQuery to see if we have any new records for this etld, provided that now - queryTime is > cachetime (default 4 hours).
 // Note, this *DOES* modify ctRecords by adding the bigquery results to it.
-func (b *BigData) addNewCTRecords(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, ctRecords map[string]*am.CTRecord, queryTime time.Time, etld string) {
+func (b *BigData) addNewCTRecords(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, ctRecords map[string]*am.CTRecord, queryTime time.Time, etld string) map[string]*am.CTRecord {
 
 	if time.Now().Sub(queryTime) < defaultCacheTime {
 		logger.Info().TimeDiff("query_diff", queryTime, time.Now()).Msg("< cacheTime not querying bigquery")
-		return
+		return ctRecords
 	}
 
 	bqRecords, err := b.bigQuerier.QueryETLD(ctx, queryTime, etld)
 	if err != nil {
 		logger.Warn().Err(err).Msg("unable to query big query")
-		return
+		return ctRecords
 	}
 
 	if ctRecords != nil {
@@ -175,22 +161,24 @@ func (b *BigData) addNewCTRecords(ctx context.Context, userContext am.UserContex
 			// add the new record to our ct records map
 			ctRecords[hash] = record
 		}
+	} else {
+		ctRecords = bqRecords
 	}
 
 	if len(bqRecords) == 0 {
 		log.Info().Msg("no new records found in bigquery")
-		return
+		return ctRecords
 	}
 
 	// if we still have any left, we want to add new ones, and update the last query time.
 	if err := b.bdClient.AddCT(ctx, userContext, etld, time.Now(), bqRecords); err != nil {
 		logger.Error().Err(err).Msg("failed to add new ct records and update query time")
 	}
+	return ctRecords
 }
 
 func (b *BigData) processCTRecords(ctx context.Context, nsCfg *am.NSModuleConfig, logger zerolog.Logger, address *am.ScanGroupAddress, records map[string]*am.CTRecord, etld string) (map[string]*am.ScanGroupAddress, error) {
 	newAddresses := make(map[string]*am.ScanGroupAddress, 0)
-
 	newHosts := make(map[string]struct{})
 
 	needle, err := regexp.Compile("(?i)" + etld)
@@ -202,18 +190,21 @@ func (b *BigData) processCTRecords(ctx context.Context, nsCfg *am.NSModuleConfig
 	needles[0] = needle
 	for _, record := range records {
 		allHosts := strings.Join([]string{record.CommonName, record.VerifiedDNSNames, record.UnverifiedDNSNames}, " ")
+		logger.Info().Str("allHosts", allHosts).Msg("searching...")
 		recordHosts := parsers.ExtractHostsFromResponse(needles, allHosts)
 		for k, v := range recordHosts {
 			newHosts[k] = v
 		}
 	}
 
+	logger.Info().Int("new_hosts", len(newHosts)).Msg("resolving with ResolveNewAddresses")
 	newAddresses = module.ResolveNewAddresses(ctx, logger, b.dc, &module.ResolverData{
 		Address:           address,
 		RequestsPerSecond: int(nsCfg.RequestsPerSecond),
 		NewAddresses:      newHosts,
 		DiscoveryMethod:   am.DiscoveryBigDataCT,
 	})
+	logger.Info().Int("new_addresses", len(newAddresses)).Msg("returning from ResolveNewAddresses")
 	return newAddresses, nil
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/linkai-io/am/am"
 
+	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/filestorage"
 )
 
@@ -31,8 +32,8 @@ func TestPathFromData(t *testing.T) {
 		OrgID:   1,
 		GroupID: 1,
 	}
-
-	out := filestorage.PathFromData(address, string(data))
+	hashName := convert.HashData(data)
+	out := filestorage.PathFromData(address, hashName)
 	if out != expected {
 		t.Fatalf("expected %v got %v\n", expected, out)
 	}

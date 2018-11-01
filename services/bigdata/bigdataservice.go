@@ -84,9 +84,9 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 
 // GetCT returns locally cached certificate transparency records that match the etld.
 func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
-	var ts time.Time
+	var emptyTS time.Time
 	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "read") {
-		return ts, nil, am.ErrUserNotAuthorized
+		return emptyTS, nil, am.ErrUserNotAuthorized
 	}
 
 	logger := log.With().
@@ -100,19 +100,21 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 	rows, err := s.pool.QueryEx(ctx, "getCertificates", &pgx.QueryExOptions{}, etld)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
-			return ts, nil, v
+			return emptyTS, nil, v
 		}
-		return ts, nil, err
+		return emptyTS, nil, err
 	}
 	defer rows.Close()
 
 	records := make(map[string]*am.CTRecord, 0)
+	var ts int64
 	for rows.Next() {
 		r := &am.CTRecord{}
-		err := rows.Scan(&ts, &r.CertificateID, &r.InsertedTime, &r.CertHash, &r.SerialNumber,
-			&r.NotBefore, &r.NotAfter, &r.Country, &r.Organization, &r.OrganizationalUnit,
-			&r.CommonName, &r.VerifiedDNSNames, &r.UnverifiedDNSNames, &r.IPAddresses,
-			&r.EmailAddresses)
+
+		err := rows.Scan(&ts, &r.CertificateID, &r.InsertedTime, &r.ETLD, &r.CertHash,
+			&r.SerialNumber, &r.NotBefore, &r.NotAfter, &r.Country, &r.Organization,
+			&r.OrganizationalUnit, &r.CommonName, &r.VerifiedDNSNames, &r.UnverifiedDNSNames,
+			&r.IPAddresses, &r.EmailAddresses)
 
 		if err != nil {
 			logger.Warn().Err(err).Msg("failed to extract record")
@@ -121,7 +123,7 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 		records[r.CertHash] = r
 	}
 
-	return ts, records, err
+	return time.Unix(0, ts), records, err
 }
 
 // AddCT adds certificate transparency records
@@ -158,6 +160,10 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 		return ErrETLDInvalid
 	}
 
+	if _, err := tx.Exec(AddCTTempTable); err != nil {
+		return err
+	}
+
 	ctRows := make([][]interface{}, numRecords)
 	i := 0
 	for _, r := range ctRecords {
@@ -186,8 +192,41 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 		return errors.Wrap(err, failedMsg)
 	}
 
-	if _, err := tx.ExecEx(ctx, "insertQuery", &pgx.QueryExOptions{}, etld, queryTime); err != nil {
+	if _, err := tx.ExecEx(ctx, "insertQuery", &pgx.QueryExOptions{}, etld, queryTime.UnixNano()); err != nil {
 		failedMsg := "failed to update query time to am.certificate_queries table"
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, failedMsg)
+		}
+		return errors.Wrap(err, failedMsg)
+	}
+
+	return tx.Commit()
+}
+
+func (s *Service) DeleteCT(ctx context.Context, userContext am.UserContext, etld string) error {
+	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "delete") {
+		return am.ErrUserNotAuthorized
+	}
+
+	var tx *pgx.Tx
+	var err error
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.ExecEx(ctx, "deleteQuery", &pgx.QueryExOptions{}, etld); err != nil {
+		failedMsg := "failed to delete query from am.certificate_queries table"
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, failedMsg)
+		}
+		return errors.Wrap(err, failedMsg)
+	}
+
+	if _, err := tx.ExecEx(ctx, "deleteETLD", &pgx.QueryExOptions{}, etld); err != nil {
+		failedMsg := "failed to delete query from am.certificate_queries table"
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, failedMsg)
 		}

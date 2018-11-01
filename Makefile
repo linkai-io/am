@@ -45,4 +45,4 @@ brutemoduleservice:
 services: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice amloadservice nsmoduleservice brutemoduleservice
 
 test:
-	go test -v ./...
+	go test ./... -cover
