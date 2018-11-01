@@ -295,15 +295,15 @@ func (c *Client) doAXFR(ctx context.Context, msg *dns.Msg, nameserver string, rc
 
 		for _, rr := range answer.RR {
 			wpwg.Add(1)
-			task := func(rr dns.RR, wpwg *sync.WaitGroup, out chan<- *Results) func() {
+			task := func(resourceRecord dns.RR, wpwg *sync.WaitGroup, out chan<- *Results) func() {
 				return func() {
-					if r := c.processAXFRRR(ctx, rr); r != nil {
-						out <- r
+					if rec := c.processAXFRRR(ctx, resourceRecord); rec != nil {
+						out <- rec
 					}
 					wpwg.Done()
 				}
 			}
-			r := rr
+			r := rr // capture since we are providing it to a closure.
 			pool.Submit(task(r, wpwg, out))
 		}
 	}

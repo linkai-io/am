@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	RNBigData = "lrn:service:bigdata:feature:bigdata"
+	BigDataServiceKey = "bigdataservice"
+	RNBigData         = "lrn:service:bigdata:feature:bigdata"
 )
 
 type CTRecord struct {

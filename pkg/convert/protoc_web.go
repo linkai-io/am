@@ -61,7 +61,39 @@ func WebCertificateToDomain(in *prototypes.WebCertificate) *am.WebCertificate {
 	}
 }
 
+func DomainToWebCertificates(in []*am.WebCertificate) []*prototypes.WebCertificate {
+	if in == nil {
+		return nil
+	}
+
+	certificateLen := len(in)
+
+	certificates := make([]*prototypes.WebCertificate, certificateLen)
+	for i := 0; i < certificateLen; i++ {
+		certificates[i] = DomainToWebCertificate(in[i])
+	}
+	return certificates
+}
+
+func WebCertificatesToDomain(in []*prototypes.WebCertificate) []*am.WebCertificate {
+	if in == nil {
+		return nil
+	}
+
+	certificateLen := len(in)
+
+	certificates := make([]*am.WebCertificate, certificateLen)
+	for i := 0; i < certificateLen; i++ {
+		certificates[i] = WebCertificateToDomain(in[i])
+	}
+	return certificates
+}
+
 func DomainToHTTPResponse(in *am.HTTPResponse) *prototypes.HTTPResponse {
+	if in == nil {
+		return nil
+	}
+
 	return &prototypes.HTTPResponse{
 		ResponseID:        in.ResponseID,
 		OrgID:             int32(in.OrgID),
@@ -90,6 +122,7 @@ func HTTPResponseToDomain(in *prototypes.HTTPResponse) *am.HTTPResponse {
 	if in == nil {
 		return nil
 	}
+
 	return &am.HTTPResponse{
 		ResponseID:        in.ResponseID,
 		OrgID:             int(in.OrgID),
@@ -114,20 +147,40 @@ func HTTPResponseToDomain(in *prototypes.HTTPResponse) *am.HTTPResponse {
 	}
 }
 
+func DomainToHTTPResponses(in []*am.HTTPResponse) []*prototypes.HTTPResponse {
+	if in == nil {
+		return nil
+	}
+
+	responseLen := len(in)
+
+	responses := make([]*prototypes.HTTPResponse, responseLen)
+	for i := 0; i < responseLen; i++ {
+		responses[i] = DomainToHTTPResponse(in[i])
+	}
+	return responses
+}
+
+func HTTPResponsesToDomain(in []*prototypes.HTTPResponse) []*am.HTTPResponse {
+	if in == nil {
+		return nil
+	}
+
+	responseLen := len(in)
+
+	responses := make([]*am.HTTPResponse, responseLen)
+	for i := 0; i < responseLen; i++ {
+		responses[i] = HTTPResponseToDomain(in[i])
+	}
+	return responses
+}
+
 func DomainToWebData(in *am.WebData) *prototypes.WebData {
 	if in == nil {
 		return nil
 	}
 
-	responseLen := 0
-	if in.Responses != nil {
-		responseLen = len(in.Responses)
-	}
-
-	responses := make([]*prototypes.HTTPResponse, responseLen)
-	for i := 0; i < responseLen; i++ {
-		responses[i] = DomainToHTTPResponse(in.Responses[i])
-	}
+	responses := DomainToHTTPResponses(in.Responses)
 
 	return &prototypes.WebData{
 		Address:           DomainToAddress(in.Address),
@@ -144,15 +197,7 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 		return nil
 	}
 
-	responseLen := 0
-	if in.Responses != nil {
-		responseLen = len(in.Responses)
-	}
-
-	responses := make([]*am.HTTPResponse, responseLen)
-	for i := 0; i < responseLen; i++ {
-		responses[i] = HTTPResponseToDomain(in.Responses[i])
-	}
+	responses := HTTPResponsesToDomain(in.Responses)
 
 	return &am.WebData{
 		Address:           AddressToDomain(in.Address),
@@ -188,6 +233,34 @@ func WebSnapshotToDomain(in *prototypes.WebSnapshot) *am.WebSnapshot {
 		ResponseTimestamp: in.ResponseTimestamp,
 		IsDeleted:         in.IsDeleted,
 	}
+}
+
+func DomainToWebSnapshots(in []*am.WebSnapshot) []*prototypes.WebSnapshot {
+	if in == nil {
+		return nil
+	}
+
+	snapshotLen := len(in)
+
+	snapshots := make([]*prototypes.WebSnapshot, snapshotLen)
+	for i := 0; i < snapshotLen; i++ {
+		snapshots[i] = DomainToWebSnapshot(in[i])
+	}
+	return snapshots
+}
+
+func WebSnapshotsToDomain(in []*prototypes.WebSnapshot) []*am.WebSnapshot {
+	if in == nil {
+		return nil
+	}
+
+	snapshotLen := len(in)
+
+	snapshots := make([]*am.WebSnapshot, snapshotLen)
+	for i := 0; i < snapshotLen; i++ {
+		snapshots[i] = WebSnapshotToDomain(in[i])
+	}
+	return snapshots
 }
 
 func DomainToWebSnapshotFilter(in *am.WebSnapshotFilter) *prototypes.WebSnapshotFilter {

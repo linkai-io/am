@@ -345,3 +345,59 @@ func ScanGroupFilterToDomain(in *scangroup.ScanGroupFilter) *am.ScanGroupFilter 
 		PausedValue: in.PausedValue,
 	}
 }
+
+func DomainToCTRecord(in *am.CTRecord) *prototypes.CTRecord {
+	return &prototypes.CTRecord{
+		CertificateID:      in.CertificateID,
+		InsertedTime:       in.InsertedTime,
+		CertHash:           in.CertHash,
+		SerialNumber:       in.SerialNumber,
+		NotBefore:          in.NotBefore,
+		NotAfter:           in.NotAfter,
+		Country:            in.Country,
+		Organization:       in.Organization,
+		OrganizationalUnit: in.OrganizationalUnit,
+		CommonName:         in.CommonName,
+		VerifiedDNSNames:   in.VerifiedDNSNames,
+		UnverifiedDNSNames: in.UnverifiedDNSNames,
+		IPAddresses:        in.IPAddresses,
+		EmailAddresses:     in.EmailAddresses,
+		ETLD:               in.ETLD,
+	}
+}
+
+func CTRecordToDomain(in *prototypes.CTRecord) *am.CTRecord {
+	return &am.CTRecord{
+		CertificateID:      in.CertificateID,
+		InsertedTime:       in.InsertedTime,
+		CertHash:           in.CertHash,
+		SerialNumber:       in.SerialNumber,
+		NotBefore:          in.NotBefore,
+		NotAfter:           in.NotAfter,
+		Country:            in.Country,
+		Organization:       in.Organization,
+		OrganizationalUnit: in.OrganizationalUnit,
+		CommonName:         in.CommonName,
+		VerifiedDNSNames:   in.VerifiedDNSNames,
+		UnverifiedDNSNames: in.UnverifiedDNSNames,
+		IPAddresses:        in.IPAddresses,
+		EmailAddresses:     in.EmailAddresses,
+		ETLD:               in.ETLD,
+	}
+}
+
+func DomainToCTRecords(in map[string]*am.CTRecord) map[string]*prototypes.CTRecord {
+	ctRecords := make(map[string]*prototypes.CTRecord, len(in))
+	for k, v := range in {
+		ctRecords[k] = DomainToCTRecord(v)
+	}
+	return ctRecords
+}
+
+func CTRecordsToDomain(in map[string]*prototypes.CTRecord) map[string]*am.CTRecord {
+	ctRecords := make(map[string]*am.CTRecord, len(in))
+	for k, v := range in {
+		ctRecords[k] = CTRecordToDomain(v)
+	}
+	return ctRecords
+}
