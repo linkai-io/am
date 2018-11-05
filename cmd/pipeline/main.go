@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -36,27 +34,17 @@ func main() {
 	userID := 1
 	groupID := 1
 
+	sgClient := mockScanGroupService(orgID, groupID)
+
 	addrFile, err := os.Open(inputFile)
 	if err != nil {
 		log.Fatalf("error opening test file: %s\n", err)
 	}
-
 	addresses := amtest.AddrsFromInputFile(orgID, groupID, addrFile, nil)
 	addrFile.Close()
 
-	callCount := 0
-	addrClient := &mock.AddressService{}
-	addrClient.GetFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupAddress, error) {
-		if callCount == 0 {
-			callCount++
-			return orgID, addresses, nil
-		}
-		return orgID, nil, nil
-	}
-	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addrs map[string]*am.ScanGroupAddress) (int, int, error) {
-		log.Printf("adding %d addresses\n", len(addrs))
-		return orgID, len(addrs), nil
-	}
+	addrClient := mockAddressService(orgID, addresses)
+
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
@@ -96,6 +84,54 @@ func main() {
 	}
 	modules[am.WebModule] = webModule
 
+	// init dispatcher
+	wg := &sync.WaitGroup{}
+	disState := mockDispatcherState(wg)
+
+	dispatcher := dispatcher.New(sgClient, addrClient, modules, disState)
+	dispatcher.Init(nil)
+
+	userContext := amtest.CreateUserContext(orgID, userID)
+
+	// Run pipeline
+	dispatcher.PushAddresses(ctx, userContext, groupID)
+
+	wg.Wait()
+}
+
+func mockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.AddressService {
+	callCount := 0
+
+	addrClient := &mock.AddressService{}
+	addrClient.GetFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupAddress, error) {
+		if callCount == 0 {
+			callCount++
+			return orgID, addresses, nil
+		}
+		return orgID, nil, nil
+	}
+	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addrs map[string]*am.ScanGroupAddress) (int, int, error) {
+		log.Printf("adding %d addresses\n", len(addrs))
+		return orgID, len(addrs), nil
+	}
+	return addrClient
+}
+func mockScanGroupService(orgID, groupID int) *mock.ScanGroupService {
+	sgClient := &mock.ScanGroupService{}
+	sgClient.GetFn = func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroup, error) {
+		scangroup := &am.ScanGroup{
+			OrgID:                orgID,
+			GroupID:              groupID,
+			ModuleConfigurations: amtest.CreateModuleConfig(),
+		}
+		return orgID, scangroup, nil
+	}
+
+	return sgClient
+}
+
+func mockDispatcherState(wg *sync.WaitGroup) *mock.DispatcherState {
+	ctx := context.Background()
 	count := 0
 	// init Dispatcher state system and DispatcherService
 	disState := &mock.DispatcherState{}
@@ -153,29 +189,16 @@ func main() {
 		log.Printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!after pop, len: %d, %v\n", len(newAddrs), newAddrs)
 		return newAddrs, nil
 	}
-	wg := &sync.WaitGroup{}
+
 	wg.Add(1)
 	disState.StopFn = func(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 		wg.Done()
 		return nil
 	}
 
-	dispatcher := dispatcher.New(addrClient, modules, disState)
-	dispatcher.Init(nil)
-
-	userContext := amtest.CreateUserContext(orgID, userID)
-
 	go printStats(ctx, stateLock, count, stateAddrs, stateHashes)
 
-	// Run pipeline
-	dispatcher.PushAddresses(ctx, userContext, groupID)
-
-	wg.Wait()
-	data, err := json.Marshal(stateAddrs)
-	if err != nil {
-		log.Fatalf("failed to marshal stateAddrs")
-	}
-	ioutil.WriteFile("output.json", data, 0755)
+	return disState
 }
 
 func printStats(ctx context.Context, lock *sync.RWMutex, count int, stateAddrs []*am.ScanGroupAddress, stateHashes map[string]*am.ScanGroupAddress) {

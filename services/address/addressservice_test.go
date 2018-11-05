@@ -28,7 +28,7 @@ func init() {
 	var err error
 	flag.StringVar(&env, "env", "local", "environment we are running tests in")
 	flag.Parse()
-	sec := secrets.NewDBSecrets(env, "")
+	sec := secrets.NewSecretsCache(env, "")
 	dbstring, err = sec.DBString(serviceKey)
 	if err != nil {
 		panic("error getting dbstring secret")

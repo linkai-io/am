@@ -18,6 +18,13 @@ type Storage interface {
 	Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error)
 }
 
+func NewStorage(env, region string) Storage {
+	if env == "local" || env == "" {
+		return NewLocalStorage("/tmp/")
+	}
+	return NewS3Storage(env, region)
+}
+
 // ShardName takes an input name and shards it 5 levels
 func ShardName(name string) (string, error) {
 	if len(name) < 5 {

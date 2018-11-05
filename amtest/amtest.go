@@ -363,10 +363,10 @@ func MockAuthorizer() *mock.Authorizer {
 func CreateModuleConfig() *am.ModuleConfiguration {
 	m := &am.ModuleConfiguration{}
 	customSubNames := []string{"sub1", "sub2"}
-	m.BruteModule = &am.BruteModuleConfig{CustomSubNames: customSubNames, RequestsPerSecond: 50, MaxDepth: 2}
+	m.BruteModule = &am.BruteModuleConfig{CustomSubNames: customSubNames, RequestsPerSecond: 10, MaxDepth: 2}
 	customPorts := []int32{1, 2}
-	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 50}
-	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 50, CustomPorts: customPorts}
+	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 10}
+	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 10, CustomPorts: customPorts}
 	m.WebModule = &am.WebModuleConfig{MaxLinks: 10, TakeScreenShots: true, ExtractJS: true, FingerprintFrameworks: true}
 	m.KeywordModule = &am.KeywordModuleConfig{Keywords: []string{"company"}}
 	return m

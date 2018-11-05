@@ -9,7 +9,7 @@ import (
 	"github.com/linkai-io/am/pkg/parsers"
 )
 
-const dnsServer = "1.1.1.1:53"
+const dnsServer = "127.0.0.1:53"
 const localServer = "127.0.0.53:53"
 
 func TestResolveName(t *testing.T) {

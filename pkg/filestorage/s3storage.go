@@ -15,14 +15,13 @@ import (
 )
 
 type S3Storage struct {
-	bucketName string
-	region     string
-	env        string
-	session    *session.Session
+	region  string
+	env     string
+	session *session.Session
 }
 
-func NewS3Storage(bucketName, region, env string) *S3Storage {
-	return &S3Storage{region: region, env: env, bucketName: bucketName}
+func NewS3Storage(env, region string) *S3Storage {
+	return &S3Storage{region: region, env: env}
 }
 
 func (s *S3Storage) Init(config []byte) error {

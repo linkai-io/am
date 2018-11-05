@@ -48,10 +48,11 @@ func main() {
 	}
 
 	state := initializers.State(env, region)
+	sgClient := initializers.SGClient(loadBalancerAddr)
 	addrClient := initializers.AddrClient(loadBalancerAddr)
 	modules := initializers.Modules(state, loadBalancerAddr)
 
-	service := dispatcher.New(addrClient, modules, state)
+	service := dispatcher.New(sgClient, addrClient, modules, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

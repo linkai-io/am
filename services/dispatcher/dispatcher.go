@@ -7,12 +7,22 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/services/dispatcher/state"
 	"github.com/pkg/errors"
+)
+
+// DispatcherStatus for determining if we are started/stopped
+type DispatcherStatus int32
+
+const (
+	Unknown DispatcherStatus = 0
+	Started DispatcherStatus = 1
+	Stopped DispatcherStatus = 2
 )
 
 // Config ...
@@ -25,10 +35,22 @@ type pushDetails struct {
 	scanGroupID int
 }
 
+// taskDetails contains all details needed to execute an analysis task against an am.ScanGroupAddress
+type taskDetails struct {
+	completeCh  chan struct{}        // signaling address analysis complete
+	scangroup   *am.ScanGroup        // scan group configuration
+	address     *am.ScanGroupAddress // address to execute task against
+	userContext am.UserContext       // user context
+	batcher     *Batcher             // for storing the updated results of the analysis
+	logger      zerolog.Logger       // logger specific to this task
+}
+
 // Service for dispatching and handling responses from worker modules
 type Service struct {
+	status           int32
 	defaultDuration  time.Duration
 	config           *Config
+	sgClient         am.ScanGroupService
 	addressClient    am.AddressService
 	moduleClients    map[am.ModuleType]am.ModuleService
 	state            state.Stater
@@ -40,10 +62,11 @@ type Service struct {
 }
 
 // New for coordinating the work of workers
-func New(addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
+func New(sgClient am.ScanGroupService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
 		defaultDuration: time.Duration(-5) * time.Minute,
 		state:           stater,
+		sgClient:        sgClient,
 		addressClient:   addrClient,
 		moduleClients:   modClients,
 		pushCh:          make(chan *pushDetails),
@@ -54,7 +77,7 @@ func New(addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleSer
 
 // Init this dispatcher and register it with coordinator
 func (s *Service) Init(config []byte) error {
-	go s.listener()
+	go s.groupListener()
 	go s.debug()
 	return nil
 }
@@ -100,7 +123,7 @@ func (s *Service) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) listener() {
+func (s *Service) groupListener() {
 	log.Info().Msg("Listening for new scan groups to be pushed...")
 	for {
 		select {
@@ -108,7 +131,7 @@ func (s *Service) listener() {
 			log.Info().Msg("Closing down...")
 			return
 		case details := <-s.pushCh:
-
+			ctx := context.Background()
 			groupLog := log.With().
 				Int("UserID", details.userContext.GetUserID()).
 				Int("GroupID", details.scanGroupID).
@@ -116,26 +139,32 @@ func (s *Service) listener() {
 				Str("TraceID", details.userContext.GetTraceID()).Logger()
 			groupLog.Info().Msg("Starting Analysis")
 
-			s.IncActiveGroups()
-			ctx := context.Background()
-			now := time.Now()
-
 			// TODO: do smart calculation on size of scan group addresses
-			then := now.Add(s.defaultDuration).UnixNano()
-
+			start := time.Now()
+			then := start.Add(s.defaultDuration).UnixNano()
 			filter := newFilter(details.userContext, details.scanGroupID, then)
 
-			// push addresses to state
-			groupLog.Info().Msg("Pushing addresses to state")
 			// for now, one batcher per scan group id, todo move to own service.
 			batcher := NewBatcher(details.userContext, s.addressClient, 10)
 			batcher.Init()
+
+			s.IncActiveGroups()
+
+			scangroup, err := s.getScanGroup(ctx, details.userContext, details.scanGroupID)
+			if err != nil {
+				groupLog.Error().Err(err).Msg("not starting analysis of group")
+				goto DONE
+			}
+
+			// push addresses to state
+			groupLog.Info().Msg("Pushing addresses to state")
 			for {
 				_, addrs, err := s.addressClient.Get(ctx, details.userContext, filter)
 				if err != nil {
 					groupLog.Error().Err(err).Msg("error getting addresses from client")
 					goto DONE
 				}
+
 				if addrs == nil || len(addrs) == 0 {
 					groupLog.Info().Msg("no addresses matched address service filter")
 					break
@@ -154,12 +183,12 @@ func (s *Service) listener() {
 
 			groupLog.Info().Msg("Push addresses complete")
 
-			if err := s.analyzeAddresses(ctx, details.userContext, groupLog, batcher, details.scanGroupID); err != nil {
+			if err := s.analyzeAddresses(ctx, details.userContext, groupLog, batcher, scangroup); err != nil {
 				groupLog.Error().Err(err).Msg("error analyzing addresses")
 			}
 
 		DONE:
-			groupLog.Info().Msg("Group analysis complete")
+			groupLog.Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
 			batcher.Done()
 
 			if err := s.state.Stop(ctx, details.userContext, details.scanGroupID); err != nil {
@@ -172,44 +201,88 @@ func (s *Service) listener() {
 	} // end for
 }
 
-// analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned
-// TODO: add concurrency here
-func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, batcher *Batcher, scanGroupID int) error {
+func (s *Service) getScanGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (*am.ScanGroup, error) {
+	oid, scangroup, err := s.sgClient.Get(ctx, userContext, scanGroupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if oid != userContext.GetOrgID() {
+		return nil, am.ErrOrgIDMismatch
+	}
+
+	return scangroup, nil
+}
+
+// analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned. Use a worker pool
+// allowing up to NSModule.RequestsPerSecond worker pool to work concurrently.
+func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, batcher *Batcher, scangroup *am.ScanGroup) error {
+
 	for {
-		addrMap, err := s.state.PopAddresses(ctx, userContext, scanGroupID, 1000)
+		addrMap, err := s.state.PopAddresses(ctx, userContext, scangroup.GroupID, 1000)
 		if err != nil {
 			return errors.Wrap(err, "error getting addresses")
 		}
+		numAddrs := len(addrMap)
 
-		if len(addrMap) == 0 {
+		if numAddrs == 0 {
 			groupLog.Info().Msg("no more addresses from work queue")
 			break
 		}
 
 		groupLog.Info().Int("address_count", len(addrMap)).Msg("popped from state")
+		rps := int(scangroup.ModuleConfigurations.NSModule.RequestsPerSecond)
+
+		if numAddrs < rps {
+			rps = numAddrs
+		}
+
+		pool := workerpool.New(rps)
+		groupLog.Info().Int("worker_pool", rps).Msg("created for processing dispatcher tasks")
 
 		for _, addr := range addrMap {
-			s.IncActiveAddresses()
-			updatedAddress, err := s.analyzeAddress(ctx, userContext, groupLog, scanGroupID, addr)
-			if err != nil {
-				// TODO: need to figure out how to handle not losing hosts, but also not scanning forever if
-				// they are always problematic.
-				groupLog.Error().Err(err).Str("ip", addr.IPAddress).Str("host", addr.HostAddress)
-				s.DecActiveAddresses()
-				continue
+			analysisAddr := addr
+
+			task := func(details *taskDetails) func() {
+				return func() {
+					s.IncActiveAddresses()
+					s.processAddress(details)
+					s.DecActiveAddresses()
+				}
 			}
 
-			updatedAddress.LastSeenTime = time.Now().UnixNano()
-			batcher.Add(updatedAddress)
-
-			// this happens iff input_list/manual hosts only have one of ip or host
-			if addr.AddressHash != updatedAddress.AddressHash {
-				s.updateOriginal(batcher, addr)
+			details := &taskDetails{
+				scangroup:   scangroup,
+				address:     analysisAddr,
+				userContext: userContext,
+				batcher:     batcher,
+				logger:      groupLog,
 			}
-			s.DecActiveAddresses()
+
+			pool.Submit(task(details))
 		}
+		pool.StopWait()
 	}
 	return nil
+}
+
+// processAddress for a given task, running the analysis of the address, and adding the final results to our batcher.
+func (s *Service) processAddress(details *taskDetails) {
+	ctx := context.Background()
+	updatedAddress, err := s.analyzeAddress(ctx, details.userContext, details.logger, details.scangroup.GroupID, details.address)
+	if err != nil {
+		// TODO: need to figure out how to handle not losing hosts, but also not scanning forever if
+		// they are always problematic.
+		details.logger.Error().Err(err).Str("ip", details.address.IPAddress).Str("host", details.address.HostAddress)
+	}
+
+	updatedAddress.LastSeenTime = time.Now().UnixNano()
+	details.batcher.Add(updatedAddress)
+
+	// this happens iff input_list/manual hosts only have one of ip or host
+	if details.address.AddressHash != updatedAddress.AddressHash {
+		s.updateOriginal(details.batcher, details.address)
+	}
 }
 
 // updateOriginal since we can not update the original input hosts (or manually added)
@@ -224,53 +297,52 @@ func (s *Service) updateOriginal(batcher *Batcher, originalAddress *am.ScanGroup
 	}
 }
 
-// analyzeAddress
+// analyzeAddress analyzes ns records, then brute forces, then web systems. (TODO: add bigdata / other modules)
 func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
-	groupLog.Info().Str("ip", address.IPAddress).Str("host", address.HostAddress).Msg("analyzing ns records")
-	updatedAddress, possibleNewAddrs, err := s.moduleClients[am.NSModule].Analyze(ctx, userContext, address)
+	mLog := groupLog.With().Str("ip", address.IPAddress).Str("host", address.HostAddress).Logger()
+
+	mLog.Info().Msg("analyzing ns records")
+	updatedAddress, err := s.moduleAnalysis(ctx, userContext, s.moduleClients[am.NSModule], mLog, scanGroupID, address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using ns module")
 	}
 
-	if len(possibleNewAddrs) > 0 {
-		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
-	}
-	groupLog.Info().Str("ip", updatedAddress.IPAddress).Str("host", updatedAddress.HostAddress).Msg("brute forcing")
-
-	updatedAddress, possibleNewAddrs, err = s.moduleClients[am.BruteModule].Analyze(ctx, userContext, updatedAddress)
+	mLog.Info().Msg("brute forcing")
+	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BruteModule], mLog, scanGroupID, address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using brute module")
 	}
 
-	if len(possibleNewAddrs) > 0 {
-		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
-	}
-
-	groupLog.Info().Str("ip", updatedAddress.IPAddress).Str("host", updatedAddress.HostAddress).Msg("analyzing web systems")
-	updatedAddress, possibleNewAddrs, err = s.moduleClients[am.WebModule].Analyze(ctx, userContext, updatedAddress)
+	mLog.Info().Msg("analyzing web systems")
+	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.WebModule], mLog, scanGroupID, address)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using web module")
-	}
-
-	if len(possibleNewAddrs) > 0 {
-		s.addNewPossibleAddresses(ctx, userContext, groupLog, scanGroupID, possibleNewAddrs)
 	}
 
 	return updatedAddress, nil
 }
 
-func (s *Service) addNewPossibleAddresses(ctx context.Context, userContext am.UserContext, groupLog zerolog.Logger, scanGroupID int, addresses map[string]*am.ScanGroupAddress) {
-	// test if newAddrs already exist in set before adding
-	newAddrs, err := s.state.FilterNew(ctx, userContext.GetOrgID(), scanGroupID, addresses)
+func (s *Service) moduleAnalysis(ctx context.Context, userContext am.UserContext, module am.ModuleService, logger zerolog.Logger, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
+	updatedAddress, possibleNewAddrs, err := module.Analyze(ctx, userContext, address)
 	if err != nil {
-		groupLog.Error().Err(err).Msg("testing state to determine new address failed")
+		return nil, err
+	}
+
+	if len(possibleNewAddrs) == 0 {
+		return updatedAddress, nil
+	}
+
+	newAddrs, err := s.state.FilterNew(ctx, userContext.GetOrgID(), scanGroupID, possibleNewAddrs)
+	if err != nil {
+		logger.Error().Err(err).Msg("testing state to determine new address failed")
 	}
 
 	if len(newAddrs) > 0 {
 		if err := s.state.PutAddressMap(ctx, userContext, scanGroupID, newAddrs); err != nil {
-			groupLog.Error().Err(err).Int("address_count", len(newAddrs)).Msg("failed to put in state")
+			logger.Error().Err(err).Int("address_count", len(newAddrs)).Msg("failed to put in state")
 		}
 	}
+	return updatedAddress, nil
 }
 
 func (s *Service) IncActiveGroups() {

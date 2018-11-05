@@ -44,10 +44,13 @@ nsmoduleservice:
 amloadservice:
 	docker build -t linkai_amloadservice -f Dockerfile.amloadservice .
 
+webdataservice:
+	docker build -t linkai_webdataservice -f Dockerfile.webdataservice .
+
 brutemoduleservice:
 	docker build -t linkai_brutemoduleservice -f Dockerfile.brutemoduleservice .
 
-services: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice amloadservice nsmoduleservice brutemoduleservice
+services: orgservice userservice jobservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice amloadservice webdataservice brutemoduleservice
 
 test:
 	go test ./... -cover
