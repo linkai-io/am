@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"os"
 	"testing"
 
 	"github.com/linkai-io/am/pkg/secrets"
@@ -33,6 +34,10 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := amtest.MockAuthorizer()
 	roleManager := amtest.MockRoleManager()
 	service := organization.New(roleManager, auth)
@@ -43,6 +48,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "orgorgcreate"
@@ -116,6 +125,10 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateRoleFail(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "orgcreaterolefail"
@@ -154,6 +167,10 @@ func TestCreateRoleFail(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "orgorgdelete"
@@ -189,6 +206,10 @@ func TestDelete(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "orgorgupdate"

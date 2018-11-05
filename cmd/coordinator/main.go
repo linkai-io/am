@@ -9,17 +9,14 @@ import (
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
-	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/clients/scangroup"
+	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
-	"github.com/linkai-io/am/pkg/state/redis"
 	"github.com/rs/zerolog"
 
 	coordinatorprotoservice "github.com/linkai-io/am/protocservices/coordinator"
 	"github.com/linkai-io/am/services/coordinator"
 	coordprotoc "github.com/linkai-io/am/services/coordinator/protoc"
-	"github.com/linkai-io/am/services/coordinator/state"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -40,7 +37,7 @@ func main() {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "CoordinatorService").Logger()
 
-	sec := secrets.NewDBSecrets(env, region)
+	sec := secrets.NewSecretsCache(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get load balancer address")
@@ -61,8 +58,8 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
-	state := initState()
-	scanGroupClient := initSGClient()
+	state := initializers.State(env, region)
+	scanGroupClient := initializers.SGClient(loadBalancerAddr)
 
 	service := coordinator.New(state, scanGroupClient, systemOrgID, systemUserID)
 	err = retrier.Retry(func() error {
@@ -85,36 +82,4 @@ func main() {
 	if err := s.Serve(listener); err != nil {
 		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
-}
-
-func initState() state.Stater {
-	redisState := redis.New()
-	sec := secrets.NewDBSecrets(env, region)
-	cacheConfig, err := sec.CacheConfig()
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get cache connection string")
-	}
-
-	err = retrier.RetryUntil(func() error {
-		log.Info().Msg("attempting to connect to redis")
-		return redisState.Init([]byte(cacheConfig))
-	}, time.Minute*1, time.Second*3)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to redis")
-	}
-	return redisState
-}
-
-func initSGClient() am.ScanGroupService {
-	scanGroupClient := scangroup.New()
-
-	err := retrier.RetryUntil(func() error {
-		return scanGroupClient.Init([]byte(loadBalancerAddr))
-	}, time.Minute*1, time.Second*3)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to scangroup server")
-	}
-	return scanGroupClient
 }

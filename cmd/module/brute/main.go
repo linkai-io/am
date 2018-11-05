@@ -8,12 +8,10 @@ import (
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
-	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/clients/address"
 	"github.com/linkai-io/am/pkg/dnsclient"
+	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
-	"github.com/linkai-io/am/pkg/state/redis"
 	moduleservice "github.com/linkai-io/am/protocservices/module"
 	"github.com/linkai-io/am/services/module/brute"
 	modulerprotoc "github.com/linkai-io/am/services/module/protoc"
@@ -39,7 +37,7 @@ func main() {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "BruteModuleService").Logger()
 
-	sec := secrets.NewDBSecrets(env, region)
+	sec := secrets.NewSecretsCache(env, region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get load balancer address")
@@ -50,7 +48,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
-	state := initState()
+	state := initializers.State(env, region)
 	dc := dnsclient.New([]string{"unbound:53"}, 1)
 	service := brute.New(dc, state)
 	err = retrier.Retry(func() error {
@@ -73,36 +71,4 @@ func main() {
 	if err := s.Serve(listener); err != nil {
 		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
-}
-
-func initAddrClient() am.AddressService {
-	addrClient := address.New()
-
-	err := retrier.RetryUntil(
-		func() error {
-			return addrClient.Init([]byte(loadBalancerAddr))
-		}, time.Minute*1, time.Second*3)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to address server")
-	}
-	return addrClient
-}
-
-func initState() *redis.State {
-	redisState := redis.New()
-	sec := secrets.NewDBSecrets(env, region)
-	cacheConfig, err := sec.CacheConfig()
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get cache connection string")
-	}
-
-	err = retrier.RetryUntil(func() error {
-		return redisState.Init([]byte(cacheConfig))
-	}, time.Minute*1, time.Second*3)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to redis")
-	}
-	return redisState
 }

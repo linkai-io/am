@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -35,6 +36,10 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
@@ -47,6 +52,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "addaddress"
@@ -160,6 +169,10 @@ func TestAdd(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "updateaddress"

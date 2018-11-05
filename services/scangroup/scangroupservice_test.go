@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -34,6 +35,10 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
@@ -46,6 +51,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "sgcreate"
@@ -159,6 +168,10 @@ func TestCreate(t *testing.T) {
 }
 
 func TestModuleConfigs(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 	orgName := "sgmodules"
 	groupName := "sgmodulesgroup"
@@ -217,6 +230,10 @@ func TestModuleConfigs(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "sggetgroups"
@@ -286,6 +303,10 @@ func TestGetGroups(t *testing.T) {
 }
 
 func TestPauseResume(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "sgpause"

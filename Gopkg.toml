@@ -93,10 +93,6 @@
   name = "golang.org/x/net"
 
 [[constraint]]
-  branch = "master"
-  name = "golang.org/x/time"
-
-[[constraint]]
   name = "google.golang.org/grpc"
   version = "1.15.0"
 

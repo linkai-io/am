@@ -3,6 +3,7 @@ package bigdata_test
 import (
 	"context"
 	"flag"
+	"os"
 	"testing"
 	"time"
 
@@ -28,6 +29,10 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := amtest.MockAuthorizer()
 	service := bigdata.New(auth)
 
@@ -37,6 +42,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestAddGetCT(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := amtest.MockAuthorizer()
 	service := bigdata.New(auth)
 	ctx := context.Background()

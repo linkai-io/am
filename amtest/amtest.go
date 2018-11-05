@@ -395,7 +395,7 @@ func MockEmptyAuthorizer() *mock.Authorizer {
 }
 
 func InitDB(env string, t *testing.T) *pgx.ConnPool {
-	sec := secrets.NewDBSecrets(env, "")
+	sec := secrets.NewSecretsCache(env, "")
 	dbstring, err := sec.DBString("linkai_admin")
 	if err != nil {
 		t.Fatalf("unable to get dbstring: %s\n", err)

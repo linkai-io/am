@@ -42,7 +42,7 @@ func main() {
 }
 
 func listenAndServe() error {
-	sec := secrets.NewDBSecrets(env, region)
+	sec := secrets.NewSecretsCache(env, region)
 	consulAddr, err := sec.DiscoveryAddr()
 	if err != nil || consulAddr == "" {
 		log.Fatal().Msg("error getting discovery server address")

@@ -2,6 +2,7 @@ package ladonauth_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -15,6 +16,10 @@ import (
 )
 
 func TestNewPolicy(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
@@ -23,6 +28,10 @@ func TestNewPolicy(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
@@ -94,6 +103,10 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateDefaultPolicy(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 	manager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := manager.Init(); err != nil {
@@ -137,6 +150,10 @@ func testCreatePolicy(description string, meta []byte, subjects, actions, resour
 }
 
 func TestGetAll(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	start := 10
 	end := 60
 	db := amtest.InitDB(env, t)
@@ -177,6 +194,10 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	start := 8
 	end := 12
 	db := amtest.InitDB(env, t)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/linkai-io/am/am"
@@ -30,6 +31,10 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
@@ -42,6 +47,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "usercreate"
@@ -135,6 +144,10 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 
 	orgName := "userupdate"

@@ -2,6 +2,7 @@ package redis_test
 
 import (
 	"context"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -14,6 +15,10 @@ import (
 )
 
 func TestPut(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
@@ -39,6 +44,10 @@ func TestPut(t *testing.T) {
 }
 
 func TestAddresses(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
@@ -111,6 +120,10 @@ func TestAddresses(t *testing.T) {
 }
 
 func TestGetGroup(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
@@ -149,6 +162,10 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestGroupStatus(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	oid := 2
 	gid := 2
 	r := redis.New()
@@ -230,6 +247,10 @@ func TestGroupStatus(t *testing.T) {
 }
 
 func TestFilterNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
@@ -298,6 +319,10 @@ func TestFilterNew(t *testing.T) {
 }
 
 func TestState_DoNSRecords(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
@@ -336,6 +361,10 @@ func TestState_DoNSRecords(t *testing.T) {
 }
 
 func TestState_Subscribe(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(2)
@@ -369,6 +398,10 @@ func TestState_Subscribe(t *testing.T) {
 }
 
 func BenchmarkPut(b *testing.B) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		b.Skip("skipping infrastructure tests")
+	}
+
 	r := redis.New()
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		b.Fatalf("error connecting to redis: %s\n", err)

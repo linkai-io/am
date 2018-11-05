@@ -582,6 +582,14 @@ func (s *State) DoWebDomain(ctx context.Context, orgID, scanGroupID int, expireS
 	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.WebZone(zone), zone)
 }
 
+// DoCTDomain org:group:":module:bigdata:zones:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't look up in bigdata.
+func (s *State) DoCTDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.BigDataZone(zone), zone)
+}
+
 // Sets and checks if a value exists in a key. If it already exists, we don't need to do whatever 'key's work is, as
 // it's already been done.
 func (s *State) do(ctx context.Context, orgID, scanGroupID int, expireSeconds int, key, zone string) (bool, error) {

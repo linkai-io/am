@@ -67,6 +67,11 @@ func (r *RedisKeys) WebZone(zone string) string {
 	return r.configFmt + ":module:web:zones:analysis:" + zone
 }
 
+// BigDataZone key for determining if we should look up domain in bigdata
+func (r *RedisKeys) BigDataZone(zone string) string {
+	return r.configFmt + ":module:bigdata:zones:" + zone
+}
+
 func (r *RedisKeys) PortConfig() string {
 	return r.configFmt + ":module:port:config"
 }

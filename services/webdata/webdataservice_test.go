@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -63,6 +64,10 @@ func initOrg(orgName, groupName string, t *testing.T) (*webdata.Service, *OrgDat
 }
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
@@ -76,6 +81,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 	service, org := initOrg("webdataadd", "webdataadd", t)
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
@@ -96,6 +105,10 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGetSnapshots(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 	service, org := initOrg("webdatagetsnapshots", "webdatagetsnapshots", t)
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
@@ -127,6 +140,10 @@ func TestGetSnapshots(t *testing.T) {
 }
 
 func TestGetCertificates(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 	service, org := initOrg("webdatagetcerts", "webdatagetcerts", t)
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
@@ -158,6 +175,10 @@ func TestGetCertificates(t *testing.T) {
 }
 
 func TestGetResponses(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	ctx := context.Background()
 	service, org := initOrg("webdatagetresponses", "webdatagetresponses", t)
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)

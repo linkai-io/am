@@ -17,17 +17,17 @@ import (
 func TestWebAnalyze(t *testing.T) {
 	ctx := context.Background()
 
-	b := browser.NewGCDBrowserPool(5)
-	if err := b.Init(); err != nil {
+	browserPool := browser.NewGCDBrowserPool(5)
+	if err := browserPool.Init(); err != nil {
 		t.Fatalf("failed initializing browsers: %v\n", err)
 	}
-	defer b.Close(ctx)
+	defer browserPool.Close(ctx)
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 1)
 
-	r := amtest.MockWebState()
-	s := amtest.MockStorage()
+	stater := amtest.MockWebState()
+	storer := amtest.MockStorage()
 
-	w := web.New(b, dc, r, s)
+	w := web.New(browserPool, dc, stater, storer)
 	if err := w.Init(); err != nil {
 		t.Fatalf("failed to init web module: %v\n", err)
 	}

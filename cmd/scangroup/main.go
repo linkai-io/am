@@ -7,11 +7,10 @@ import (
 
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
-	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth/ladonauth"
+	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/retrier"
-	"github.com/linkai-io/am/pkg/secrets"
 	scangroupprotoservice "github.com/linkai-io/am/protocservices/scangroup"
 	"github.com/linkai-io/am/services/scangroup"
 	scangroupprotoc "github.com/linkai-io/am/services/scangroup/protoc"
@@ -43,7 +42,8 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
-	dbstring, db := initDB()
+
+	dbstring, db := initializers.DB(env, region, am.ScanGroupServiceKey)
 
 	err = retrier.Retry(func() error {
 		policyManager := ladonauth.NewPolicyManager(db, "pgx")
@@ -79,32 +79,4 @@ func main() {
 	if err := s.Serve(listener); err != nil {
 		log.Fatal().Err(err).Msg("failed to serve grpc")
 	}
-}
-
-func initDB() (string, *pgx.ConnPool) {
-	sec := secrets.NewDBSecrets(env, region)
-	dbstring, err := sec.DBString(am.ScanGroupServiceKey)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get dbstring")
-	}
-
-	conf, err := pgx.ParseConnectionString(dbstring)
-	if err != nil {
-		log.Fatal().Err(err).Msg("error parsing connection string")
-	}
-
-	var p *pgx.ConnPool
-
-	err = retrier.RetryUntil(func() error {
-		p, err = pgx.NewConnPool(pgx.ConnPoolConfig{
-			ConnConfig:     conf,
-			MaxConnections: 5,
-		})
-		return err
-	}, time.Minute*1, time.Second*3)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to connect to postgresql")
-	}
-	return dbstring, p
 }

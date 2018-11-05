@@ -2,6 +2,7 @@ package redisclient
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 
@@ -13,6 +14,10 @@ import (
 )
 
 func BenchmarkGetKeys(b *testing.B) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		b.Skip("skipping infrastructure tests")
+	}
+
 	r := New("0.0.0.0:6379", "test132")
 	if err := r.Init(); err != nil {
 		b.Fatalf("unable to connect: %s\n", err)
@@ -54,6 +59,10 @@ func BenchmarkGetKeys(b *testing.B) {
 }
 
 func BenchmarkIntersect(b *testing.B) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		b.Skip("skipping infrastructure tests")
+	}
+
 	r := New("0.0.0.0:6379", "test132")
 	if err := r.Init(); err != nil {
 		b.Fatalf("unable to connect: %s\n", err)

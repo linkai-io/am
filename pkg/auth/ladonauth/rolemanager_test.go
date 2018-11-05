@@ -1,6 +1,7 @@
 package ladonauth_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/linkai-io/am/am"
@@ -9,6 +10,10 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 	//testCreateOrg(db, "role_test", t)
 	manager := ladonauth.NewRoleManager(db, "pgx")
@@ -19,6 +24,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestRole(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 
 	amtest.CreateOrg(db, "create_test1", t)
@@ -125,6 +134,10 @@ func TestRole(t *testing.T) {
 }
 
 func TestMembers(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	member1 := "members_test1"
 	member2 := "members_test2"
 
@@ -229,6 +242,10 @@ func TestMembers(t *testing.T) {
 }
 
 func TestGetByName(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	name1 := "byname_test1"
 	name2 := "byname_test2"
 

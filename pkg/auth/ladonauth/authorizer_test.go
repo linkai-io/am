@@ -1,6 +1,7 @@
 package ladonauth_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/linkai-io/am/am"
@@ -10,6 +11,10 @@ import (
 )
 
 func TestNewLadonAuthorizer(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
 	db := amtest.InitDB(env, t)
 	sqlManager := ladonauth.NewPolicyManager(db, "pgx")
 	if err := sqlManager.Init(); err != nil {
