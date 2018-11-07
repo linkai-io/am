@@ -54,3 +54,6 @@ services: orgservice userservice scangroupservice addressservice coordinatorserv
 
 test:
 	go test ./... -cover
+
+infratest:
+	INFRA_TESTS=yes go test ./... -cover

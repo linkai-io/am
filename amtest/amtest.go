@@ -124,6 +124,10 @@ func MockBruteState() *mock.BruteState {
 		return nil, errors.New("group not found")
 	}
 
+	mockState.DoBruteETLDFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds, maxAllowed int, etld string) (int, bool, error) {
+		return 1, false, nil
+	}
+
 	bruteHosts := make(map[string]bool)
 	mutateHosts := make(map[string]bool)
 	mockState.DoBruteDomainFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {
