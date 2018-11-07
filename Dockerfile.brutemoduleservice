@@ -7,7 +7,7 @@ RUN adduser -D -g '' appuser
 COPY . $GOPATH/src/github.com/linkai-io/am/
 WORKDIR $GOPATH/src/github.com/linkai-io/am/
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/brutemoduleservice cmd/module/brute/main.go cmd/module/brute/10.go cmd/module/brute/1000.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/brutemoduleservice cmd/module/brute/main.go cmd/module/brute/10.go cmd/module/brute/1000.go cmd/module/brute/10000.go
 
 # STEP 2 build a small image
 # start from scratch

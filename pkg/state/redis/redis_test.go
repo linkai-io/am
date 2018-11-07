@@ -360,6 +360,59 @@ func TestState_DoNSRecords(t *testing.T) {
 	}
 }
 
+func TestState_DoBruteETLD(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	r := redis.New()
+	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+		t.Fatalf("error connecting to redis: %s\n", err)
+	}
+	ctx := context.Background()
+	orgID := 1
+	groupID := 1
+	testSeconds := 15
+	count, ok, err := r.DoBruteETLD(ctx, orgID, groupID, testSeconds, 5, "example.org")
+	if err != nil {
+		t.Fatalf("got error testing brute etld records: %s\n", err)
+	}
+	if !ok {
+		t.Fatalf("got error, should be ok to brute, got false")
+	}
+	if count != 1 {
+		t.Fatalf("count should have equal'd 1, got %d\n", count)
+	}
+
+	for i := 0; i < 4; i++ {
+		count, ok, err := r.DoBruteETLD(ctx, orgID, groupID, testSeconds, 5, "example.org")
+		if err != nil {
+			t.Fatalf("got error testing brute etld records: %s\n", err)
+		}
+
+		if !ok {
+			t.Fatalf("got error, should be ok to brute, got false")
+		}
+
+		if i+2 != count {
+			t.Fatalf("count should have equal'd %d, got %d\n", i+2, count)
+		}
+	}
+
+	count, ok, err = r.DoBruteETLD(ctx, orgID, groupID, testSeconds, 5, "example.org")
+	if err != nil {
+		t.Fatalf("got error testing brute etld records: %s\n", err)
+	}
+
+	if ok {
+		t.Fatalf("should be !ok to brute, got true")
+	}
+
+	if 5 != count {
+		t.Fatalf("count should have equal'd 5, got %d\n", count)
+	}
+}
+
 func TestState_Subscribe(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")

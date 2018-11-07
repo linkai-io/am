@@ -23,9 +23,6 @@ orgservice:
 userservice:
 	docker build -t linkai_userservice -f Dockerfile.userservice .
 	
-jobservice:
-	docker build -t linkai_jobservice -f Dockerfile.jobservice .
-	
 scangroupservice:
 	docker build -t linkai_scangroupservice -f Dockerfile.scangroupservice .
 
@@ -50,7 +47,10 @@ webdataservice:
 brutemoduleservice:
 	docker build -t linkai_brutemoduleservice -f Dockerfile.brutemoduleservice .
 
-services: orgservice userservice jobservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice amloadservice webdataservice brutemoduleservice
+webmoduleservice:
+	docker build -t linkai_webmoduleservice -f Dockerfile.webmoduleservice .
+
+services: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice amloadservice webdataservice brutemoduleservice webmoduleservice
 
 test:
 	go test ./... -cover

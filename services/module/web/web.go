@@ -3,9 +3,12 @@ package web
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/linkai-io/am/pkg/convert"
 
 	"github.com/linkai-io/am/pkg/filestorage"
 
@@ -18,7 +21,7 @@ import (
 	"github.com/linkai-io/am/services/module"
 	"github.com/linkai-io/am/services/module/web/state"
 	"github.com/miekg/dns"
-	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -35,10 +38,11 @@ var schemes = []string{"http", "https"}
 // Web will brute force and mutate subdomains to attempt to find
 // additional hosts
 type Web struct {
-	st       state.Stater
-	dc       *dnsclient.Client
-	browsers browser.Browser
-	storage  filestorage.Storage
+	st            state.Stater
+	dc            *dnsclient.Client
+	webDataClient am.WebDataService
+	browsers      browser.Browser
+	storage       filestorage.Storage
 	// for closing subscriptions to listen for group updates
 	exitContext context.Context
 	cancel      context.CancelFunc
@@ -47,11 +51,12 @@ type Web struct {
 }
 
 // New web analysis module
-func New(browsers browser.Browser, dc *dnsclient.Client, st state.Stater, storage filestorage.Storage) *Web {
+func New(browsers browser.Browser, webDataClient am.WebDataService, dc *dnsclient.Client, st state.Stater, storage filestorage.Storage) *Web {
 	ctx, cancel := context.WithCancel(context.Background())
 	b := &Web{st: st, exitContext: ctx, cancel: cancel}
 
 	b.browsers = browsers
+	b.webDataClient = webDataClient
 	b.dc = dc
 	b.storage = storage
 	// start cache subscriber and listen for updates
@@ -65,7 +70,7 @@ func (w *Web) Init() error {
 }
 
 // shouldAnalyze determines if we should analyze the specific address or not.
-func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress) bool {
+func (w *Web) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
 	if address.IsWildcardZone {
 		return false
 	}
@@ -82,12 +87,12 @@ func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address 
 
 	shouldWeb, err := w.st.DoWebDomain(ctx, address.OrgID, address.GroupID, oneHour, host)
 	if err != nil {
-		logger.Warn().Err(err).Msg("unable to check do web domain")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do web domain")
 		return false
 	}
 
 	if !shouldWeb {
-		logger.Info().Msg("not analyzing web for domain, as it is already complete")
+		log.Ctx(ctx).Info().Msg("not analyzing web for domain, as it is already complete")
 		return false
 	}
 
@@ -96,7 +101,7 @@ func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address 
 	}
 
 	if address.ConfidenceScore < 75 {
-		logger.Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
+		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
 		return false
 	}
 
@@ -108,17 +113,17 @@ func (w *Web) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address 
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	portCfg := module.DefaultPortConfig()
 	nsCfg := module.DefaultNSConfig()
-	logger := module.DefaultLogger(userContext, address)
+	ctx = module.DefaultLogger(ctx, userContext, address)
 
 	webRecords := make(map[string]*am.ScanGroupAddress, 0)
 
-	if !w.shouldAnalyze(ctx, logger, address) {
-		logger.Info().Msg("not analyzing")
+	if !w.shouldAnalyze(ctx, address) {
+		log.Ctx(ctx).Info().Msg("not analyzing")
 		return address, webRecords, nil
 	}
 
 	if group, err := w.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
-		logger.Warn().Err(err).Msg("unable to find group id in cache, using default settings")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to find group id in cache, using default settings")
 	} else {
 		portCfg = group.ModuleConfigurations.PortModule
 		nsCfg = group.ModuleConfigurations.NSModule
@@ -126,7 +131,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	for _, port := range portCfg.CustomPorts {
 		// do stuff
-		logger.Info().Int32("port", port).Msg("analyzing")
+		log.Ctx(ctx).Info().Int32("port", port).Msg("analyzing")
 		portStr := strconv.Itoa(int(port))
 		for _, scheme := range schemes {
 
@@ -138,7 +143,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 			webData := &am.WebData{}
 			retryErr := retrier.RetryAttempts(func() error {
 				var err error
-				logger.Info().Int32("port", port).Str("scheme", scheme).Msg("calling load")
+				log.Ctx(ctx).Info().Int32("port", port).Str("scheme", scheme).Msg("calling load")
 				webData, err = w.browsers.Load(ctx, address, scheme, portStr)
 				return err
 			}, 2)
@@ -147,7 +152,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
-			hosts, err := w.processWebData(ctx, logger, nsCfg, address, webData)
+			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData)
 			if err != nil {
 				continue
 			}
@@ -160,7 +165,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	return address, webRecords, nil
 }
 
-func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
+func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
 	var hash string
 	var link string
 	var err error
@@ -173,21 +178,21 @@ func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, nsCfg *
 
 	_, link, err = w.storage.Write(ctx, address, []byte(webData.Snapshot))
 	if err != nil {
-		logger.Warn().Err(err).Msg("failed to write snapshot data to storage")
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to write snapshot data to storage")
 	}
 	webData.SnapshotLink = link
 
 	hash, link, err = w.storage.Write(ctx, address, []byte(webData.SerializedDOM))
 	if err != nil {
-		logger.Warn().Err(err).Msg("failed to write serialized dom data to storage")
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to write serialized dom data to storage")
 
 	}
 	webData.SerializedDOMHash = hash
 	webData.SerializedDOMLink = link
 
 	if webData.Responses != nil {
-		extractedHosts := w.processResponses(ctx, logger, address, webData)
-		resolvedAddresses := module.ResolveNewAddresses(ctx, logger, w.dc, &module.ResolverData{
+		extractedHosts := w.processResponses(ctx, address, webData)
+		resolvedAddresses := module.ResolveNewAddresses(ctx, w.dc, &module.ResolverData{
 			Address:           address,
 			RequestsPerSecond: int(nsCfg.RequestsPerSecond),
 			NewAddresses:      extractedHosts,
@@ -198,12 +203,17 @@ func (w *Web) processWebData(ctx context.Context, logger zerolog.Logger, nsCfg *
 			newAddresses[k] = v
 		}
 	}
+
+	if _, err := w.webDataClient.Add(ctx, userContext, webData); err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to upload webdata to service")
+	}
+
 	return newAddresses, nil
 }
 
 // processResponses iterates over all responses, extracting additional domains and creating a hash of the
 // body data and save it to file storage
-func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, webData *am.WebData) map[string]struct{} {
+func (w *Web) processResponses(ctx context.Context, address *am.ScanGroupAddress, webData *am.WebData) map[string]struct{} {
 	var extractHosts bool
 	var zone string
 	var needles []*regexp.Regexp
@@ -229,6 +239,8 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 
 	// iterate over responses and save to filestorage. If we have a proper etld,
 	// extract hosts from the body and certificates.
+	certDuplicates := make(map[string]struct{}, 0)
+
 	for _, resp := range webData.Responses {
 		if resp == nil {
 			continue
@@ -236,7 +248,7 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 
 		hash, link, err := w.storage.Write(ctx, address, []byte(resp.RawBody))
 		if err != nil {
-			logger.Warn().Err(err).Msg("unable to process hash/link for raw data")
+			log.Ctx(ctx).Warn().Err(err).Msg("unable to process hash/link for raw data")
 		}
 		resp.RawBodyHash = hash
 		resp.RawBodyLink = link
@@ -266,6 +278,23 @@ func (w *Web) processResponses(ctx context.Context, logger zerolog.Logger, addre
 				allHosts[host] = struct{}{}
 			}
 		}
+
+		// make sure we don't have duplicate certificates otherwise webdataservice will throw an error
+		// during insert
+		unique := certificateHash(resp.WebCertificate)
+		if _, ok := certDuplicates[unique]; ok {
+			resp.WebCertificate = nil
+		} else {
+			certDuplicates[unique] = struct{}{}
+		}
+
 	}
 	return allHosts
+}
+
+// certificateHash is for ensuring only unique certificates get added to the WebData structure. Only unique
+// values may be UPSERT'd from a temporary table.
+func certificateHash(cert *am.WebCertificate) string {
+	data := fmt.Sprintf("%s.%s.%s.%d.%d", cert.SubjectName, cert.Cipher, cert.Mac, cert.ValidFrom, cert.ValidTo)
+	return convert.HashData([]byte(data))
 }

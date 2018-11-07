@@ -550,6 +550,55 @@ func (s *State) Subscribe(ctx context.Context, onStartFn state.SubOnStart, onMes
 	return s.rc.Subscribe(ctx, onStartFn, onMessageFn, channels...)
 }
 
+// DoBruteETLD global method to rate limit how many ETLDs we will brute force concurrently.
+func (s *State) DoBruteETLD(ctx context.Context, orgID, scanGroupID, expireSeconds int, maxAllowed int, etld string) (int, bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return 0, false, err
+	}
+	defer s.rc.Return(conn)
+
+	// adaptation of https://redis.io/commands/incr (see bottom of the page for example)
+	key := keys.BruteETLD(etld)
+	count, err := redis.Int(conn.Do("LLEN", key))
+	if err != nil {
+		return 0, false, err
+	}
+
+	if count >= maxAllowed {
+		return count, false, nil
+	}
+
+	exist, err := redis.Bool(conn.Do("EXISTS", key))
+	if err != nil {
+		return 0, false, nil
+	}
+
+	if exist {
+		count, err = redis.Int(conn.Do("RPUSHX", key, key))
+		return count, (err == nil), err
+	}
+
+	if err := conn.Send("MULTI"); err != nil {
+		return 0, false, err
+	}
+
+	if err := conn.Send("RPUSH", key, key); err != nil {
+		return 0, false, err
+	}
+
+	if err := conn.Send("EXPIRE", key, expireSeconds); err != nil {
+		return 0, false, err
+	}
+
+	if _, err = redis.Values(conn.Do("EXEC")); err != nil {
+		return 0, false, err
+	}
+	return count + 1, true, nil
+}
+
 // DoNSRecords org:group:module:ns:zone:<zonename> sets the zone as already being checked or, if it already exists
 // return that we shouldn't do NS records for this zone.
 func (s *State) DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {

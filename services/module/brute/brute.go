@@ -13,12 +13,12 @@ import (
 	"github.com/linkai-io/am/services/module"
 	"github.com/linkai-io/am/services/module/brute/state"
 	"github.com/miekg/dns"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 const (
-	oneHour = 60 * 60
+	oneHour     = 60 * 60
+	fiveMinutes = 60 * 5
 )
 
 // Bruter will brute force and mutate subdomains to attempt to find
@@ -60,23 +60,23 @@ func (b *Bruter) Init(bruteFile io.Reader) error {
 // max depth, we *will* attempt to mutate hosts past max depth.
 func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	bmc := module.DefaultBruteConfig()
-	logger := module.DefaultLogger(userContext, address)
+	ctx = module.DefaultLogger(ctx, userContext, address)
 
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
-	if !b.shouldAnalyze(ctx, logger, address) {
-		logger.Info().Msg("not analyzing")
+	if !b.shouldAnalyze(ctx, address) {
+		log.Ctx(ctx).Info().Msg("not analyzing")
 		return address, bruteRecords, nil
 	}
 
 	if group, err := b.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
-		logger.Warn().Err(err).Msg("unable to find group id in cache, using default settings")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to find group id in cache, using default settings")
 	} else {
 		bmc = group.ModuleConfigurations.BruteModule
 	}
 
-	bruteRecords = b.bruteDomain(ctx, logger, bmc, address)
+	bruteRecords = b.bruteDomain(ctx, bmc, address)
 
-	mutateRecords := b.mutateDomain(ctx, logger, bmc, address)
+	mutateRecords := b.mutateDomain(ctx, bmc, address)
 	for k, v := range mutateRecords {
 		bruteRecords[k] = v
 	}
@@ -85,7 +85,7 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 
 // shouldAnalyze determines if we should analyze the specific address or not. Updates address.IsWildcardZone
 // if tested.
-func (b *Bruter) shouldAnalyze(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress) bool {
+func (b *Bruter) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
 	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
 		return false
 	}
@@ -100,61 +100,112 @@ func (b *Bruter) shouldAnalyze(ctx context.Context, logger zerolog.Logger, addre
 	}
 
 	if address.ConfidenceScore < 75 {
-		logger.Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
+		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
 		return false
 	}
 
 	return true
 }
 
-func (b *Bruter) bruteDomain(ctx context.Context, logger zerolog.Logger, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
+func (b *Bruter) bruteDomain(ctx context.Context, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
 	bruteRecords := make(map[string]*am.ScanGroupAddress, 0)
 	depth, err := parsers.GetDepth(address.HostAddress)
 	if err != nil || int32(depth) > bmc.MaxDepth {
-		logger.Info().Err(err).Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
+		log.Ctx(ctx).Info().Err(err).Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
 		return bruteRecords
 	}
 
 	shouldBrute, err := b.st.DoBruteDomain(ctx, address.OrgID, address.GroupID, oneHour, address.HostAddress)
 	if err != nil {
-		logger.Warn().Err(err).Msg("unable to check do brute force domain")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do brute force domain")
 		return bruteRecords
 	}
 
 	if !shouldBrute {
-		logger.Info().Msg("not brute forcing domain, as it is already complete")
+		log.Ctx(ctx).Info().Msg("not brute forcing domain, as it is already complete")
 		return bruteRecords
 	}
 
+	log.Ctx(ctx).Info().Msg("testing if wildcard domain")
 	if isWildcard := b.dc.IsWildcard(ctx, address.HostAddress); isWildcard {
 		address.IsWildcardZone = true
-		logger.Info().Msg("not brute forcing due to wildcard zone")
+		log.Ctx(ctx).Info().Msg("not brute forcing due to wildcard zone")
+		return bruteRecords
+	}
+
+	etld, err := parsers.GetETLD(address.HostAddress)
+	if err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to get etld of domain")
+		return bruteRecords
+	}
+
+	count, isMaxETLD, err := b.st.DoBruteETLD(ctx, address.OrgID, address.GroupID, fiveMinutes, int(bmc.RequestsPerSecond), etld)
+	if err != nil {
+		log.Ctx(ctx).Warn().Msg("unable to check state if max etld's being tested")
+		return bruteRecords
+	}
+
+	if isMaxETLD {
+		log.Ctx(ctx).Info().Int("etld_count", count).Msg("exceeded max tld's being tested")
 		return bruteRecords
 	}
 
 	subdomains := BuildSubDomainList(b.subdomains, bmc.CustomSubNames)
-	log.Info().Msg("start brute forcing")
-	bruteRecords = b.bruteDomains(ctx, logger, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
-	log.Info().Msg("brute forcing complete")
+	log.Ctx(ctx).Info().Msg("start brute forcing")
+	bruteRecords = b.bruteDomains(ctx, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
+
+	validRecords := b.wildcardFailSafe(ctx, address, bruteRecords)
+	log.Ctx(ctx).Info().Msg("brute forcing complete")
+	return validRecords
+}
+
+// wildcardFailSafe is for the eventuality that our dns lookups fail to catch a domain that indeed is a wildcard domain that is returning the
+// same ip address for > 15 hosts. This *WILL UPDATE* address with the IsWildcardZone flag as being true.
+func (b *Bruter) wildcardFailSafe(ctx context.Context, address *am.ScanGroupAddress, bruteRecords map[string]*am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
+
+	if len(bruteRecords) < 15 {
+		return bruteRecords
+	}
+
+	count := 0
+	lastRecord := &am.ScanGroupAddress{}
+	// fail safe check in the event all records have the same ip address
+	for _, record := range bruteRecords {
+		if lastRecord.IPAddress == record.IPAddress {
+			count++
+		}
+		lastRecord = record
+		if count >= 15 {
+			log.Ctx(ctx).Warn().Msg("ERROR WITH WILDCARD CHECK, ALL DOMAINS POINT TO SAME IP")
+			address.IsWildcardZone = true
+			return make(map[string]*am.ScanGroupAddress)
+		}
+	}
 	return bruteRecords
 }
 
-func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
+func (b *Bruter) mutateDomain(ctx context.Context, bmc *am.BruteModuleConfig, address *am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
 	mutateRecords := make(map[string]*am.ScanGroupAddress, 0)
+
+	// check if failSafe was triggered
+	if address.IsWildcardZone {
+		return mutateRecords
+	}
+
 	depth, err := parsers.GetDepth(address.HostAddress)
 	if err != nil || int32(depth) > bmc.MaxDepth {
-		logger.Info().Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
+		log.Ctx(ctx).Info().Int("depth", depth).Int32("max_depth", bmc.MaxDepth).Msg("not brute forcing due to depth")
 		return mutateRecords
 	}
 
 	subDomain, domain, err := parsers.GetSubDomainAndDomain(address.HostAddress)
 	if err != nil {
-		logger.Warn().Err(err).Msg("not mutating")
+		log.Ctx(ctx).Warn().Err(err).Msg("not mutating")
 		return mutateRecords
 	}
 
 	if subDomain == "" {
-		logger.Info().Msg("no subdomain, not mutating")
+		log.Ctx(ctx).Info().Msg("no subdomain, not mutating")
 		return mutateRecords
 	}
 
@@ -167,12 +218,12 @@ func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *a
 
 	shouldMutate, err := b.st.DoMutateDomain(ctx, address.OrgID, address.GroupID, oneHour, unmutatedSubDomain)
 	if err != nil {
-		logger.Warn().Err(err).Msg("unable to check do mutate domain")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do mutate domain")
 		return mutateRecords
 	}
 
 	if !shouldMutate {
-		logger.Info().Msg("not brute forcing domain, as it is already complete")
+		log.Ctx(ctx).Info().Msg("not brute forcing domain, as it is already complete")
 		return mutateRecords
 	}
 
@@ -183,20 +234,20 @@ func (b *Bruter) mutateDomain(ctx context.Context, logger zerolog.Logger, bmc *a
 		return mutateRecords
 	}
 
-	log.Info().Msg("start mutating")
-	mutateRecords = b.bruteDomains(ctx, logger, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
-	log.Info().Msg("mutating complete")
+	log.Ctx(ctx).Info().Msg("start mutating")
+	mutateRecords = b.bruteDomains(ctx, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
+	log.Ctx(ctx).Info().Msg("mutating complete")
 	return mutateRecords
 }
 
-func (b *Bruter) bruteDomains(ctx context.Context, logger zerolog.Logger, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
+func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress, hostAddress string, subdomains []string, discoveryMethod string, requestsPerSecond int) map[string]*am.ScanGroupAddress {
 
 	newHosts := make(map[string]struct{}, len(subdomains))
 	for _, subdomain := range subdomains {
 		newHosts[subdomain+"."+hostAddress] = struct{}{}
 	}
 
-	return module.ResolveNewAddresses(ctx, logger, b.dc, &module.ResolverData{
+	return module.ResolveNewAddresses(ctx, b.dc, &module.ResolverData{
 		Address:           address,
 		RequestsPerSecond: requestsPerSecond,
 		NewAddresses:      newHosts,

@@ -9,25 +9,25 @@
     "original_input_s3_url": "s3://bucket/org/file",
     "module_configurations": {
             "ns_module": {
-                    "requests_per_second": 50
+                    "requests_per_second": 10
             },
             "dnsbrute_module": {
                     "custom_subnames": [
                             "custom"
                     ],
-                    "requests_per_second": 50,
+                    "requests_per_second": 10,
                     "max_depth": 2
             },
             "port_module": {
-                    "requests_per_second": 50,
+                    "requests_per_second": 10,
                     "custom_ports": [
-                            8080,
-                            8443
+                            80,
+                            443
                     ]
             },
             "web_module": {
                     "take_screenshots": true,
-                    "requests_per_second": 50,
+                    "requests_per_second": 10,
                     "max_links": 2,
                     "extract_js": true,
                     "fingerprint_frameworks": true

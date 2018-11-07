@@ -11,6 +11,9 @@ type BruteState struct {
 	InitFn        func(config []byte) error
 	InitFnInvoked bool
 
+	DoBruteETLDFn      func(ctx context.Context, orgID, scanGroupID, expireSeconds int, maxAllowed int, etld string) (int, bool, error)
+	DoBruteETLDInvoked bool
+
 	DoBruteDomainFn      func(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error)
 	DoBruteDomainInvoked bool
 
@@ -26,6 +29,11 @@ type BruteState struct {
 
 func (s *BruteState) Init(config []byte) error {
 	return nil
+}
+
+func (s *BruteState) DoBruteETLD(ctx context.Context, orgID, scanGroupID, expireSeconds int, maxAllowed int, etld string) (int, bool, error) {
+	s.DoBruteETLDInvoked = true
+	return s.DoBruteETLDFn(ctx, orgID, scanGroupID, expireSeconds, maxAllowed, etld)
 }
 
 func (s *BruteState) DoBruteDomain(ctx context.Context, orgID int, scanGroupID int, expireSeconds int, zone string) (bool, error) {

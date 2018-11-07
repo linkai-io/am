@@ -1,0 +1,18 @@
+{
+    "services": 
+    [{
+        "name": "webmoduleservice", 
+        "tags": ["webmoduleservice"],
+        "address": "172.16.238.23",
+        "port": 50051,
+        "id": "webmoduleservice1"
+    },
+    {
+        "name": "webmoduleservice", 
+        "tags": ["webmoduleservice"],
+        "address": "172.16.238.24",
+        "port": 50051,
+        "id": "webmoduleservice2"
+    }
+   ]
+}

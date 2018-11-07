@@ -9,7 +9,7 @@ import (
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/parsers"
-	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // NewAddress creates a new address from this address, copying over the necessary details.
@@ -42,16 +42,16 @@ func AddAddressToMap(addressMap map[string]*am.ScanGroupAddress, addresses []*am
 }
 
 // CalculateConfidence of the new addresses
-func CalculateConfidence(logger zerolog.Logger, address, newAddress *am.ScanGroupAddress) float32 {
+func CalculateConfidence(ctx context.Context, address, newAddress *am.ScanGroupAddress) float32 {
 	origTLD, err := parsers.GetETLD(address.HostAddress)
 	if err != nil {
-		logger.Warn().Err(err).Msg("unable to get tld of original address")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to get tld of original address")
 		return 0
 	}
 
 	newTLD, err := parsers.GetETLD(newAddress.HostAddress)
 	if err != nil {
-		logger.Warn().Err(err).Msg("unable to get tld of new address")
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to get tld of new address")
 		return 0
 	}
 
@@ -76,7 +76,7 @@ type ResolverData struct {
 
 // ResolveNewAddresses is a generic resolver function for looking up hostnames to ip addresses and collecting them as a map to return
 // to caller
-func ResolveNewAddresses(ctx context.Context, logger zerolog.Logger, dns *dnsclient.Client, data *ResolverData) map[string]*am.ScanGroupAddress {
+func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *ResolverData) map[string]*am.ScanGroupAddress {
 	newRecords := make(map[string]*am.ScanGroupAddress, 0)
 
 	numHosts := len(data.NewAddresses)
@@ -103,7 +103,7 @@ func ResolveNewAddresses(ctx context.Context, logger zerolog.Logger, dns *dnscli
 	pool.StopWait()
 	close(out)
 
-	logger.Info().Msg("all tasks completed")
+	log.Ctx(ctx).Info().Msg("all tasks completed")
 
 	for result := range out {
 		if result.Err != nil {
@@ -112,9 +112,9 @@ func ResolveNewAddresses(ctx context.Context, logger zerolog.Logger, dns *dnscli
 
 		for _, rr := range result.R {
 			for _, ip := range rr.IPs {
-				logger.Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("found new record")
+				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("found new record")
 				newAddress := NewAddressFromDNS(data.Address, ip, result.Hostname, data.DiscoveryMethod, uint(rr.RecordType))
-				newAddress.ConfidenceScore = CalculateConfidence(logger, data.Address, newAddress)
+				newAddress.ConfidenceScore = CalculateConfidence(ctx, data.Address, newAddress)
 				newRecords[newAddress.AddressHash] = newAddress
 			}
 		}

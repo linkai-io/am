@@ -52,6 +52,10 @@ func (r *RedisKeys) BruteConfigHosts() string {
 	return r.BruteConfig() + ":custom_hosts"
 }
 
+func (r *RedisKeys) BruteETLD(etld string) string {
+	return r.configFmt + ":module:dnsbrute:zones:etld:" + etld
+}
+
 // BruteZone key for determining if we should brute force or not
 func (r *RedisKeys) BruteZone(zone string) string {
 	return r.configFmt + ":module:dnsbrute:zones:brute:" + zone

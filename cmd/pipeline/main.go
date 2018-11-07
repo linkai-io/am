@@ -19,6 +19,8 @@ import (
 	"github.com/linkai-io/am/services/module/web"
 )
 
+var dnsServers = []string{"1.1.1.1:853", "1.0.0.1:853", "64.6.64.6:53", "77.88.8.8:53", "74.82.42.42:53", "8.8.4.4:53", "8.8.8.8:53"}
+
 var inputFile string
 
 func init() {
@@ -47,7 +49,7 @@ func main() {
 
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
-	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
+	dc := dnsclient.New(dnsServers, 2)
 	nsModule := ns.New(dc, nsstate)
 	if err := nsModule.Init(nil); err != nil {
 		log.Fatalf("error initializing ns module: %s\n", err)
@@ -58,7 +60,7 @@ func main() {
 	// init brute module state system & brute module
 	brutestate := amtest.MockBruteState()
 	bruteModule := brute.New(dc, brutestate)
-	bruteFile, err := os.Open("testdata/10.txt")
+	bruteFile, err := os.Open("testdata/100.txt")
 	if err != nil {
 		log.Fatalf("error opening brute sub domain file: %v\n", err)
 	}
@@ -77,8 +79,13 @@ func main() {
 
 	webstate := amtest.MockWebState()
 	webstorage := amtest.MockStorage()
+	webdataClient := &mock.WebDataService{}
 
-	webModule := web.New(browsers, dc, webstate, webstorage)
+	webdataClient.AddFn = func(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
+		return orgID, nil
+	}
+
+	webModule := web.New(browsers, webdataClient, dc, webstate, webstorage)
 	if err := webModule.Init(); err != nil {
 		log.Fatalf("failed to init web module: %v\n", err)
 	}

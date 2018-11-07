@@ -1,13 +1,15 @@
 package module
 
 import (
-	"github.com/linkai-io/am/am"
-	"github.com/rs/zerolog"
+	"context"
+
 	"github.com/rs/zerolog/log"
+
+	"github.com/linkai-io/am/am"
 )
 
-func DefaultLogger(userContext am.UserContext, address *am.ScanGroupAddress) zerolog.Logger {
-	return log.With().
+func DefaultLogger(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) context.Context {
+	l := log.With().
 		Int("OrgID", userContext.GetOrgID()).
 		Int("UserID", userContext.GetUserID()).
 		Str("TraceID", userContext.GetTraceID()).
@@ -15,4 +17,6 @@ func DefaultLogger(userContext am.UserContext, address *am.ScanGroupAddress) zer
 		Str("HostAddress", address.HostAddress).
 		Int64("AddressID", address.AddressID).
 		Str("AddressHash", address.AddressHash).Logger()
+	return l.WithContext(ctx)
+
 }

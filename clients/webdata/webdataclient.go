@@ -1,4 +1,4 @@
-package bigdata
+package webdata
 
 import (
 	"context"
@@ -37,12 +37,6 @@ func (c *Client) Init(config []byte) error {
 	return nil
 }
 
-/*
-Add(ctx context.Context, userContext UserContext, webData *WebData) (int, error)
-	GetResponses(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*HTTPResponse, error)
-	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)
-	GetSnapshots(ctx context.Context, userContext UserContext, filter *WebSnapshotFilter) (int, []*WebSnapshot, error)
-*/
 func (c *Client) Add(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
 	var resp *service.AddedResponse
 	var err error
@@ -60,7 +54,7 @@ func (c *Client) Add(ctx context.Context, userContext am.UserContext, webData *a
 
 		resp, retryErr = c.client.Add(ctxDeadline, in)
 
-		return errors.Wrap(retryErr, "unable to get ct records from client")
+		return errors.Wrap(retryErr, "unable to get add records from client")
 	})
 
 	if err != nil {

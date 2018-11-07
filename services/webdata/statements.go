@@ -56,7 +56,9 @@ var (
 
 var queryMap = map[string]string{
 	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, is_deleted)
-		values ($1, $2, $3, $4, $5, $6, $7, false)`,
+			values ($1, $2, $3, $4, $5, $6, $7, false) 
+		on conflict (organization_id, scan_group_id, serialized_dom_hash) do update set
+			response_timestamp=EXCLUDED.response_timestamp`,
 
 	"responsesSinceResponseTime": fmt.Sprintf(`select %s from am.web_responses as wb 
 		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
@@ -241,5 +243,6 @@ var (
 			temp.valid_to,
 			temp.ct_compliance, 
 			false
-		from cert_add_temp as temp on conflict do nothing`
+		from cert_add_temp as temp on conflict (organization_id, scan_group_id, subject_name, valid_from, valid_to) do update set
+			response_timestamp=EXCLUDED.response_timestamp`
 )

@@ -11,6 +11,8 @@ import (
 type Stater interface {
 	// Initialize the state system
 	Init(config []byte) error
+	// DoBruteETLD increments a counter so we don't overload an etld
+	DoBruteETLD(ctx context.Context, orgID, scanGroupID, expireSeconds int, maxAllowed int, etld string) (int, bool, error)
 	// DoBruteDomain returns true if we should brute force the zone and sets a key in redis. Otherwise
 	// returns false stating we've already brute forced it (until expireSeconds)
 	DoBruteDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error)

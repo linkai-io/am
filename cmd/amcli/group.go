@@ -65,7 +65,7 @@ func generateJSON() {
 		},
 		PortModule: &am.PortModuleConfig{
 			RequestsPerSecond: 50,
-			CustomPorts:       []int32{8080, 8443},
+			CustomPorts:       []int32{80, 443, 8080, 8443},
 		},
 		WebModule: &am.WebModuleConfig{
 			RequestsPerSecond:     50,

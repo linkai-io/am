@@ -144,9 +144,11 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 		Int("OrgID", userContext.GetOrgID()).
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
+	ctx = serviceLog.WithContext(ctx)
+
 	var tx *pgx.Tx
 
-	serviceLog.Info().Int("address_len", len(addresses)).Msg("adding")
+	log.Ctx(ctx).Info().Int("address_len", len(addresses)).Msg("adding")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -208,8 +210,9 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 		Int("UserID", userContext.GetUserID()).
 		Int("OrgID", userContext.GetOrgID()).
 		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
 
-	serviceLog.Info().Int("address_len", len(addressIDs)).Msg("deleting")
+	log.Ctx(ctx).Info().Int("address_len", len(addressIDs)).Msg("deleting")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {

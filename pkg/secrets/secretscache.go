@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// SecretsCache for accessing database connection strings
+// SecretsCache for accessing cached/stored secrets
 type SecretsCache struct {
 	Region      string
 	Environment string

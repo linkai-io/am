@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/linkai-io/am/mock"
+
 	"github.com/linkai-io/am/pkg/convert"
 
 	"github.com/linkai-io/am/am"
@@ -26,8 +28,12 @@ func TestWebAnalyze(t *testing.T) {
 
 	stater := amtest.MockWebState()
 	storer := amtest.MockStorage()
+	webDataClient := &mock.WebDataService{}
+	webDataClient.AddFn = func(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
+		return 1, nil
+	}
 
-	w := web.New(browserPool, dc, stater, storer)
+	w := web.New(browserPool, webDataClient, dc, stater, storer)
 	if err := w.Init(); err != nil {
 		t.Fatalf("failed to init web module: %v\n", err)
 	}

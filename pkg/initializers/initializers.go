@@ -9,8 +9,10 @@ import (
 	"github.com/linkai-io/am/clients/address"
 	bdc "github.com/linkai-io/am/clients/bigdata"
 	"github.com/linkai-io/am/clients/coordinator"
+	"github.com/linkai-io/am/clients/dispatcher"
 	"github.com/linkai-io/am/clients/module"
 	"github.com/linkai-io/am/clients/scangroup"
+	"github.com/linkai-io/am/clients/webdata"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
 	"github.com/linkai-io/am/pkg/state/redis"
@@ -20,7 +22,7 @@ import (
 // DB for environment, in region, for serviceKey service.
 func DB(env, region, serviceKey string) (string, *pgx.ConnPool) {
 	sec := secrets.NewSecretsCache(env, region)
-	dbstring, err := sec.DBString(am.AddressServiceKey)
+	dbstring, err := sec.DBString(serviceKey)
 	if err != nil {
 		log.Fatal().Err(err).Str("serviceKey", serviceKey).Msg("unable to get dbstring")
 	}
@@ -66,6 +68,19 @@ func State(env, region string) *redis.State {
 	return redisState
 }
 
+func DispatcherClient(loadBalancerAddr string) am.DispatcherService {
+	dispatcherClient := dispatcher.New()
+
+	err := retrier.RetryUntil(func() error {
+		return dispatcherClient.Init([]byte(loadBalancerAddr))
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to dispatcher server")
+	}
+	return dispatcherClient
+}
+
 // SGClient connects to the scangroup service via load balancer
 func SGClient(loadBalancerAddr string) am.ScanGroupService {
 	scanGroupClient := scangroup.New()
@@ -108,6 +123,21 @@ func CoordClient(loadBalancerAddr string) am.CoordinatorService {
 	return coordClient
 }
 
+// WebDataClient connects to the webdata service via load balancer
+func WebDataClient(loadBalancerAddr string) am.WebDataService {
+	webDataClient := webdata.New()
+
+	err := retrier.RetryUntil(func() error {
+		return webDataClient.Init([]byte(loadBalancerAddr))
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to webdata server")
+	}
+	return webDataClient
+}
+
+// BigDataClient connects to the bigdata service via load balancer
 func BigDataClient(loadBalancerAddr string) am.BigDataService {
 	bigDataClient := bdc.New()
 
@@ -121,6 +151,7 @@ func BigDataClient(loadBalancerAddr string) am.BigDataService {
 	return bigDataClient
 }
 
+// Module returns the connected module depending on moduleType
 func Module(state *redis.State, loadBalancerAddr string, moduleType am.ModuleType) am.ModuleService {
 	switch moduleType {
 	case am.NSModule:

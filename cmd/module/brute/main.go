@@ -52,7 +52,7 @@ func main() {
 	dc := dnsclient.New([]string{"unbound:53"}, 1)
 	service := brute.New(dc, state)
 	err = retrier.Retry(func() error {
-		return service.Init(strings.NewReader(list_ten))
+		return service.Init(strings.NewReader(listTenK))
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")

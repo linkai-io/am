@@ -58,7 +58,6 @@ func main() {
 		}
 
 		authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
-		log.Info().Msg("Starting Service")
 		service = webdata.New(authorizer)
 
 		return service.Init([]byte(dbstring))

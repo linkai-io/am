@@ -1,0 +1,39 @@
+FROM debian:sid-slim
+LABEL maintainer "Jessie Frazelle <jess@linux.com>"
+
+# Install Chrome
+RUN apt-get update && apt-get install -y \
+    golang \
+	apt-transport-https \
+	ca-certificates \
+	curl \
+	gnupg \
+	hicolor-icon-theme \
+	libcanberra-gtk* \
+	libgl1-mesa-dri \
+	libgl1-mesa-glx \
+	libpango1.0-0 \
+	libpulse0 \
+	libv4l-0 \
+	fonts-symbola \
+	--no-install-recommends \
+	&& curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+	&& echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
+	&& apt-get update && apt-get install -y \
+	google-chrome-stable \
+	--no-install-recommends \
+	&& apt-get purge --auto-remove -y curl \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY third_party/local.conf /etc/fonts/local.conf
+
+RUN mkdir -p /opt/go/
+ENV GOPATH /opt/go/
+COPY . $GOPATH/src/github.com/linkai-io/am/
+WORKDIR $GOPATH/src/github.com/linkai-io/am/
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/webmoduleservice cmd/module/web/main.go
+
+ENV PORT 50051
+EXPOSE 50051
+ENTRYPOINT ["/go/bin/webmoduleservice"]

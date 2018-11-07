@@ -44,27 +44,38 @@ func New(servers []string, retry int) *Client {
 	return c
 }
 
-// IsWildcard tests if a domain is a wildcard domain
+// IsWildcard tests if a domain is a wildcard domain, attempt 10 A and 10 AAAA queries
+// of randomly generated names, if we get even a single response it's probably a wildcard
 func (c *Client) IsWildcard(ctx context.Context, domain string) bool {
-	resultError := make(chan *resultError, 1)
+	attempts := 10
+	recvd := 0
+	resultErrors := make(chan *resultError, attempts)
 
-	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*5)
+	ctxDeadline, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	randomSubDomain := generators.InsecureAlphabetString(8)
-	log.Info().Msgf("domain: %s", randomSubDomain)
-	go c.queryA(ctxDeadline, randomSubDomain+"."+domain, resultError)
+	for i := 0; i < attempts/2; i++ {
+		randomSubDomain := generators.InsecureAlphabetString(8)
+		go c.queryA(ctxDeadline, randomSubDomain+"."+domain, resultErrors)
+		go c.queryAAAA(ctxDeadline, randomSubDomain+"."+domain, resultErrors)
+	}
 
 	for {
 		select {
 		case <-ctxDeadline.Done():
-			return false
-		case r := <-resultError:
-			log.Info().Msgf("%v %v", r, r.Result)
+			log.Ctx(ctx).Info().Msg("wildcard domain test timeout")
+			break
+		case r := <-resultErrors:
+			recvd++
 			if r.Result != nil {
+				log.Ctx(ctx).Info().Strs("results", r.Result.IPs).Msg("got wildcard domain result")
 				return true
 			}
-			return false
+
+			if recvd == attempts {
+				close(resultErrors)
+				return false
+			}
 		}
 	}
 }

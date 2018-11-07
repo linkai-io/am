@@ -32,7 +32,7 @@ func init() {
 	env = os.Getenv("APP_ENV")
 }
 
-// main starts the NSModuleService
+// main starts the WebModuleService
 func main() {
 	var err error
 
@@ -60,8 +60,10 @@ func main() {
 	state := initializers.State(env, region)
 	dc := dnsclient.New([]string{"unbound:53"}, 3)
 
+	webDataClient := initializers.WebDataClient(loadBalancerAddr)
+
 	store := filestorage.NewStorage(env, region)
-	service := web.New(browsers, dc, state, store)
+	service := web.New(browsers, webDataClient, dc, state, store)
 	err = retrier.Retry(func() error {
 		return service.Init()
 	})

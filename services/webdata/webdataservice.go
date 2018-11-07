@@ -340,7 +340,7 @@ func (s *Service) addResponses(ctx context.Context, userContext am.UserContext, 
 	err = tx.Commit()
 
 	if len(certificateRows) > 0 {
-		if err := s.addCertificates(ctx, userContext, logger, certificateRows); err != nil {
+		if err := s.addCertificates(ctx, userContext, certificateRows); err != nil {
 			logger.Error().Err(err).Msg("failed to add certificates")
 		}
 	}
@@ -348,7 +348,7 @@ func (s *Service) addResponses(ctx context.Context, userContext am.UserContext, 
 	return webData.Address.OrgID, nil
 }
 
-func (s *Service) addCertificates(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, certificateRows [][]interface{}) error {
+func (s *Service) addCertificates(ctx context.Context, userContext am.UserContext, certificateRows [][]interface{}) error {
 	var tx *pgx.Tx
 	var err error
 
@@ -364,7 +364,7 @@ func (s *Service) addCertificates(ctx context.Context, userContext am.UserContex
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddCertificatesTempTableKey}, AddCertificatesTempTableColumns, pgx.CopyFromRows(certificateRows))
 	if err != nil {
-		logger.Warn().Err(err).Msg("failed copy from")
+		log.Ctx(ctx).Warn().Err(err).Msg("failed copy from")
 		return err
 	}
 
@@ -407,6 +407,7 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), aid, r.ResponseTimestamp, r.IsDocument, r.Scheme, r.IPAddress,
 			r.HostAddress, responsePort, requestedPort, r.URL, r.Headers, r.Status, r.StatusText, r.MimeType, r.RawBodyHash, r.RawBodyLink,
 		})
+
 		if r.WebCertificate != nil {
 			c := r.WebCertificate
 			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), r.ResponseTimestamp, r.HostAddress, responsePort,

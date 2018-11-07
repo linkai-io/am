@@ -2,18 +2,14 @@ package coordinator
 
 import (
 	"context"
-	"sync/atomic"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/linkai-io/am/pkg/retrier"
-
 	"github.com/pkg/errors"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/clients/dispatcher"
 	"github.com/linkai-io/am/services/coordinator/state"
 )
 
@@ -38,45 +34,21 @@ type Service struct {
 }
 
 // New returns
-func New(state state.Stater, scanGroupClient am.ScanGroupService, systemOrgID, systemUserID int) *Service {
+func New(state state.Stater, dispatcherClient am.DispatcherService, scanGroupClient am.ScanGroupService, systemOrgID, systemUserID int) *Service {
 	return &Service{
-		state:           state,
-		scanGroupClient: scanGroupClient,
-		systemOrgID:     systemOrgID,
-		systemUserID:    systemUserID,
-		stopCh:          make(chan struct{}),
+		state:            state,
+		scanGroupClient:  scanGroupClient,
+		dispatcherClient: dispatcherClient,
+		systemOrgID:      systemOrgID,
+		systemUserID:     systemUserID,
+		stopCh:           make(chan struct{}),
 	}
 }
 
 // Init by
 func (s *Service) Init(config []byte) error {
-	if config == nil || string(config) == "" {
-		return errors.New("load balancer address required in Coordinator Init")
-	}
-	s.loadBalancerAddr = string(config)
-	s.dispatcherClient = dispatcher.New()
-	log.Info().Msg("Initializing Coordinator Service")
-	go s.connectClient()
 	go s.poller()
 	return nil
-}
-
-func (s *Service) connectClient() {
-	err := retrier.RetryUntil(func() error {
-		log.Info().Str("load balancer", s.loadBalancerAddr).Msg("connecting to load balancer")
-		return s.dispatcherClient.Init([]byte(s.loadBalancerAddr))
-	}, time.Minute*5, time.Millisecond*250)
-
-	if err == nil {
-		atomic.AddInt32(&s.connected, 1)
-		log.Info().Msg("Connected to dispatcher service\n")
-		return
-	}
-	log.Warn().Msg("Unable to connect to dispatcher service\n")
-}
-
-func (s *Service) isConnected() bool {
-	return atomic.LoadInt32(&s.connected) == 1
 }
 
 func (s *Service) poller() {
@@ -121,12 +93,6 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		Int("GroupID", scanGroupID).
 		Int("OrgID", userContext.GetOrgID()).
 		Str("TraceID", userContext.GetTraceID()).Logger()
-
-	groupLog.Info().Msg("Attempting to start group")
-	if !s.isConnected() {
-		groupLog.Warn().Msg("Not connected to dispatcher")
-		return ErrNoDispatcherConnected
-	}
 
 	groupLog.Info().Msg("Getting group status")
 	exists, status, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
@@ -186,7 +152,17 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	groupLog.Info().Msg("Dispatching scangroup")
-	return s.dispatcherClient.PushAddresses(ctx, userContext, scanGroupID)
+
+	err = s.dispatcherClient.PushAddresses(ctx, userContext, scanGroupID)
+	if err != nil {
+		if stopErr := s.state.Stop(ctx, userContext, scanGroupID); stopErr != nil {
+			groupLog.Error().Err(stopErr).Msg("failed to set state to stopped after push addresses failed")
+		} else {
+			groupLog.Warn().Msg("stopped group due to push address failure")
+		}
+	}
+
+	return err
 }
 
 func createID() string {
