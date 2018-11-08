@@ -65,6 +65,14 @@ func (s *SecretsCache) LoadBalancerAddr() (string, error) {
 	return string(data), nil
 }
 
+func (s *SecretsCache) WebFilePath() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/webfilepath", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 func (s *SecretsCache) SystemOrgID() (int, error) {
 	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/system/orgid", s.Environment))
 	if err != nil {

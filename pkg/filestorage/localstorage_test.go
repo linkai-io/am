@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/linkai-io/am/pkg/secrets"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/filestorage"
 )
@@ -12,7 +14,7 @@ import (
 var testTempPath = "/tmp"
 
 func TestLocalStorage(t *testing.T) {
-	s := filestorage.NewLocalStorage(testTempPath)
+	s := filestorage.NewLocalStorage()
 	if err := s.Init(nil); err != nil {
 		t.Fatalf("error initializing local storage: %v\n", err)
 	}
@@ -20,6 +22,12 @@ func TestLocalStorage(t *testing.T) {
 		OrgID:   1,
 		GroupID: 1,
 	}
+	cache := secrets.NewSecretsCache("local", "")
+
+	if err := s.Init(cache); err != nil {
+		t.Fatalf("failed to init file storage: %#v\n", err)
+	}
+
 	data := []byte("some data")
 	if _, _, err := s.Write(context.Background(), address, data); err != nil {
 		t.Fatalf("error writing file: %v\n", err)

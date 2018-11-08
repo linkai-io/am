@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/linkai-io/am/pkg/secrets"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 )
@@ -14,11 +16,16 @@ type LocalStorage struct {
 	prefixPath string
 }
 
-func NewLocalStorage(prefixPath string) *LocalStorage {
-	return &LocalStorage{prefixPath: prefixPath}
+func NewLocalStorage() *LocalStorage {
+	return &LocalStorage{}
 }
 
-func (s *LocalStorage) Init(config []byte) error {
+func (s *LocalStorage) Init(cache *secrets.SecretsCache) error {
+	path, err := cache.WebFilePath()
+	if err != nil {
+		return err
+	}
+	s.prefixPath = path
 	return os.MkdirAll(s.prefixPath, 0766)
 }
 
@@ -27,7 +34,7 @@ func (s *LocalStorage) Write(ctx context.Context, address *am.ScanGroupAddress, 
 	if data == nil || len(data) == 0 {
 		return "", "", nil
 	}
-	
+
 	hashName := convert.HashData(data)
 	fileName := PathFromData(address, hashName)
 	if fileName == "null" {

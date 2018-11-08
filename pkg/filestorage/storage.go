@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/linkai-io/am/pkg/secrets"
+
 	"github.com/linkai-io/am/am"
 )
 
@@ -14,13 +16,13 @@ var (
 )
 
 type Storage interface {
-	Init(config []byte) error
+	Init(cache *secrets.SecretsCache) error
 	Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error)
 }
 
 func NewStorage(env, region string) Storage {
 	if env == "local" || env == "" {
-		return NewLocalStorage("/tmp/")
+		return NewLocalStorage()
 	}
 	return NewS3Storage(env, region)
 }

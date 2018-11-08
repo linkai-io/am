@@ -23,6 +23,7 @@ func TestPut(t *testing.T) {
 	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
+	
 	now := time.Now().UnixNano()
 	sg := &am.ScanGroup{
 		OrgID:                1,
