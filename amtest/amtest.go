@@ -95,7 +95,7 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 
 func MockStorage() *mock.Storage {
 	mockStorage := &mock.Storage{}
-	mockStorage.InitFn = func(config []byte) error {
+	mockStorage.InitFn = func(cache *secrets.SecretsCache) error {
 		return nil
 	}
 
@@ -125,7 +125,7 @@ func MockBruteState() *mock.BruteState {
 	}
 
 	mockState.DoBruteETLDFn = func(ctx context.Context, orgID int, scanGroupID int, expireSeconds, maxAllowed int, etld string) (int, bool, error) {
-		return 1, false, nil
+		return 1, true, nil
 	}
 
 	bruteHosts := make(map[string]bool)

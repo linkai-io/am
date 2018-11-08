@@ -15,17 +15,15 @@ var testTempPath = "/tmp"
 
 func TestLocalStorage(t *testing.T) {
 	s := filestorage.NewLocalStorage()
-	if err := s.Init(nil); err != nil {
-		t.Fatalf("error initializing local storage: %v\n", err)
-	}
-	address := &am.ScanGroupAddress{
-		OrgID:   1,
-		GroupID: 1,
-	}
 	cache := secrets.NewSecretsCache("local", "")
 
 	if err := s.Init(cache); err != nil {
 		t.Fatalf("failed to init file storage: %#v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		OrgID:   1,
+		GroupID: 1,
 	}
 
 	data := []byte("some data")
