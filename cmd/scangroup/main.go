@@ -69,7 +69,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	sgp := scangroupprotoc.New(service)
+	sgp := scangroupprotoc.New(service, r)
 	scangroupprotoservice.RegisterScanGroupServer(s, sgp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

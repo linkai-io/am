@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/bsm/grpclb/load"
+
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/bigdata"
 
@@ -11,15 +13,18 @@ import (
 )
 
 type BigDataProtocService struct {
-	bds am.BigDataService
+	bds      am.BigDataService
+	reporter *load.RateReporter
 }
 
-func New(implementation am.BigDataService) *BigDataProtocService {
-	return &BigDataProtocService{bds: implementation}
+func New(implementation am.BigDataService, reporter *load.RateReporter) *BigDataProtocService {
+	return &BigDataProtocService{bds: implementation, reporter: reporter}
 }
 
 func (s *BigDataProtocService) AddCT(ctx context.Context, in *bigdata.AddCTRequest) (*bigdata.CTAddedResponse, error) {
+	s.reporter.Increment(1)
 	err := s.bds.AddCT(ctx, convert.UserContextToDomain(in.UserContext), in.ETLD, time.Unix(0, in.QueryTime), convert.CTRecordsToDomain(in.Records))
+	s.reporter.Increment(-11)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +33,9 @@ func (s *BigDataProtocService) AddCT(ctx context.Context, in *bigdata.AddCTReque
 }
 
 func (s *BigDataProtocService) GetCT(ctx context.Context, in *bigdata.GetCTRequest) (*bigdata.GetCTResponse, error) {
+	s.reporter.Increment(1)
 	ts, records, err := s.bds.GetCT(ctx, convert.UserContextToDomain(in.UserContext), in.ETLD)
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +44,9 @@ func (s *BigDataProtocService) GetCT(ctx context.Context, in *bigdata.GetCTReque
 }
 
 func (s *BigDataProtocService) DeleteCT(ctx context.Context, in *bigdata.DeleteCTRequest) (*bigdata.CTDeletedResponse, error) {
+	s.reporter.Increment(1)
 	err := s.bds.DeleteCT(ctx, convert.UserContextToDomain(in.UserContext), in.ETLD)
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}

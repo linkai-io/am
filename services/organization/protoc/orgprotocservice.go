@@ -1,6 +1,7 @@
 package protoc
 
 import (
+	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/organization"
@@ -10,33 +11,37 @@ import (
 
 type OrgProtocService struct {
 	orgservice am.OrganizationService
+	reporter   *load.RateReporter
 }
 
-func New(implementation am.OrganizationService) *OrgProtocService {
-	return &OrgProtocService{orgservice: implementation}
+func New(implementation am.OrganizationService, reporter *load.RateReporter) *OrgProtocService {
+	return &OrgProtocService{orgservice: implementation, reporter: reporter}
 }
 
-func (o *OrgProtocService) Get(ctx context.Context, in *organization.OrgRequest) (*organization.OrgResponse, error) {
+func (s *OrgProtocService) Get(ctx context.Context, in *organization.OrgRequest) (*organization.OrgResponse, error) {
 	var err error
 	var org *am.Organization
 	var oid int
-
+	s.reporter.Increment(1)
 	switch in.By {
 	case organization.OrgRequest_ORGNAME:
-		oid, org, err = o.orgservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.OrgName)
+		oid, org, err = s.orgservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.OrgName)
 	case organization.OrgRequest_ORGCID:
-		oid, org, err = o.orgservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgCID)
+		oid, org, err = s.orgservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgCID)
 	case organization.OrgRequest_ORGID:
-		oid, org, err = o.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
+		oid, org, err = s.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
 	}
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
 	return &organization.OrgResponse{OrgID: int32(oid), Org: convert.DomainToOrganization(org)}, err
 }
 
-func (o *OrgProtocService) List(in *organization.OrgListRequest, stream organization.Organization_ListServer) error {
-	orgs, err := o.orgservice.List(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.OrgFilterToDomain(in.OrgFilter))
+func (s *OrgProtocService) List(in *organization.OrgListRequest, stream organization.Organization_ListServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
+	orgs, err := s.orgservice.List(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.OrgFilterToDomain(in.OrgFilter))
 	if err != nil {
 		return err
 	}
@@ -50,24 +55,30 @@ func (o *OrgProtocService) List(in *organization.OrgListRequest, stream organiza
 	return nil
 }
 
-func (o *OrgProtocService) Create(ctx context.Context, in *organization.CreateOrgRequest) (*organization.OrgCreatedResponse, error) {
-	orgID, userID, orgCID, userCID, err := o.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+func (s *OrgProtocService) Create(ctx context.Context, in *organization.CreateOrgRequest) (*organization.OrgCreatedResponse, error) {
+	s.reporter.Increment(1)
+	orgID, userID, orgCID, userCID, err := s.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
 	return &organization.OrgCreatedResponse{OrgID: int32(orgID), UserID: int32(userID), OrgCID: orgCID, UserCID: userCID}, nil
 }
 
-func (o *OrgProtocService) Update(ctx context.Context, in *organization.UpdateOrgRequest) (*organization.OrgUpdatedResponse, error) {
-	oid, err := o.orgservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+func (s *OrgProtocService) Update(ctx context.Context, in *organization.UpdateOrgRequest) (*organization.OrgUpdatedResponse, error) {
+	s.reporter.Increment(1)
+	oid, err := s.orgservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
 	return &organization.OrgUpdatedResponse{OrgID: int32(oid)}, nil
 }
 
-func (o *OrgProtocService) Delete(ctx context.Context, in *organization.DeleteOrgRequest) (*organization.OrgDeletedResponse, error) {
-	oid, err := o.orgservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
+func (s *OrgProtocService) Delete(ctx context.Context, in *organization.DeleteOrgRequest) (*organization.OrgDeletedResponse, error) {
+	s.reporter.Increment(1)
+	oid, err := s.orgservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}

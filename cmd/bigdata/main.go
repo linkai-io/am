@@ -69,7 +69,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	bigdatap := bigdataprotoc.New(service)
+	bigdatap := bigdataprotoc.New(service, r)
 	bigdataprotoservice.RegisterBigDataServer(s, bigdatap)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

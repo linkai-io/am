@@ -67,7 +67,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	addressp := addressprotoc.New(service)
+	addressp := addressprotoc.New(service, r)
 	addressprotoservice.RegisterAddressServer(s, addressp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

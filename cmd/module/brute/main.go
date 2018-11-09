@@ -61,7 +61,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	brutemodulerp := modulerprotoc.New(service)
+	brutemodulerp := modulerprotoc.New(service, r)
 	moduleservice.RegisterModuleServer(s, brutemodulerp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

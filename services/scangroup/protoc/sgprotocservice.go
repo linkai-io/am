@@ -3,6 +3,7 @@ package protoc
 import (
 	"errors"
 
+	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/scangroup"
@@ -15,26 +16,26 @@ var (
 )
 
 type SGProtocService struct {
-	sgs              am.ScanGroupService
-	MaxAddressStream int32
+	sgs      am.ScanGroupService
+	reporter *load.RateReporter
 }
 
-func New(implementation am.ScanGroupService) *SGProtocService {
-	return &SGProtocService{sgs: implementation, MaxAddressStream: 200}
+func New(implementation am.ScanGroupService, reporter *load.RateReporter) *SGProtocService {
+	return &SGProtocService{sgs: implementation, reporter: reporter}
 }
 
 func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (*scangroup.GroupResponse, error) {
 	var oid int
 	var group *am.ScanGroup
 	var err error
-
+	s.reporter.Increment(1)
 	switch in.By {
 	case scangroup.GroupRequest_GROUPID:
 		oid, group, err = s.sgs.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
 	case scangroup.GroupRequest_GROUPNAME:
 		oid, group, err = s.sgs.GetByName(ctx, convert.UserContextToDomain(in.UserContext), in.GroupName)
 	}
-
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +43,9 @@ func (s *SGProtocService) Get(ctx context.Context, in *scangroup.GroupRequest) (
 }
 
 func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequest) (*scangroup.GroupCreatedResponse, error) {
+	s.reporter.Increment(1)
 	orgID, groupID, err := s.sgs.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.Group))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +53,9 @@ func (s *SGProtocService) Create(ctx context.Context, in *scangroup.NewGroupRequ
 }
 
 func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupRequest) (*scangroup.GroupUpdatedResponse, error) {
+	s.reporter.Increment(1)
 	orgID, groupID, err := s.sgs.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.Group))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,9 @@ func (s *SGProtocService) Update(ctx context.Context, in *scangroup.UpdateGroupR
 }
 
 func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupRequest) (*scangroup.GroupDeletedResponse, error) {
+	s.reporter.Increment(1)
 	orgID, groupID, err := s.sgs.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +73,8 @@ func (s *SGProtocService) Delete(ctx context.Context, in *scangroup.DeleteGroupR
 }
 
 func (s *SGProtocService) AllGroups(in *scangroup.AllGroupsRequest, stream scangroup.ScanGroup_AllGroupsServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
 	groups, err := s.sgs.AllGroups(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.ScanGroupFilterToDomain(in.Filter))
 	if err != nil {
 		return err
@@ -80,6 +89,8 @@ func (s *SGProtocService) AllGroups(in *scangroup.AllGroupsRequest, stream scang
 }
 
 func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.ScanGroup_GroupsServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
 	oid, groups, err := s.sgs.Groups(stream.Context(), convert.UserContextToDomain(in.UserContext))
 	if err != nil {
 		return err
@@ -98,7 +109,9 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 }
 
 func (s *SGProtocService) Pause(ctx context.Context, in *scangroup.PauseGroupRequest) (*scangroup.GroupPausedResponse, error) {
+	s.reporter.Increment(1)
 	orgID, groupID, err := s.sgs.Pause(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +119,9 @@ func (s *SGProtocService) Pause(ctx context.Context, in *scangroup.PauseGroupReq
 }
 
 func (s *SGProtocService) Resume(ctx context.Context, in *scangroup.ResumeGroupRequest) (*scangroup.GroupResumedResponse, error) {
+	s.reporter.Increment(1)
 	orgID, groupID, err := s.sgs.Resume(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}

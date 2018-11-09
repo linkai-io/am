@@ -70,7 +70,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	webdatap := webdataprotoc.New(service)
+	webdatap := webdataprotoc.New(service, r)
 	webdataprotoservice.RegisterWebDataServer(s, webdatap)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

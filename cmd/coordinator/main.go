@@ -73,7 +73,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	coordp := coordprotoc.New(service)
+	coordp := coordprotoc.New(service, r)
 	coordinatorprotoservice.RegisterCoordinatorServer(s, coordp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

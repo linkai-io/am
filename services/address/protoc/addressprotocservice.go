@@ -3,6 +3,7 @@ package protoc
 import (
 	"errors"
 
+	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/address"
@@ -17,15 +18,17 @@ var (
 )
 
 type AddressProtocService struct {
-	as               am.AddressService
-	MaxAddressStream int32
+	as       am.AddressService
+	reporter *load.RateReporter
 }
 
-func New(implementation am.AddressService) *AddressProtocService {
-	return &AddressProtocService{as: implementation, MaxAddressStream: 10000}
+func New(implementation am.AddressService, reporter *load.RateReporter) *AddressProtocService {
+	return &AddressProtocService{as: implementation, reporter: reporter}
 }
 
 func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.Address_GetServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
 	filter := convert.AddressFilterToDomain(in.Filter)
 
 	oid, addresses, err := s.as.Get(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
@@ -50,13 +53,14 @@ func (s *AddressProtocService) Update(ctx context.Context, in *address.UpdateAdd
 	var count int
 	var err error
 	var userContext am.UserContext
-
+	s.reporter.Increment(1)
 	addresses := make(map[string]*am.ScanGroupAddress, len(in.Address))
 	for k, v := range in.Address {
 		addresses[k] = convert.AddressToDomain(v)
 	}
 	userContext = convert.UserContextToDomain(in.UserContext)
 	oid, count, err = s.as.Update(ctx, userContext, addresses)
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +68,9 @@ func (s *AddressProtocService) Update(ctx context.Context, in *address.UpdateAdd
 }
 
 func (s *AddressProtocService) Delete(ctx context.Context, in *address.DeleteAddressesRequest) (*address.DeleteAddressesResponse, error) {
+	s.reporter.Increment(1)
 	oid, err := s.as.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressIDs)
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +78,9 @@ func (s *AddressProtocService) Delete(ctx context.Context, in *address.DeleteAdd
 }
 
 func (s *AddressProtocService) Count(ctx context.Context, in *address.CountAddressesRequest) (*address.CountAddressesResponse, error) {
+	s.reporter.Increment(1)
 	oid, count, err := s.as.Count(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}

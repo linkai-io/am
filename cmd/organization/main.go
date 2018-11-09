@@ -72,7 +72,7 @@ func main() {
 	s := grpc.NewServer()
 	r := load.NewRateReporter(time.Minute)
 
-	orgp := orgprotoc.New(service)
+	orgp := orgprotoc.New(service, r)
 	orgprotoservice.RegisterOrganizationServer(s, orgp)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

@@ -1,6 +1,7 @@
 package protoc
 
 import (
+	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/user"
@@ -10,28 +11,33 @@ import (
 
 type UserProtocService struct {
 	userservice am.UserService
+	reporter    *load.RateReporter
 }
 
-func New(implementation am.UserService) *UserProtocService {
-	return &UserProtocService{userservice: implementation}
+func New(implementation am.UserService, reporter *load.RateReporter) *UserProtocService {
+	return &UserProtocService{userservice: implementation, reporter: reporter}
 }
 
-func (u *UserProtocService) Get(ctx context.Context, in *user.UserRequest) (*user.UserResponse, error) {
+func (s *UserProtocService) Get(ctx context.Context, in *user.UserRequest) (*user.UserResponse, error) {
 	var err error
 	var amuser *am.User
 	var oid int
 
+	s.reporter.Increment(1)
 	switch in.By {
 	case user.UserRequest_USERID:
-		oid, amuser, err = u.userservice.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
+		oid, amuser, err = s.userservice.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
 	case user.UserRequest_USERCID:
-		oid, amuser, err = u.userservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.UserCID)
+		oid, amuser, err = s.userservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.UserCID)
 	}
+	s.reporter.Increment(-1)
 	return &user.UserResponse{OrgID: int32(oid), User: convert.DomainToUser(amuser)}, err
 }
 
-func (u *UserProtocService) List(in *user.UserListRequest, stream user.UserService_ListServer) error {
-	oid, users, err := u.userservice.List(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.UserFilterToDomain(in.UserFilter))
+func (s *UserProtocService) List(in *user.UserListRequest, stream user.UserService_ListServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
+	oid, users, err := s.userservice.List(stream.Context(), convert.UserContextToDomain(in.UserContext), convert.UserFilterToDomain(in.UserFilter))
 	if err != nil {
 		return err
 	}
@@ -44,24 +50,30 @@ func (u *UserProtocService) List(in *user.UserListRequest, stream user.UserServi
 	return nil
 }
 
-func (u *UserProtocService) Create(ctx context.Context, in *user.CreateUserRequest) (*user.UserCreatedResponse, error) {
-	oid, uid, userCID, err := u.userservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.UserToDomain(in.User))
+func (s *UserProtocService) Create(ctx context.Context, in *user.CreateUserRequest) (*user.UserCreatedResponse, error) {
+	s.reporter.Increment(1)
+	oid, uid, userCID, err := s.userservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.UserToDomain(in.User))
+	s.reporter.Increment(1)
 	if err != nil {
 		return nil, err
 	}
 	return &user.UserCreatedResponse{OrgID: int32(oid), UserID: int32(uid), UserCID: userCID}, nil
 }
 
-func (u *UserProtocService) Update(ctx context.Context, in *user.UpdateUserRequest) (*user.UserUpdatedResponse, error) {
-	oid, uid, err := u.userservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.UserToDomain(in.User), int(in.UserID))
+func (s *UserProtocService) Update(ctx context.Context, in *user.UpdateUserRequest) (*user.UserUpdatedResponse, error) {
+	s.reporter.Increment(1)
+	oid, uid, err := s.userservice.Update(ctx, convert.UserContextToDomain(in.UserContext), convert.UserToDomain(in.User), int(in.UserID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
 	return &user.UserUpdatedResponse{OrgID: int32(oid), UserID: int32(uid)}, nil
 }
 
-func (u *UserProtocService) Delete(ctx context.Context, in *user.DeleteUserRequest) (*user.UserDeletedResponse, error) {
-	oid, err := u.userservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
+func (s *UserProtocService) Delete(ctx context.Context, in *user.DeleteUserRequest) (*user.UserDeletedResponse, error) {
+	s.reporter.Increment(1)
+	oid, err := s.userservice.Delete(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
+	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
 	}
