@@ -3,6 +3,7 @@ package redisclient
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -16,14 +17,21 @@ var (
 
 // Client wraps access to the ElasticCache/redis server.
 type Client struct {
-	addr     string
-	password string
-	pool     *redis.Pool
+	url          string
+	password     string
+	dialTimeouts time.Duration
+	pool         *redis.Pool
 }
 
-// New creates a new redis client backed by a redis pool.
-func New(addr, password string) *Client {
-	c := &Client{addr: addr, password: password}
+// New creates a new redis client backed by a redis pool. New can take an address, or a url
+// if url starts with rediss:// TLS will be assumed and we *will* match ServerName with
+// whatever the url host name is. Do NOT PASS AN IP ADDRESS FOR rediss:// TLS CONNECTIONS.
+func New(url, password string) *Client {
+	// if not passed a proper url, prepend insecure redis://
+	if !strings.HasPrefix(url, "redis") {
+		url = "redis://" + url
+	}
+	c := &Client{url: url, password: password, dialTimeouts: time.Second * 10}
 	return c
 }
 
@@ -31,18 +39,10 @@ func New(addr, password string) *Client {
 func (c *Client) Init() error {
 	c.pool = &redis.Pool{
 		MaxIdle:     3,
+		MaxActive:   50,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			rc, err := redis.Dial("tcp", c.addr)
-			if err != nil {
-				return nil, err
-			}
-
-			if _, err := rc.Do("AUTH", c.password); err != nil {
-				rc.Close()
-				return nil, err
-			}
-			return rc, nil
+			return redis.DialURL(c.url, redis.DialPassword(c.password))
 		},
 	}
 

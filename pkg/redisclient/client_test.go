@@ -13,6 +13,16 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+func TestInit(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	r := New("redis://0.0.0.0:6379", "test132")
+	if err := r.Init(); err != nil {
+		t.Fatalf("error connecting to redis: %s\n", err)
+	}
+}
 func BenchmarkGetKeys(b *testing.B) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		b.Skip("skipping infrastructure tests")

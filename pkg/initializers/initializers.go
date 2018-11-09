@@ -52,14 +52,18 @@ func DB(env, region, serviceKey string) (string, *pgx.ConnPool) {
 func State(env, region string) *redis.State {
 	redisState := redis.New()
 	sec := secrets.NewSecretsCache(env, region)
-	cacheConfig, err := sec.CacheConfig()
+	addr, err := sec.StateAddr()
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get cache connection string")
+		log.Fatal().Err(err).Msg("unable to get state address")
+	}
+	pass, err := sec.StatePassword()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get state password")
 	}
 
 	err = retrier.RetryUntil(func() error {
 		log.Info().Msg("attempting to connect to redis")
-		return redisState.Init([]byte(cacheConfig))
+		return redisState.Init(addr, pass)
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {

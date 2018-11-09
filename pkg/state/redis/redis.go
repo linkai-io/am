@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -23,13 +22,6 @@ var (
 	ErrEmptyRCPassword = errors.New("rc_pass was empty or invalid")
 )
 
-// Config represents this modules configuration data to be passed in on
-// initialization.
-type Config struct {
-	RCAddr string `json:"rc_addr"`
-	RCPass string `json:"rc_pass"`
-}
-
 // State manager
 type State struct {
 	rc *redisclient.Client
@@ -40,33 +32,12 @@ func New() *State {
 	return &State{}
 }
 
-// Init by parsing the config and initializing the redis client
-func (s *State) Init(config []byte) error {
-	stateConfig, err := s.parseConfig(config)
-	if err != nil {
-		return err
-	}
+// Init by passing address and password
+func (s *State) Init(addr, pass string) error {
 
-	s.rc = redisclient.New(stateConfig.RCAddr, stateConfig.RCPass)
+	s.rc = redisclient.New(addr, pass)
 
 	return s.rc.Init()
-}
-
-// parseConfig parses the configuration options and validates they are sane.
-func (s *State) parseConfig(config []byte) (*Config, error) {
-	v := &Config{}
-	if err := json.Unmarshal(config, v); err != nil {
-		return nil, err
-	}
-
-	if v.RCAddr == "" {
-		return nil, ErrEmptyRCAddress
-	}
-
-	if v.RCPass == "" {
-		return nil, ErrEmptyRCPassword
-	}
-	return v, nil
 }
 
 // Start set scan group status to started

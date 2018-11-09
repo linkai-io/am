@@ -9,8 +9,6 @@ import (
 
 // Stater is for interfacing with a state management system (see pkg/state/redis/redis.go for implementation)
 type Stater interface {
-	// Initialize the state system
-	Init(config []byte) error
 
 	// DoCTDomain checks if we should check our database and bigquery for new certificate transparency results
 	DoCTDomain(ctx context.Context, orgID, scanGroupID int, expireSeconds int, etld string) (bool, error)

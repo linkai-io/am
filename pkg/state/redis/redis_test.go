@@ -20,10 +20,10 @@ func TestPut(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
-	
+
 	now := time.Now().UnixNano()
 	sg := &am.ScanGroup{
 		OrgID:                1,
@@ -50,7 +50,7 @@ func TestAddresses(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()
@@ -126,7 +126,7 @@ func TestGetGroup(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()
@@ -170,7 +170,7 @@ func TestGroupStatus(t *testing.T) {
 	oid := 2
 	gid := 2
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()
@@ -253,7 +253,7 @@ func TestFilterNew(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()
@@ -325,7 +325,7 @@ func TestState_DoNSRecords(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	ctx := context.Background()
@@ -367,7 +367,7 @@ func TestState_DoBruteETLD(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 	ctx := context.Background()
@@ -435,7 +435,7 @@ func TestState_Subscribe(t *testing.T) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		t.Fatalf("error connecting to redis: %s\n", err)
 	}
 
@@ -457,7 +457,7 @@ func BenchmarkPut(b *testing.B) {
 	}
 
 	r := redis.New()
-	if err := r.Init([]byte("{\"rc_addr\":\"0.0.0.0:6379\",\"rc_pass\":\"test132\"}")); err != nil {
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
 		b.Fatalf("error connecting to redis: %s\n", err)
 	}
 	now := time.Now().UnixNano()

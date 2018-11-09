@@ -9,9 +9,6 @@ import (
 
 // Stater is for interfacing with a state management system (see pkg/state/redis/redis.go for implementation)
 type Stater interface {
-	// Initialize the state system
-	Init(config []byte) error
-
 	// TODO: Add WebDomains logic so we can search for domains that don't match the etld we are analyzing, but are in
 	// our scan group and 'verified' as owned.
 

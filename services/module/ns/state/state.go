@@ -9,8 +9,6 @@ import (
 
 // Stater is for interfacing with a state management system (see coordinator/state/redis for implementation)
 type Stater interface {
-	// Initialize the state system needs org_id and supporting connection details
-	Init(config []byte) error
 	// safely check if we should lookup records for this zone
 	DoNSRecords(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error)
 	// Subscribe for updates

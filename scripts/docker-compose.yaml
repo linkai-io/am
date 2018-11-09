@@ -155,6 +155,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   dispatcherservice1:
      image: linkai_dispatcherservice
      hostname: linkai_dispatcherservice1
@@ -170,6 +171,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   dispatcherservice2:
      image: linkai_dispatcherservice
      hostname: linkai_dispatcherservice2
@@ -185,6 +187,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   nsmoduleservice1:
      image: linkai_nsmoduleservice
      hostname: linkai_nsmoduleservice1
@@ -201,6 +204,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   nsmoduleservice2:
      image: linkai_nsmoduleservice
      hostname: linkai_nsmoduleservice2
@@ -217,6 +221,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   brutemoduleservice1:
      image: linkai_brutemoduleservice
      hostname: linkai_brutemoduleservice1
@@ -233,6 +238,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   brutemoduleservice2:
      image: linkai_brutemoduleservice
      hostname: linkai_brutemoduleservice2
@@ -249,6 +255,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   webdataservice:
      image: linkai_webdataservice
      hostname: linkai_webdataservice
@@ -266,6 +273,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
       - _am_local_db_webdataservice_dbstring=${_am_local_db_webdataservice_dbstring}
   webmoduleservice1:
      image: linkai_webmoduleservice
@@ -286,6 +294,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
   webmoduleservice2:
      image: linkai_webmoduleservice
      hostname: linkai_webmoduleservice2
@@ -305,6 +314,7 @@ services:
       - _am_local_discovery_config=${_am_local_discovery_config}
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
  
 networks:
   app_net:

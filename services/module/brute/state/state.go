@@ -9,8 +9,6 @@ import (
 
 // Stater is for interfacing with a state management system (see pkg/state/redis/redis.go for implementation)
 type Stater interface {
-	// Initialize the state system
-	Init(config []byte) error
 	// DoBruteETLD increments a counter so we don't overload an etld
 	DoBruteETLD(ctx context.Context, orgID, scanGroupID, expireSeconds int, maxAllowed int, etld string) (int, bool, error)
 	// DoBruteDomain returns true if we should brute force the zone and sets a key in redis. Otherwise

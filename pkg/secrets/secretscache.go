@@ -41,8 +41,16 @@ func (s *SecretsCache) ServicePassword(serviceKey string) (string, error) {
 	return string(data), nil
 }
 
-func (s *SecretsCache) CacheConfig() (string, error) {
-	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/cache/config", s.Environment))
+func (s *SecretsCache) StateAddr() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/state/config", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func (s *SecretsCache) StatePassword() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/state/pwd", s.Environment))
 	if err != nil {
 		return "", err
 	}

@@ -10,7 +10,6 @@ import (
 // It is responsible for managing the life cycle of scangroups
 // and tracking global scan state
 type Stater interface {
-	Init(config []byte) error
 	GroupStatus(ctx context.Context, userContext am.UserContext, scanGroupID int) (bool, am.GroupStatus, error)
 	GetGroup(ctx context.Context, orgID, scanGroupID int, wantModules bool) (*am.ScanGroup, error)
 	Stop(ctx context.Context, userContext am.UserContext, scanGroupID int) error
