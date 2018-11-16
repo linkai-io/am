@@ -1,0 +1,31 @@
+[Unit]
+Description=loadbalancer service
+ConditionPathExists=/opt/loadbalancer/
+After=network.target
+
+[Service]
+Type=simple
+User=loadbalancerservice
+Group=loadbalancerservice
+LimitNOFILE=65536
+
+Restart=on-failure
+RestartSec=30
+startLimitIntervalSec=60
+
+WorkingDirectory=/opt/loadbalancer
+
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+EnvironmentFile=/etc/app-environment
+ExecStartPre=/bin/mkdir -p /var/log/loadbalancer
+ExecStartPre=/bin/chown syslog:adm /var/log/loadbalancer
+ExecStartPre=/bin/chmod 755 /var/log/loadbalancer
+ExecStart=/opt/loadbalancer/loadbalancer
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=loadbalancer
+
+[Install]
+WantedBy=multi-user.target

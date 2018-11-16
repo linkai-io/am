@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
 	"time"
@@ -22,14 +23,20 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+const (
+	serviceKey = am.UserServiceKey
+)
+
 var (
-	region string
-	env    string
+	appConfig *initializers.AppConfig
 )
 
 func init() {
-	region = os.Getenv("APP_REGION")
-	env = os.Getenv("APP_ENV")
+	appConfig.Env = os.Getenv("APP_ENV")
+	appConfig.Region = os.Getenv("APP_REGION")
+	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
+	appConfig.Addr = os.Getenv("APP_ADDR")
+	appConfig.ServiceKey = serviceKey
 }
 
 // main starts the UserService
@@ -39,11 +46,16 @@ func main() {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "UserService").Logger()
 
-	listener, err := net.Listen("tcp", ":50051")
+	if appConfig.Addr == "" {
+		appConfig.Addr = ":50051"
+	}
+
+	listener, err := net.Listen("tcp", appConfig.Addr)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
-	dbstring, db := initializers.DB(env, region, am.UserServiceKey)
+
+	dbstring, db := initializers.DB(appConfig)
 
 	err = retrier.Retry(func() error {
 		policyManager := ladonauth.NewPolicyManager(db, "pgx")
@@ -75,6 +87,11 @@ func main() {
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
+
+	// check if self register
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	initializers.Self(ctx, appConfig)
 
 	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {

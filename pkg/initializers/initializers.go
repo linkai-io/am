@@ -1,8 +1,13 @@
 package initializers
 
 import (
+	"context"
 	"encoding/json"
+	"net"
+	"strconv"
 	"time"
+
+	"github.com/linkai-io/am/pkg/discovery"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -19,17 +24,49 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// DB for environment, in region, for serviceKey service.
-func DB(env, region, serviceKey string) (string, *pgx.ConnPool) {
-	sec := secrets.NewSecretsCache(env, region)
-	dbstring, err := sec.DBString(serviceKey)
+type AppConfig struct {
+	Env          string
+	Region       string
+	SelfRegister string
+	ServiceKey   string
+	Addr         string
+}
+
+// Self registers if SelfRegister is set to anything. Assumes valid host:port pair in appConfig.Addr is set
+func Self(ctx context.Context, appConfig *AppConfig) {
+	if appConfig.SelfRegister == "" {
+		return
+	}
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
+	discoveryAddr, err := sec.DiscoveryAddr()
 	if err != nil {
-		log.Fatal().Err(err).Str("serviceKey", serviceKey).Msg("unable to get dbstring")
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("unable to get service discovery addr")
+	}
+
+	host, portStr, err := net.SplitHostPort(appConfig.Addr)
+	if err != nil {
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("unable to get hostport")
+	}
+
+	port, _ := strconv.Atoi(portStr)
+
+	disco := discovery.New(discoveryAddr, appConfig.ServiceKey, host, port, time.Second*60)
+	if err := disco.SelfRegister(ctx); err != nil {
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("unable to get self register")
+	}
+}
+
+// DB for environment, in region, for serviceKey service.
+func DB(appConfig *AppConfig) (string, *pgx.ConnPool) {
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
+	dbstring, err := sec.DBString(appConfig.ServiceKey)
+	if err != nil {
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("unable to get dbstring")
 	}
 
 	conf, err := pgx.ParseConnectionString(dbstring)
 	if err != nil {
-		log.Fatal().Err(err).Str("serviceKey", serviceKey).Msg("error parsing connection string")
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("error parsing connection string")
 	}
 
 	var p *pgx.ConnPool
@@ -43,15 +80,15 @@ func DB(env, region, serviceKey string) (string, *pgx.ConnPool) {
 	}, time.Minute*1, time.Second*3)
 
 	if err != nil {
-		log.Fatal().Err(err).Str("serviceKey", serviceKey).Msg("failed to connect to postgresql")
+		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("failed to connect to postgresql")
 	}
 	return dbstring, p
 }
 
 // State connects to the state system (redis)
-func State(env, region string) *redis.State {
+func State(appConfig *AppConfig) *redis.State {
 	redisState := redis.New()
-	sec := secrets.NewSecretsCache(env, region)
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
 	addr, err := sec.StateAddr()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get state address")

@@ -16,9 +16,7 @@ else
     threads=1
 fi
 
-# if the user hasn't mounted their own unbound.conf, use this default:
-if [ ! -f /opt/unbound/etc/unbound/unbound.conf ]; then
-    sed \
+sed \
         -e "s/@MSG_CACHE_SIZE@/${msg_cache_size}/" \
         -e "s/@RR_CACHE_SIZE@/${rr_cache_size}/" \
         -e "s/@THREADS@/${threads}/" \
@@ -50,7 +48,7 @@ server:
     prefetch-key: yes
     qname-minimisation: yes
     aggressive-nsec: yes
-    ratelimit: 10000
+    ratelimit: 50000
     rrset-roundrobin: yes
     minimal-responses: yes
     chroot: "/opt/unbound/etc/unbound"

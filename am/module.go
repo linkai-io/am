@@ -18,6 +18,7 @@ const (
 	PortModuleServiceKey    = "portmoduleservice"
 	WebModuleServiceKey     = "webmoduleservice"
 	KeywordModuleServiceKey = "keywordmoduleservice"
+	BigDataModuleServiceKey = "bigdatamoduleservice"
 )
 
 func KeyFromModuleType(moduleType ModuleType) string {

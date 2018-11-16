@@ -3,6 +3,7 @@ package secrets
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // SecretsCache for accessing cached/stored secrets
@@ -79,6 +80,15 @@ func (s *SecretsCache) WebFilePath() (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+func (s *SecretsCache) DNSAddresses() ([]string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/dnsaddresses", s.Environment))
+	if err != nil {
+		return []string{""}, err
+	}
+	hosts := strings.Trim(string(data), " ")
+	return strings.Split(hosts, ","), nil
 }
 
 func (s *SecretsCache) SystemOrgID() (int, error) {

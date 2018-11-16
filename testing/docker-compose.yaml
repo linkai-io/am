@@ -1,0 +1,325 @@
+version: '3'
+
+services:
+  unbound:
+    image: linkai_unbound
+    hostname: unbound
+    ports: 
+      - "2053:53/udp"
+      - "2053:53/tcp"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.53
+  redis:
+    image: myredis
+    hostname: redis
+    ports: 
+      - "6379:6379"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.5
+  amloadservice:
+    image: linkai_amloadservice
+    hostname: linkai_amloadservice
+    ports: 
+      - "8383:9999"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.6
+    environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+  postgresdev:
+    image: postgres
+    hostname: postgresdev
+    ports:
+      - "5432:5432"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.10
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  pgmigration:
+    image: linkai_pg_migrations
+    depends_on: 
+      - postgresdev
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.8
+    environment:
+      - APP_ENV=local
+      - _am_local_db_postgres_dbstring
+      - _am_local_db_linkai_admin_pwd
+      - _am_local_db_eventservice_pwd
+      - _am_local_db_orgservice_pwd
+      - _am_local_db_userservice_pwd
+      - _am_local_db_tagservice_pwd
+      - _am_local_db_scangroupservice_pwd
+      - _am_local_db_addressservice_pwd
+      - _am_local_db_findingsservice_pwd
+      - _am_local_db_webdataservice_pwd
+      - _am_local_db_bigdataservice_pwd
+  ammigration:
+    image: linkai_am_migrations
+    depends_on: 
+      - postgresdev
+      - pgmigration
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.9
+    environment:
+      - APP_ENV=local
+      - _am_local_db_linkai_admin_dbstring=${_am_local_db_linkai_admin_dbstring}
+  orgservice:
+     image: linkai_orgservice
+     hostname: linkai_orgservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - amloadservice
+     ports:
+       - "50050:50051"
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.11
+     environment:
+      - APP_ENV=local
+      - _am_local_db_orgservice_dbstring=${_am_local_db_orgservice_dbstring}
+  userservice:
+     image: linkai_userservice
+     hostname: linkai_userservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.12
+     ports:
+       - "50052:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_userservice_dbstring=${_am_local_db_userservice_dbstring}
+  scangroupservice:
+     image: linkai_scangroupservice
+     hostname: linkai_scangroupservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.13
+     ports:
+       - "50053:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_scangroupservice_dbstring=${_am_local_db_scangroupservice_dbstring}       
+  addressservice:
+     image: linkai_addressservice
+     hostname: linkai_addressservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.14
+     ports:
+       - "50054:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_db_addressservice_dbstring=${_am_local_db_addressservice_dbstring}
+  coordinatorservice:
+     image: linkai_coordinatorservice
+     hostname: linkai_coordinatorservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - dispatcherservice1
+      - dispatcherservice2
+      - scangroupservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.15
+     ports:
+       - "50055:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_system_userid=1
+      - _am_local_system_orgid=1
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  dispatcherservice1:
+     image: linkai_dispatcherservice
+     hostname: linkai_dispatcherservice1
+     depends_on: 
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.16
+     ports:
+       - "50056:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  dispatcherservice2:
+     image: linkai_dispatcherservice
+     hostname: linkai_dispatcherservice2
+     depends_on: 
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.17
+     ports:
+       - "50057:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  nsmoduleservice1:
+     image: linkai_nsmoduleservice
+     hostname: linkai_nsmoduleservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.18
+     ports:
+       - "50058:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  nsmoduleservice2:
+     image: linkai_nsmoduleservice
+     hostname: linkai_nsmoduleservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.19
+     ports:
+       - "50059:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  brutemoduleservice1:
+     image: linkai_brutemoduleservice
+     hostname: linkai_brutemoduleservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.20
+     ports:
+       - "50060:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  brutemoduleservice2:
+     image: linkai_brutemoduleservice
+     hostname: linkai_brutemoduleservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.21
+     ports:
+       - "50061:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  webdataservice:
+     image: linkai_webdataservice
+     hostname: linkai_webdataservice
+     depends_on: 
+      - postgresdev
+      - ammigration
+      - amloadservice
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.22
+     ports:
+       - "50062:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+      - _am_local_db_webdataservice_dbstring=${_am_local_db_webdataservice_dbstring}
+  webmoduleservice1:
+     image: linkai_webmoduleservice
+     hostname: linkai_webmoduleservice1
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+      - webdataservice
+     volumes:
+      - /tmp:/home/fbi/wmtmp1
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.23
+     ports:
+       - "50063:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+  webmoduleservice2:
+     image: linkai_webmoduleservice
+     hostname: linkai_webmoduleservice2
+     depends_on: 
+      - coordinatorservice
+      - amloadservice
+      - webdataservice
+     volumes:
+      - /tmp:/home/fbi/wmtmp2
+     networks:
+      app_net:
+        ipv4_address: 172.16.238.24
+     ports:
+       - "50064:50051"
+     environment:
+      - APP_ENV=local
+      - _am_local_discovery_config=${_am_local_discovery_config}
+      - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
+      - _am_local_cache_config=${_am_local_cache_config}
+      - _am_local_cache_pwd=${_am_local_cache_pwd}
+ 
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24

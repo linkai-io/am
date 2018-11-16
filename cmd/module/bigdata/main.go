@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
 	"time"
@@ -12,6 +13,7 @@ import (
 	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
 	"github.com/bsm/grpclb/load"
 
+	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
@@ -24,13 +26,21 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-var region string
-var env string
-var loadBalancerAddr string
+const (
+	serviceKey = am.BigDataModuleServiceKey
+)
+
+var (
+	appConfig        *initializers.AppConfig
+	loadBalancerAddr string
+)
 
 func init() {
-	region = os.Getenv("APP_REGION")
-	env = os.Getenv("APP_ENV")
+	appConfig.Env = os.Getenv("APP_ENV")
+	appConfig.Region = os.Getenv("APP_REGION")
+	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
+	appConfig.Addr = os.Getenv("APP_ADDR")
+	appConfig.ServiceKey = serviceKey
 }
 
 // main starts the BigDataModuleService
@@ -40,19 +50,28 @@ func main() {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "BigDataModuleService").Logger()
 
-	sec := secrets.NewSecretsCache(env, region)
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
 	loadBalancerAddr, err = sec.LoadBalancerAddr()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get load balancer address")
 	}
 
-	listener, err := net.Listen("tcp", ":50051")
+	dnsAddrs, err := sec.DNSAddresses()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get dns server addresses")
+	}
+
+	if appConfig.Addr == "" {
+		appConfig.Addr = ":50051"
+	}
+
+	listener, err := net.Listen("tcp", appConfig.Addr)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
-	state := initializers.State(env, region)
-	dc := dnsclient.New([]string{"unbound:53"}, 3)
+	state := initializers.State(appConfig)
+	dc := dnsclient.New(dnsAddrs, 3)
 	bdService := &mock.BigDataService{}
 	service := bigdata.New(dc, state, bdService, &mock.BigQuerier{})
 	err = retrier.Retry(func() error {
@@ -70,6 +89,11 @@ func main() {
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	lbpb.RegisterLoadReportServer(s, r)
+
+	// check if self register
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	initializers.Self(ctx, appConfig)
 
 	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
