@@ -11,4 +11,6 @@ cmd/pipeline/pipeline
 cmd/webdata/webdata
 cmd/module/brute/brute
 cmd/module/web/web
+deploy_files/webmodule.zip
+deploy_files/webmoduleservice
 .vscode/*
