@@ -59,8 +59,13 @@ pushecr:
 
 deploy_loadbalancer:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/loadbalancer cmd/amload/main.go
-	zip loadbalancer.zip deploy_files/loadbalancer deploy_files/30-loadbalancer.conf deploy_files/install_loadbalancer.sh deploy_files/loadbalancer.service
-	aws s3 cp loadbalancer.zip s3://linkai-infra/${APP_ENV}/loadbalancer/loadbalancer.zip
+	zip deploy_files/loadbalancer.zip deploy_files/loadbalancer deploy_files/30-loadbalancer.conf deploy_files/install_loadbalancer.sh deploy_files/loadbalancer.service
+	aws s3 cp deploy_files/loadbalancer.zip s3://linkai-infra/${APP_ENV}/loadbalancer/loadbalancer.zip
+
+deploy_webmoduleservice:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
+	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice
+	aws s3 cp deploy_files/webmodule.zip s3://linkai-infra/${APP_ENV}/webmodule/webmodule.zip
 
 test:
 	go test ./... -cover

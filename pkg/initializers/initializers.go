@@ -37,11 +37,8 @@ func Self(ctx context.Context, appConfig *AppConfig) {
 	if appConfig.SelfRegister == "" {
 		return
 	}
-	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
-	discoveryAddr, err := sec.DiscoveryAddr()
-	if err != nil {
-		log.Fatal().Err(err).Str("serviceKey", appConfig.ServiceKey).Msg("unable to get service discovery addr")
-	}
+
+	discoveryAddr := "127.0.0.1:8500"
 
 	host, portStr, err := net.SplitHostPort(appConfig.Addr)
 	if err != nil {

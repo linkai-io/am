@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	appConfig        *initializers.AppConfig
+	appConfig        initializers.AppConfig
 	loadBalancerAddr string
 )
 
@@ -62,7 +62,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
-	state := initializers.State(appConfig)
+	state := initializers.State(&appConfig)
 	dc := dnsclient.New(dnsAddrs, 3)
 	service := ns.New(dc, state)
 	err = retrier.Retry(func() error {
@@ -84,7 +84,7 @@ func main() {
 	// check if self register
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	initializers.Self(ctx, appConfig)
+	initializers.Self(ctx, &appConfig)
 
 	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {

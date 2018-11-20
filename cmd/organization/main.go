@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	appConfig *initializers.AppConfig
+	appConfig initializers.AppConfig
 )
 
 func init() {
@@ -55,7 +55,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
-	dbstring, db := initializers.DB(appConfig)
+	dbstring, db := initializers.DB(&appConfig)
 
 	err = retrier.Retry(func() error {
 		policyManager := ladonauth.NewPolicyManager(db, "pgx")
@@ -89,7 +89,7 @@ func main() {
 	// check if self register
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	initializers.Self(ctx, appConfig)
+	initializers.Self(ctx, &appConfig)
 
 	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
