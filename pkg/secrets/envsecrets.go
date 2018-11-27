@@ -20,3 +20,9 @@ func (s *EnvSecrets) GetSecureParameter(key string) ([]byte, error) {
 	data := os.Getenv(key)
 	return []byte(data), nil
 }
+
+func (s *EnvSecrets) SetSecureParameter(key, value string) error {
+	key = strings.Replace(key, "/", "_", -1)
+	os.Setenv(key, value)
+	return nil
+}

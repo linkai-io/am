@@ -15,7 +15,6 @@ startLimitIntervalSec=60
 
 WorkingDirectory=/opt/webmodule
 
-
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
 EnvironmentFile=/etc/app-environment

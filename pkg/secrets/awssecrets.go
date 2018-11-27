@@ -38,3 +38,13 @@ func (s *AWSSecrets) GetSecureParameter(key string) ([]byte, error) {
 
 	return []byte(*out.Parameter.Value), nil
 }
+
+func (s *AWSSecrets) SetSecureParameter(key, value string) error {
+	parameter := &ssm.PutParameterInput{
+		KeyId: aws.String("alias/aws/ssm"),
+		Name:  &key,
+		Type:  aws.String("SecureString"),
+	}
+	_, err := s.manager.PutParameter(parameter)
+	return err
+}

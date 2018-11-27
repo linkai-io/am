@@ -106,3 +106,10 @@ func (s *SecretsCache) SystemUserID() (int, error) {
 	}
 	return strconv.Atoi(string(data))
 }
+
+func (s *SecretsCache) SetSystemIDs(orgID, userID int) error {
+	if err := s.secrets.SetSecureParameter(fmt.Sprintf("/am/%s/system/orgid", s.Environment), strconv.Itoa(orgID)); err != nil {
+		return err
+	}
+	return s.secrets.SetSecureParameter(fmt.Sprintf("/am/%s/system/userid", s.Environment), strconv.Itoa(userID))
+}
