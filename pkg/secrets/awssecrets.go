@@ -44,6 +44,7 @@ func (s *AWSSecrets) SetSecureParameter(key, value string) error {
 		KeyId: aws.String("alias/aws/ssm"),
 		Name:  &key,
 		Type:  aws.String("SecureString"),
+		Value: aws.String(value),
 	}
 	_, err := s.manager.PutParameter(parameter)
 	return err
