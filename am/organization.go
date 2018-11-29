@@ -26,26 +26,28 @@ const (
 
 // Organization represents an organization that has subscribed to our service
 type Organization struct {
-	OrgID           int    `json:"org_id"`
-	OrgCID          string `json:"org_customer_id"`
-	OrgName         string `json:"org_name"`
-	OwnerEmail      string `json:"owner_email"`
-	UserPoolID      string `json:"user_pool_id"`
-	IdentityPoolID  string `json:"identity_pool_id"`
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	Phone           string `json:"phone"`
-	Country         string `json:"country"`
-	StatePrefecture string `json:"state_prefecture"`
-	Street          string `json:"street"`
-	Address1        string `json:"address1"`
-	Address2        string `json:"address2"`
-	City            string `json:"city"`
-	PostalCode      string `json:"postal_code"`
-	CreationTime    int64  `json:"creation_time"`
-	StatusID        int    `json:"status_id"`
-	Deleted         bool   `json:"deleted"`
-	SubscriptionID  int    `json:"subscription_id"`
+	OrgID                   int    `json:"org_id"`
+	OrgCID                  string `json:"org_customer_id"`
+	OrgName                 string `json:"org_name"`
+	OwnerEmail              string `json:"owner_email"`
+	UserPoolID              string `json:"user_pool_id"`
+	UserPoolAppClientID     string `json:"user_pool_app_client_id"`
+	UserPoolAppClientSecret string `json:"user_pool_app_client_secret"`
+	IdentityPoolID          string `json:"identity_pool_id"`
+	FirstName               string `json:"first_name"`
+	LastName                string `json:"last_name"`
+	Phone                   string `json:"phone"`
+	Country                 string `json:"country"`
+	StatePrefecture         string `json:"state_prefecture"`
+	Street                  string `json:"street"`
+	Address1                string `json:"address1"`
+	Address2                string `json:"address2"`
+	City                    string `json:"city"`
+	PostalCode              string `json:"postal_code"`
+	CreationTime            int64  `json:"creation_time"`
+	StatusID                int    `json:"status_id"`
+	Deleted                 bool   `json:"deleted"`
+	SubscriptionID          int    `json:"subscription_id"`
 }
 
 // OrgFilter for filtering organization list results
@@ -63,6 +65,7 @@ type OrgFilter struct {
 
 // OrganizationService manages access to organizations
 type OrganizationService interface {
+	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, orgName string) (oid int, org *Organization, err error)
 	GetByCID(ctx context.Context, userContext UserContext, orgCID string) (oid int, org *Organization, err error)
 	GetByID(ctx context.Context, userContext UserContext, orgID int) (oid int, org *Organization, err error)
