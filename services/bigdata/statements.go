@@ -4,6 +4,8 @@ import "fmt"
 
 const (
 	commonColumns = `inserted_timestamp,
+	server_name,
+	server_index,
 	etld,
 	cert_hash,
 	serial_number,
@@ -23,6 +25,8 @@ var queryMap = map[string]string{
 	"getCertificates": `select queries.query_timestamp,
 			certs.certificate_id,
 			certs.inserted_timestamp,
+			certs.server_name,
+			certs.server_index,
 			certs.etld,
 			certs.cert_hash,
 			certs.serial_number,
@@ -47,12 +51,14 @@ var queryMap = map[string]string{
 
 var (
 	AddCTTempTableKey     = "cert_add_temp"
-	AddCTTempTableColumns = []string{"inserted_timestamp", "etld", "cert_hash", "serial_number",
+	AddCTTempTableColumns = []string{"inserted_timestamp", "server_name", "server_index", "etld", "cert_hash", "serial_number",
 		"not_before", "not_after", "country", "organization", "organizational_unit", "common_name",
 		"verified_dns_names", "unverified_dns_names", "ip_addresses", "email_addresses"}
 
 	AddCTTempTable = `create temporary table cert_add_temp (
 			inserted_timestamp bigint,
+			server_name varchar(512) not null,
+			server_index bigint not null,
 			etld varchar(512) not null,
 			cert_hash varchar(256) not null unique,
 			serial_number varchar(256),
@@ -73,6 +79,8 @@ var (
 		)
 		select
 			temp.inserted_timestamp,
+			temp.server_name,
+			temp.server_index,
 			temp.etld,
 			temp.cert_hash,
 			temp.serial_number,

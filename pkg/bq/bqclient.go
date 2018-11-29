@@ -15,6 +15,8 @@ import (
 
 const query = `SELECT certhash, ARRAY_AGG(STRUCT(
 	time as time,
+	server as server,
+	index as index,
 	serialnumber as serialnumber,
 	notbefore as notbefore,
 	notafter as notafter,
@@ -38,6 +40,8 @@ var (
 // Result of CT record
 type Result struct {
 	Time               time.Time `bigquery:"time"`
+	Server             string    `bigquery:"server"`
+	Index              int64     `bigquery:"index"`
 	SerialNumber       string    `bigquery:"serialnumber"`
 	NotBefore          time.Time `bigquery:"notbefore"`
 	NotAfter           time.Time `bigquery:"notafter"`

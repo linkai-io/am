@@ -13,6 +13,8 @@ const (
 type CTRecord struct {
 	CertificateID      int64  `json:"certificate_id"`
 	InsertedTime       int64  `json:"time"`
+	ServerName         string `json:"server_name"`
+	ServerIndex        int64  `json:"server_index"`
 	CertHash           string `json:"cert_hash"`
 	SerialNumber       string `json:"serial_number"`
 	NotBefore          int64  `json:"not_before"`

@@ -111,7 +111,7 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 	for rows.Next() {
 		r := &am.CTRecord{}
 
-		err := rows.Scan(&ts, &r.CertificateID, &r.InsertedTime, &r.ETLD, &r.CertHash,
+		err := rows.Scan(&ts, &r.CertificateID, &r.InsertedTime, &r.ServerName, &r.ServerIndex, &r.ETLD, &r.CertHash,
 			&r.SerialNumber, &r.NotBefore, &r.NotAfter, &r.Country, &r.Organization,
 			&r.OrganizationalUnit, &r.CommonName, &r.VerifiedDNSNames, &r.UnverifiedDNSNames,
 			&r.IPAddresses, &r.EmailAddresses)
@@ -173,7 +173,7 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 		}
 
 		ctRows[i] = []interface{}{
-			r.InsertedTime, r.ETLD, r.CertHash, r.SerialNumber, r.NotBefore, r.NotAfter, r.Country,
+			r.InsertedTime, r.ServerName, r.ServerIndex, r.ETLD, r.CertHash, r.SerialNumber, r.NotBefore, r.NotAfter, r.Country,
 			r.Organization, r.OrganizationalUnit, r.CommonName, r.VerifiedDNSNames, r.UnverifiedDNSNames,
 			r.IPAddresses, r.EmailAddresses}
 

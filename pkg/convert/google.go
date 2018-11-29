@@ -10,6 +10,8 @@ func CTBigQueryResultToDomain(certHash string, result *bq.Result) *am.CTRecord {
 		CertificateID:      0,
 		InsertedTime:       result.Time.UnixNano(),
 		CertHash:           certHash,
+		ServerName:         result.Server,
+		ServerIndex:        result.Index,
 		SerialNumber:       result.SerialNumber,
 		NotBefore:          result.NotBefore.UnixNano(),
 		NotAfter:           result.NotAfter.UnixNano(),
