@@ -52,6 +52,11 @@ func (c *OrganizationService) List(ctx context.Context, userContext am.UserConte
 	return c.ListFn(ctx, userContext, filter)
 }
 
+func (c *OrganizationService) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error) {
+	c.CreateInvoked = true
+	return c.CreateFn(ctx, userContext, org)
+}
+
 func (c *OrganizationService) Update(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, err error) {
 	c.UpdateInvoked = true
 	return c.UpdateFn(ctx, userContext, org)
