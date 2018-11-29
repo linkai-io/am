@@ -32,6 +32,11 @@ type OrganizationService struct {
 	DeleteInvoked bool
 }
 
+func (c *OrganizationService) Init(config []byte) error {
+	c.InitInvoked = true
+	return c.InitFn(config)
+}
+
 func (c *OrganizationService) Get(ctx context.Context, userContext am.UserContext, orgName string) (oid int, org *am.Organization, err error) {
 	c.GetInvoked = true
 	return c.GetFn(ctx, userContext, orgName)
