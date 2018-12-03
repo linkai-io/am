@@ -79,6 +79,7 @@ type ScanGroupAddressFilter struct {
 }
 
 type AddressService interface {
+	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
 	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
 	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)
