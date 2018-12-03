@@ -118,6 +118,7 @@ type WebCertificateFilter struct {
 }
 
 type WebDataService interface {
+	Init(config []byte) error
 	Add(ctx context.Context, userContext UserContext, webData *WebData) (int, error)
 	GetResponses(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*HTTPResponse, error)
 	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)
