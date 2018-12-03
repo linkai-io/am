@@ -106,6 +106,7 @@ type UserFilter struct {
 
 // UserService for managing access to users
 type UserService interface {
+	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, userID int) (oid int, user *User, err error)
 	GetByCID(ctx context.Context, userContext UserContext, userCID string) (oid int, user *User, err error)
 	List(ctx context.Context, userContext UserContext, filter *UserFilter) (oid int, users []*User, err error)
