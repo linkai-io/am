@@ -41,10 +41,11 @@ func (s *AWSSecrets) GetSecureParameter(key string) ([]byte, error) {
 
 func (s *AWSSecrets) SetSecureParameter(key, value string) error {
 	parameter := &ssm.PutParameterInput{
-		KeyId: aws.String("alias/aws/ssm"),
-		Name:  &key,
-		Type:  aws.String("SecureString"),
-		Value: aws.String(value),
+		KeyId:     aws.String("alias/aws/ssm"),
+		Name:      &key,
+		Overwrite: aws.Bool(true),
+		Type:      aws.String("SecureString"),
+		Value:     aws.String(value),
 	}
 	_, err := s.manager.PutParameter(parameter)
 	return err
