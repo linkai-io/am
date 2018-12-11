@@ -24,6 +24,15 @@ func NewSecretsCache(env, region string) *SecretsCache {
 	return s
 }
 
+// GetSecureString allows caller to provide the full key to return a string value
+func (s *SecretsCache) GetSecureString(key string) (string, error) {
+	data, err := s.secrets.GetSecureParameter(key)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 // DBString returns the database connection string for the environment and service
 func (s *SecretsCache) DBString(serviceKey string) (string, error) {
 	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/db/%s/dbstring", s.Environment, serviceKey))
