@@ -34,6 +34,7 @@ type Organization struct {
 	UserPoolAppClientID     string `json:"user_pool_app_client_id"`
 	UserPoolAppClientSecret string `json:"user_pool_app_client_secret"`
 	IdentityPoolID          string `json:"identity_pool_id"`
+	UserPoolJWK             string `json:"user_pool_jwk"`
 	FirstName               string `json:"first_name"`
 	LastName                string `json:"last_name"`
 	Phone                   string `json:"phone"`

@@ -7,6 +7,9 @@ import (
 )
 
 type AddressService struct {
+	InitFn        func(config []byte) error
+	InitFnInvoked bool
+
 	GetFn      func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error)
 	GetInvoked bool
 
@@ -18,6 +21,10 @@ type AddressService struct {
 
 	DeleteFn      func(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error)
 	DeleteInvoked bool
+}
+
+func (c *AddressService) Init(config []byte) error {
+	return nil
 }
 
 func (c *AddressService) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {

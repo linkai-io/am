@@ -27,12 +27,12 @@ import (
 
 const (
 	CreateOrgStmt = `insert into am.organizations (
-		organization_name, organization_custom_id, user_pool_id, identity_pool_id, user_pool_client_id, user_pool_client_secret,
+		organization_name, organization_custom_id, user_pool_id, identity_pool_id, user_pool_client_id, user_pool_client_secret, user_pool_jwk,
 		owner_email, first_name, last_name, phone, country, state_prefecture, street, 
 		address1, address2, city, postal_code, creation_time, deleted, status_id, subscription_id
 	)
 	values 
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, false, 1000, 1000);`
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, false, 1000, 1000);`
 
 	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
 	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted) values 
@@ -434,6 +434,7 @@ func CreateOrgInstance(orgName string) *am.Organization {
 		UserPoolAppClientID:     "userpoolclient.id",
 		UserPoolAppClientSecret: "userpoolclient.secret",
 		IdentityPoolID:          "identitypool.blah",
+		UserPoolJWK:             "userpool.jwk",
 		FirstName:               "first",
 		LastName:                "last",
 		Phone:                   "1-111-111-1111",
@@ -448,7 +449,7 @@ func CreateOrgInstance(orgName string) *am.Organization {
 }
 
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
-	_, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "userpoolclient.id", "userpoolclient.secret", "identity_pool_id.blah",
+	_, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "userpoolclient.id", "userpoolclient.secret", "identity_pool_id.blah", "user_pool_jwk.blah",
 		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "", "",
 		"sf", "90210", time.Now().UnixNano())
 
@@ -563,6 +564,10 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 
 	if e.IdentityPoolID != r.IdentityPoolID {
 		t.Fatalf("IdentityPoolID did not match expected: %v got %v\n", e.IdentityPoolID, r.IdentityPoolID)
+	}
+
+	if e.UserPoolJWK != r.UserPoolJWK {
+		t.Fatalf("UserPoolJWK did not match expected: %v got %v\n", e.UserPoolJWK, r.UserPoolJWK)
 	}
 
 	if e.FirstName != r.FirstName {

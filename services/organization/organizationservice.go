@@ -105,7 +105,7 @@ func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, orgID
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, org *am.Organization, err error) {
 	org = &am.Organization{}
 	err = row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
-		&org.IdentityPoolID, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
+		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
 		&org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
 	return org.OrgID, org, err
@@ -126,9 +126,8 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 	for i := 0; rows.Next(); i++ {
 		org := &am.Organization{}
-
 		if err := rows.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
-			&org.IdentityPoolID, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
+			&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
 			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted,
 			&org.SubscriptionID); err != nil {
 			return nil, err
@@ -172,7 +171,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 
 	now := time.Now().UnixNano()
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.UserPoolAppClientID,
-		org.UserPoolAppClientSecret, org.IdentityPoolID, org.OwnerEmail, org.FirstName,
+		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
 		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, ucid, org.OwnerEmail,
 		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
@@ -252,6 +251,10 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 		update.IdentityPoolID = org.IdentityPoolID
 	}
 
+	if org.UserPoolJWK != "" && org.UserPoolJWK != update.UserPoolJWK {
+		update.UserPoolJWK = org.UserPoolJWK
+	}
+
 	if org.OwnerEmail != "" && org.OwnerEmail != update.OwnerEmail {
 		update.OwnerEmail = org.OwnerEmail
 	}
@@ -305,7 +308,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 	}
 
 	_, err = tx.Exec("orgUpdate", update.UserPoolID, update.UserPoolAppClientID, update.UserPoolAppClientSecret,
-		update.IdentityPoolID, update.OwnerEmail, update.FirstName, update.LastName, update.Phone, update.Country,
+		update.IdentityPoolID, update.UserPoolJWK, update.OwnerEmail, update.FirstName, update.LastName, update.Phone, update.Country,
 		update.StatePrefecture, update.Street, update.Address1, update.Address2, update.City, update.PostalCode,
 		update.StatusID, update.SubscriptionID, oid)
 	if err != nil {
