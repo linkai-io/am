@@ -25,8 +25,12 @@ func (s *UserProtocService) Get(ctx context.Context, in *user.UserRequest) (*use
 
 	s.reporter.Increment(1)
 	switch in.By {
+	case user.UserRequest_USEREMAIL:
+		oid, amuser, err = s.userservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.UserEmail)
+	case user.UserRequest_USERWITHORGID:
+		oid, amuser, err = s.userservice.GetWithOrgID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID), in.UserEmail)
 	case user.UserRequest_USERID:
-		oid, amuser, err = s.userservice.Get(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
+		oid, amuser, err = s.userservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
 	case user.UserRequest_USERCID:
 		oid, amuser, err = s.userservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.UserCID)
 	}

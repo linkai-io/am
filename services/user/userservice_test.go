@@ -101,7 +101,21 @@ func TestCreate(t *testing.T) {
 
 	testCompareUsers(expected, returned, t)
 
-	_, returned, err = service.Get(ctx, userContext, returned.UserID)
+	_, returned, err = service.Get(ctx, userContext, returned.UserEmail)
+	if err != nil {
+		t.Fatalf("error getting user by email: %s\n", err)
+	}
+
+	testCompareUsers(expected, returned, t)
+
+	_, returned, err = service.GetWithOrgID(ctx, userContext, userContext.GetOrgID(), returned.UserEmail)
+	if err != nil {
+		t.Fatalf("error getting user by with org id: %s\n", err)
+	}
+
+	testCompareUsers(expected, returned, t)
+
+	_, returned, err = service.GetByID(ctx, userContext, returned.UserID)
 	if err != nil {
 		t.Fatalf("error getting user by id: %s\n", err)
 	}
@@ -118,7 +132,7 @@ func TestCreate(t *testing.T) {
 		}
 	}
 
-	filter := &am.UserFilter{Start: 0, Limit: 10}
+	filter := &am.UserFilter{Start: 0, OrgID: userContext.GetOrgID(), Limit: 10}
 	_, userList, err := service.List(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("got error listing users: %s\n", err)
@@ -192,7 +206,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("error updating user: %s\n", err)
 	}
 
-	_, new, err := service.Get(ctx, userContext, returned.UserID)
+	_, new, err := service.Get(ctx, userContext, returned.UserEmail)
 	if err != nil {
 		t.Fatalf("error getting user after update: %s\n", err)
 	}
@@ -214,7 +228,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("error updating statusid: %s\n", err)
 	}
 
-	_, statusUser, err := service.Get(ctx, userContext, returned.UserID)
+	_, statusUser, err := service.Get(ctx, userContext, returned.UserEmail)
 	if err != nil {
 		t.Fatalf("error getting user after update: %s\n", err)
 	}

@@ -3,6 +3,10 @@ package user
 var queryMap = map[string]string{
 	"userExists": `select organization_id, user_id, user_custom_id from am.users where organization_id=$1 and user_id=$2 or user_custom_id=$3`,
 
+	"userByEmail": `select 
+		organization_id, user_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted
+	from am.users where organization_id=$1 and email=$2`,
+
 	"userByID": `select 
 		organization_id, user_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted
 	from am.users where organization_id=$1 and user_id=$2`,

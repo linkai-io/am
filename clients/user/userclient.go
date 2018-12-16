@@ -57,7 +57,26 @@ func (c *Client) get(ctx context.Context, userContext am.UserContext, in *servic
 	return int(resp.GetOrgID()), convert.UserToDomain(resp.User), nil
 }
 
-func (c *Client) Get(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
+func (c *Client) Get(ctx context.Context, userContext am.UserContext, userEmail string) (oid int, user *am.User, err error) {
+	in := &service.UserRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		By:          service.UserRequest_USEREMAIL,
+		UserEmail:   userEmail,
+	}
+	return c.get(ctx, userContext, in)
+}
+
+func (c *Client) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userEmail string) (oid int, user *am.User, err error) {
+	in := &service.UserRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		By:          service.UserRequest_USERWITHORGID,
+		OrgID:       int32(orgID),
+		UserEmail:   userEmail,
+	}
+	return c.get(ctx, userContext, in)
+}
+
+func (c *Client) GetByID(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
 	in := &service.UserRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		By:          service.UserRequest_USERID,

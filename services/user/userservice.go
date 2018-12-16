@@ -75,8 +75,24 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
-// Get organization by organization name, system user only.
-func (s *Service) Get(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
+// Get user by their email address
+func (s *Service) Get(ctx context.Context, userContext am.UserContext, userEmail string) (oid int, user *am.User, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+	return s.get(ctx, userContext, s.pool.QueryRow("userByEmail", userContext.GetOrgID(), userEmail))
+}
+
+// GetWithOrgID for internal lookups instead of getting orgID from context we pass it directly (system/support only).
+func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userEmail string) (oid int, user *am.User, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+	return s.get(ctx, userContext, s.pool.QueryRow("userByEmail", orgID, userEmail))
+}
+
+// Get user by ID
+func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
@@ -106,7 +122,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	var rows *pgx.Rows
 
 	users = make([]*am.User, 0)
-	oid = userContext.GetOrgID()
+	oid = filter.OrgID
 
 	if filter.WithDeleted {
 		rows, err = s.pool.Query("userListWithDelete", oid, filter.DeletedValue, filter.Start, filter.Limit)
@@ -209,7 +225,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 	return oid, uid, tx.Commit()
 }
 
-// Delete the organization
+// Delete the user
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "delete") {
 		return 0, am.ErrUserNotAuthorized
