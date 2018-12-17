@@ -29,6 +29,6 @@ var queryMap = map[string]string{
 					values
 						($1, $2, $3, $4, $5, $6, $7, false) returning organization_id, user_id, user_custom_id;`,
 
-	"userUpdate": `update am.users set first_name=$1, last_name=$2, user_status_id=$3 where organization_id=$4 and user_id=$5 returning organization_id, user_id`,
+	"userUpdate": `update am.users set email=$1, first_name=$2, last_name=$3, user_status_id=$4 where organization_id=$5 and user_id=$6 returning organization_id, user_id`,
 	"userDelete": `update am.users set deleted=true, user_status_id=1 where organization_id=$1 and user_id=$2 returning organization_id`,
 }

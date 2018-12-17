@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
@@ -91,7 +90,7 @@ func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, 
 	return s.get(ctx, userContext, s.pool.QueryRow("userByEmail", orgID, userEmail))
 }
 
-// Get user by ID
+// GetByID to be called with system context
 func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -114,15 +113,23 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 	return user.OrgID, user, err
 }
 
-// List all users that match the supplied filter
+// List all users that match the supplied filter. If filter.OrgID is different than user context, ensure system user is calling.
 func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) (oid int, users []*am.User, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
-		return 0, nil, am.ErrUserNotAuthorized
+	if filter.OrgID != userContext.GetOrgID() {
+		if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+			return 0, nil, am.ErrUserNotAuthorized
+		}
+		oid = filter.OrgID
+	} else {
+		if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
+			return 0, nil, am.ErrUserNotAuthorized
+		}
+		oid = userContext.GetOrgID()
 	}
+
 	var rows *pgx.Rows
 
 	users = make([]*am.User, 0)
-	oid = filter.OrgID
 
 	if filter.WithDeleted {
 		rows, err = s.pool.Query("userListWithDelete", oid, filter.DeletedValue, filter.Start, filter.Limit)
@@ -152,7 +159,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	return oid, users, nil
 }
 
-// Create a new user, set status to awaiting activation.
+// Create a new user, set status to active
 func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *am.User) (oid int, uid int, ucid string, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "create") {
 		return 0, 0, "", am.ErrUserNotAuthorized
@@ -171,14 +178,12 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *
 		return 0, 0, "", am.ErrUserExists
 	}
 
-	id, err := uuid.NewV4()
-	if err != nil {
-		return 0, 0, "", err
+	if user.UserCID == "" {
+		return 0, 0, "", am.ErrUserCIDEmpty
 	}
-	ucid = id.String()
 	now := time.Now().UnixNano()
 
-	row := tx.QueryRow("userCreate", oid, ucid, user.UserEmail, user.FirstName, user.LastName, am.UserStatusAwaitActivation, now)
+	row := tx.QueryRow("userCreate", oid, user.UserCID, user.UserEmail, user.FirstName, user.LastName, am.UserStatusActive, now)
 	if err := row.Scan(&oid, &uid, &ucid); err != nil {
 		return 0, 0, "", err
 	}
@@ -186,11 +191,19 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *
 	return oid, uid, ucid, tx.Commit()
 }
 
-// Update allows the customer to update the details of their user
+// Update allows the customer to update the details of their user. If userID does not equal user context, ensure they have UserManage
+// permissions.
 func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *am.User, userID int) (oid int, uid int, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "update") {
-		return 0, 0, am.ErrUserNotAuthorized
+	if userContext.GetUserID() != userID {
+		if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "update") {
+			return 0, 0, am.ErrUserNotAuthorized
+		}
+	} else {
+		if !s.IsAuthorized(ctx, userContext, am.RNUserSelf, "update") {
+			return 0, 0, am.ErrUserNotAuthorized
+		}
 	}
+
 	var tx *pgx.Tx
 
 	tx, err = s.pool.Begin()
@@ -202,6 +215,11 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 	oid, current, err := s.get(ctx, userContext, tx.QueryRow("userByID", userContext.GetOrgID(), userID))
 	if err != nil {
 		return 0, 0, err
+	}
+
+	email := current.UserEmail
+	if user.UserEmail != "" && user.UserEmail != current.UserEmail {
+		email = user.UserEmail
 	}
 
 	fname := current.FirstName
@@ -218,7 +236,8 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 	if user.StatusID != 0 && user.StatusID != current.StatusID {
 		userStatusID = user.StatusID
 	}
-	row := tx.QueryRow("userUpdate", fname, lname, userStatusID, userContext.GetOrgID(), userID)
+
+	row := tx.QueryRow("userUpdate", email, fname, lname, userStatusID, userContext.GetOrgID(), userID)
 	if err := row.Scan(&oid, &uid); err != nil {
 		return 0, 0, err
 	}

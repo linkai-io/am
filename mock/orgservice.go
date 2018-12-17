@@ -22,7 +22,7 @@ type OrganizationService struct {
 	ListFn      func(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) (orgs []*am.Organization, err error)
 	ListInvoked bool
 
-	CreateFn      func(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error)
+	CreateFn      func(ctx context.Context, userContext am.UserContext, org *am.Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error)
 	CreateInvoked bool
 
 	UpdateFn      func(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, err error)
@@ -57,9 +57,9 @@ func (c *OrganizationService) List(ctx context.Context, userContext am.UserConte
 	return c.ListFn(ctx, userContext, filter)
 }
 
-func (c *OrganizationService) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error) {
+func (c *OrganizationService) Create(ctx context.Context, userContext am.UserContext, org *am.Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error) {
 	c.CreateInvoked = true
-	return c.CreateFn(ctx, userContext, org)
+	return c.CreateFn(ctx, userContext, org, userCID)
 }
 
 func (c *OrganizationService) Update(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, err error) {

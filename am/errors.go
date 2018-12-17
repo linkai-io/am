@@ -20,5 +20,6 @@ var (
 	ErrOrganizationExists = errors.New("organization already exists")
 
 	// User Specific
-	ErrUserExists = errors.New("user already exists")
+	ErrUserExists   = errors.New("user already exists")
+	ErrUserCIDEmpty = errors.New("user cid is empty")
 )

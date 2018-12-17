@@ -7,6 +7,7 @@ const (
 	RNUserSystem = "lrn:service:user:feature:system"
 	// RNUserManage organization specific management
 	RNUserManage   = "lrn:service:user:feature:manage"
+	RNUserSelf     = "lrn:service:user:feature:self"
 	UserServiceKey = "userservice"
 )
 

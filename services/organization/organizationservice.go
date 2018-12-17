@@ -140,7 +140,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 }
 
 // Create a new organization, and intialize the user + roles, system users only.
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error) {
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *am.Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "create") {
 		return 0, 0, "", "", am.ErrUserNotAuthorized
 	}
@@ -163,17 +163,11 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	}
 	ocid = id.String()
 
-	id, err = uuid.NewV4()
-	if err != nil {
-		return 0, 0, "", "", err
-	}
-	ucid = id.String()
-
 	now := time.Now().UnixNano()
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.UserPoolAppClientID,
 		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
-		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, ucid, org.OwnerEmail,
+		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, userCID, org.OwnerEmail,
 		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
 
 		return 0, 0, "", "", err
@@ -194,7 +188,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 		return 0, 0, "", "", err
 	}
 
-	return oid, uid, ocid, ucid, err
+	return oid, uid, ocid, userCID, err
 }
 
 // addRoles will add each role necessary for the organization.

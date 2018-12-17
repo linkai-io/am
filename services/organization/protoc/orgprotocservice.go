@@ -57,7 +57,7 @@ func (s *OrgProtocService) List(in *organization.OrgListRequest, stream organiza
 
 func (s *OrgProtocService) Create(ctx context.Context, in *organization.CreateOrgRequest) (*organization.OrgCreatedResponse, error) {
 	s.reporter.Increment(1)
-	orgID, userID, orgCID, userCID, err := s.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org))
+	orgID, userID, orgCID, userCID, err := s.orgservice.Create(ctx, convert.UserContextToDomain(in.UserContext), convert.OrganizationToDomain(in.Org), in.UserCID)
 	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/mock"
@@ -270,10 +271,13 @@ func testCompareUsers(e, r *am.User, t *testing.T) {
 }
 
 func testCreateUser(userEmail string, orgID int) *am.User {
+	id, _ := uuid.NewV4()
+
 	return &am.User{
 		OrgID:     orgID,
 		UserEmail: userEmail,
 		FirstName: "first",
 		LastName:  "last",
+		UserCID:   id.String(),
 	}
 }

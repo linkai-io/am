@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/amtest"
@@ -70,7 +71,9 @@ func TestCreate(t *testing.T) {
 	userContext := testUserContext(0, 0)
 	org := &am.Organization{}
 
-	_, _, _, _, err := service.Create(ctx, userContext, org)
+	id := uuid.New()
+
+	_, _, _, _, err := service.Create(ctx, userContext, org, id.String())
 	if err == nil {
 		t.Fatalf("did not get error creating invalid organization\n")
 	}
@@ -78,7 +81,8 @@ func TestCreate(t *testing.T) {
 	org = amtest.CreateOrgInstance(orgName)
 	defer amtest.DeleteOrg(db, orgName, t)
 
-	_, _, ocid, ucid, err := service.Create(ctx, userContext, org)
+	id = uuid.New()
+	_, _, ocid, ucid, err := service.Create(ctx, userContext, org, id.String())
 	if err != nil {
 		t.Fatalf("error creating organization: %s\n", err)
 	}
@@ -151,7 +155,8 @@ func TestCreateRoleFail(t *testing.T) {
 	userContext := testUserContext(0, 0)
 	org := amtest.CreateOrgInstance(orgName)
 
-	_, _, _, _, err := service.Create(ctx, userContext, org)
+	id := uuid.New()
+	_, _, _, _, err := service.Create(ctx, userContext, org, id.String())
 	if err == nil {
 		t.Fatalf("role manager did not throw error\n")
 	}
@@ -189,7 +194,9 @@ func TestDelete(t *testing.T) {
 	userContext := testUserContext(0, 0)
 	org := amtest.CreateOrgInstance(orgName)
 
-	if _, _, _, _, err := service.Create(ctx, userContext, org); err != nil {
+	id := uuid.New()
+
+	if _, _, _, _, err := service.Create(ctx, userContext, org, id.String()); err != nil {
 		t.Fatalf("error creating organization: %s\n", err)
 	}
 	defer amtest.DeleteOrg(db, orgName, t)
@@ -228,7 +235,9 @@ func TestUpdate(t *testing.T) {
 	userContext := testUserContext(0, 0)
 	org := amtest.CreateOrgInstance(orgName)
 
-	if _, _, _, _, err := service.Create(ctx, userContext, org); err != nil {
+	id := uuid.New()
+
+	if _, _, _, _, err := service.Create(ctx, userContext, org, id.String()); err != nil {
 		t.Fatalf("error creating organization: %s\n", err)
 	}
 	defer amtest.DeleteOrg(db, orgName, t)
