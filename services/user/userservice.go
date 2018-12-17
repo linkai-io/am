@@ -217,6 +217,15 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 		return 0, 0, err
 	}
 
+	// only system users can change UserCID
+	userCID := current.UserCID
+	if user.UserCID != "" && user.UserCID != current.UserCID {
+		if !s.IsAuthorized(ctx, userContext, am.RNSystem, "update") {
+			return 0, 0, am.ErrUserNotAuthorized
+		}
+		userCID = user.UserCID
+	}
+
 	email := current.UserEmail
 	if user.UserEmail != "" && user.UserEmail != current.UserEmail {
 		email = user.UserEmail
@@ -237,7 +246,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 		userStatusID = user.StatusID
 	}
 
-	row := tx.QueryRow("userUpdate", email, fname, lname, userStatusID, userContext.GetOrgID(), userID)
+	row := tx.QueryRow("userUpdate", userCID, email, fname, lname, userStatusID, userContext.GetOrgID(), userID)
 	if err := row.Scan(&oid, &uid); err != nil {
 		return 0, 0, err
 	}

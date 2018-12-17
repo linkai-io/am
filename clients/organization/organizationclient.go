@@ -122,11 +122,12 @@ func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *a
 	return orgs, nil
 }
 
-func (c *Client) Create(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, uid int, ocid string, ucid string, err error) {
+func (c *Client) Create(ctx context.Context, userContext am.UserContext, org *am.Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error) {
 	var resp *service.OrgCreatedResponse
 	in := &service.CreateOrgRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		Org:         convert.DomainToOrganization(org),
+		UserCID:     userCID,
 	}
 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
