@@ -44,13 +44,13 @@ func (c *Client) get(ctx context.Context, userContext am.UserContext, in *servic
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Get(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get scangroup from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
@@ -87,11 +87,11 @@ func (c *Client) AllGroups(ctx context.Context, userContext am.UserContext, filt
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 		stream, retryErr = c.client.AllGroups(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to get all scangroups from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		log.Error().Err(err).Msg("UNABLE TO GET GROUPS")
@@ -124,12 +124,12 @@ func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid in
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		stream, retryErr = c.client.Groups(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to get groups from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
@@ -162,12 +162,12 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, newGrou
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Create(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to create groups from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, 0, err
@@ -187,12 +187,12 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, group *
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Update(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to update group from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, 0, err
@@ -211,13 +211,13 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Delete(ctxDeadline, in)
 		cancel()
 		return errors.Wrap(retryErr, "unable to delete group from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, 0, err
@@ -237,12 +237,12 @@ func (c *Client) Pause(ctx context.Context, userContext am.UserContext, groupID 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Pause(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to pause group from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, 0, err
@@ -262,12 +262,12 @@ func (c *Client) Resume(ctx context.Context, userContext am.UserContext, groupID
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Resume(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to resume group from scangroup client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, 0, err

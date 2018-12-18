@@ -1,14 +1,15 @@
 package retrier
 
 import (
+	"strings"
 	"time"
 
 	retry "github.com/avast/retry-go"
 )
 
-// Retry default retrier, retries 10 times, with exponential back off
+// Retry default retrier, retries 7 times, with exponential back off
 func Retry(retryFn retry.RetryableFunc) error {
-	return retry.Do(retryFn)
+	return retry.Do(retryFn, retry.Attempts(7))
 }
 
 func RetryUnless(retryFn retry.RetryableFunc, errType error) error {
@@ -19,7 +20,22 @@ func RetryUnless(retryFn retry.RetryableFunc, errType error) error {
 				return false
 			}
 			return true
-		}))
+		}),
+		retry.Attempts(7),
+	)
+}
+
+func RetryIfNot(retryFn retry.RetryableFunc, errMsg string) error {
+	return retry.Do(
+		retryFn,
+		retry.RetryIf(func(err error) bool {
+			if strings.HasPrefix(err.Error(), errMsg) {
+				return true
+			}
+			return false
+		}),
+		retry.Attempts(7),
+	)
 }
 
 // RetryAttempts retries attempts times

@@ -46,3 +46,23 @@ func TestRetryUnless(t *testing.T) {
 	}
 	t.Logf("error: %v\n", err)
 }
+
+func TestRetryIfNot(t *testing.T) {
+	expected := 4
+	attempts := 0
+	x := func() error {
+		attempts++
+		if attempts == 4 {
+			return am.ErrEmptyAddress
+		}
+		return errors.New("rpc error: code = Unavailable desc = there is no address available")
+	}
+	err := retrier.RetryIfNot(x, "rpc error: code = Unavailable desc")
+	if err == nil {
+		t.Fatalf("fail")
+	}
+	if expected != attempts {
+		t.Fatalf("expected %v attempts got %v\n", expected, attempts)
+	}
+	t.Logf("error: %v\n", err)
+}

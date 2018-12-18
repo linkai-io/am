@@ -49,13 +49,13 @@ func (c *Client) Add(ctx context.Context, userContext am.UserContext, webData *a
 		Data:        convert.DomainToWebData(webData),
 	}
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Add(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get add records from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, err
@@ -75,13 +75,13 @@ func (c *Client) GetResponses(ctx context.Context, userContext am.UserContext, f
 		Filter:      convert.DomainToWebResponseFilter(filter),
 	}
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.GetResponses(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get ct records from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
@@ -101,13 +101,13 @@ func (c *Client) GetCertificates(ctx context.Context, userContext am.UserContext
 		Filter:      convert.DomainToWebCertificateFilter(filter),
 	}
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.GetCertificates(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get ct records from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
@@ -128,13 +128,13 @@ func (c *Client) GetSnapshots(ctx context.Context, userContext am.UserContext, f
 		Filter:      convert.DomainToWebSnapshotFilter(filter),
 	}
 
-	err = retrier.RetryUnless(func() error {
+	err = retrier.RetryIfNot(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.GetSnapshots(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get ct records from client")
-	}, am.ErrUserNotAuthorized)
+	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
