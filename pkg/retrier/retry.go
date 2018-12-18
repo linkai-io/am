@@ -11,6 +11,17 @@ func Retry(retryFn retry.RetryableFunc) error {
 	return retry.Do(retryFn)
 }
 
+func RetryUnless(retryFn retry.RetryableFunc, errType error) error {
+	return retry.Do(
+		retryFn,
+		retry.RetryIf(func(err error) bool {
+			if err == errType {
+				return false
+			}
+			return true
+		}))
+}
+
 // RetryAttempts retries attempts times
 func RetryAttempts(retryFn retry.RetryableFunc, attempts uint) error {
 	return retry.Do(retryFn, retry.Attempts(attempts))

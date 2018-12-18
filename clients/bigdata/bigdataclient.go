@@ -50,13 +50,13 @@ func (c *Client) GetCT(ctx context.Context, userContext am.UserContext, etld str
 		ETLD:        etld,
 	}
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.GetCT(ctxDeadline, in)
 
 		return errors.Wrap(retryErr, "unable to get ct records from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return emptyTS, nil, err
@@ -77,10 +77,10 @@ func (c *Client) AddCT(ctx context.Context, userContext am.UserContext, etld str
 		Records:     convert.DomainToCTRecords(ctRecords),
 	}
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		_, retryErr := c.client.AddCT(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to add ct records from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return err
@@ -99,10 +99,10 @@ func (c *Client) DeleteCT(ctx context.Context, userContext am.UserContext, etld 
 		ETLD:        etld,
 	}
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		_, retryErr := c.client.DeleteCT(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to delete ct records from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return err

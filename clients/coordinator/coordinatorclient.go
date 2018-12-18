@@ -46,10 +46,10 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	return retrier.Retry(func() error {
+	return retrier.RetryUnless(func() error {
 		var retryErr error
 
 		_, retryErr = c.client.StartGroup(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to start group from coordinator client")
-	})
+	}, am.ErrUserNotAuthorized)
 }

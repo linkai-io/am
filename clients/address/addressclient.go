@@ -50,12 +50,12 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Get(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to get addresses from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, nil, err
@@ -94,12 +94,12 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Update(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to update addresses from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, 0, err
@@ -119,13 +119,13 @@ func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Count(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to count addresses from client")
 
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, 0, err
@@ -146,13 +146,13 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Delete(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to delete addresses from client")
 
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, err

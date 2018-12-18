@@ -44,12 +44,12 @@ func (c *Client) get(ctx context.Context, userContext am.UserContext, in *servic
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Get(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to get organizations from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, nil, err
@@ -97,11 +97,11 @@ func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *a
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 		resp, retryErr = c.client.List(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to list organizations from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return nil, err
@@ -133,12 +133,12 @@ func (c *Client) Create(ctx context.Context, userContext am.UserContext, org *am
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Create(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to create organizations from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, 0, "", "", err
@@ -157,12 +157,12 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, org *am
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Update(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to update organizations from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, err
@@ -180,12 +180,12 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, orgID i
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Delete(ctxDeadline, in)
 		return errors.Wrap(retryErr, "unable to delete organizations from client")
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return 0, err

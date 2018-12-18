@@ -84,7 +84,7 @@ func (c *Client) Analyze(ctx context.Context, userContext am.UserContext, addres
 	ctxDeadline, cancel := context.WithTimeout(context.Background(), c.defaultTimeout)
 	defer cancel()
 
-	err = retrier.Retry(func() error {
+	err = retrier.RetryUnless(func() error {
 		var retryErr error
 
 		resp, retryErr = c.client.Analyze(ctxDeadline, in)
@@ -92,7 +92,7 @@ func (c *Client) Analyze(ctx context.Context, userContext am.UserContext, addres
 			log.Warn().Str("client", c.key).Err(retryErr).Msg("module analyze returned error")
 		}
 		return retryErr
-	})
+	}, am.ErrUserNotAuthorized)
 
 	if err != nil {
 		return nil, nil, err

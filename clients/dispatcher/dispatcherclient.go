@@ -46,11 +46,11 @@ func (c *Client) PushAddresses(ctx context.Context, userContext am.UserContext, 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()
 
-	return retrier.Retry(func() error {
+	return retrier.RetryUnless(func() error {
 		var retryErr error
 
 		_, retryErr = c.client.PushAddresses(ctxDeadline, in)
 		return errors.Wrap(retryErr, "failed to push addresses")
-	})
+	}, am.ErrUserNotAuthorized)
 
 }
