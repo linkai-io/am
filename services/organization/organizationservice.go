@@ -79,25 +79,52 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 
 // Get organization by organization name, system user only.
 func (s *Service) Get(ctx context.Context, userContext am.UserContext, orgName string) (oid int, org *am.Organization, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.Get").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("orgName_parameter", orgName).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByName", orgName))
 }
 
 // GetByCID organization by organization customer id
 func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, orgCID string) (oid int, org *am.Organization, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.GetByCID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("orgcid_parameter", orgCID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationManage, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByCID", orgCID))
 }
 
 // GetByID organization by ID, system user only.
 func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, orgID int) (oid int, org *am.Organization, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.GetByID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("orgid_parameter", orgID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByID", orgID))
 }
 
@@ -113,7 +140,15 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 
 // List all organizations that match the supplied filter, system users only.
 func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) (orgs []*am.Organization, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.List").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	log.Info().Int("start", filter.Start).Int("limit", filter.Limit).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return nil, am.ErrUserNotAuthorized
 	}
 	orgs = make([]*am.Organization, 0)
@@ -141,7 +176,15 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 // Create a new organization, and intialize the user + roles, system users only.
 func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *am.Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.Create").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	log.Info().Str("usercid_parameter", userCID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "create") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, 0, "", "", am.ErrUserNotAuthorized
 	}
 	tx, err := s.pool.Begin()
@@ -218,9 +261,18 @@ func (s *Service) addRoles(orgID, userID int) error {
 
 // Update allows the customer to update the details of their organization
 func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *am.Organization) (oid int, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.Update").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationManage, "update") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, am.ErrUserNotAuthorized
 	}
+
 	tx, err := s.pool.Begin()
 	defer tx.Rollback()
 

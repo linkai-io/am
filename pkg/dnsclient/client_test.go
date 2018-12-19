@@ -20,8 +20,8 @@ func TestResolveName(t *testing.T) {
 		outv6   string
 	}{
 		{"example.com", false, "93.184.216.34", "2606:2800:220:1:248:1893:25c8:1946"},
-		{"xn--wgv71a119e.jp", false, "117.104.133.167", "2001:218:3001:7::80"},
-		{"日本語.jp", false, "117.104.133.167", "2001:218:3001:7::80"},
+		{"xn--wgv71a119e.jp", false, "117.104.133.183", "2001:218:3001:7::110"},
+		{"日本語.jp", false, "117.104.133.183", "2001:218:3001:7::110"},
 		{"thisisnotarealdomainthisisatestsomethingsomething123.com", true, "", ""},
 		{"1.1", true, "", ""},
 	}

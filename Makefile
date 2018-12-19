@@ -57,6 +57,9 @@ services: orgservice userservice scangroupservice addressservice coordinatorserv
 pushecr:
 	$(foreach var,$(SERVICES),docker tag linkai_$(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
+pushorgservice:
+	docker tag linkai_orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
+
 deploy_loadbalancer:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/loadbalancer cmd/amload/main.go
 	zip deploy_files/loadbalancer.zip deploy_files/loadbalancer deploy_files/30-loadbalancer.conf deploy_files/install_loadbalancer.sh deploy_files/loadbalancer.service

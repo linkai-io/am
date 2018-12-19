@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/clients/organization"
 )
@@ -111,7 +112,8 @@ func addOrg() (int, int) {
 	if err := orgClient.Init([]byte(addr)); err != nil {
 		printExit(fmt.Sprintf("error connecting to server: %s\n", err))
 	}
-	oid, uid, _, _, err := orgClient.Create(ctx, systemContext(), orgData)
+	id := uuid.New()
+	oid, uid, _, _, err := orgClient.Create(ctx, systemContext(), orgData, id.String())
 	if err != nil {
 		printExit(fmt.Sprintf("error creating org: %s\n", err))
 	}
