@@ -133,7 +133,7 @@ func (s *Service) GetByAppClientID(ctx context.Context, userContext am.UserConte
 	serviceLog := log.With().
 		Int("UserID", userContext.GetUserID()).
 		Int("OrgID", userContext.GetOrgID()).
-		Str("Call", "orgservice.GetByID").
+		Str("Call", "orgservice.GetByAppClientID").
 		Str("TraceID", userContext.GetTraceID()).Logger()
 	serviceLog.Info().Str("orgappclientid_parameter", orgAppClientID).Msg("processing")
 

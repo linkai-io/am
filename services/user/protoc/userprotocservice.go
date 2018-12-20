@@ -28,7 +28,7 @@ func (s *UserProtocService) Get(ctx context.Context, in *user.UserRequest) (*use
 	case user.UserRequest_USEREMAIL:
 		oid, amuser, err = s.userservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.UserEmail)
 	case user.UserRequest_USERWITHORGID:
-		oid, amuser, err = s.userservice.GetWithOrgID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID), in.UserEmail)
+		oid, amuser, err = s.userservice.GetWithOrgID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID), in.UserCID)
 	case user.UserRequest_USERID:
 		oid, amuser, err = s.userservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.UserID))
 	case user.UserRequest_USERCID:

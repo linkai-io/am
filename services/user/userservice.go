@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
+	"github.com/rs/zerolog/log"
 )
 
 // Service for interfacing with postgresql/rds
@@ -76,14 +77,30 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 
 // Get user by their email address
 func (s *Service) Get(ctx context.Context, userContext am.UserContext, userEmail string) (oid int, user *am.User, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.Get").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("userEmail_parameter", userEmail).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+
 	return s.get(ctx, userContext, s.pool.QueryRow("userByEmail", userContext.GetOrgID(), userEmail))
 }
 
 // GetWithOrgID for internal lookups instead of getting orgID from context we pass it directly (system/support only).
 func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userCID string) (oid int, user *am.User, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.GetWithOrgID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("orgID_parameter", orgID).Str("userCID_parameter", userCID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
@@ -92,7 +109,15 @@ func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, 
 
 // GetByID to be called with system context
 func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, userID int) (oid int, user *am.User, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.GetByID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("userID_parameter", userID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("userByID", userContext.GetOrgID(), userID))
@@ -100,7 +125,15 @@ func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, userI
 
 // GetByCID user by user custom id
 func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, userCID string) (oid int, user *am.User, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.GetByCID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("userCID_parameter", userCID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return s.get(ctx, userContext, s.pool.QueryRow("userByCID", userContext.GetOrgID(), userCID))
@@ -115,13 +148,22 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 
 // List all users that match the supplied filter. If filter.OrgID is different than user context, ensure system user is calling.
 func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) (oid int, users []*am.User, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.List").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("filterOrgID_parameter", filter.OrgID).Int("filterStart_parameter", filter.Start).Int("filterLimit_parameter", filter.Limit).Msg("processing")
+
 	if filter.OrgID != userContext.GetOrgID() {
 		if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
+			serviceLog.Error().Msg("user not authorized orgID is not context orgid")
 			return 0, nil, am.ErrUserNotAuthorized
 		}
 		oid = filter.OrgID
 	} else {
 		if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "read") {
+			serviceLog.Error().Msg("user not authorized")
 			return 0, nil, am.ErrUserNotAuthorized
 		}
 		oid = userContext.GetOrgID()
@@ -161,7 +203,15 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 // Create a new user, set status to active
 func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *am.User) (oid int, uid int, ucid string, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.Create").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("userEmail_parameter", user.UserEmail).Str("userCID_parameter", user.UserCID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "create") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, 0, "", am.ErrUserNotAuthorized
 	}
 	oid = userContext.GetOrgID()
@@ -194,12 +244,21 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *
 // Update allows the customer to update the details of their user. If userID does not equal user context, ensure they have UserManage
 // permissions.
 func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *am.User, userID int) (oid int, uid int, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.Update").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("userID_parameter", userID).Msg("processing")
+
 	if userContext.GetUserID() != userID {
 		if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "update") {
+			serviceLog.Error().Msg("user not authorized userid does not equal context userid")
 			return 0, 0, am.ErrUserNotAuthorized
 		}
 	} else {
 		if !s.IsAuthorized(ctx, userContext, am.RNUserSelf, "update") {
+			serviceLog.Error().Msg("user not authorized")
 			return 0, 0, am.ErrUserNotAuthorized
 		}
 	}
@@ -255,7 +314,15 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 
 // Delete the user
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.Delete").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("userID_parameter", userID).Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "delete") {
+		serviceLog.Error().Msg("user not authorized")
 		return 0, am.ErrUserNotAuthorized
 	}
 
