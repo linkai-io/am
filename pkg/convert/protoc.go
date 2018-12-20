@@ -69,7 +69,9 @@ func UserContextToDomain(in *prototypes.UserContext) am.UserContext {
 	return &am.UserContextData{
 		TraceID:   in.TraceID,
 		OrgID:     int(in.OrgID),
+		OrgCID:    in.OrgCID,
 		UserID:    int(in.UserID),
+		UserCID:   in.UserCID,
 		Roles:     in.Roles,
 		IPAddress: in.IPAddress,
 	}
@@ -80,6 +82,8 @@ func DomainToUserContext(in am.UserContext) *prototypes.UserContext {
 	return &prototypes.UserContext{
 		TraceID:   in.GetTraceID(),
 		OrgID:     int32(in.GetOrgID()),
+		OrgCID:    in.GetOrgCID(),
+		UserCID:   in.GetUserCID(),
 		UserID:    int32(in.GetUserID()),
 		Roles:     in.GetRoles(),
 		IPAddress: in.GetIPAddress(),

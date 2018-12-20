@@ -36,7 +36,9 @@ type User struct {
 type UserContext interface {
 	GetTraceID() string
 	GetOrgID() int
+	GetOrgCID() string
 	GetUserID() int
+	GetUserCID() string
 	GetRoles() []string
 	GetIPAddress() string
 }
@@ -47,17 +49,19 @@ type UserContextData struct {
 	OrgID     int      `json:"org_id"`
 	OrgCID    string   `json:"org_customer_id"`
 	UserID    int      `json:"user_id"`
+	UserCID   string   `json:"user_cid"`
 	Roles     []string `json:"roles"`
 	IPAddress string   `json:"ip_address"`
 }
 
 // NewUserContext creates user contextual data
-func NewUserContext(orgID, userID int, orgCID, traceID, ipAddress string, roles []string) *UserContextData {
+func NewUserContext(orgID, userID int, orgCID, userCID, traceID, ipAddress string, roles []string) *UserContextData {
 	return &UserContextData{
 		TraceID:   traceID,
 		OrgID:     orgID,
 		OrgCID:    orgCID,
 		UserID:    userID,
+		UserCID:   userCID,
 		Roles:     roles,
 		IPAddress: ipAddress,
 	}
@@ -81,6 +85,11 @@ func (u *UserContextData) GetOrgID() int {
 // GetUserID returns this context's user id
 func (u *UserContextData) GetUserID() int {
 	return u.UserID
+}
+
+// GetUserCID returns this context's user custom id
+func (u *UserContextData) GetUserCID() string {
+	return u.UserCID
 }
 
 // GetRoles returns this context's roles
@@ -109,7 +118,7 @@ type UserFilter struct {
 type UserService interface {
 	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, userEmail string) (oid int, user *User, err error)
-	GetWithOrgID(ctx context.Context, userContext UserContext, orgID int, userEmail string) (oid int, user *User, err error)
+	GetWithOrgID(ctx context.Context, userContext UserContext, orgID int, userCID string) (oid int, user *User, err error)
 	GetByID(ctx context.Context, userContext UserContext, userID int) (oid int, user *User, err error)
 	GetByCID(ctx context.Context, userContext UserContext, userCID string) (oid int, user *User, err error)
 	List(ctx context.Context, userContext UserContext, filter *UserFilter) (oid int, users []*User, err error)

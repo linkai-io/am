@@ -109,7 +109,7 @@ func TestCreate(t *testing.T) {
 
 	testCompareUsers(expected, returned, t)
 
-	_, returned, err = service.GetWithOrgID(ctx, userContext, userContext.GetOrgID(), returned.UserEmail)
+	_, returned, err = service.GetWithOrgID(ctx, userContext, userContext.GetOrgID(), returned.UserCID)
 	if err != nil {
 		t.Fatalf("error getting user by with org id: %s\n", err)
 	}

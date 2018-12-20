@@ -83,11 +83,11 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, userEmail
 }
 
 // GetWithOrgID for internal lookups instead of getting orgID from context we pass it directly (system/support only).
-func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userEmail string) (oid int, user *am.User, err error) {
+func (s *Service) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userCID string) (oid int, user *am.User, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNUserSystem, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return s.get(ctx, userContext, s.pool.QueryRow("userByEmail", orgID, userEmail))
+	return s.get(ctx, userContext, s.pool.QueryRow("userByCID", orgID, userCID))
 }
 
 // GetByID to be called with system context

@@ -66,12 +66,12 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, userEmail 
 	return c.get(ctx, userContext, in)
 }
 
-func (c *Client) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userEmail string) (oid int, user *am.User, err error) {
+func (c *Client) GetWithOrgID(ctx context.Context, userContext am.UserContext, orgID int, userCID string) (oid int, user *am.User, err error) {
 	in := &service.UserRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		By:          service.UserRequest_USERWITHORGID,
 		OrgID:       int32(orgID),
-		UserEmail:   userEmail,
+		UserCID:     userCID,
 	}
 	return c.get(ctx, userContext, in)
 }
