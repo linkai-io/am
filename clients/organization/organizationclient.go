@@ -85,6 +85,15 @@ func (c *Client) GetByID(ctx context.Context, userContext am.UserContext, orgID 
 	return c.get(ctx, userContext, in)
 }
 
+func (c *Client) GetByAppClientID(ctx context.Context, userContext am.UserContext, orgAppClientID string) (oid int, org *am.Organization, err error) {
+	in := &service.OrgRequest{
+		By:             service.OrgRequest_ORGCLIENTAPPID,
+		UserContext:    convert.DomainToUserContext(userContext),
+		OrgClientAppID: orgAppClientID,
+	}
+	return c.get(ctx, userContext, in)
+}
+
 func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) ([]*am.Organization, error) {
 	var resp service.Organization_ListClient
 	var err error

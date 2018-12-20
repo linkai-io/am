@@ -128,6 +128,23 @@ func (s *Service) GetByID(ctx context.Context, userContext am.UserContext, orgID
 	return s.get(ctx, userContext, s.pool.QueryRow("orgByID", orgID))
 }
 
+// GetByOrgAppClientID organization by ID, system user only.
+func (s *Service) GetByAppClientID(ctx context.Context, userContext am.UserContext, orgAppClientID string) (oid int, org *am.Organization, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.GetByID").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Str("orgappclientid_parameter", orgAppClientID).Msg("processing")
+
+	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "read") {
+		serviceLog.Error().Msg("user not authorized")
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	return s.get(ctx, userContext, s.pool.QueryRow("orgByAppClientID", orgAppClientID))
+}
+
 // get executes the scan against the previously created queryrow
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, org *am.Organization, err error) {
 	org = &am.Organization{}

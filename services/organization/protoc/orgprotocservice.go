@@ -28,6 +28,8 @@ func (s *OrgProtocService) Get(ctx context.Context, in *organization.OrgRequest)
 		oid, org, err = s.orgservice.Get(ctx, convert.UserContextToDomain(in.UserContext), in.OrgName)
 	case organization.OrgRequest_ORGCID:
 		oid, org, err = s.orgservice.GetByCID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgCID)
+	case organization.OrgRequest_ORGCLIENTAPPID:
+		oid, org, err = s.orgservice.GetByAppClientID(ctx, convert.UserContextToDomain(in.UserContext), in.OrgClientAppID)
 	case organization.OrgRequest_ORGID:
 		oid, org, err = s.orgservice.GetByID(ctx, convert.UserContextToDomain(in.UserContext), int(in.OrgID))
 	}

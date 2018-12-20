@@ -110,6 +110,12 @@ func TestCreate(t *testing.T) {
 	}
 	amtest.TestCompareOrganizations(org, returned, t)
 
+	_, returned, err = service.GetByAppClientID(ctx, userContext, org.UserPoolAppClientID)
+	if err != nil {
+		t.Fatalf("error getting organization by app clientid: %s\n", err)
+	}
+	amtest.TestCompareOrganizations(org, returned, t)
+
 	filter := &am.OrgFilter{
 		Start: 0,
 		Limit: 10,
@@ -273,6 +279,9 @@ func TestUpdate(t *testing.T) {
 	orgNoNameChange := amtest.CreateOrgInstance("orgnonamechange")
 	orgNoNameChange.UserPoolID = "newvalue"
 	orgNoNameChange.IdentityPoolID = "newvalue"
+	orgNoNameChange.UserPoolAppClientID = "newvalue"
+	orgNoNameChange.UserPoolJWK = "newvalue"
+	orgNoNameChange.UserPoolAppClientSecret = "newvalue"
 	orgNoNameChange.FirstName = "newvalue"
 	orgNoNameChange.LastName = "newvalue"
 	orgNoNameChange.Phone = "newvalue"

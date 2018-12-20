@@ -57,7 +57,7 @@ services: orgservice userservice scangroupservice addressservice coordinatorserv
 pushecr:
 	$(foreach var,$(SERVICES),docker tag linkai_$(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
-pushorgservice:
+pushorgservice: orgservice
 	docker tag linkai_orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
 
 deploy_loadbalancer:

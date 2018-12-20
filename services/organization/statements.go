@@ -17,6 +17,8 @@ var queryMap = map[string]string{
 
 	"orgByCID": fmt.Sprintf(`select organization_id, %s from am.organizations where organization_custom_id=$1`, defaultColumns),
 
+	"orgByAppClientID": fmt.Sprintf(`select organization_id, %s from am.organizations where user_pool_client_id=$1`, defaultColumns),
+
 	"orgList": fmt.Sprintf(`select organization_id, %s from am.organizations where organization_id > $1 order by organization_id limit $2`, defaultColumns),
 
 	"orgCreate": fmt.Sprintf(`with org as (

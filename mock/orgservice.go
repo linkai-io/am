@@ -19,6 +19,9 @@ type OrganizationService struct {
 	GetByIDFn      func(ctx context.Context, userContext am.UserContext, orgID int) (oid int, org *am.Organization, err error)
 	GetByIDInvoked bool
 
+	GetByAppClientIDFn      func(ctx context.Context, userContext am.UserContext, orgAppClientID string) (oid int, org *am.Organization, err error)
+	GetByAppClientIDInvoked bool
+
 	ListFn      func(ctx context.Context, userContext am.UserContext, filter *am.OrgFilter) (orgs []*am.Organization, err error)
 	ListInvoked bool
 
@@ -43,12 +46,17 @@ func (c *OrganizationService) Get(ctx context.Context, userContext am.UserContex
 }
 
 func (c *OrganizationService) GetByCID(ctx context.Context, userContext am.UserContext, orgCID string) (oid int, org *am.Organization, err error) {
-	c.GetInvoked = true
+	c.GetByCIDInvoked = true
 	return c.GetByCIDFn(ctx, userContext, orgCID)
 }
 
+func (c *OrganizationService) GetByAppClientID(ctx context.Context, userContext am.UserContext, orgAppClientID string) (oid int, org *am.Organization, err error) {
+	c.GetByAppClientIDInvoked = true
+	return c.GetByAppClientIDFn(ctx, userContext, orgAppClientID)
+}
+
 func (c *OrganizationService) GetByID(ctx context.Context, userContext am.UserContext, orgID int) (oid int, org *am.Organization, err error) {
-	c.GetInvoked = true
+	c.GetByIDInvoked = true
 	return c.GetByIDFn(ctx, userContext, orgID)
 }
 

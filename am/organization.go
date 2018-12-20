@@ -70,6 +70,7 @@ type OrganizationService interface {
 	Get(ctx context.Context, userContext UserContext, orgName string) (oid int, org *Organization, err error)
 	GetByCID(ctx context.Context, userContext UserContext, orgCID string) (oid int, org *Organization, err error)
 	GetByID(ctx context.Context, userContext UserContext, orgID int) (oid int, org *Organization, err error)
+	GetByAppClientID(ctx context.Context, userContext UserContext, orgAppClientID string) (oid int, org *Organization, err error)
 	List(ctx context.Context, userContext UserContext, filter *OrgFilter) (orgs []*Organization, err error)
 	Create(ctx context.Context, userContext UserContext, org *Organization, userCID string) (oid int, uid int, ocid string, ucid string, err error)
 	Update(ctx context.Context, userContext UserContext, org *Organization) (oid int, err error)
