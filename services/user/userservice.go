@@ -143,6 +143,9 @@ func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, user
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, user *am.User, err error) {
 	user = &am.User{}
 	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &user.CreationTime, &user.Deleted)
+	if err == pgx.ErrNoRows {
+		return 0, nil, am.ErrNoResults
+	}
 	return user.OrgID, user, err
 }
 
@@ -180,6 +183,9 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	}
 
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil, am.ErrNoResults
+		}
 		return 0, nil, err
 	}
 	defer rows.Close()
@@ -273,6 +279,9 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 
 	oid, current, err := s.get(ctx, userContext, tx.QueryRow("userByID", userContext.GetOrgID(), userID))
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, 0, am.ErrNoResults
+		}
 		return 0, 0, err
 	}
 

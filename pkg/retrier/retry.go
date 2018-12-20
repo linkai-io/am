@@ -29,7 +29,7 @@ func RetryIfNot(retryFn retry.RetryableFunc, errMsg string) error {
 	return retry.Do(
 		retryFn,
 		retry.RetryIf(func(err error) bool {
-			if strings.HasPrefix(err.Error(), errMsg) {
+			if strings.Contains(err.Error(), errMsg) {
 				return true
 			}
 			return false

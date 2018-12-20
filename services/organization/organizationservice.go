@@ -152,6 +152,9 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
 		&org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
+	if err == pgx.ErrNoRows {
+		return 0, nil, am.ErrNoResults
+	}
 	return org.OrgID, org, err
 }
 
