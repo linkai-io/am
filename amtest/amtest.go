@@ -721,11 +721,19 @@ func TestCompareAddress(e, r *am.ScanGroupAddress, t *testing.T) {
 
 func TestCompareScanGroup(group1, group2 *am.ScanGroup, t *testing.T) {
 	if group1.CreatedBy != group2.CreatedBy {
-		t.Fatalf("created by was different, %d and %d\n", group1.CreatedBy, group2.CreatedBy)
+		t.Fatalf("created by was different, %v and %v\n", group1.CreatedBy, group2.CreatedBy)
 	}
 
 	if group1.ModifiedBy != group2.ModifiedBy {
-		t.Fatalf("modified by was different, %d and %d\n", group1.ModifiedBy, group2.ModifiedBy)
+		t.Fatalf("modified by was different, %v and %v\n", group1.ModifiedBy, group2.ModifiedBy)
+	}
+
+	if group1.CreatedByID != group2.CreatedByID {
+		t.Fatalf("created byID was different, %v and %v\n", group1.CreatedByID, group2.CreatedByID)
+	}
+
+	if group1.ModifiedByID != group2.ModifiedByID {
+		t.Fatalf("modified byID was different, %v and %v\n", group1.ModifiedByID, group2.ModifiedByID)
 	}
 
 	if group1.CreationTime != group2.CreationTime {

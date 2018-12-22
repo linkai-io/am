@@ -79,7 +79,7 @@ func TestCreate(t *testing.T) {
 	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
 
 	userContext := testUserContext(orgID, ownerUserID)
-	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+	group := testCreateNewGroup(orgID, orgName+"email@email.com", groupName)
 
 	oid, gid, err := service.Create(ctx, userContext, group)
 	if err != nil {
@@ -192,7 +192,7 @@ func TestModuleConfigs(t *testing.T) {
 
 	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
 	userContext := testUserContext(orgID, ownerUserID)
-	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+	group := testCreateNewGroup(orgID, orgName+"email@email.com", groupName)
 
 	group.ModuleConfigurations.BruteModule = &am.BruteModuleConfig{
 		CustomSubNames:    []string{"x", "y"},
@@ -263,7 +263,7 @@ func TestGetGroups(t *testing.T) {
 	for i := 0; i < count; i++ {
 		groupName = fmt.Sprintf("%s%d", groupName, i)
 
-		group := testCreateNewGroup(orgID, ownerUserID, groupName)
+		group := testCreateNewGroup(orgID, orgName+"email@email.com", groupName)
 		oid, gid, err := service.Create(ctx, userContext, group)
 		if err != nil {
 			t.Fatalf("error creating new group for %d: %s\n", i, err)
@@ -331,7 +331,7 @@ func TestPauseResume(t *testing.T) {
 	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
 
 	userContext := testUserContext(orgID, ownerUserID)
-	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+	group := testCreateNewGroup(orgID, orgName+"email@email.com", groupName)
 
 	_, gid, err := service.Create(ctx, userContext, group)
 	if err != nil {
@@ -373,15 +373,15 @@ func testForceCleanUp(db *pgx.ConnPool, orgID int, orgName string, t *testing.T)
 	amtest.DeleteOrg(db, orgName, t)
 }
 
-func testCreateNewGroup(orgID, userID int, groupName string) *am.ScanGroup {
+func testCreateNewGroup(orgID int, userEmail, groupName string) *am.ScanGroup {
 	now := time.Now().UnixNano()
 	group := &am.ScanGroup{
 		OrgID:                orgID,
 		GroupName:            groupName,
 		CreationTime:         now,
-		CreatedBy:            userID,
+		CreatedBy:            userEmail,
 		ModifiedTime:         now,
-		ModifiedBy:           userID,
+		ModifiedBy:           userEmail,
 		ModuleConfigurations: &am.ModuleConfiguration{},
 		OriginalInputS3URL:   "s3://blah/bucket",
 	}

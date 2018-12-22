@@ -3,7 +3,10 @@ package scangroup
 import "fmt"
 
 const (
-	defaultColumns = `organization_id, scan_group_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted`
+	defaultColumns = `organization_id, scan_group_id, scan_group_name, 
+	creation_time, (select email from am.users where am.users.user_id=created_by) as created_by_user, created_by as created_by_id,
+	modified_time, (select email from am.users where am.users.user_id=modified_by) as modified_by_user, modified_by as modified_by_id,
+	original_input_s3_url, configuration, paused, deleted`
 )
 
 var queryMap = map[string]string{
@@ -26,9 +29,9 @@ var queryMap = map[string]string{
 	"deleteScanGroup": "update am.scan_group set deleted=true, scan_group_name=$1 where organization_id=$2 and scan_group_id=$3",
 
 	"createScanGroup": `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted) values 
-		($1, $2, $3, $4, $5, $6, $7, $8, false, false) returning organization_id, scan_group_id`,
+		($1, $2, $3, (select am.users.user_id from am.users where email=$4 and am.users.organization_id=$1), $5, (select am.users.user_id from am.users where email=$6 and am.users.organization_id=$1), $7, $8, false, false) returning organization_id, scan_group_id`,
 
-	"updateScanGroup": `update am.scan_group set scan_group_name=$1, modified_time=$2, modified_by=$3, configuration=$4 
+	"updateScanGroup": `update am.scan_group set scan_group_name=$1, modified_time=$2, modified_by=(select am.users.user_id from am.users where email=$3 and am.users.organization_id=$5), configuration=$4 
 		where organization_id=$5 and scan_group_id=$6 returning organization_id, scan_group_id`,
 
 	"pauseScanGroup": `update am.scan_group set paused=true, modified_time=$1, modified_by=$2 

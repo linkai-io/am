@@ -93,7 +93,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	serviceLog.Info().Msg("Retrieving scan group by id")
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
-		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
+		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID,
 		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
@@ -126,7 +126,7 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 	serviceLog.Info().Msg("Retrieving scan group by name")
 
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
-		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy,
+		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID,
 		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
@@ -173,7 +173,7 @@ func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, gro
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return nil, err
 		}
 
@@ -204,7 +204,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.ModifiedTime, &group.ModifiedBy, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return 0, nil, err
 		}
 

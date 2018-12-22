@@ -47,12 +47,14 @@ func processGroup(args []string) {
 }
 
 func generateJSON() {
-	groupData.CreatedBy = 1
+	groupData.CreatedBy = "user@email.com"
+	groupData.CreatedByID = 1
 	groupData.CreationTime = time.Now().UnixNano()
 	groupData.Deleted = false
 	groupData.GroupID = 1
 	groupData.GroupName = "groupName"
-	groupData.ModifiedBy = 1
+	groupData.ModifiedBy = "user@email.com"
+	groupData.ModifiedByID = 1
 	groupData.ModifiedTime = time.Now().UnixNano()
 	groupData.ModuleConfigurations = &am.ModuleConfiguration{
 		NSModule: &am.NSModuleConfig{
@@ -114,8 +116,8 @@ func addGroup() int {
 	}
 
 	groupData.OrgID = orgID
-	groupData.CreatedBy = userID
-	groupData.ModifiedBy = userID
+	groupData.CreatedByID = userID
+	groupData.ModifiedByID = userID
 	groupData.OriginalInputS3URL = groupInputFile
 	groupData.GroupName = groupName
 	groupData.Paused = groupPause

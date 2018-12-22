@@ -38,8 +38,10 @@ type ScanGroup struct {
 	GroupID              int                  `json:"group_id"`
 	GroupName            string               `json:"group_name"`
 	CreationTime         int64                `json:"creation_time"`
-	CreatedBy            int                  `json:"created_by"`
-	ModifiedBy           int                  `json:"modified_by"`
+	CreatedBy            string               `json:"created_by"`
+	CreatedByID          int                  `json:"created_by_id"`
+	ModifiedBy           string               `json:"modified_by"`
+	ModifiedByID         int                  `json:"modified_by_id"`
 	ModifiedTime         int64                `json:"modified_time"`
 	OriginalInputS3URL   string               `json:"original_input_s3_url"`
 	ModuleConfigurations *ModuleConfiguration `json:"module_configurations" redis:"-"`
