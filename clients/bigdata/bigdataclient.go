@@ -37,6 +37,10 @@ func (c *Client) Init(config []byte) error {
 	return nil
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) GetCT(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
 	var resp *service.GetCTResponse
 	var err error

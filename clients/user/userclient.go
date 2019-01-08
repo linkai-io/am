@@ -38,6 +38,10 @@ func (c *Client) Init(config []byte) error {
 	return nil
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) get(ctx context.Context, userContext am.UserContext, in *service.UserRequest) (oid int, user *am.User, err error) {
 	var resp *service.UserResponse
 

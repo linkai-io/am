@@ -60,6 +60,10 @@ func (c *Client) Init(data []byte) error {
 	return nil
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) parseConfig(data []byte) (*Config, error) {
 	config := &Config{}
 	if err := json.Unmarshal(data, config); err != nil {

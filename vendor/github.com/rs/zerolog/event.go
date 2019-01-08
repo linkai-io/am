@@ -92,6 +92,9 @@ func (e *Event) Enabled() bool {
 
 // Discard disables the event so Msg(f) won't print it.
 func (e *Event) Discard() *Event {
+	if e == nil {
+		return e
+	}
 	e.level = Disabled
 	return nil
 }
@@ -134,7 +137,11 @@ func (e *Event) msg(msg string) {
 		defer e.done(msg)
 	}
 	if err := e.write(); err != nil {
-		fmt.Fprintf(os.Stderr, "zerolog: could not write event: %v", err)
+		if ErrorHandler != nil {
+			ErrorHandler(err)
+		} else {
+			fmt.Fprintf(os.Stderr, "zerolog: could not write event: %v\n", err)
+		}
 	}
 }
 

@@ -39,6 +39,10 @@ func (c *Client) Init(config []byte) error {
 	return nil
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	var resp service.Address_GetClient
 

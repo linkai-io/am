@@ -37,6 +37,10 @@ func (c *Client) Init(config []byte) error {
 	return nil
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	in := &service.PushRequest{
 		UserContext: convert.DomainToUserContext(userContext),

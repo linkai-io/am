@@ -4,8 +4,8 @@ import "fmt"
 
 const (
 	defaultColumns = `organization_id, scan_group_id, scan_group_name, 
-	creation_time, (select email from am.users where am.users.user_id=created_by) as created_by_user, created_by as created_by_id,
-	modified_time, (select email from am.users where am.users.user_id=modified_by) as modified_by_user, modified_by as modified_by_id,
+	creation_time, (select email from am.users where am.users.user_id=created_by) as created_by_user, created_by,
+	modified_time, (select email from am.users where am.users.user_id=modified_by) as modified_by_user, modified_by,
 	original_input_s3_url, configuration, paused, deleted`
 )
 

@@ -78,6 +78,7 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 }
 
 // Get returns a scan group identified by scangroup id
+// returns error if no results found for group id
 func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID int) (oid int, group *am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -112,6 +113,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 }
 
 // GetByName returns the scan group identified by scangroup name
+// returns error if no results found for group name
 func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -270,7 +272,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 	return oid, gid, err
 }
 
-// Delete a scan group, also deletes all scan group versions which reference this scan group returning orgID and groupID on success, error otherwise
+// Delete a scan group, returning orgID and groupID on success, error otherwise
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "delete") {
 		return 0, 0, am.ErrUserNotAuthorized

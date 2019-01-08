@@ -232,12 +232,19 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
 		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, userCID, org.OwnerEmail,
 		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
-
+		if v, ok := err.(pgx.PgError); ok {
+			log.Error().Err(v).Msgf("create error: %#v", v)
+			return 0, 0, "", "", v
+		}
 		return 0, 0, "", "", err
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			log.Error().Err(v).Msgf("commit error: %#v", v)
+			return 0, 0, "", "", v
+		}
 		return 0, 0, "", "", err
 	}
 
@@ -378,6 +385,10 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 		update.StatePrefecture, update.Street, update.Address1, update.Address2, update.City, update.PostalCode,
 		update.StatusID, update.SubscriptionID, oid)
 	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			log.Error().Err(v).Msgf("postgresql error: %#v", v)
+			return 0, v
+		}
 		return 0, err
 	}
 	return oid, tx.Commit()
@@ -385,6 +396,13 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 
 // Delete the organization
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, orgID int) (oid int, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "orgservice.Delete").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Msg("processing")
+
 	if !s.IsAuthorized(ctx, userContext, am.RNOrganizationSystem, "delete") {
 		return 0, am.ErrUserNotAuthorized
 	}
