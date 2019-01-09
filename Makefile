@@ -19,55 +19,56 @@ protoc:
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/module/moduleservicer.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/webdata/webdataservicer.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/bigdata/bigdataservicer.proto
+	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/metrics/load.proto
 
 orgservice:
-	docker build -t linkai_orgservice -f Dockerfile.orgservice .
+	docker build -t orgservice -f Dockerfile.orgservice .
 
 userservice:
-	docker build -t linkai_userservice -f Dockerfile.userservice .
+	docker build -t userservice -f Dockerfile.userservice .
 	
 scangroupservice:
-	docker build -t linkai_scangroupservice -f Dockerfile.scangroupservice .
+	docker build -t scangroupservice -f Dockerfile.scangroupservice .
 
 addressservice:
-	docker build -t linkai_addressservice -f Dockerfile.addressservice .
+	docker build -t addressservice -f Dockerfile.addressservice .
 
 coordinatorservice:
-	docker build -t linkai_coordinatorservice -f Dockerfile.coordinatorservice .
+	docker build -t coordinatorservice -f Dockerfile.coordinatorservice .
 
 dispatcherservice:
-	docker build -t linkai_dispatcherservice -f Dockerfile.dispatcherservice .
+	docker build -t dispatcherservice -f Dockerfile.dispatcherservice .
 
 nsmoduleservice:
-	docker build -t linkai_nsmoduleservice -f Dockerfile.nsmoduleservice .
+	docker build -t nsmoduleservice -f Dockerfile.nsmoduleservice .
 
 amloadservice:
-	docker build -t linkai_amloadservice -f Dockerfile.amloadservice .
+	docker build -t amloadservice -f Dockerfile.amloadservice .
 
 webdataservice:
-	docker build -t linkai_webdataservice -f Dockerfile.webdataservice .
+	docker build -t webdataservice -f Dockerfile.webdataservice .
 
 brutemoduleservice:
-	docker build -t linkai_brutemoduleservice -f Dockerfile.brutemoduleservice .
+	docker build -t brutemoduleservice -f Dockerfile.brutemoduleservice .
 
 webmoduleservice:
-	docker build -t linkai_webmoduleservice -f Dockerfile.webmoduleservice .
+	docker build -t webmoduleservice -f Dockerfile.webmoduleservice .
 
 allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice amloadservice webdataservice brutemoduleservice webmoduleservice
 
 backend: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice
 
 pushbackend: 
-	$(foreach var,$(BACKEND_SERVICES),docker tag linkai_$(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
+	$(foreach var,$(BACKEND_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
 pushecr:
-	$(foreach var,$(ALL_SERVICES),docker tag linkai_$(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
+	$(foreach var,$(ALL_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
 pushorgservice: orgservice
-	docker tag linkai_orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
+	docker tag orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
 
 pushuserservice: userservice
-	docker tag linkai_userservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest
+	docker tag userservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest
 
 
 

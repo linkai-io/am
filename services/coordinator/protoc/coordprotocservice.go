@@ -1,9 +1,9 @@
 package protoc
 
 import (
-	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/metrics/load"
 	"github.com/linkai-io/am/protocservices/coordinator"
 
 	context "golang.org/x/net/context"

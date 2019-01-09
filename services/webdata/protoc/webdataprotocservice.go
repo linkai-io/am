@@ -3,8 +3,8 @@ package protoc
 import (
 	"context"
 
-	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/metrics/load"
 	"github.com/linkai-io/am/protocservices/webdata"
 
 	"github.com/linkai-io/am/am"

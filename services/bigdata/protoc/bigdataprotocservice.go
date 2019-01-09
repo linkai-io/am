@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/bsm/grpclb/load"
+	"github.com/linkai-io/am/pkg/metrics/load"
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/protocservices/bigdata"

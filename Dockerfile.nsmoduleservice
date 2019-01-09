@@ -6,6 +6,7 @@ RUN adduser -D -g '' appuser
 
 COPY . $GOPATH/src/github.com/linkai-io/am/
 WORKDIR $GOPATH/src/github.com/linkai-io/am/
+COPY third_party/grpc_health_probe-linux-amd64 /bin/grpc_health_probe-linux-amd64
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/nsmoduleservice cmd/module/ns/main.go
 
@@ -14,6 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflag
 FROM scratch
 # Copy our static executable and supporting
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /bin/grpc_health_probe-linux-amd64 /bin/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/bin/nsmoduleservice /go/bin/nsmoduleservice 
 USER appuser 

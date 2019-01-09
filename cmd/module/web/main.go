@@ -6,21 +6,24 @@ import (
 	"os"
 	"time"
 
-	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
-	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/browser"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/filestorage"
 	"github.com/linkai-io/am/pkg/initializers"
+	"github.com/linkai-io/am/pkg/lb/consul"
+	"github.com/linkai-io/am/pkg/metrics/load"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/linkai-io/am/protocservices/metrics"
 	moduleservice "github.com/linkai-io/am/protocservices/module"
 	modulerprotoc "github.com/linkai-io/am/services/module/protoc"
 	"github.com/linkai-io/am/services/module/web"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -39,6 +42,7 @@ func init() {
 	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
 	appConfig.Addr = os.Getenv("APP_ADDR")
 	appConfig.ServiceKey = serviceKey
+	consul.RegisterDefault(time.Second * 5) // Address comes from CONSUL_HTTP_ADDR
 }
 
 // main starts the WebModuleService
@@ -94,9 +98,10 @@ func main() {
 
 	nsmodulerp := modulerprotoc.New(service, r)
 	moduleservice.RegisterModuleServer(s, nsmodulerp)
+	healthgrpc.RegisterHealthServer(s, health.NewServer())
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
-	lbpb.RegisterLoadReportServer(s, r)
+	metrics.RegisterLoadReportServer(s, r)
 
 	// check if self register
 	ctx, cancel := context.WithCancel(context.Background())

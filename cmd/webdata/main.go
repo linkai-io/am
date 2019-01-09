@@ -11,15 +11,18 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	lbpb "github.com/bsm/grpclb/grpclb_backend_v1"
-	"github.com/bsm/grpclb/load"
 	"github.com/linkai-io/am/pkg/auth/ladonauth"
 	"github.com/linkai-io/am/pkg/initializers"
+	"github.com/linkai-io/am/pkg/lb/consul"
+	"github.com/linkai-io/am/pkg/metrics/load"
 	"github.com/linkai-io/am/pkg/retrier"
+	"github.com/linkai-io/am/protocservices/metrics"
 	webdataprotoservice "github.com/linkai-io/am/protocservices/webdata"
 	"github.com/linkai-io/am/services/webdata"
 	webdataprotoc "github.com/linkai-io/am/services/webdata/protoc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -37,6 +40,7 @@ func init() {
 	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
 	appConfig.Addr = os.Getenv("APP_ADDR")
 	appConfig.ServiceKey = serviceKey
+	consul.RegisterDefault(time.Second * 5) // Address comes from CONSUL_HTTP_ADDR
 }
 
 // main starts the UserService
@@ -83,9 +87,10 @@ func main() {
 
 	webdatap := webdataprotoc.New(service, r)
 	webdataprotoservice.RegisterWebDataServer(s, webdatap)
+	healthgrpc.RegisterHealthServer(s, health.NewServer())
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
-	lbpb.RegisterLoadReportServer(s, r)
+	metrics.RegisterLoadReportServer(s, r)
 
 	// check if self register
 	ctx, cancel := context.WithCancel(context.Background())

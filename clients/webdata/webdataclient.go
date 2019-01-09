@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/pkg/errors"
@@ -12,10 +11,12 @@ import (
 	"github.com/linkai-io/am/am"
 	service "github.com/linkai-io/am/protocservices/webdata"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 )
 
 type Client struct {
 	client         service.WebDataClient
+	conn           *grpc.ClientConn
 	defaultTimeout time.Duration
 }
 
@@ -24,15 +25,12 @@ func New() *Client {
 }
 
 func (c *Client) Init(config []byte) error {
-	balancer := grpc.RoundRobin(grpclb.NewResolver(&grpclb.Options{
-		Address: string(config),
-	}))
-
-	conn, err := grpc.Dial(am.WebDataServiceKey, grpc.WithInsecure(), grpc.WithBalancer(balancer))
+	conn, err := grpc.DialContext(context.Background(), "srv://consul/"+am.WebDataServiceKey, grpc.WithInsecure(), grpc.WithBalancerName(roundrobin.Name))
 	if err != nil {
 		return err
 	}
 
+	c.conn = conn
 	c.client = service.NewWebDataClient(conn)
 	return nil
 }

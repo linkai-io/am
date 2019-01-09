@@ -31,6 +31,7 @@ RUN mkdir -p /opt/go/
 ENV GOPATH /opt/go/
 COPY . $GOPATH/src/github.com/linkai-io/am/
 WORKDIR $GOPATH/src/github.com/linkai-io/am/
+COPY third_party/grpc_health_probe-linux-amd64 /bin/grpc_health_probe-linux-amd64
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/webmoduleservice cmd/module/web/main.go
 

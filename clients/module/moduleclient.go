@@ -6,13 +6,13 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bsm/grpclb"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/retrier"
 	service "github.com/linkai-io/am/protocservices/module"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 )
 
 type Config struct {
@@ -23,6 +23,7 @@ type Config struct {
 
 type Client struct {
 	client         service.ModuleClient
+	conn           *grpc.ClientConn
 	defaultTimeout time.Duration
 	config         *Config
 	key            string
@@ -43,19 +44,17 @@ func (c *Client) Init(data []byte) error {
 		c.defaultTimeout = (time.Second * time.Duration(c.config.Timeout))
 	}
 
-	balancer := grpc.RoundRobin(grpclb.NewResolver(&grpclb.Options{
-		Address: c.config.Addr,
-	}))
-
 	c.key = am.KeyFromModuleType(c.config.ModuleType)
 	if c.key == "" {
 		return errors.New("unknown module type passed to init")
 	}
 
-	conn, err := grpc.Dial(c.key, grpc.WithInsecure(), grpc.WithBalancer(balancer))
+	conn, err := grpc.DialContext(context.Background(), "srv://consul/"+c.key, grpc.WithInsecure(), grpc.WithBalancerName(roundrobin.Name))
 	if err != nil {
 		return err
 	}
+
+	c.conn = conn
 	c.client = service.NewModuleClient(conn)
 	return nil
 }

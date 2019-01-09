@@ -24,6 +24,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// AppConfig represents values taken from environment variables
 type AppConfig struct {
 	Env          string
 	Region       string
