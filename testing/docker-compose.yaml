@@ -26,20 +26,22 @@ services:
       app_net:
         ipv4_address: 172.16.238.5
   postgresdev:
-    image: postgres
+    image: postgres:10.6
     hostname: postgresdev
     ports:
       - "5432:5432"
     networks:
       app_net:
         ipv4_address: 172.16.238.10
+    environment:
+      - POSTGRES_PASSWORD=${_am_local_db_postgres_pwd}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 6
   pgmigration:
-    image: linkai_pg_migrations
+    image: pg_migrations
     depends_on: 
       - postgresdev
       - registrator
@@ -49,6 +51,7 @@ services:
     environment:
       - APP_ENV=local
       - _am_local_db_postgres_dbstring
+      - _am_local_db_postgres_pwd
       - _am_local_db_linkai_admin_pwd
       - _am_local_db_eventservice_pwd
       - _am_local_db_orgservice_pwd
@@ -60,7 +63,7 @@ services:
       - _am_local_db_webdataservice_pwd
       - _am_local_db_bigdataservice_pwd
   ammigration:
-    image: linkai_am_migrations
+    image: am_migrations
     depends_on: 
       - postgresdev
       - pgmigration
@@ -72,8 +75,8 @@ services:
       - APP_ENV=local
       - _am_local_db_linkai_admin_dbstring=${_am_local_db_linkai_admin_dbstring}
   orgservice:
-     image: linkai_orgservice
-     hostname: linkai_orgservice
+     image: orgservice
+     hostname: orgservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -87,13 +90,13 @@ services:
       - _am_local_db_orgservice_dbstring=${_am_local_db_orgservice_dbstring}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   userservice:
-     image: linkai_userservice
-     hostname: linkai_userservice
+     image: userservice
+     hostname: userservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -108,13 +111,13 @@ services:
       - _am_local_db_userservice_dbstring=${_am_local_db_userservice_dbstring}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   scangroupservice:
-     image: linkai_scangroupservice
-     hostname: linkai_scangroupservice
+     image: scangroupservice
+     hostname: scangroupservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -129,13 +132,13 @@ services:
       - _am_local_db_scangroupservice_dbstring=${_am_local_db_scangroupservice_dbstring}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   addressservice:
-     image: linkai_addressservice
-     hostname: linkai_addressservice
+     image: addressservice
+     hostname: addressservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -150,13 +153,13 @@ services:
       - _am_local_db_addressservice_dbstring=${_am_local_db_addressservice_dbstring}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   coordinatorservice:
-     image: linkai_coordinatorservice
-     hostname: linkai_coordinatorservice
+     image: coordinatorservice
+     hostname: coordinatorservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -179,13 +182,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   dispatcherservice1:
-     image: linkai_dispatcherservice
-     hostname: linkai_dispatcherservice1
+     image: dispatcherservice
+     hostname: dispatcherservice1
      depends_on:
       - registrator
      networks:
@@ -201,13 +204,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   dispatcherservice2:
-     image: linkai_dispatcherservice
-     hostname: linkai_dispatcherservice2
+     image: dispatcherservice
+     hostname: dispatcherservice2
      depends_on:
       - registrator
      networks:
@@ -223,13 +226,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   nsmoduleservice1:
-     image: linkai_nsmoduleservice
-     hostname: linkai_nsmoduleservice1
+     image: nsmoduleservice
+     hostname: nsmoduleservice1
      depends_on: 
       - coordinatorservice
       - registrator
@@ -246,13 +249,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   nsmoduleservice2:
-     image: linkai_nsmoduleservice
-     hostname: linkai_nsmoduleservice2
+     image: nsmoduleservice
+     hostname: nsmoduleservice2
      depends_on: 
       - coordinatorservice
       - registrator
@@ -269,13 +272,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   brutemoduleservice1:
-     image: linkai_brutemoduleservice
-     hostname: linkai_brutemoduleservice1
+     image: brutemoduleservice
+     hostname: brutemoduleservice1
      depends_on: 
       - coordinatorservice
       - registrator
@@ -292,13 +295,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   brutemoduleservice2:
-     image: linkai_brutemoduleservice
-     hostname: linkai_brutemoduleservice2
+     image: brutemoduleservice
+     hostname: brutemoduleservice2
      depends_on: 
       - coordinatorservice
       - registrator
@@ -315,13 +318,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   webdataservice:
-     image: linkai_webdataservice
-     hostname: linkai_webdataservice
+     image: webdataservice
+     hostname: webdataservice
      depends_on: 
       - postgresdev
       - ammigration
@@ -340,13 +343,13 @@ services:
       - _am_local_db_webdataservice_dbstring=${_am_local_db_webdataservice_dbstring}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   webmoduleservice1:
-     image: linkai_webmoduleservice
-     hostname: linkai_webmoduleservice1
+     image: webmoduleservice
+     hostname: webmoduleservice1
      depends_on: 
       - coordinatorservice
       - webdataservice
@@ -366,13 +369,13 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6
   webmoduleservice2:
-     image: linkai_webmoduleservice
-     hostname: linkai_webmoduleservice2
+     image: webmoduleservice
+     hostname: webmoduleservice2
      depends_on: 
       - coordinatorservice
       - webdataservice
@@ -392,7 +395,7 @@ services:
       - _am_local_state_pwd=${_am_local_state_pwd}
       - CONSUL_HTTP_ADDR
      healthcheck:
-      test: ["CMD-SHELL", "/bin/grpc_health_probe-linux-amd64 -addr=:50051"]
+      test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
       timeout: 2s
       retries: 6

@@ -1,9 +1,0 @@
-{
-    "service": 
-    {
-        "name": "coordinatorservice", 
-        "tags": ["coordinatorservice"], 
-        "address": "172.16.238.15",
-        "port": 50051
-    }
-}

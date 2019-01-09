@@ -1,9 +1,0 @@
-{
-    "service": 
-    {
-        "name": "userservice", 
-        "tags": ["userservice"], 
-        "address": "172.16.238.12",
-        "port": 50051
-    }
-}

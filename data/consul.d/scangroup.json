@@ -1,9 +1,0 @@
-{
-    "service": 
-    {
-        "name": "scangroupservice", 
-        "tags": ["scangroupservice"], 
-        "address": "172.16.238.13",
-        "port": 50051
-    }
-}

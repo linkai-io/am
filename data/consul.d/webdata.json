@@ -1,9 +1,0 @@
-{
-    "service": 
-    {
-        "name": "webdataservice", 
-        "tags": ["webdataservice"], 
-        "address": "172.16.238.22",
-        "port": 50051
-    }
-}

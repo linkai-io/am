@@ -6,18 +6,17 @@ This is the primary repository for all linkai - AM services.
 * amtest/ testing helper package and e2e tests (e2e disabled by default)
 * clients/ all grpc client implementations
 * cmd/ contains all runnable binaries, to be built using Docker
-* internal/ internal only packages for the am project
-* lambda/ contains all lambda functions
 * mock/ mock implementations of services for testing
-* modules/ scan modules for the AM service
 * pkg/ packages that can be imported from other repositories/projects
 * protocservices/ grpc/protobuf services and types automatically generated via make protoc
 * services/ the various microservices used by the AM system
+* services/modules/ scan modules for the AM service
+* third_party/ docker files or programs used by the services/testing framework
 
 ## Building
 am uses go dep until vgo is better supported.
 
-Building docker images can be done via make {servicename}
+Building docker images can be done via make {servicename}, or make allservices
 
 ## Testing
 Testing requires a local or env database is configured. For local testing make sure you check out the database repository, run the cmd/pgm first to create the linkai users and db
@@ -26,7 +25,7 @@ After which, simply run make test.
 
 ## Running locally
 First: start consul:
-consul agent -dev -config-dir=./consul.d -data-dir=consul_data/ -advertise="127.0.0.1" -client="172.16.238.1 127.0.0.1"
+consul agent -dev -advertise="127.0.0.1" -client="172.16.238.1 127.0.0.1"
 Next: Run docker-compose:
 cd testing && docker-compose up
 Next: Use amcli to issue commands (see cmd/amcli/README.md for more details)

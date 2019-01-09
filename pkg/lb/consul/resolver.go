@@ -58,7 +58,6 @@ func (r *Resolver) watcher() {
 	for {
 		select {
 		case <-ticker.C:
-			log.Info().Msg("ConsulResolverBuilder calling r.resolve")
 			r.resolve()
 		case <-r.done:
 			return
@@ -70,7 +69,6 @@ func (r *Resolver) resolve() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	log.Info().Msg("ConsulResolverBuilder calling r.consul.Catalog().Service")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -88,7 +86,6 @@ func (r *Resolver) resolve() {
 	for _, s := range services {
 		address := s.ServiceAddress
 		port := s.ServicePort
-		log.Info().Str("service_addr", address).Int("service_port", port).Str("target", r.target.Endpoint).Msg("got address")
 		if address == "" {
 			address = s.Address
 		}
@@ -97,7 +94,6 @@ func (r *Resolver) resolve() {
 			Addr:       address + ":" + strconv.Itoa(port),
 			ServerName: r.target.Endpoint,
 		})
-		log.Info().Str("service_addr", address).Int("service_port", port).Str("target", r.target.Endpoint).Msg("set address")
 	}
 	r.addr <- addresses
 }

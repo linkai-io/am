@@ -1,9 +1,0 @@
-{
-    "service": 
-    {
-        "name": "orgservice", 
-        "tags": ["orgservice"], 
-        "address": "172.16.238.11",
-        "port": 50051
-    }
-}
