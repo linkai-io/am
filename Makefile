@@ -42,9 +42,6 @@ dispatcherservice:
 nsmoduleservice:
 	docker build -t nsmoduleservice -f Dockerfile.nsmoduleservice .
 
-amloadservice:
-	docker build -t amloadservice -f Dockerfile.amloadservice .
-
 webdataservice:
 	docker build -t webdataservice -f Dockerfile.webdataservice .
 
@@ -54,7 +51,7 @@ brutemoduleservice:
 webmoduleservice:
 	docker build -t webmoduleservice -f Dockerfile.webmoduleservice .
 
-allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice amloadservice webdataservice brutemoduleservice webmoduleservice
+allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice brutemoduleservice webmoduleservice
 
 backend: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice
 
@@ -64,18 +61,20 @@ pushbackend:
 pushecr:
 	$(foreach var,$(ALL_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
+pushnsmoduleservice: nsmoduleservice
+	docker tag nsmoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/nsmoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/nsmoduleservice:latest
+
+pushbrutemoduleservice: brutemoduleservice
+	docker tag brutemoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest
+
 pushorgservice: orgservice
 	docker tag orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
 
 pushuserservice: userservice
 	docker tag userservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest
 
-
-
-deploy_loadbalancer:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/loadbalancer cmd/amload/main.go
-	zip deploy_files/loadbalancer.zip deploy_files/loadbalancer deploy_files/30-loadbalancer.conf deploy_files/install_loadbalancer.sh deploy_files/loadbalancer.service
-	aws s3 cp deploy_files/loadbalancer.zip s3://linkai-infra/${APP_ENV}/loadbalancer/loadbalancer.zip
+deploybackend:
+	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
 deploy_webmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	

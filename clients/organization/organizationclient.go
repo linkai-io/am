@@ -34,6 +34,7 @@ func (c *Client) Init(config []byte) error {
 	if err != nil {
 		return err
 	}
+
 	c.conn = conn
 	c.client = service.NewOrganizationClient(conn)
 	return nil

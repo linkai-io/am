@@ -14,7 +14,6 @@ import (
 	"github.com/linkai-io/am/pkg/lb/consul"
 	"github.com/linkai-io/am/pkg/metrics/load"
 	"github.com/linkai-io/am/pkg/retrier"
-	"github.com/linkai-io/am/pkg/secrets"
 	dispatcherprotoservice "github.com/linkai-io/am/protocservices/dispatcher"
 	"github.com/linkai-io/am/protocservices/metrics"
 	"github.com/linkai-io/am/services/dispatcher"
@@ -30,8 +29,7 @@ const (
 )
 
 var (
-	appConfig        initializers.AppConfig
-	loadBalancerAddr string
+	appConfig initializers.AppConfig
 )
 
 func init() {
@@ -40,7 +38,8 @@ func init() {
 	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
 	appConfig.Addr = os.Getenv("APP_ADDR")
 	appConfig.ServiceKey = serviceKey
-	consul.RegisterDefault(time.Second * 5) // Address comes from CONSUL_HTTP_ADDR
+	consulAddr := initializers.ServiceDiscovery(&appConfig)
+	consul.RegisterDefault(time.Second*5, consulAddr) // Address comes from CONSUL_HTTP_ADDR or from aws metadata
 }
 
 // main starts the DispatcherService
@@ -49,12 +48,6 @@ func main() {
 
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "DispatcherService").Logger()
-
-	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
-	loadBalancerAddr, err = sec.LoadBalancerAddr()
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get load balancer address")
-	}
 
 	if appConfig.Addr == "" {
 		appConfig.Addr = ":50051"
@@ -66,9 +59,9 @@ func main() {
 	}
 
 	state := initializers.State(&appConfig)
-	sgClient := initializers.SGClient(loadBalancerAddr)
-	addrClient := initializers.AddrClient(loadBalancerAddr)
-	modules := initializers.Modules(state, loadBalancerAddr)
+	sgClient := initializers.SGClient()
+	addrClient := initializers.AddrClient()
+	modules := initializers.Modules(state)
 
 	service := dispatcher.New(sgClient, addrClient, modules, state)
 	err = retrier.Retry(func() error {

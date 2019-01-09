@@ -32,8 +32,7 @@ const (
 )
 
 var (
-	appConfig        initializers.AppConfig
-	loadBalancerAddr string
+	appConfig initializers.AppConfig
 )
 
 func init() {
@@ -42,7 +41,8 @@ func init() {
 	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
 	appConfig.Addr = os.Getenv("APP_ADDR")
 	appConfig.ServiceKey = serviceKey
-	consul.RegisterDefault(time.Second * 5) // Address comes from CONSUL_HTTP_ADDR
+	consulAddr := initializers.ServiceDiscovery(&appConfig)
+	consul.RegisterDefault(time.Second*5, consulAddr) // Address comes from CONSUL_HTTP_ADDR or from aws metadata
 }
 
 // main starts the WebModuleService
@@ -53,10 +53,6 @@ func main() {
 	log.Logger = log.With().Str("service", "WebModuleService").Logger()
 
 	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
-	loadBalancerAddr, err = sec.LoadBalancerAddr()
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get load balancer address")
-	}
 
 	dnsAddrs, err := sec.DNSAddresses()
 	if err != nil {
@@ -82,7 +78,7 @@ func main() {
 	state := initializers.State(&appConfig)
 	dc := dnsclient.New(dnsAddrs, 3)
 
-	webDataClient := initializers.WebDataClient(loadBalancerAddr)
+	webDataClient := initializers.WebDataClient()
 
 	store := filestorage.NewStorage(appConfig.Env, appConfig.Region)
 	service := web.New(browsers, webDataClient, dc, state, store)

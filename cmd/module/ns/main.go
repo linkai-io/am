@@ -30,8 +30,7 @@ const (
 )
 
 var (
-	appConfig        initializers.AppConfig
-	loadBalancerAddr string
+	appConfig initializers.AppConfig
 )
 
 func init() {
@@ -40,7 +39,8 @@ func init() {
 	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
 	appConfig.Addr = os.Getenv("APP_ADDR")
 	appConfig.ServiceKey = serviceKey
-	consul.RegisterDefault(time.Second * 5) // Address comes from CONSUL_HTTP_ADDR
+	consulAddr := initializers.ServiceDiscovery(&appConfig)
+	consul.RegisterDefault(time.Second*5, consulAddr) // Address comes from CONSUL_HTTP_ADDR or from aws metadata
 }
 
 // main starts the NSModuleService
@@ -51,11 +51,6 @@ func main() {
 	log.Logger = log.With().Str("service", "NSModuleService").Logger()
 
 	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
-	loadBalancerAddr, err = sec.LoadBalancerAddr()
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get load balancer address")
-	}
-
 	dnsAddrs, err := sec.DNSAddresses()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get dns server addresses")

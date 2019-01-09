@@ -13,9 +13,9 @@ import (
 
 // RegisterDefault resolver how often to watch for updates
 // Address comes from CONSUL_HTTP_ADDR env var
-func RegisterDefault(watchInterval time.Duration) {
+func RegisterDefault(watchInterval time.Duration, addr string) {
 	cfg := api.DefaultConfig()
-
+	cfg.Address = addr
 	resolver.Register(&ResolverBuilder{
 		WatchInterval:      watchInterval,
 		ConsulClientConfig: cfg,
