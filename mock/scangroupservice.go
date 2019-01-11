@@ -10,7 +10,7 @@ type ScanGroupService struct {
 	InitFn      func(config []byte) error
 	InitInvoked bool
 
-	GetFn      func(ctx context.Context, userContext am.UserContext, groupID int) (oid int, group *am.ScanGroup, err error)
+	GetFn      func(ctx context.Context, userContext UserContext, groupID int) (oid int, group *am.ScanGroup, err error)
 	GetInvoked bool
 
 	GetByNameFn      func(ctx context.Context, userContext am.UserContext, groupName string) (oid int, group *am.ScanGroup, err error)

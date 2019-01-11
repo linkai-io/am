@@ -88,7 +88,7 @@ services:
      environment:
       - APP_ENV=local
       - _am_local_db_orgservice_dbstring=${_am_local_db_orgservice_dbstring}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -109,7 +109,7 @@ services:
      environment:
       - APP_ENV=local
       - _am_local_db_userservice_dbstring=${_am_local_db_userservice_dbstring}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -130,7 +130,7 @@ services:
      environment:
       - APP_ENV=local
       - _am_local_db_scangroupservice_dbstring=${_am_local_db_scangroupservice_dbstring}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -151,7 +151,7 @@ services:
      environment:
       - APP_ENV=local
       - _am_local_db_addressservice_dbstring=${_am_local_db_addressservice_dbstring}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -180,7 +180,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -202,7 +202,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -224,7 +224,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -247,7 +247,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -270,7 +270,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -293,7 +293,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -316,7 +316,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -341,7 +341,7 @@ services:
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
       - _am_local_db_webdataservice_dbstring=${_am_local_db_webdataservice_dbstring}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -367,7 +367,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s
@@ -393,7 +393,7 @@ services:
       - _am_local_loadbalancer_config=${_am_local_loadbalancer_config}
       - _am_local_state_config=${_am_local_state_config}
       - _am_local_state_pwd=${_am_local_state_pwd}
-      - CONSUL_HTTP_ADDR
+      - CONSUL_HTTP_ADDR=${CONSUL_HTTP_ADDR}
      healthcheck:
       test: ["CMD", "/bin/grpc_health_probe-linux-amd64","-addr=:50051"]
       interval: 10s

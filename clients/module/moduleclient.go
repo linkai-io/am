@@ -16,7 +16,6 @@ import (
 )
 
 type Config struct {
-	Addr       string
 	ModuleType am.ModuleType
 	Timeout    int
 }
@@ -67,10 +66,6 @@ func (c *Client) parseConfig(data []byte) (*Config, error) {
 	config := &Config{}
 	if err := json.Unmarshal(data, config); err != nil {
 		return nil, err
-	}
-
-	if config.Addr == "" {
-		return nil, errors.New("module did not have Addr set")
 	}
 
 	return config, nil

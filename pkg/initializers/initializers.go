@@ -38,7 +38,7 @@ type AppConfig struct {
 }
 
 func ServiceDiscovery(appConfig *AppConfig) string {
-	consulAddr := os.Getenv("HTTP_CONSUL_ADDR")
+	consulAddr := os.Getenv("CONSUL_HTTP_ADDR")
 	if consulAddr != "" {
 		return consulAddr
 	}

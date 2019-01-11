@@ -1,5 +1,6 @@
 ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice brutemoduleservice
 BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice
+MODULE_SERVICES = nsmoduleservice brutemoduleservice
 APP_ENV = dev
 build:
 	go build -v ./...
@@ -75,6 +76,9 @@ pushuserservice: userservice
 
 deploybackend:
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
+
+deploymodules:
+	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
 
 deploy_webmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
