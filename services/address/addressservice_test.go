@@ -280,6 +280,116 @@ func TestUpdate(t *testing.T) {
 
 }
 
+func TestIgnore(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "ignoreaddress"
+	groupName := "ignoreaddressgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	now := time.Now().UnixNano()
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	for i := 0; i < 100; i++ {
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         "",
+			IPAddress:           fmt.Sprintf("192.168.1.%d", i),
+			AddressHash:         convert.HashAddress(fmt.Sprintf("192.168.1.%d", i), ""),
+			DiscoveryTime:       now,
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     0,
+			LastSeenTime:        0,
+			ConfidenceScore:     0.0,
+			UserConfidenceScore: 0.0,
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, count, err := service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addreses: %s\n", err)
+	}
+	if count != 100 {
+		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+
+	filter := &am.ScanGroupAddressFilter{
+		GroupID: groupID,
+		Start:   0,
+		Limit:   100,
+	}
+	_, allAddresses, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting all addresses: %s\n", err)
+	}
+
+	// make list of all addressIDs for ignoring
+	addressIDs := make([]int64, len(allAddresses))
+	for i := 0; i < len(allAddresses); i++ {
+		addressIDs[i] = allAddresses[i].AddressID
+	}
+
+	if _, err := service.Ignore(ctx, userContext, groupID, addressIDs, true); err != nil {
+		t.Fatalf("error ignoring all addresses: %s\n", err)
+	}
+
+	filter.Limit = 100
+	_, allAddresses, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting all addresses: %s\n", err)
+	}
+
+	for _, addr := range allAddresses {
+		if addr.Ignored == false {
+			t.Fatalf("error ignoring address: %v\n", addr.AddressID)
+		}
+	}
+
+	if _, err := service.Ignore(ctx, userContext, groupID, addressIDs, false); err != nil {
+		t.Fatalf("error ignoring all addresses: %s\n", err)
+	}
+
+	filter.Limit = 100
+	_, allAddresses, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting all addresses: %s\n", err)
+	}
+
+	for _, addr := range allAddresses {
+		if addr.Ignored == true {
+			t.Fatalf("error ignoring address: %v\n", addr.AddressID)
+		}
+	}
+}
+
 func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 	if e.OrgID != r.OrgID {
 		t.Fatalf("OrgID did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
@@ -336,5 +446,4 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 	if e.Ignored != r.Ignored {
 		t.Fatalf("Ignored did not match expected: %v got: %v\n", e.Ignored, r.Ignored)
 	}
-
 }

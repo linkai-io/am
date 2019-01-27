@@ -251,6 +251,58 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	return orgID, err
 }
 
+// Ignore the addresses from the scan group.
+func (s *Service) Ignore(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, value bool) (oid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "create") {
+		return 0, am.ErrUserNotAuthorized
+	}
+	var tx *pgx.Tx
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	log.Ctx(ctx).Info().Int("address_len", len(addressIDs)).Msg("ignoring")
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.Exec(IgnoreAddressesTempTable); err != nil {
+		return 0, err
+	}
+
+	numAddresses := len(addressIDs)
+
+	addressRows := make([][]interface{}, numAddresses)
+	orgID := userContext.GetOrgID()
+
+	for i := 0; i < len(addressIDs); i++ {
+		addressRows[i] = []interface{}{addressIDs[i]}
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{IgnoreAddressesTempTableKey}, IgnoreAddressesTempTableColumns, pgx.CopyFromRows(addressRows))
+	if err != nil {
+		return 0, err
+	}
+
+	if copyCount != numAddresses {
+		return 0, am.ErrAddressCopyCount
+	}
+
+	if _, err := tx.Exec(IgnoreAddressesTempToAddress, value, orgID, groupID); err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
+
+	return orgID, err
+}
+
 // Count returns the number of addresses for a specified scan group by id
 func (s *Service) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {

@@ -140,4 +140,15 @@ var (
 
 	DeleteAddressesTempToAddress = `delete from am.scan_group_addresses as sga 
 		where organization_id=$1 and scan_group_id=$2 and address_id IN (SELECT address_id FROM sga_del_temp)`
+
+	IgnoreAddressesTempTableKey     = "sga_ignore_temp"
+	IgnoreAddressesTempTableColumns = []string{"address_id"}
+	IgnoreAddressesTempTable        = `create temporary table sga_ignore_temp (
+			address_id bigint not null
+		) on commit drop;`
+
+	IgnoreAddressesTempToAddress = `update am.scan_group_addresses as sga
+		set ignored=$1 
+		from sga_ignore_temp as temp
+		where sga.address_id=temp.address_id and sga.organization_id=$2 and sga.scan_group_id=$3`
 )

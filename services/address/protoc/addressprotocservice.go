@@ -86,3 +86,13 @@ func (s *AddressProtocService) Count(ctx context.Context, in *address.CountAddre
 	}
 	return &address.CountAddressesResponse{OrgID: int32(oid), GroupID: in.GroupID, Count: int32(count)}, nil
 }
+
+func (s *AddressProtocService) Ignore(ctx context.Context, in *address.IgnoreAddressesRequest) (*address.IgnoreAddressesResponse, error) {
+	s.reporter.Increment(1)
+	oid, err := s.as.Ignore(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID), in.AddressIDs, in.IgnoreValue)
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.IgnoreAddressesResponse{OrgID: int32(oid)}, nil
+}

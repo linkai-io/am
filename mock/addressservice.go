@@ -21,6 +21,9 @@ type AddressService struct {
 
 	DeleteFn      func(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error)
 	DeleteInvoked bool
+
+	IgnoreFn      func(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error)
+	IgnoreInvoked bool
 }
 
 func (c *AddressService) Init(config []byte) error {
@@ -45,4 +48,9 @@ func (c *AddressService) Update(ctx context.Context, userContext am.UserContext,
 func (c *AddressService) Delete(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error) {
 	c.DeleteInvoked = true
 	return c.DeleteFn(ctx, userContext, groupID, addressIDs)
+}
+
+func (c *AddressService) Ignore(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error) {
+	c.IgnoreInvoked = true
+	return c.IgnoreFn(ctx, userContext, groupID, addressIDs, ignoreValue)
 }

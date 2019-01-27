@@ -161,3 +161,31 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, groupID
 
 	return int(resp.GetOrgID()), nil
 }
+
+func (c *Client) Ignore(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error) {
+	var resp *service.IgnoreAddressesResponse
+
+	in := &service.IgnoreAddressesRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		GroupID:     int32(groupID),
+		AddressIDs:  addressIDs,
+		IgnoreValue: ignoreValue,
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.Ignore(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to ignore addresses from client")
+
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(resp.GetOrgID()), nil
+}
