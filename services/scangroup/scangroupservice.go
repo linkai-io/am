@@ -242,7 +242,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 	}
 
 	// creates and sets oid/gid
-	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedBy, newGroup.ModifiedTime, newGroup.ModifiedBy, newGroup.OriginalInputS3URL, newGroup.ModuleConfigurations).Scan(&oid, &gid)
+	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedByID, newGroup.ModifiedTime, newGroup.ModifiedByID, newGroup.OriginalInputS3URL, newGroup.ModuleConfigurations).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -264,7 +264,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 
 	serviceLog.Info().Msg("Updating Scan group")
 
-	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedBy, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
+	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedByID, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}

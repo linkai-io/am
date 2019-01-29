@@ -77,11 +77,17 @@ pushuserservice: userservice
 pushaddressservice: addressservice
 	docker tag addressservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/addressservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/addressservice:latest
 
+pushscangroupservice: scangroupservice 
+	docker tag scangroupservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest
+
 deploybackend:
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
 deploymodules:
-	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
+	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
+
+deployscangroupservice: pushscangroupservice 
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service scangroup
 
 push_webmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
