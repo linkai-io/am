@@ -73,6 +73,10 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 		if err != nil {
 			return 0, nil, err
 		}
+		// empty address
+		if addr.GetOrgID() == 0 {
+			continue
+		}
 		addresses = append(addresses, convert.AddressToDomain(addr.Addresses))
 		if addr.GetOrgID() != int32(oid) {
 			return 0, nil, am.ErrOrgIDMismatch

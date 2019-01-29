@@ -148,7 +148,12 @@ func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid in
 		if err != nil {
 			return 0, nil, err
 		}
-		groups = append(groups, convert.ScanGroupToDomain(group.GetGroup()))
+		domainGroup := group.GetGroup()
+		// empty group
+		if domainGroup.GetOrgID() == 0 && domainGroup.GetGroupID() == 0 {
+			continue
+		}
+		groups = append(groups, convert.ScanGroupToDomain(domainGroup))
 		if group.GetOrgID() != int32(oid) {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
