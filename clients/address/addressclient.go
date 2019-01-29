@@ -42,6 +42,7 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 
 func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	var resp service.Address_GetClient
+	oid = userContext.GetOrgID()
 
 	in := &service.AddressesRequest{
 		UserContext: convert.DomainToUserContext(userContext),
@@ -73,7 +74,9 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 			return 0, nil, err
 		}
 		addresses = append(addresses, convert.AddressToDomain(addr.Addresses))
-		oid = int(addr.GetOrgID())
+		if addr.GetOrgID() != int32(oid) {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
 	}
 	return oid, addresses, nil
 }

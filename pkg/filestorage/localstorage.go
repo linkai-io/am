@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/linkai-io/am/pkg/secrets"
-
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
 )
@@ -20,17 +18,12 @@ func NewLocalStorage() *LocalStorage {
 	return &LocalStorage{}
 }
 
-func (s *LocalStorage) Init(cache *secrets.SecretsCache) error {
-	path, err := cache.WebFilePath()
-	if err != nil {
-		return err
-	}
-	s.prefixPath = path
-	return os.MkdirAll(s.prefixPath, 0766)
+func (s *LocalStorage) Init() error {
+	return nil
 }
 
 // Writes the data to local storage, returning the hash and link/path
-func (s *LocalStorage) Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+func (s *LocalStorage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
 	if data == nil || len(data) == 0 {
 		return "", "", nil
 	}
@@ -40,10 +33,10 @@ func (s *LocalStorage) Write(ctx context.Context, address *am.ScanGroupAddress, 
 	if fileName == "null" {
 		return "", "", nil
 	}
-	dir := filepath.Dir(s.prefixPath + fileName)
+	dir := filepath.Dir(userContext.GetOrgCID() + fileName)
 	if err := os.MkdirAll(dir, 0766); err != nil {
 		return "", "", err
 	}
-	err := ioutil.WriteFile(s.prefixPath+fileName, data, 0766)
-	return hashName, s.prefixPath + fileName, err
+	err := ioutil.WriteFile(userContext.GetOrgCID()+fileName, data, 0766)
+	return hashName, userContext.GetOrgCID() + fileName, err
 }

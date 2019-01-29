@@ -2,13 +2,10 @@ package filestorage_test
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
-
-	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/pkg/filestorage"
 )
@@ -18,15 +15,10 @@ func TestS3Storage(t *testing.T) {
 	env := "local"
 	region := "us-east-1"
 
-	os.Setenv("_am_local_webfilepath", "test-am-webdata")
-
 	s := filestorage.NewS3Storage(env, region)
-
-	cache := secrets.NewSecretsCache(env, region)
-	if err := s.Init(cache); err != nil {
-		t.Fatalf("failed to initialize s3 storage: %v\n", err)
+	if err := s.Init(); err != nil {
+		t.Fatalf("failed to init storage: %v\n", err)
 	}
-
 	addr := &am.ScanGroupAddress{
 		AddressID:           1,
 		OrgID:               1,
@@ -48,7 +40,12 @@ func TestS3Storage(t *testing.T) {
 		AddressHash:         convert.HashAddress("192.168.1.1", "example.com"),
 	}
 
-	hash, link, err := s.Write(context.Background(), addr, []byte("hello"))
+	userContext := &am.UserContextData{
+		OrgID:  1,
+		UserID: 1,
+		OrgCID: "test-webdata-am",
+	}
+	hash, link, err := s.Write(context.Background(), userContext, addr, []byte("hello"))
 	if err != nil {
 		t.Fatalf("error writing file to s3: %#v\n", err)
 	}

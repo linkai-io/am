@@ -25,7 +25,7 @@ func TestShardName(t *testing.T) {
 }
 
 func TestPathFromData(t *testing.T) {
-	expected := "/1/1/2/6/8/a/0/268a0a588b41ac3726ecb5e7d5edf738b037b15b"
+	expected := "/2/6/8/a/0/268a0a588b41ac3726ecb5e7d5edf738b037b15b"
 	data := []byte("asldkfja;sldkfjasd;lfkjasd;lfkajsdfl;kajdsf;lakjdsf")
 
 	address := &am.ScanGroupAddress{

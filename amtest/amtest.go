@@ -95,11 +95,11 @@ func GenerateAddrs(orgID, groupID, count int) []*am.ScanGroupAddress {
 
 func MockStorage() *mock.Storage {
 	mockStorage := &mock.Storage{}
-	mockStorage.InitFn = func(cache *secrets.SecretsCache) error {
+	mockStorage.InitFn = func() error {
 		return nil
 	}
 
-	mockStorage.WriteFn = func(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+	mockStorage.WriteFn = func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
 		if data == nil || len(data) == 0 {
 			return "", "", nil
 		}

@@ -98,6 +98,7 @@ func (c *Client) GetByCID(ctx context.Context, userContext am.UserContext, userC
 
 func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *am.UserFilter) (oid int, users []*am.User, err error) {
 	var resp service.UserService_ListClient
+	oid = userContext.GetOrgID()
 
 	in := &service.UserListRequest{
 		UserContext: convert.DomainToUserContext(userContext),
@@ -130,7 +131,7 @@ func (c *Client) List(ctx context.Context, userContext am.UserContext, filter *a
 		}
 		users = append(users, convert.UserToDomain(userResp.User))
 	}
-	return 0, users, nil
+	return oid, users, nil
 }
 
 func (c *Client) Create(ctx context.Context, userContext am.UserContext, user *am.User) (oid int, uid int, ucid string, err error) {

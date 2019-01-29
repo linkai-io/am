@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"strconv"
-
-	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/am"
 )
@@ -16,8 +13,8 @@ var (
 )
 
 type Storage interface {
-	Init(cache *secrets.SecretsCache) error
-	Write(ctx context.Context, address *am.ScanGroupAddress, data []byte) (string, string, error)
+	Init() error
+	Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error)
 }
 
 func NewStorage(env, region string) Storage {
@@ -57,10 +54,10 @@ func PathFromData(address *am.ScanGroupAddress, name string) string {
 		return "null"
 	}
 	var buf bytes.Buffer
-	buf.Write([]byte("/"))
-	buf.Write([]byte(strconv.Itoa(address.OrgID)))
-	buf.Write([]byte("/"))
-	buf.Write([]byte(strconv.Itoa(address.GroupID)))
+	// TODO: In the future we *may* want to split out by group id
+	// if we have multiple hosts with
+	//buf.Write([]byte("/"))
+	//buf.Write([]byte(strconv.Itoa(address.GroupID)))
 	buf.Write([]byte(sharded))
 	return buf.String()
 }

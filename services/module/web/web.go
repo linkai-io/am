@@ -176,22 +176,21 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 		return nil, ErrEmptyWebData
 	}
 
-	_, link, err = w.storage.Write(ctx, address, []byte(webData.Snapshot))
+	_, link, err = w.storage.Write(ctx, userContext, address, []byte(webData.Snapshot))
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to write snapshot data to storage")
 	}
 	webData.SnapshotLink = link
 
-	hash, link, err = w.storage.Write(ctx, address, []byte(webData.SerializedDOM))
+	hash, link, err = w.storage.Write(ctx, userContext, address, []byte(webData.SerializedDOM))
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to write serialized dom data to storage")
-
 	}
 	webData.SerializedDOMHash = hash
 	webData.SerializedDOMLink = link
 
 	if webData.Responses != nil {
-		extractedHosts := w.processResponses(ctx, address, webData)
+		extractedHosts := w.processResponses(ctx, userContext, address, webData)
 		resolvedAddresses := module.ResolveNewAddresses(ctx, w.dc, &module.ResolverData{
 			Address:           address,
 			RequestsPerSecond: int(nsCfg.RequestsPerSecond),
@@ -213,7 +212,7 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 
 // processResponses iterates over all responses, extracting additional domains and creating a hash of the
 // body data and save it to file storage
-func (w *Web) processResponses(ctx context.Context, address *am.ScanGroupAddress, webData *am.WebData) map[string]struct{} {
+func (w *Web) processResponses(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, webData *am.WebData) map[string]struct{} {
 	var extractHosts bool
 	var zone string
 	var needles []*regexp.Regexp
@@ -246,7 +245,7 @@ func (w *Web) processResponses(ctx context.Context, address *am.ScanGroupAddress
 			continue
 		}
 
-		hash, link, err := w.storage.Write(ctx, address, []byte(resp.RawBody))
+		hash, link, err := w.storage.Write(ctx, userContext, address, []byte(resp.RawBody))
 		if err != nil {
 			log.Ctx(ctx).Warn().Err(err).Msg("unable to process hash/link for raw data")
 		}

@@ -81,6 +81,10 @@ func main() {
 	webDataClient := initializers.WebDataClient()
 
 	store := filestorage.NewStorage(appConfig.Env, appConfig.Region)
+	if err := store.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize storage")
+	}
+
 	service := web.New(browsers, webDataClient, dc, state, store)
 	err = retrier.Retry(func() error {
 		return service.Init()
