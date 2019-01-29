@@ -153,6 +153,7 @@ func (c *Client) Groups(ctx context.Context, userContext am.UserContext) (oid in
 		if domainGroup.GetOrgID() == 0 && domainGroup.GetGroupID() == 0 {
 			continue
 		}
+		log.Info().Msgf("%#v", domainGroup)
 		groups = append(groups, convert.ScanGroupToDomain(domainGroup))
 		if group.GetOrgID() != int32(oid) {
 			return 0, nil, am.ErrOrgIDMismatch
