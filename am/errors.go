@@ -5,7 +5,7 @@ import "errors"
 var (
 	ErrEmptyDBConfig     = errors.New("empty database connection string")
 	ErrInvalidDBString   = errors.New("invalid db connection string")
-	ErrOrgIDMismatch     = errors.New("org id does not user context")
+	ErrOrgIDMismatch     = errors.New("org id does not match user context org id")
 	ErrUserNotAuthorized = errors.New("user is not authorized to perform this action")
 	ErrLimitTooLarge     = errors.New("requested number of records too large")
 	ErrNoResults         = errors.New("no results")
