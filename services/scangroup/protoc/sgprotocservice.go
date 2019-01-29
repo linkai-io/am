@@ -101,7 +101,7 @@ func (s *SGProtocService) Groups(in *scangroup.GroupsRequest, stream scangroup.S
 			return ErrOrgIDNonMatch
 		}
 
-		if err := stream.Send(&scangroup.GroupResponse{Group: convert.DomainToScanGroup(g)}); err != nil {
+		if err := stream.Send(&scangroup.GroupResponse{OrgID: int32(oid), Group: convert.DomainToScanGroup(g)}); err != nil {
 			return err
 		}
 	}
