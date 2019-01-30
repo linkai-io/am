@@ -80,7 +80,7 @@ pushaddressservice: addressservice
 pushscangroupservice: scangroupservice 
 	docker tag scangroupservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest
 
-deploybackend: backend pushbackend
+deploybackend: 
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
 deploymodules:

@@ -41,7 +41,7 @@ func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.
 			return ErrOrgIDNonMatch
 		}
 
-		if err := stream.Send(&address.AddressesResponse{Addresses: convert.DomainToAddress(a)}); err != nil {
+		if err := stream.Send(&address.AddressesResponse{OrgID: int32(oid), Addresses: convert.DomainToAddress(a)}); err != nil {
 			return err
 		}
 	}
