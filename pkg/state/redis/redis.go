@@ -107,14 +107,16 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	// put dns custom subdomain names
-	args := make([]interface{}, len(brute.CustomSubNames)+1)
-	args[0] = keys.BruteConfigHosts()
-	for i := 1; i < len(args); i++ {
-		args[i] = brute.CustomSubNames[i-1]
-	}
+	if len(brute.CustomSubNames) != 0 {
+		args := make([]interface{}, len(brute.CustomSubNames)+1)
+		args[0] = keys.BruteConfigHosts()
+		for i := 1; i < len(args); i++ {
+			args[i] = brute.CustomSubNames[i-1]
+		}
 
-	if err := conn.Send("LPUSH", args...); err != nil {
-		return err
+		if err := conn.Send("LPUSH", args...); err != nil {
+			return err
+		}
 	}
 
 	// put port config
@@ -124,14 +126,16 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	// put port custom ports
-	portArgs := make([]interface{}, len(port.CustomPorts)+1)
-	portArgs[0] = keys.PortConfigPorts()
-	for i := 1; i < len(portArgs); i++ {
-		portArgs[i] = port.CustomPorts[i-1]
-	}
+	if len(port.CustomPorts) != 0 {
+		portArgs := make([]interface{}, len(port.CustomPorts)+1)
+		portArgs[0] = keys.PortConfigPorts()
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = port.CustomPorts[i-1]
+		}
 
-	if err := conn.Send("LPUSH", portArgs...); err != nil {
-		return err
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
 	}
 
 	// put web config
@@ -142,14 +146,16 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 
 	// NOTE: we don't store the keyword module because it is empty, just the keywords (as of 2018/9/6)
 	keyword := group.ModuleConfigurations.KeywordModule
-	keywordArgs := make([]interface{}, len(keyword.Keywords)+1)
-	keywordArgs[0] = keys.KeywordConfig()
-	for i := 1; i < len(keywordArgs); i++ {
-		keywordArgs[i] = keyword.Keywords[i-1]
-	}
+	if len(keyword.Keywords) != 0 {
+		keywordArgs := make([]interface{}, len(keyword.Keywords)+1)
+		keywordArgs[0] = keys.KeywordConfig()
+		for i := 1; i < len(keywordArgs); i++ {
+			keywordArgs[i] = keyword.Keywords[i-1]
+		}
 
-	if err := conn.Send("LPUSH", keywordArgs...); err != nil {
-		return err
+		if err := conn.Send("LPUSH", keywordArgs...); err != nil {
+			return err
+		}
 	}
 
 	if err := conn.Send("PUBLISH", am.RNScanGroupGroups, keys.Config()); err != nil {

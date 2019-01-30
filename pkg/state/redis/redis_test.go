@@ -42,6 +42,16 @@ func TestPut(t *testing.T) {
 	if err := r.Delete(ctx, userContext, sg); err != nil {
 		t.Fatalf("error deleting all keys: %s\n", err)
 	}
+
+	sg.ModuleConfigurations.BruteModule.CustomSubNames = []string{}
+	sg.ModuleConfigurations.PortModule.CustomPorts = []int32{}
+	if err := r.Put(ctx, userContext, sg); err != nil {
+		t.Fatalf("error putting sg: %s\n", err)
+	}
+
+	if err := r.Delete(ctx, userContext, sg); err != nil {
+		t.Fatalf("error deleting all keys: %s\n", err)
+	}
 }
 
 func TestAddresses(t *testing.T) {
@@ -146,6 +156,30 @@ func TestGetGroup(t *testing.T) {
 
 	wantModules := true
 	returned, err := r.GetGroup(ctx, 1, 1, wantModules)
+	if err != nil {
+		t.Fatalf("error getting group: %s\n", err)
+	}
+
+	if returned.ModuleConfigurations == nil {
+		t.Fatalf("error module configurations was nil\n")
+	}
+
+	amtest.TestCompareScanGroup(sg, returned, t)
+	amtest.TestCompareGroupModules(sg.ModuleConfigurations, returned.ModuleConfigurations, t)
+
+	if err := r.Delete(ctx, userContext, sg); err != nil {
+		t.Fatalf("error deleting all keys: %s\n", err)
+	}
+
+	// TEST EMPTY
+	sg.ModuleConfigurations.BruteModule.CustomSubNames = []string{}
+	sg.ModuleConfigurations.PortModule.CustomPorts = []int32{}
+	if err := r.Put(ctx, userContext, sg); err != nil {
+		t.Fatalf("error putting sg: %s\n", err)
+	}
+
+	wantModules = true
+	returned, err = r.GetGroup(ctx, 1, 1, wantModules)
 	if err != nil {
 		t.Fatalf("error getting group: %s\n", err)
 	}

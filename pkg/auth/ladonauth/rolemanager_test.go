@@ -237,7 +237,7 @@ func TestMembers(t *testing.T) {
 	}
 
 	if len(r.Members) != 0 {
-		t.Fatalf("members should be empty for role: %s\n", r1.ID)
+		t.Fatalf("members should be empty for role: %#v len: %d data: %#v\n", r1, len(r.Members), r)
 	}
 }
 
