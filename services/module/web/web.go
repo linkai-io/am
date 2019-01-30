@@ -34,6 +34,7 @@ var (
 )
 
 var schemes = []string{"http", "https"}
+var defaultPorts = []int32{80, 443}
 
 // Web will brute force and mutate subdomains to attempt to find
 // additional hosts
@@ -129,7 +130,15 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 		nsCfg = group.ModuleConfigurations.NSModule
 	}
 
+	allPorts := make(map[int32]struct{}, 0)
+	for _, port := range defaultPorts {
+		allPorts[port] = struct{}{}
+	}
 	for _, port := range portCfg.CustomPorts {
+		allPorts[port] = struct{}{}
+	}
+
+	for port := range allPorts {
 		// do stuff
 		log.Ctx(ctx).Info().Int32("port", port).Msg("analyzing")
 		portStr := strconv.Itoa(int(port))
