@@ -365,7 +365,7 @@ func TestState_DoNSRecords(t *testing.T) {
 	ctx := context.Background()
 	orgID := 1
 	groupID := 1
-	testSeconds := 1
+	testSeconds := 3
 	ok, err := r.DoNSRecords(ctx, orgID, groupID, testSeconds, "test.org")
 	if err != nil {
 		t.Fatalf("got error setting ns records: %s\n", err)
@@ -374,7 +374,7 @@ func TestState_DoNSRecords(t *testing.T) {
 	if !ok {
 		t.Fatalf("error should have been OK to test records for new zone\n")
 	}
-
+	time.Sleep(time.Second * 1)
 	ok, err = r.DoNSRecords(ctx, orgID, groupID, testSeconds, "test.org")
 	if err != nil {
 		t.Fatalf("got error setting ns records: %s\n", err)

@@ -11,6 +11,7 @@ import (
 func DefaultLogger(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) context.Context {
 	l := log.With().
 		Int("OrgID", userContext.GetOrgID()).
+		Str("OrgCID", userContext.GetOrgCID()).
 		Int("UserID", userContext.GetUserID()).
 		Str("TraceID", userContext.GetTraceID()).
 		Str("IPAddress", address.IPAddress).

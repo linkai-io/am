@@ -75,11 +75,13 @@ func main() {
 	state := initializers.State(&appConfig)
 	dispatcherClient := initializers.DispatcherClient()
 	scanGroupClient := initializers.SGClient()
+	orgClient := initializers.OrgClient()
 
-	service := coordinator.New(state, dispatcherClient, scanGroupClient, systemOrgID, systemUserID)
+	service := coordinator.New(state, dispatcherClient, orgClient, scanGroupClient, systemOrgID, systemUserID)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}

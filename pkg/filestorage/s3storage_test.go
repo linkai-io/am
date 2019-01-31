@@ -12,7 +12,7 @@ import (
 
 func TestS3Storage(t *testing.T) {
 
-	env := "local"
+	env := "dev"
 	region := "us-east-1"
 
 	s := filestorage.NewS3Storage(env, region)

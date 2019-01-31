@@ -21,6 +21,7 @@ type S3Storage struct {
 	region     string
 	env        string
 	session    *session.Session
+	s3session  *s3.S3
 	bucketPath string
 }
 
@@ -34,6 +35,7 @@ func (s *S3Storage) Init() error {
 	if err != nil {
 		return err
 	}
+	s.s3session = s3.New(s.session)
 	return err
 }
 
@@ -48,16 +50,18 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 		return "", "", errors.New("empty org cid")
 	}
 
-	bucket := userContext.GetOrgCID() + "-linkai"
+	fileName = userContext.GetOrgCID() + "/" + fileName
+	
+	bucket := s.env + "-linkai-webdata"
+
 	headObjectInput := &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
 	}
-	s3session := s3.New(s.session)
 
-	out, err := s3session.HeadObjectWithContext(ctx, headObjectInput)
+	out, err := s.s3session.HeadObjectWithContext(ctx, headObjectInput)
 	if err != nil {
-		return hashName, bucket + fileName, s.uploadWithRetry(ctx, s3session, bucket, fileName, data)
+		return hashName, bucket + fileName, s.uploadWithRetry(ctx, bucket, fileName, data)
 	}
 
 	// already exists don't bother uploading again
@@ -67,7 +71,7 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 	return "", "", nil
 }
 
-func (s *S3Storage) uploadWithRetry(ctx context.Context, s3session *s3.S3, bucket, fileName string, data []byte) error {
+func (s *S3Storage) uploadWithRetry(ctx context.Context, bucket, fileName string, data []byte) error {
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
@@ -75,7 +79,7 @@ func (s *S3Storage) uploadWithRetry(ctx context.Context, s3session *s3.S3, bucke
 	}
 
 	retryErr := retrier.RetryAttempts(func() error {
-		_, err := s3session.PutObjectWithContext(ctx, input)
+		_, err := s.s3session.PutObjectWithContext(ctx, input)
 
 		if err == nil {
 			return nil

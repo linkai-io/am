@@ -20,6 +20,7 @@ import (
 	"github.com/linkai-io/am/clients/coordinator"
 	"github.com/linkai-io/am/clients/dispatcher"
 	"github.com/linkai-io/am/clients/module"
+	"github.com/linkai-io/am/clients/organization"
 	"github.com/linkai-io/am/clients/scangroup"
 	"github.com/linkai-io/am/clients/webdata"
 	"github.com/linkai-io/am/pkg/retrier"
@@ -131,6 +132,7 @@ func State(appConfig *AppConfig) *redis.State {
 	return redisState
 }
 
+// DispatcherClient connects to the dispatcher service
 func DispatcherClient() am.DispatcherService {
 	dispatcherClient := dispatcher.New()
 
@@ -144,7 +146,7 @@ func DispatcherClient() am.DispatcherService {
 	return dispatcherClient
 }
 
-// SGClient connects to the scangroup service via load balancer
+// SGClient connects to the scangroup service
 func SGClient() am.ScanGroupService {
 	scanGroupClient := scangroup.New()
 
@@ -158,7 +160,21 @@ func SGClient() am.ScanGroupService {
 	return scanGroupClient
 }
 
-// AddrClient connects to the address service via load balancer
+// OrgClient connects to the organization service
+func OrgClient() am.OrganizationService {
+	orgClient := organization.New()
+
+	err := retrier.RetryUntil(func() error {
+		return orgClient.Init(nil)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to organization server")
+	}
+	return orgClient
+}
+
+// AddrClient connects to the address service
 func AddrClient() am.AddressService {
 	addrClient := address.New()
 
@@ -172,7 +188,7 @@ func AddrClient() am.AddressService {
 	return addrClient
 }
 
-// CoordClient connects to the coordinator service via the load balancer
+// CoordClient connects to the coordinator service
 func CoordClient() am.CoordinatorService {
 	coordClient := coordinator.New()
 
@@ -186,7 +202,7 @@ func CoordClient() am.CoordinatorService {
 	return coordClient
 }
 
-// WebDataClient connects to the webdata service via load balancer
+// WebDataClient connects to the webdata service
 func WebDataClient() am.WebDataService {
 	webDataClient := webdata.New()
 
@@ -200,7 +216,7 @@ func WebDataClient() am.WebDataService {
 	return webDataClient
 }
 
-// BigDataClient connects to the bigdata service via load balancer
+// BigDataClient connects to the bigdata service
 func BigDataClient() am.BigDataService {
 	bigDataClient := bdc.New()
 
@@ -260,7 +276,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 	return nil
 }
 
-// Modules initializes all moduels and connects to them via load balancer address.
+// Modules initializes all moduels and connects to them
 func Modules(state *redis.State) map[am.ModuleType]am.ModuleService {
 	modules := make(map[am.ModuleType]am.ModuleService)
 	modules[am.NSModule] = Module(state, am.NSModule)

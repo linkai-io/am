@@ -625,7 +625,7 @@ func (s *State) do(ctx context.Context, orgID, scanGroupID int, expireSeconds in
 	}
 	defer s.rc.Return(conn)
 
-	ret, err := redis.String(conn.Do("SET", key, time.Now().UnixNano(), "NX", "PX", expireSeconds))
+	ret, err := redis.String(conn.Do("SET", key, time.Now().UnixNano(), "NX", "EX", expireSeconds))
 	if err != nil {
 		// redis will return ErrNil if value is already set.
 		if err == redis.ErrNil {

@@ -23,6 +23,10 @@ var (
 		raw_body_link,
 		is_deleted`
 
+	// for adding additional context to responses
+	referencedResponseColumns = `(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
+	(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address`
+
 	certificateColumns = `certificate_id,
 		organization_id,
 		scan_group_id,
@@ -52,6 +56,10 @@ var (
 		serialized_dom_link,
 		snapshot_link,
 		is_deleted`
+
+	// for adding additional context to snap shots
+	referencedSnapshotColumns = `(select host_address from am.scan_group_addresses as sga where sga.address_id=ws.address_id) as address_id_host_address,
+	(select ip_address from am.scan_group_addresses as sga where sga.address_id=ws.address_id) as address_id_ip_address`
 )
 
 var queryMap = map[string]string{
@@ -60,22 +68,22 @@ var queryMap = map[string]string{
 		on conflict (organization_id, scan_group_id, serialized_dom_hash) do update set
 			response_timestamp=EXCLUDED.response_timestamp`,
 
-	"responsesSinceResponseTime": fmt.Sprintf(`select %s from am.web_responses as wb 
+	"responsesSinceResponseTime": fmt.Sprintf(`select %s,%s from am.web_responses as wb 
 		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
 		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
 			where organization_id=$1 and
 			scan_group_id=$2 and 
 			response_timestamp > $3 and 
 			is_deleted = false and
-			response_id > $4 order by response_id limit $5`, responseColumns),
+			response_id > $4 order by response_id limit $5`, responseColumns, referencedResponseColumns),
 
-	"responsesAll": fmt.Sprintf(`select %s from am.web_responses as wb 
+	"responsesAll": fmt.Sprintf(`select %s,%s from am.web_responses as wb 
 		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
 		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
 			where organization_id=$1 and
 			scan_group_id=$2 and 
 			is_deleted = false and
-			response_id > $3 order by response_id limit $4`, responseColumns),
+			response_id > $3 order by response_id limit $4`, responseColumns, referencedResponseColumns),
 
 	"certificatesSinceResponseTime": fmt.Sprintf(`select %s from am.web_certificates as wb 
 		where organization_id=$1 and
@@ -90,18 +98,18 @@ var queryMap = map[string]string{
 		is_deleted = false and
 		certificate_id > $3 order by certificate_id limit $4`, certificateColumns),
 
-	"snapshotsSinceResponseTime": fmt.Sprintf(`select %s from am.web_snapshots as ws 
+	"snapshotsSinceResponseTime": fmt.Sprintf(`select %s,%s from am.web_snapshots as ws 
 		where organization_id=$1 and
 		scan_group_id=$2 and 
 		response_timestamp > $3 and 
 		is_deleted = false and
-		snapshot_id > $4 order by snapshot_id limit $5`, snapshotColumns),
+		snapshot_id > $4 order by snapshot_id limit $5`, snapshotColumns, referencedSnapshotColumns),
 
-	"snapshotsAll": fmt.Sprintf(`select %s from am.web_snapshots as wc 
+	"snapshotsAll": fmt.Sprintf(`select %s,%s from am.web_snapshots as ws 
 		where organization_id=$1 and
 		scan_group_id=$2 and 
 		is_deleted = false and
-		snapshot_id > $3 order by snapshot_id limit $4`, snapshotColumns),
+		snapshot_id > $3 order by snapshot_id limit $4`, snapshotColumns, referencedSnapshotColumns),
 }
 
 var (

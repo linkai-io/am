@@ -122,7 +122,7 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 
 		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
 			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort, &requestedPort,
-			&url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted); err != nil {
+			&url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted, &r.AddressIDHostAddress, &r.AddressIDIPAddress); err != nil {
 
 			return 0, nil, err
 		}
@@ -226,7 +226,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	for i := 0; rows.Next(); i++ {
 		w := &am.WebSnapshot{}
 		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressID, &w.ResponseTimestamp,
-			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted); err != nil {
+			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted, &w.AddressIDHostAddress, &w.AddressIDIPAddress); err != nil {
 
 			return 0, nil, err
 		}

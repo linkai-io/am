@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"regexp"
@@ -185,9 +186,14 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 		return nil, ErrEmptyWebData
 	}
 
-	_, link, err = w.storage.Write(ctx, userContext, address, []byte(webData.Snapshot))
-	if err != nil {
-		log.Ctx(ctx).Warn().Err(err).Msg("failed to write snapshot data to storage")
+	snapshotData, err := base64.StdEncoding.DecodeString(webData.Snapshot)
+	if err == nil {
+		_, link, err = w.storage.Write(ctx, userContext, address, snapshotData)
+		if err != nil {
+			log.Ctx(ctx).Warn().Err(err).Msg("failed to write snapshot data to storage")
+		}
+	} else {
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to decode snapshot data")
 	}
 	webData.SnapshotLink = link
 

@@ -359,6 +359,14 @@ func CreateUserContext(orgID, userID int) *mock.UserContext {
 		return userID
 	}
 
+	userContext.GetOrgCIDFn = func() string {
+		return "someorgcid"
+	}
+
+	userContext.GetUserCIDFn = func() string {
+		return "someusercid"
+	}
+
 	return userContext
 }
 

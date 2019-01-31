@@ -137,6 +137,14 @@ func TestGetSnapshots(t *testing.T) {
 	if len(snapshots) != 1 {
 		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
 	}
+
+	if snapshots[0].AddressIDHostAddress != "example.com" {
+		t.Fatalf("expected address id host address to be set")
+	}
+
+	if snapshots[0].AddressIDIPAddress != "93.184.216.34" {
+		t.Fatalf("expected address id ip address to be set")
+	}
 }
 
 func TestGetCertificates(t *testing.T) {
@@ -200,13 +208,21 @@ func TestGetResponses(t *testing.T) {
 		Limit:             1000,
 	}
 
-	_, certs, err := service.GetResponses(ctx, org.UserContext, filter)
+	_, responses, err := service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting responses: %#v\n", err)
 	}
 
-	if len(certs) != 1 {
-		t.Fatalf("expected 1 response got: %d\n", len(certs))
+	if len(responses) != 1 {
+		t.Fatalf("expected 1 response got: %d\n", len(responses))
+	}
+
+	if responses[0].AddressIDHostAddress != "example.com" {
+		t.Fatalf("expected address id host address to be set")
+	}
+
+	if responses[0].AddressIDIPAddress != "93.184.216.34" {
+		t.Fatalf("expected address id ip address to be set")
 	}
 }
 

@@ -59,7 +59,7 @@ backend: orgservice userservice scangroupservice addressservice coordinatorservi
 pushbackend: 
 	$(foreach var,$(BACKEND_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
-pushecr:
+pushallservices:
 	$(foreach var,$(ALL_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
 pushnsmoduleservice: nsmoduleservice
@@ -80,16 +80,25 @@ pushaddressservice: addressservice
 pushscangroupservice: scangroupservice 
 	docker tag scangroupservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest
 
+pushcoordinatorservice:
+	docker tag coordinatorservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/coordinatorservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/coordinatorservice:latest
+
+pushwebdataservice:
+	docker tag webdataservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest
+
 deploybackend: 
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
 deploymodules:
-	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
+	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
 
 deployscangroupservice: pushscangroupservice 
-	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service scangroupservice
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service scangroupservice
 
-push_webmoduleservice:
+deploywebdataservice:
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service webdataservice
+
+pushwebmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
 	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice
 	aws s3 cp deploy_files/webmodule.zip s3://linkai-infra/${APP_ENV}/webmodule/webmodule.zip

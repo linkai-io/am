@@ -14,28 +14,30 @@ const (
 
 // HTTPResponse represents a captured network response
 type HTTPResponse struct {
-	ResponseID        int64             `json:"response_id,omitempty"`
-	OrgID             int               `json:"organization_id,omitempty"`
-	GroupID           int               `json:"group_id,omitempty"`
-	AddressID         int64             `json:"address_id,omitempty"`
-	Scheme            string            `json:"scheme"`
-	HostAddress       string            `json:"host_address"`
-	IPAddress         string            `json:"ip_address"`
-	ResponsePort      string            `json:"response_port"`
-	RequestedPort     string            `json:"requested_port"`
-	RequestID         string            `json:"request_id,omitempty"` // only used internally by browser package
-	Status            int               `json:"status"`
-	StatusText        string            `json:"status_text"`
-	URL               string            `json:"url"`
-	Headers           map[string]string `json:"headers"`
-	MimeType          string            `json:"mime_type"`
-	RawBody           string            `json:"raw_body,omitempty"` // only used internally by browser package
-	RawBodyLink       string            `json:"raw_body_link"`
-	RawBodyHash       string            `json:"raw_body_hash"`
-	ResponseTimestamp int64             `json:"response_timestamp"`
-	IsDocument        bool              `json:"is_document"`
-	WebCertificate    *WebCertificate   `json:"web_certificate,omitempty"`
-	IsDeleted         bool              `json:"is_deleted"`
+	ResponseID           int64             `json:"response_id,omitempty"`
+	OrgID                int               `json:"organization_id,omitempty"`
+	GroupID              int               `json:"group_id,omitempty"`
+	AddressID            int64             `json:"address_id,omitempty"`
+	AddressIDHostAddress string            `json:"address_id_host_address,omitempty"` // used for returning data to user
+	AddressIDIPAddress   string            `json:"address_id_ip_address,omitempty"`   // used for returning data to user
+	Scheme               string            `json:"scheme"`
+	HostAddress          string            `json:"host_address"`
+	IPAddress            string            `json:"ip_address"`
+	ResponsePort         string            `json:"response_port"`
+	RequestedPort        string            `json:"requested_port"`
+	RequestID            string            `json:"request_id,omitempty"` // only used internally by browser package
+	Status               int               `json:"status"`
+	StatusText           string            `json:"status_text"`
+	URL                  string            `json:"url"`
+	Headers              map[string]string `json:"headers"`
+	MimeType             string            `json:"mime_type"`
+	RawBody              string            `json:"raw_body,omitempty"` // only used internally by browser package
+	RawBodyLink          string            `json:"raw_body_link"`
+	RawBodyHash          string            `json:"raw_body_hash"`
+	ResponseTimestamp    int64             `json:"response_timestamp"`
+	IsDocument           bool              `json:"is_document"`
+	WebCertificate       *WebCertificate   `json:"web_certificate,omitempty"`
+	IsDeleted            bool              `json:"is_deleted"`
 }
 
 // WebCertificate contains extracted certificate data from an HTTPResponse
@@ -70,20 +72,22 @@ type WebData struct {
 	SerializedDOM     string            `json:"serialized_dom,omitempty"` // only used internally by browser package
 	SerializedDOMHash string            `json:"serialized_dom_hash"`
 	SerializedDOMLink string            `json:"serialized_dom_link"`
-	ResponseTimestamp int64             `json:"response_timeestamp"`
+	ResponseTimestamp int64             `json:"response_timestamp"`
 }
 
 // WebSnapshot for returning serialized dom and image snapshot links
 type WebSnapshot struct {
-	SnapshotID        int64  `json:"snapshot_id,omitempty"`
-	OrgID             int    `json:"org_id,omitempty"`
-	GroupID           int    `json:"group_id,omitempty"`
-	AddressID         int64  `json:"address_id,omitempty"`
-	SnapshotLink      string `json:"snapshot_link"`
-	SerializedDOMHash string `json:"serialized_dom_hash"`
-	SerializedDOMLink string `json:"serialized_dom_link"`
-	ResponseTimestamp int64  `json:"response_timeestamp"`
-	IsDeleted         bool   `json:"is_deleted"`
+	SnapshotID           int64  `json:"snapshot_id,omitempty"`
+	OrgID                int    `json:"org_id,omitempty"`
+	GroupID              int    `json:"group_id,omitempty"`
+	AddressID            int64  `json:"address_id,omitempty"`
+	AddressIDHostAddress string `json:"address_id_host_address,omitempty"` // used for returning data to user
+	AddressIDIPAddress   string `json:"address_id_ip_address,omitempty"`   // used for returning data to user
+	SnapshotLink         string `json:"snapshot_link"`
+	SerializedDOMHash    string `json:"serialized_dom_hash"`
+	SerializedDOMLink    string `json:"serialized_dom_link"`
+	ResponseTimestamp    int64  `json:"response_timestamp"`
+	IsDeleted            bool   `json:"is_deleted"`
 }
 
 type WebSnapshotFilter struct {

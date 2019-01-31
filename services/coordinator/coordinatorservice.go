@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -26,6 +27,10 @@ type Service struct {
 	loadBalancerAddr string
 	state            state.Stater
 	scanGroupClient  am.ScanGroupService
+	orgClient        am.OrganizationService
+
+	orgLock  sync.RWMutex
+	orgCache map[int]string
 
 	connected        int32
 	dispatcherClient am.DispatcherService
@@ -34,9 +39,11 @@ type Service struct {
 }
 
 // New returns
-func New(state state.Stater, dispatcherClient am.DispatcherService, scanGroupClient am.ScanGroupService, systemOrgID, systemUserID int) *Service {
+func New(state state.Stater, dispatcherClient am.DispatcherService, orgClient am.OrganizationService, scanGroupClient am.ScanGroupService, systemOrgID, systemUserID int) *Service {
 	return &Service{
 		state:            state,
+		orgClient:        orgClient,
+		orgCache:         make(map[int]string, 0),
 		scanGroupClient:  scanGroupClient,
 		dispatcherClient: dispatcherClient,
 		systemOrgID:      systemOrgID,
@@ -65,18 +72,40 @@ func (s *Service) poller() {
 	}
 }
 
+func (s *Service) getOrgCID(ctx context.Context, systemContext am.UserContext, orgID int) (string, error) {
+	s.orgLock.Lock()
+	defer s.orgLock.Unlock()
+	if orgCID, ok := s.orgCache[orgID]; ok {
+		return orgCID, nil
+	}
+
+	_, org, err := s.orgClient.GetByID(ctx, systemContext, orgID)
+	if err != nil {
+		return "", err
+	}
+
+	s.orgCache[orgID] = org.OrgCID
+	return org.OrgCID, nil
+}
+
 func (s *Service) startGroups() {
 	ctx := context.Background()
-	userContext := &am.UserContextData{OrgID: s.systemOrgID, UserID: s.systemUserID, TraceID: createID()}
+	systemContext := &am.UserContextData{OrgID: s.systemOrgID, UserID: s.systemUserID, TraceID: createID()}
 
-	groups, err := s.scanGroupClient.AllGroups(ctx, userContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: false})
+	groups, err := s.scanGroupClient.AllGroups(ctx, systemContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: false})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get groups")
 		return
 	}
 
 	for _, group := range groups {
-		proxyUserContext := &am.UserContextData{OrgID: group.OrgID, UserID: group.CreatedByID, TraceID: createID()}
+		orgCID, err := s.getOrgCID(ctx, systemContext, group.OrgID)
+		if err != nil {
+			log.Error().Err(err).Int("OrgID", group.OrgID).Msg("failed to get org cid for org id")
+			continue
+		}
+
+		proxyUserContext := &am.UserContextData{OrgID: group.OrgID, OrgCID: orgCID, UserID: group.CreatedByID, TraceID: createID()}
 		log.Info().Int("GroupID", group.GroupID).Msg("starting group")
 		if err := s.StartGroup(ctx, proxyUserContext, group.GroupID); err != nil {
 			if err != ErrScanGroupAlreadyStarted {
