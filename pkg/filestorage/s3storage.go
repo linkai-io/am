@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"log"
 
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/pkg/retrier"
 
@@ -51,7 +51,7 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 	}
 
 	fileName = userContext.GetOrgCID() + "/" + fileName
-	
+
 	bucket := s.env + "-linkai-webdata"
 
 	headObjectInput := &s3.HeadObjectInput{
@@ -61,12 +61,12 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 
 	out, err := s.s3session.HeadObjectWithContext(ctx, headObjectInput)
 	if err != nil {
-		return hashName, bucket + fileName, s.uploadWithRetry(ctx, bucket, fileName, data)
+		return hashName, fileName, s.uploadWithRetry(ctx, bucket, fileName, data)
 	}
 
 	// already exists don't bother uploading again
 	if out != nil {
-		return hashName, bucket + fileName, nil
+		return hashName, fileName, nil
 	}
 	return "", "", nil
 }
@@ -85,7 +85,7 @@ func (s *S3Storage) uploadWithRetry(ctx context.Context, bucket, fileName string
 			return nil
 		}
 		if awsErr, ok := err.(awserr.Error); ok {
-			log.Printf("%#v , %s\n", awsErr, awsErr.Message())
+			log.Error().Err(awsErr).Str("bucket", bucket).Str("key", fileName).Msg("failed to put object")
 		}
 		return err
 	}, 5)
