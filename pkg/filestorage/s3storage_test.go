@@ -14,6 +14,8 @@ func TestS3Storage(t *testing.T) {
 
 	env := "dev"
 	region := "us-east-1"
+	expectedHash := "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+	expectedLink := "test-webdata-am/a/a/f/4/c/aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
 	s := filestorage.NewS3Storage(env, region)
 	if err := s.Init(); err != nil {
@@ -50,4 +52,11 @@ func TestS3Storage(t *testing.T) {
 		t.Fatalf("error writing file to s3: %#v\n", err)
 	}
 	t.Logf("link: %v, hash: %v\n", link, hash)
+	if hash != expectedHash {
+		t.Fatalf("expected %v got %v\n", expectedHash, hash)
+	}
+
+	if link != expectedLink {
+		t.Fatalf("expected %v got %v\n", expectedLink, link)
+	}
 }

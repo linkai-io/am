@@ -50,7 +50,7 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 		return "", "", errors.New("empty org cid")
 	}
 
-	fileName = userContext.GetOrgCID() + "/" + fileName
+	fileName = userContext.GetOrgCID() + fileName
 
 	bucket := s.env + "-linkai-webdata"
 
