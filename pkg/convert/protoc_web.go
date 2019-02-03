@@ -223,6 +223,7 @@ func DomainToWebSnapshot(in *am.WebSnapshot) *prototypes.WebSnapshot {
 		SnapshotID:           in.SnapshotID,
 		SnapshotLink:         in.SnapshotLink,
 		SerializedDOMLink:    in.SerializedDOMLink,
+		SerializedDOMHash:    in.SerializedDOMHash,
 		ResponseTimestamp:    in.ResponseTimestamp,
 		IsDeleted:            in.IsDeleted,
 	}

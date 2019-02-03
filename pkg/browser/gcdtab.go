@@ -321,8 +321,15 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 		scheme = "http"
 	} else {
 		host = u.Host
-		responsePort = u.Port()
 		scheme = u.Scheme
+		responsePort = u.Port()
+		if responsePort == "" {
+			if u.Scheme == "http" {
+				responsePort = "80"
+			} else if u.Scheme == "https" {
+				responsePort = "443"
+			}
+		}
 	}
 
 	response := &am.HTTPResponse{
