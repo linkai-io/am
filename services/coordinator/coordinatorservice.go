@@ -92,7 +92,7 @@ func (s *Service) startGroups() {
 	ctx := context.Background()
 	systemContext := &am.UserContextData{OrgID: s.systemOrgID, UserID: s.systemUserID, TraceID: createID()}
 
-	groups, err := s.scanGroupClient.AllGroups(ctx, systemContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: false})
+	groups, err := s.scanGroupClient.AllGroups(ctx, systemContext, &am.ScanGroupFilter{})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get groups")
 		return
@@ -115,6 +115,27 @@ func (s *Service) startGroups() {
 	}
 }
 
+// shouldUpdateGroup checks if the group should be updated (modified time check) even if it is running
+func (s *Service) shouldUpdateGroup(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
+	wantModules := true
+	cachedGroup, err := s.state.GetGroup(ctx, userContext.GetOrgID(), group.GroupID, wantModules)
+	if err != nil {
+		return errors.Wrap(err, "failed to get cached group")
+	}
+
+	if cachedGroup.ModifiedTime < group.ModifiedTime {
+		if err := s.state.Delete(ctx, userContext, group); err != nil {
+			return errors.Wrap(err, "failed to delete group")
+		}
+
+		// update/create configuration
+		if err := s.state.Put(ctx, userContext, group); err != nil {
+			return errors.Wrap(err, "failed to update/put group")
+		}
+	}
+	return nil
+}
+
 // StartGroup initializes state system if they do not exist, or updates with scan group details
 func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	groupLog := log.With().
@@ -129,14 +150,15 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return errors.Wrap(err, "failed to get group status")
 	}
 
-	if status == am.GroupStarted {
-		return ErrScanGroupAlreadyStarted
-	}
-
 	groupLog.Info().Msg("Getting group via scangroupclient")
 	oid, group, err := s.scanGroupClient.Get(ctx, userContext, scanGroupID)
 	if err != nil {
 		return errors.Wrap(err, "err with scan group client")
+	}
+
+	if status == am.GroupStarted || group.Paused || group.Deleted {
+		s.shouldUpdateGroup(ctx, userContext, group)
+		return ErrScanGroupAlreadyStarted
 	}
 
 	groupLog.Info().Msg("Got scan group from client")
@@ -157,22 +179,9 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		}
 	}
 
-	wantModules := true
-	groupLog.Info().Msg("Getting scangroup from state")
-	cachedGroup, err := s.state.GetGroup(ctx, userContext.GetOrgID(), scanGroupID, wantModules)
-	if err != nil {
-		return errors.Wrap(err, "failed to get cached group")
-	}
-
-	if cachedGroup.ModifiedTime < group.ModifiedTime {
-		if err := s.state.Delete(ctx, userContext, group); err != nil {
-			return errors.Wrap(err, "failed to delete group")
-		}
-
-		// update/create configuration
-		if err := s.state.Put(ctx, userContext, group); err != nil {
-			return errors.Wrap(err, "failed to update/put group")
-		}
+	if err := s.shouldUpdateGroup(ctx, userContext, group); err != nil {
+		groupLog.Error().Err(err).Msg("failed during shouldUpdateGroup check")
+		return errors.Wrap(err, "failed to start group")
 	}
 
 	groupLog.Info().Msg("Setting Start in state for scangroup")
@@ -192,6 +201,72 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	return err
+}
+
+// StopGroup checks the group status in our state system. If it's already stopped, we are done. Otherwise,
+// it extracts group from scangroup client to create a proxyUserContext. Then call stopGroup to delete the
+// old config from state, and replace it with the new, paused state after calling sgClient.Pause.
+func (s *Service) StopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (string, error) {
+	if userContext.GetOrgID() != s.systemOrgID && userContext.GetUserID() != s.systemUserID {
+		return "", am.ErrUserNotAuthorized
+	}
+
+	exists, status, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get group status")
+	}
+
+	if status == am.GroupStopped {
+		return "group already stopped", nil
+	}
+
+	groups, err := s.scanGroupClient.AllGroups(ctx, userContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: true})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get groups")
+		return "", err
+	}
+
+	proxyUserContext := &am.UserContextData{}
+	for _, group := range groups {
+		if group.GroupID != scanGroupID {
+			continue
+		}
+
+		orgCID, err := s.getOrgCID(ctx, userContext, group.OrgID)
+		if err != nil {
+			log.Error().Err(err).Int("OrgID", group.OrgID).Msg("failed to get org cid for org id")
+			continue
+		}
+
+		proxyUserContext = &am.UserContextData{OrgID: group.OrgID, OrgCID: orgCID, UserID: group.CreatedByID, TraceID: createID()}
+		return s.stopGroup(ctx, proxyUserContext, exists, group)
+	}
+	return "group not found", nil
+}
+
+// stopGroup pauses the scan group, gets the updated group data and then deletes the old group from state, replacing it
+// with the updated, stopped group
+func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, exists bool, group *am.ScanGroup) (string, error) {
+	log.Info().Msg("Pausing scangroup")
+	if _, _, err := s.scanGroupClient.Pause(ctx, userContext, group.GroupID); err != nil {
+		return "", errors.Wrap(err, "err with scan group client")
+	}
+
+	log.Info().Msg("Getting group via scangroupclient")
+	_, pausedGroup, err := s.scanGroupClient.Get(ctx, userContext, group.GroupID)
+	if err != nil {
+		return "", errors.Wrap(err, "err with scan group client")
+	}
+
+	if err := s.state.Delete(ctx, userContext, pausedGroup); err != nil {
+		return "", errors.Wrap(err, "failed to delete group")
+	}
+
+	// update/create configuration
+	if err := s.state.Put(ctx, userContext, pausedGroup); err != nil {
+		return "", errors.Wrap(err, "failed to update/put group")
+	}
+	return "", nil
 }
 
 func createID() string {

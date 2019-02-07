@@ -13,7 +13,147 @@ import (
 	"github.com/linkai-io/am/pkg/dnsclient"
 )
 
+func TestBigDataSubdomainsFirstRun(t *testing.T) {
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
+	st := amtest.MockBigDataState()
+	bds := &mock.BigDataService{}
+	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+		return time.Now(), nil, nil
+	}
+
+	bds.AddCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+		t.Logf("adding records")
+		return nil
+	}
+
+	bq := &mock.BigQuerier{}
+	bq.QuerySubdomainsFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error) {
+		res := make(map[string]*am.CTSubdomain, 1)
+		res["dev.console.linkai.io"] = &am.CTSubdomain{ETLD: etld, Subdomain: "dev.console.linkai.io"}
+		return res, nil
+	}
+
+	bd := New(dc, st, bds, bq)
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(1, 1)
+	address := testBuildAddress("1.1.1.1", "blah.linkai.io")
+
+	_, newAddrs, err := bd.Analyze(ctx, userContext, address)
+	if err != nil {
+		t.Fatalf("failed to analyze using big data: %#v\n", err)
+	}
+
+	if bq.QuerySubdomainsInvoked == false {
+		t.Fatal("query etld should have been invoked")
+	}
+
+	if len(newAddrs) == 0 {
+		t.Fatalf("failed to find at least 1 new addresses in big data, got %d\n", len(newAddrs))
+	}
+
+}
+
+func TestBigDataSubdomainsAppendNewResults(t *testing.T) {
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
+	st := amtest.MockBigDataState()
+	bds := &mock.BigDataService{}
+	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+		res := make(map[string]*am.CTSubdomain, 1)
+		res["dev.console.linkai.io"] = &am.CTSubdomain{ETLD: etld, Subdomain: "dev.console.linkai.io"}
+		return time.Now().Add(time.Hour * -5), res, nil
+	}
+
+	bds.AddCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+		t.Logf("adding records")
+		return nil
+	}
+
+	bq := &mock.BigQuerier{}
+	bq.QuerySubdomainsFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error) {
+		res := make(map[string]*am.CTSubdomain, 1)
+		res["prod.console.linkai.io"] = &am.CTSubdomain{ETLD: etld, Subdomain: "prod.console.linkai.io"}
+		return res, nil
+	}
+
+	bd := New(dc, st, bds, bq)
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(1, 1)
+	address := testBuildAddress("1.1.1.1", "blah.linkai.io")
+
+	_, newAddrs, err := bd.Analyze(ctx, userContext, address)
+	if err != nil {
+		t.Fatalf("failed to analyze using big data: %#v\n", err)
+	}
+
+	if bq.QuerySubdomainsInvoked == false {
+		t.Fatal("query etld should have been invoked")
+	}
+
+	if len(newAddrs) == 0 {
+		t.Fatalf("failed to find at least 1 new addresses in big data, got %d\n", len(newAddrs))
+	}
+
+}
+
+func TestBigDataSubdomainsRerun(t *testing.T) {
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
+	st := amtest.MockBigDataState()
+	bds := &mock.BigDataService{}
+	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+		return time.Now(), nil, nil
+	}
+
+	bds.AddCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+		t.Logf("adding records")
+		return nil
+	}
+
+	bq := &mock.BigQuerier{}
+	bq.QuerySubdomainsFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error) {
+		res := make(map[string]*am.CTSubdomain, 1)
+		res["dev.console.linkai.io"] = &am.CTSubdomain{ETLD: etld, Subdomain: "dev.console.linkai.io"}
+		return res, nil
+	}
+
+	bd := New(dc, st, bds, bq)
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(1, 1)
+	address := testBuildAddress("1.1.1.1", "blah.linkai.io")
+
+	_, newAddrs, err := bd.Analyze(ctx, userContext, address)
+	if err != nil {
+		t.Fatalf("failed to analyze using big data: %#v\n", err)
+	}
+
+	if bq.QuerySubdomainsInvoked == false {
+		t.Fatal("query etld should have been invoked")
+	}
+
+	if len(newAddrs) == 0 {
+		t.Fatalf("failed to find at least 1 new addresses in big data, got %d\n", len(newAddrs))
+	}
+
+	// reset and re-run analysis
+	bq.QuerySubdomainsInvoked = false
+	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+		res := make(map[string]*am.CTSubdomain, 1)
+		res["dev.console.linkai.io"] = &am.CTSubdomain{ETLD: etld, Subdomain: "dev.console.linkai.io"}
+		return time.Now(), res, nil
+	}
+
+	_, newAddrs, err = bd.Analyze(ctx, userContext, address)
+	if err != nil {
+		t.Fatalf("failed to analyze using big data: %#v\n", err)
+	}
+
+	if bq.QuerySubdomainsInvoked == true {
+		t.Fatalf("re-run should not have invoked query subdomains")
+	}
+}
+
 func TestBigDataFirstRun(t *testing.T) {
+	// re-enable once we have money
+	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
 	bds := &mock.BigDataService{}
@@ -50,6 +190,8 @@ func TestBigDataFirstRun(t *testing.T) {
 }
 
 func TestBigDataRerun(t *testing.T) {
+	// re-enable once we have money
+	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
 	bds := &mock.BigDataService{}
@@ -84,6 +226,8 @@ func TestBigDataRerun(t *testing.T) {
 }
 
 func TestBigDataNoNewRecords(t *testing.T) {
+	// re-enable once we have money
+	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
 	bds := &mock.BigDataService{}
@@ -122,6 +266,8 @@ func TestBigDataNoNewRecords(t *testing.T) {
 }
 
 func TestBigDataCacheTime(t *testing.T) {
+	// re-enable once we have money
+	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
 	bds := &mock.BigDataService{}
@@ -160,6 +306,8 @@ func TestBigDataCacheTime(t *testing.T) {
 }
 
 func TestBigDataDoCTTime(t *testing.T) {
+	// re-enable once we have money
+	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
 	bds := &mock.BigDataService{}

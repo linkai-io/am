@@ -61,11 +61,34 @@ func (b *BigData) Init(config []byte) error {
 	return nil
 }
 
+// shouldAnalyze determines if we should analyze the specific address or not.
+func (b *BigData) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
+	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
+		return false
+	}
+
+	switch uint16(address.NSRecord) {
+	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
+		return false
+	}
+
+	if address.UserConfidenceScore > 75 {
+		return true
+	}
+
+	if address.ConfidenceScore < 75 {
+		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
+		return false
+	}
+
+	return true
+}
+
 // Analyze will attempt to find additional domains by looking in various public data sets we've collected. We only
 // do this for ETLDs.
 func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	nsCfg := module.DefaultNSConfig()
-	module.DefaultLogger(ctx, userContext, address)
+	ctx = module.DefaultLogger(ctx, userContext, address)
 
 	bigDataRecords := make(map[string]*am.ScanGroupAddress, 0)
 
@@ -85,8 +108,7 @@ func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, addre
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to get etld, not running bigdata tests")
 		return address, bigDataRecords, nil
 	}
-
-	records, err := b.doCTAnalysis(ctx, userContext, nsCfg, address, etld)
+	records, err := b.doCTSubdomainAnalysis(ctx, userContext, nsCfg, address, etld)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to do certificate transparency analysis")
 	}
@@ -97,6 +119,106 @@ func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, addre
 	return address, bigDataRecords, nil
 }
 
+func (b *BigData) doCTSubdomainAnalysis(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, etld string) (map[string]*am.ScanGroupAddress, error) {
+	var queryTime time.Time
+	subdomains := make(map[string]*am.CTSubdomain, 0)
+	records := make(map[string]*am.ScanGroupAddress, 0)
+
+	shouldCT, err := b.st.DoCTDomain(ctx, address.OrgID, address.GroupID, oneHour, etld)
+	if err != nil {
+		return records, err
+	}
+
+	if !shouldCT {
+		log.Ctx(ctx).Info().Msg("not analyzing etld, as it is already complete")
+		return records, nil
+	}
+
+	retryErr := retrier.Retry(func() error {
+		queryTime, subdomains, err = b.bdClient.GetCTSubdomains(ctx, userContext, etld)
+		return err
+	})
+
+	// if we can't check the database reliably, we don't want to hammer bigquery (costs) so just fail closed here.
+	if retryErr != nil {
+		log.Ctx(ctx).Warn().Msg("unable to get CT records from database, returning")
+		return records, nil
+	}
+
+	// we've never looked up this etld before
+	if subdomains == nil || len(subdomains) == 0 {
+		log.Ctx(ctx).Info().Str("etld", etld).Msg("first time etld seen, searching big query")
+		queryTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, time.Local)
+	}
+
+	// check if we should add new CTSubDomains and update the ctRecords with new records found from bigquery
+	allRecords := b.addNewCTSubDomainRecords(ctx, userContext, subdomains, queryTime, etld)
+	newAddresses, err := b.processCTSubdomainRecords(ctx, nsCfg, address, allRecords, etld)
+	return newAddresses, err
+}
+
+// addNewCTSubDomainRecords queries bigquery for subdomains for the etld. If the initial subdomains list was empty/nil
+// (because we didn't have any in the db) we set it to the records returned from bigquery. If we did have results,
+// we iterate over the new results from bigquery and put them into the subdomains map. Finally, if we had big query
+// results, we add the newly identified subdomains to the database via AddCTSubdomains.
+func (b *BigData) addNewCTSubDomainRecords(ctx context.Context, userContext am.UserContext, subdomains map[string]*am.CTSubdomain, queryTime time.Time, etld string) map[string]*am.CTSubdomain {
+	now := time.Now()
+	if now.Sub(queryTime) < defaultCacheTime {
+		log.Ctx(ctx).Info().TimeDiff("query_diff", queryTime, time.Now()).Msg("< cacheTime not querying bigquery")
+		return subdomains
+	}
+
+	bqRecords, err := b.bigQuerier.QuerySubdomains(ctx, queryTime, etld)
+	if err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to query big query")
+		return subdomains
+	}
+
+	if subdomains == nil {
+		// database results were empty so whatever we got from bigQuerier, is now our result set.
+		subdomains = bqRecords
+	} else {
+		// wasn't nil so we have records we should append to.
+		for subdomain := range bqRecords {
+			subdomains[subdomain] = &am.CTSubdomain{ETLD: etld, InsertedTime: now.UnixNano(), Subdomain: subdomain}
+		}
+	}
+
+	if len(bqRecords) == 0 {
+		log.Info().Msg("no new records found in bigquery")
+		return subdomains
+	}
+
+	// if we still have any left, we want to add new ones, and update the last query time.
+	if err := b.bdClient.AddCTSubdomains(ctx, userContext, etld, time.Now(), bqRecords); err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to add new ct records and update query time")
+	}
+
+	return subdomains
+}
+
+func (b *BigData) processCTSubdomainRecords(ctx context.Context, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, records map[string]*am.CTSubdomain, etld string) (map[string]*am.ScanGroupAddress, error) {
+	newAddresses := make(map[string]*am.ScanGroupAddress, 0)
+	newHosts := make(map[string]struct{})
+
+	for record := range records {
+		newHosts[record] = struct{}{}
+	}
+
+	log.Ctx(ctx).Info().Int("new_hosts", len(newHosts)).Msg("resolving with ResolveNewAddresses")
+	newAddresses = module.ResolveNewAddresses(ctx, b.dc, &module.ResolverData{
+		Address:           address,
+		RequestsPerSecond: int(nsCfg.RequestsPerSecond),
+		NewAddresses:      newHosts,
+		DiscoveryMethod:   am.DiscoveryBigDataCT,
+		Cache:             b.groupCache,
+	})
+	log.Ctx(ctx).Info().Int("new_addresses", len(newAddresses)).Msg("returning from ResolveNewAddresses")
+	return newAddresses, nil
+}
+
+// doCTAnalysis does FULL table scan analysis for bigquery
+// TODO: Enable this analysis module when making $$$
 func (b *BigData) doCTAnalysis(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, etld string) (map[string]*am.ScanGroupAddress, error) {
 	var queryTime time.Time
 	ctRecords := make(map[string]*am.CTRecord, 0)
@@ -202,30 +324,8 @@ func (b *BigData) processCTRecords(ctx context.Context, nsCfg *am.NSModuleConfig
 		RequestsPerSecond: int(nsCfg.RequestsPerSecond),
 		NewAddresses:      newHosts,
 		DiscoveryMethod:   am.DiscoveryBigDataCT,
+		Cache:             b.groupCache,
 	})
 	log.Ctx(ctx).Info().Int("new_addresses", len(newAddresses)).Msg("returning from ResolveNewAddresses")
 	return newAddresses, nil
-}
-
-// shouldAnalyze determines if we should analyze the specific address or not.
-func (b *BigData) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
-	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
-		return false
-	}
-
-	switch uint16(address.NSRecord) {
-	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
-		return false
-	}
-
-	if address.UserConfidenceScore > 75 {
-		return true
-	}
-
-	if address.ConfidenceScore < 75 {
-		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
-		return false
-	}
-
-	return true
 }

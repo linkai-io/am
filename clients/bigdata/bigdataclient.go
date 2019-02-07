@@ -111,3 +111,76 @@ func (c *Client) DeleteCT(ctx context.Context, userContext am.UserContext, etld 
 	}
 	return nil
 }
+
+func (c *Client) GetCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+	var resp *service.GetCTSubdomainsResponse
+	var err error
+	var emptyTS time.Time
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	in := &service.GetCTSubdomainsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		ETLD:        etld,
+	}
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetCTSubdomains(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get ct records from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return emptyTS, nil, err
+	}
+	return time.Unix(0, resp.Time), convert.CTSubdomainRecordsToDomain(resp.Records), nil
+}
+
+func (c *Client) AddCTSubdomains(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+	var err error
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	in := &service.AddCTSubdomainsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		ETLD:        etld,
+		QueryTime:   queryTime.UnixNano(),
+		Records:     convert.DomainToCTSubdomainRecords(subdomains),
+	}
+
+	err = retrier.RetryIfNot(func() error {
+		_, retryErr := c.client.AddCTSubdomains(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to add ct records from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) DeleteCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) error {
+	var err error
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	in := &service.DeleteCTSubdomainsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		ETLD:        etld,
+	}
+
+	err = retrier.RetryIfNot(func() error {
+		_, retryErr := c.client.DeleteCTSubdomains(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to delete ct records from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return err
+	}
+	return nil
+}

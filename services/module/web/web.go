@@ -127,6 +127,10 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	if group, err := w.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to find group id in cache, using default settings")
 	} else {
+		if group.Paused || group.Deleted {
+			log.Ctx(ctx).Info().Msg("not analyzing since group was paused/deleted")
+			return address, webRecords, nil
+		}
 		portCfg = group.ModuleConfigurations.PortModule
 		nsCfg = group.ModuleConfigurations.NSModule
 	}
@@ -211,6 +215,7 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 			RequestsPerSecond: int(nsCfg.RequestsPerSecond),
 			NewAddresses:      extractedHosts,
 			DiscoveryMethod:   am.DiscoveryWebCrawler,
+			Cache:             w.groupCache,
 		})
 
 		for k, v := range resolvedAddresses {

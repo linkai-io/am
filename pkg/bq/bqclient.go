@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
+
+	"google.golang.org/api/option"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/linkai-io/am/am"
@@ -13,6 +16,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// TODO: prior to enabling full queries, use commonname/like query instead of keying off etld.
 const query = `SELECT certhash, ARRAY_AGG(STRUCT(
 	time as time,
 	server as server,
@@ -32,10 +36,22 @@ const query = `SELECT certhash, ARRAY_AGG(STRUCT(
 	where Time >= @from and lower(etld)=@etld
 	GROUP BY certhash`
 
+var firstRunTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, time.Local)
+
+const subDomainQuery = `select commonname from %s.%s where Time >= @from and lower(commonname) like @commonname`
+
+// oddly, this saves money because if we specify Time, it scans the entire Time column for all rows
+const subDomainQueryFirstRun = `select commonname from %s.%s where lower(commonname) like @commonname`
+
 var (
 	// ErrConfigInvalid when missing required fields.
 	ErrConfigInvalid = errors.New("configuration was missing dataset name or table name")
 )
+
+// SubdomainResult is just so we can have bigquery struct tags.
+type SubdomainResult struct {
+	CommonName string `bigquery:"commonname"`
+}
 
 // Result of CT record
 type Result struct {
@@ -67,13 +83,16 @@ type ClientConfig struct {
 	ProjectID   string `json:"project_id"`
 	DatasetName string `json:"dataset_name"`
 	TableName   string `json:"table_name"`
+	Credentials string `json:"credentials"`
 }
 
 // Client for querying BigQuery
 type Client struct {
-	bqClient *bigquery.Client
-	config   *ClientConfig
-	query    string
+	bqClient               *bigquery.Client
+	config                 *ClientConfig
+	query                  string
+	subDomainQuery         string
+	subDomainQueryFirstRun string
 }
 
 // NewClient creates a new BigQuery client
@@ -86,13 +105,69 @@ func (c *Client) Init(config []byte) error {
 	if err := json.Unmarshal(config, c.config); err != nil {
 		return err
 	}
-	if c.config.DatasetName == "" || c.config.TableName == "" {
+	if c.config.DatasetName == "" || c.config.TableName == "" || c.config.Credentials == "" {
 		return ErrConfigInvalid
 	}
 
 	c.query = fmt.Sprintf(query, c.config.DatasetName, c.config.TableName)
+	c.subDomainQuery = fmt.Sprintf(subDomainQuery, c.config.DatasetName, c.config.TableName)
+	c.subDomainQueryFirstRun = fmt.Sprintf(subDomainQueryFirstRun, c.config.DatasetName, c.config.TableName)
 
 	return c.initBQClient()
+}
+
+// QuerySubdomains just extracts the common name from the ct log data table.
+func (c *Client) QuerySubdomains(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error) {
+	commonNames := make(map[string]*am.CTSubdomain, 0)
+	commonName := fmt.Sprintf("%%.%s", strings.ToLower(etld)) // add . so we only get subdomains
+
+	if etld == "" {
+		return commonNames, errors.New("empty etld passed to query subdomains")
+	}
+
+	var q *bigquery.Query
+	if from == firstRunTime {
+		q = c.bqClient.Query(c.subDomainQueryFirstRun)
+		q.Parameters = []bigquery.QueryParameter{
+			{Name: "commonname", Value: commonName},
+		}
+	} else {
+		q := c.bqClient.Query(c.subDomainQuery)
+		q.Parameters = []bigquery.QueryParameter{
+			{Name: "from", Value: from},
+			{Name: "commonname", Value: commonName},
+		}
+	}
+
+	it, err := q.Read(ctx)
+	if err != nil {
+		return commonNames, errors.Wrap(err, "failed to read from bigquery client")
+	}
+
+	log.Info().Uint64("total_rows", it.TotalRows).Str("etld", etld).Msg("iterating over results")
+
+	for {
+		var r SubdomainResult
+		err := it.Next(&r)
+		if err == iterator.Done {
+			break
+		}
+
+		if err != nil {
+			log.Error().Err(err).Str("etld", etld).Msg("error iterating data")
+			break
+		}
+
+		subdomain := strings.Replace(strings.Trim(r.CommonName, " "), "*.", "", -1)
+		if !strings.HasSuffix(subdomain, etld) {
+			log.Warn().Str("subdomain", subdomain).Str("etld", etld).Msg("subdomain did not contain etld")
+			continue
+		}
+
+		commonNames[subdomain] = &am.CTSubdomain{ETLD: etld, Subdomain: subdomain}
+	}
+
+	return commonNames, nil
 }
 
 // QueryETLD and return all records from our bigquery table
@@ -136,9 +211,13 @@ func (c *Client) initBQClient() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	c.bqClient, err = bigquery.NewClient(ctx, c.config.ProjectID)
+	c.bqClient, err = bigquery.NewClient(ctx,
+		c.config.ProjectID,
+		option.WithCredentialsJSON([]byte(c.config.Credentials)))
+
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize bigquery client")
 	}
+
 	return nil
 }

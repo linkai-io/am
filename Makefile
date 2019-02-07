@@ -83,6 +83,9 @@ pushscangroupservice: scangroupservice
 pushcoordinatorservice:
 	docker tag coordinatorservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/coordinatorservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/coordinatorservice:latest
 
+pushdispatcherservice:
+	docker tag dispatcherservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/dispatcherservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/dispatcherservice:latest
+
 pushwebdataservice:
 	docker tag webdataservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest
 
@@ -91,6 +94,15 @@ deploybackend:
 
 deploymodules:
 	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
+
+deploybrutemoduleservice:
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service brutemoduleservice
+
+deploycoordinatorservice:
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service coordinatorservice
+
+deploydispatcherservice:
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service dispatcherservice
 
 deployscangroupservice: pushscangroupservice 
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service scangroupservice

@@ -92,6 +92,14 @@ func (s *SecretsCache) DNSAddresses() ([]string, error) {
 	return strings.Split(hosts, ","), nil
 }
 
+func (s *SecretsCache) BigQueryCredentials() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/bigdata/ct/credentials", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), err
+}
+
 func (s *SecretsCache) SystemOrgID() (int, error) {
 	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/system/orgid", s.Environment))
 	if err != nil {

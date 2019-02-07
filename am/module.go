@@ -7,11 +7,12 @@ import (
 type ModuleType int
 
 const (
-	NSModule      ModuleType = 1
-	BruteModule   ModuleType = 2
-	PortModule    ModuleType = 3
-	WebModule     ModuleType = 4
-	KeywordModule ModuleType = 5
+	NSModule                 ModuleType = 1
+	BruteModule              ModuleType = 2
+	PortModule               ModuleType = 3
+	WebModule                ModuleType = 4
+	KeywordModule            ModuleType = 5
+	BigDataCTSubdomainModule ModuleType = 6
 
 	NSModuleServiceKey      = "nsmoduleservice"
 	BruteModuleServiceKey   = "brutemoduleservice"
@@ -33,6 +34,8 @@ func KeyFromModuleType(moduleType ModuleType) string {
 		return WebModuleServiceKey
 	case KeywordModule:
 		return KeywordModuleServiceKey
+	case BigDataCTSubdomainModule:
+		return BigDataModuleServiceKey
 	}
 	return ""
 }

@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	ErrNoCTRecords = errors.New("no ct records found")
-	ErrETLDInvalid = errors.New("etld was empty or did not match")
-	ErrCopyCount   = errors.New("count of records copied did not match expected")
+	ErrNoCTRecords     = errors.New("no ct records found")
+	ErrETLDInvalid     = errors.New("etld was empty or did not match")
+	ErrCopyCount       = errors.New("count of records copied did not match expected")
+	ErrEmptyCommonName = errors.New("common name was empty")
 )
 
 // Service for interfacing with postgresql/rds
@@ -68,6 +69,7 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
+			log.Error().Err(err).Msgf("failed to prepare %s: %s", k, v)
 			return err
 		}
 	}
@@ -226,6 +228,145 @@ func (s *Service) DeleteCT(ctx context.Context, userContext am.UserContext, etld
 	}
 
 	if _, err := tx.ExecEx(ctx, "deleteETLD", &pgx.QueryExOptions{}, etld); err != nil {
+		failedMsg := "failed to delete query from am.certificate_queries table"
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, failedMsg)
+		}
+		return errors.Wrap(err, failedMsg)
+	}
+
+	return tx.Commit()
+}
+
+// GetCTSubdomains returns subdomains extracted from certificate transparency's common name field of certificates for the specified etld.
+func (s *Service) GetCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+	var emptyTS time.Time
+	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "read") {
+		return emptyTS, nil, am.ErrUserNotAuthorized
+	}
+
+	logger := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).
+		Str("ETLD", etld).Logger()
+
+	logger.Info().Msg("processing GetCTSubdomains request")
+
+	rows, err := s.pool.QueryEx(ctx, "getSubdomains", &pgx.QueryExOptions{}, etld)
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return emptyTS, nil, v
+		}
+		return emptyTS, nil, err
+	}
+	defer rows.Close()
+
+	records := make(map[string]*am.CTSubdomain, 0)
+	var ts int64
+	for rows.Next() {
+		r := &am.CTSubdomain{}
+
+		err := rows.Scan(&ts, &r.SubdomainID, &r.ETLD, &r.InsertedTime, &r.Subdomain)
+		if err != nil {
+			logger.Warn().Err(err).Msg("failed to extract record")
+			continue
+		}
+		records[r.Subdomain] = r
+	}
+
+	return time.Unix(0, ts), records, err
+}
+
+// AddCTSubdomains adds cert transparency subdomains to our database for the specified etld. Also creates an entry for the queryTime of this
+// particular ETLD so we don't have to scan the entire cert transparency db every time.
+func (s *Service) AddCTSubdomains(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "create") {
+		return am.ErrUserNotAuthorized
+	}
+
+	logger := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).
+		Str("ETLD", etld).Logger()
+
+	logger.Info().Msg("processing AddCTSubDomains request")
+
+	var tx *pgx.Tx
+	var err error
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	numRecords := len(subdomains)
+
+	// if numRecords == 0, then we don't have subdomains, so return.
+	if numRecords == 0 {
+		return ErrNoCTRecords
+	}
+
+	if etld == "" {
+		return ErrETLDInvalid
+	}
+
+	if _, err := tx.Exec(AddCTSubDomainTempTable); err != nil {
+		return err
+	}
+	var etldID int
+	if err = tx.QueryRowEx(ctx, "insertSubDomainsQuery", &pgx.QueryExOptions{}, etld, queryTime.UnixNano()).Scan(&etldID); err != nil {
+		failedMsg := "failed to update query time to am.certificate_queries table"
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, failedMsg)
+		}
+		return errors.Wrap(err, failedMsg)
+	}
+
+	ctRows := make([][]interface{}, numRecords)
+	i := 0
+	for r := range subdomains {
+		if r == "" {
+			logger.Warn().Err(ErrEmptyCommonName).Str("etld", etld)
+			continue
+		}
+		ctRows[i] = []interface{}{queryTime.UnixNano(), etldID, r}
+		i++
+	}
+
+	if _, err := tx.CopyFrom(pgx.Identifier{AddCTSubDomainTempTableKey}, AddCTSubDomainTempTableColumns, pgx.CopyFromRows(ctRows)); err != nil {
+		return errors.Wrap(err, "copy from for am.certificate_subdomains failed")
+	}
+
+	if _, err := tx.ExecEx(ctx, AddTempSubDomainToCTSubDomain, &pgx.QueryExOptions{}); err != nil {
+		failedMsg := "failed to add temp certs to am.certificate_subdomains table"
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, failedMsg)
+		}
+		return errors.Wrap(err, failedMsg)
+	}
+
+	return tx.Commit()
+}
+
+// DeleteCTSubdomains (only really used in tests)
+func (s *Service) DeleteCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) error {
+	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "delete") {
+		return am.ErrUserNotAuthorized
+	}
+
+	var tx *pgx.Tx
+	var err error
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.ExecEx(ctx, "deleteSubdomains", &pgx.QueryExOptions{}, etld); err != nil {
 		failedMsg := "failed to delete query from am.certificate_queries table"
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, failedMsg)

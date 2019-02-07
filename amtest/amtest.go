@@ -241,6 +241,15 @@ func BuildCTRecords(etld string, insertedTS int64, count int) map[string]*am.CTR
 	return records
 }
 
+func BuildSubdomainsForCT(etld string, count int) map[string]*am.CTSubdomain {
+	records := make(map[string]*am.CTSubdomain, count)
+	for i := 0; i < count; i++ {
+		subdomain := fmt.Sprintf("%d.%s", i, etld)
+		records[subdomain] = &am.CTSubdomain{ETLD: etld, Subdomain: subdomain}
+	}
+	return records
+}
+
 func TestCompareCTRecords(expected, returned map[string]*am.CTRecord, t *testing.T) {
 	if len(expected) != len(returned) {
 		t.Fatalf("lengths did not match expected: %d returned: %d\n", len(expected), len(returned))

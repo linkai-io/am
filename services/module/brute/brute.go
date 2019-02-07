@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/cache"
@@ -72,6 +73,10 @@ func (b *Bruter) Analyze(ctx context.Context, userContext am.UserContext, addres
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to find group id in cache, using default settings")
 	} else {
 		bmc = group.ModuleConfigurations.BruteModule
+		if group.Paused || group.Deleted {
+			log.Ctx(ctx).Info().Msg("not analyzing since group was paused/deleted")
+			return address, bruteRecords, nil
+		}
 	}
 
 	bruteRecords = b.bruteDomain(ctx, bmc, address)
@@ -152,18 +157,18 @@ func (b *Bruter) bruteDomain(ctx context.Context, bmc *am.BruteModuleConfig, add
 
 	subdomains := BuildSubDomainList(b.subdomains, bmc.CustomSubNames)
 	log.Ctx(ctx).Info().Msg("start brute forcing")
+	then := time.Now()
 	bruteRecords = b.bruteDomains(ctx, address, address.HostAddress, subdomains, am.DiscoveryBruteSubDomain, int(bmc.RequestsPerSecond))
-
+	log.Ctx(ctx).Info().TimeDiff("time_taken", time.Now(), then).Msg("brute forcing complete")
 	validRecords := b.wildcardFailSafe(ctx, address, bruteRecords)
-	log.Ctx(ctx).Info().Msg("brute forcing complete")
 	return validRecords
 }
 
 // wildcardFailSafe is for the eventuality that our dns lookups fail to catch a domain that indeed is a wildcard domain that is returning the
-// same ip address for > 15 hosts. This *WILL UPDATE* address with the IsWildcardZone flag as being true.
+// same ip address for > 100 hosts. This *WILL UPDATE* address with the IsWildcardZone flag as being true.
 func (b *Bruter) wildcardFailSafe(ctx context.Context, address *am.ScanGroupAddress, bruteRecords map[string]*am.ScanGroupAddress) map[string]*am.ScanGroupAddress {
 
-	if len(bruteRecords) < 15 {
+	if len(bruteRecords) < 100 {
 		return bruteRecords
 	}
 
@@ -175,7 +180,7 @@ func (b *Bruter) wildcardFailSafe(ctx context.Context, address *am.ScanGroupAddr
 			count++
 		}
 		lastRecord = record
-		if count >= 15 {
+		if count >= 100 {
 			log.Ctx(ctx).Warn().Msg("ERROR WITH WILDCARD CHECK, ALL DOMAINS POINT TO SAME IP")
 			address.IsWildcardZone = true
 			return make(map[string]*am.ScanGroupAddress)
@@ -235,8 +240,9 @@ func (b *Bruter) mutateDomain(ctx context.Context, bmc *am.BruteModuleConfig, ad
 	}
 
 	log.Ctx(ctx).Info().Msg("start mutating")
+	then := time.Now()
 	mutateRecords = b.bruteDomains(ctx, address, domain, subdomains, am.DiscoveryBruteMutator, int(bmc.RequestsPerSecond))
-	log.Ctx(ctx).Info().Msg("mutating complete")
+	log.Ctx(ctx).Info().TimeDiff("time_taken", time.Now(), then).Msg("mutating complete")
 	return mutateRecords
 }
 
@@ -252,6 +258,7 @@ func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress,
 		RequestsPerSecond: requestsPerSecond,
 		NewAddresses:      newHosts,
 		DiscoveryMethod:   discoveryMethod,
+		Cache:             b.groupCache,
 	})
 }
 

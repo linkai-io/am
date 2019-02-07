@@ -30,6 +30,13 @@ type CTRecord struct {
 	ETLD               string `json:"etld"`
 }
 
+type CTSubdomain struct {
+	SubdomainID  int64  `json:"subdomain_id"`
+	ETLD         string `json:"etld"`
+	Subdomain    string `json:"subdomain"`
+	InsertedTime int64  `json:"inserted_timestamp"`
+}
+
 type SonarData struct {
 }
 
@@ -40,6 +47,9 @@ type BigDataService interface {
 	DeleteCT(ctx context.Context, userContext UserContext, etld string) error
 	GetCT(ctx context.Context, userContext UserContext, etld string) (time.Time, map[string]*CTRecord, error)
 	AddCT(ctx context.Context, userContext UserContext, etld string, queryTime time.Time, ctRecords map[string]*CTRecord) error
+	GetCTSubdomains(ctx context.Context, userContext UserContext, etld string) (time.Time, map[string]*CTSubdomain, error)
+	AddCTSubdomains(ctx context.Context, userContext UserContext, etld string, queryTime time.Time, subdomains map[string]*CTSubdomain) error
+	DeleteCTSubdomains(ctx context.Context, userContext UserContext, etld string) error
 	//GetSonar(ctx context.Context, userContext UserContext, zone string) ([]*SonarData, error)
 	//AddSonar(ctx context.Context, userContext UserContext, sonarData []*SonarData) error
 	//GetCommonCrawl(ctx context.Context, userContext UserContext, zone string) (*CommonCrawlData, error)

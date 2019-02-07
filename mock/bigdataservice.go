@@ -19,6 +19,15 @@ type BigDataService struct {
 
 	DeleteCTFn      func(ctx context.Context, userContext am.UserContext, etld string) error
 	DeleteCTInvoked bool
+
+	GetCTSubdomainsFn      func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error)
+	GetCTSubdomainsInvoked bool
+
+	AddCTSubdomainsFn      func(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error
+	AddCTSubdomainsInvoked bool
+
+	DeleteCTSubdomainsFn      func(ctx context.Context, userContext am.UserContext, etld string) error
+	DeleteCTSubdomainsInvoked bool
 }
 
 func (s *BigDataService) Init(config []byte) error {
@@ -38,4 +47,19 @@ func (s *BigDataService) AddCT(ctx context.Context, userContext am.UserContext, 
 func (s *BigDataService) DeleteCT(ctx context.Context, userContext am.UserContext, etld string) error {
 	s.DeleteCTInvoked = true
 	return s.DeleteCTFn(ctx, userContext, etld)
+}
+
+func (s *BigDataService) GetCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
+	s.GetCTSubdomainsInvoked = true
+	return s.GetCTSubdomainsFn(ctx, userContext, etld)
+}
+
+func (s *BigDataService) AddCTSubdomains(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
+	s.AddCTSubdomainsInvoked = true
+	return s.AddCTSubdomainsFn(ctx, userContext, etld, queryTime, subdomains)
+}
+
+func (s *BigDataService) DeleteCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) error {
+	s.DeleteCTSubdomainsInvoked = true
+	return s.DeleteCTSubdomainsFn(ctx, userContext, etld)
 }

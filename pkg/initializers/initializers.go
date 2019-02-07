@@ -272,15 +272,28 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 			log.Fatal().Err(err).Msg("unable to connect to web module client")
 		}
 		return webClient
+	case am.BigDataCTSubdomainModule:
+		bdClient := module.New()
+		cfg := &module.Config{ModuleType: am.BigDataCTSubdomainModule, Timeout: 600}
+		data, _ := json.Marshal(cfg)
+		err := retrier.RetryUntil(func() error {
+			return bdClient.Init(data)
+		}, time.Minute*1, time.Second*3)
+
+		if err != nil {
+			log.Fatal().Err(err).Msg("unable to connect to bigdata module client")
+		}
+		return bdClient
 	}
 	return nil
 }
 
-// Modules initializes all moduels and connects to them
+// Modules initializes all modules and connects to them
 func Modules(state *redis.State) map[am.ModuleType]am.ModuleService {
 	modules := make(map[am.ModuleType]am.ModuleService)
 	modules[am.NSModule] = Module(state, am.NSModule)
 	modules[am.BruteModule] = Module(state, am.BruteModule)
 	modules[am.WebModule] = Module(state, am.WebModule)
+	modules[am.BigDataCTSubdomainModule] = Module(state, am.BigDataCTSubdomainModule)
 	return modules
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/linkai-io/am/pkg/cache"
+
 	"github.com/gammazero/workerpool"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
@@ -72,6 +74,7 @@ type ResolverData struct {
 	RequestsPerSecond int
 	NewAddresses      map[string]struct{}
 	DiscoveryMethod   string
+	Cache             *cache.ScanGroupSubscriber
 }
 
 // ResolveNewAddresses is a generic resolver function for looking up hostnames to ip addresses and collecting them as a map to return
@@ -92,6 +95,18 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 	for newHost := range data.NewAddresses {
 		task := func(ctx context.Context, host string, out chan<- *results) func() {
 			return func() {
+				if ctx.Err() != nil {
+					return
+				}
+				// check if our group has been paused/deleted prior to continuing.
+				group, err := data.Cache.GetGroupByIDs(data.Address.OrgID, data.Address.GroupID)
+				if err == nil {
+					if group.Paused || group.Deleted {
+						return
+					}
+				} else {
+					log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during resolve, continuing")
+				}
 				r, err := dns.ResolveName(ctx, host)
 				out <- &results{Hostname: host, R: r, Err: err}
 			}
@@ -121,4 +136,13 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 	}
 
 	return newRecords
+}
+
+func waitPoolComplete(pool *workerpool.WorkerPool) chan struct{} {
+	doneCh := make(chan struct{})
+	go func(p *workerpool.WorkerPool) {
+		p.StopWait()
+		close(doneCh)
+	}(pool)
+	return doneCh
 }

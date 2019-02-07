@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/pkg/cache"
 	"github.com/linkai-io/am/services/dispatcher/state"
 	"github.com/pkg/errors"
 )
@@ -49,6 +50,7 @@ type taskDetails struct {
 // Service for dispatching and handling responses from worker modules
 type Service struct {
 	status           int32
+	groupCache       *cache.ScanGroupSubscriber
 	defaultDuration  time.Duration
 	config           *Config
 	sgClient         am.ScanGroupService
@@ -66,6 +68,7 @@ type Service struct {
 func New(sgClient am.ScanGroupService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
 		defaultDuration: time.Duration(-5) * time.Minute,
+		groupCache:      cache.NewScanGroupSubscriber(context.Background(), stater),
 		state:           stater,
 		sgClient:        sgClient,
 		addressClient:   addrClient,
@@ -217,11 +220,29 @@ func (s *Service) getScanGroup(ctx context.Context, userContext am.UserContext, 
 	return scangroup, nil
 }
 
+// shouldStopGroup inspects the updated group state from cache to see if it's been paused/deleted
+func (s *Service) shouldStopGroup(orgID, groupID int) bool {
+	newGroup, err := s.groupCache.GetGroupByIDs(orgID, groupID)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to get group from cache to check if paused/deleted")
+		return false
+	}
+
+	if newGroup.Paused == true || newGroup.Deleted == true {
+		return true
+	}
+	return false
+}
+
 // analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned. Use a worker pool
 // allowing up to NSModule.RequestsPerSecond worker pool to work concurrently.
 func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, batcher *Batcher, scangroup *am.ScanGroup) error {
 
 	for {
+		if s.shouldStopGroup(scangroup.OrgID, scangroup.GroupID) {
+			return errors.New("group was paused or deleted during analysis")
+		}
+
 		addrMap, err := s.state.PopAddresses(ctx, userContext, scangroup.GroupID, 1000)
 		if err != nil {
 			return errors.Wrap(err, "error getting addresses")
@@ -248,6 +269,14 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 
 			task := func(details *taskDetails) func() {
 				return func() {
+					group, err := s.groupCache.GetGroupByIDs(details.scangroup.OrgID, details.scangroup.GroupID)
+					if err == nil {
+						if group.Paused || group.Deleted {
+							return
+						}
+					} else {
+						log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during process tasks, continuing")
+					}
 					s.IncActiveAddresses()
 					s.processAddress(details)
 					s.DecActiveAddresses()
@@ -315,6 +344,12 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 
 	log.Ctx(ctx).Info().Msg("brute forcing")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BruteModule], scanGroupID, updatedAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to analyze using brute module")
+	}
+
+	log.Ctx(ctx).Info().Msg("bigquery ct subdomain lookup")
+	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BigDataCTSubdomainModule], scanGroupID, updatedAddress)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to analyze using brute module")
 	}

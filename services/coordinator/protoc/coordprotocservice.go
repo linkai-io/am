@@ -24,3 +24,10 @@ func (s *CoordProtocService) StartGroup(ctx context.Context, in *coordinator.Sta
 	s.reporter.Increment(-1)
 	return &coordinator.GroupStartedResponse{}, err
 }
+
+func (s *CoordProtocService) StopGroup(ctx context.Context, in *coordinator.StopGroupRequest) (*coordinator.GroupStoppedResponse, error) {
+	s.reporter.Increment(1)
+	response, err := s.cs.StopGroup(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	s.reporter.Increment(-1)
+	return &coordinator.GroupStoppedResponse{Message: response}, err
+}

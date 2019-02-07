@@ -415,3 +415,37 @@ func CTRecordsToDomain(in map[string]*prototypes.CTRecord) map[string]*am.CTReco
 	}
 	return ctRecords
 }
+
+func DomainToCTSubdomainRecord(in *am.CTSubdomain) *prototypes.CTSubdomain {
+	return &prototypes.CTSubdomain{
+		SubdomainID:  in.SubdomainID,
+		InsertedTime: in.InsertedTime,
+		CommonName:   in.Subdomain,
+		ETLD:         in.ETLD,
+	}
+}
+
+func CTSubdomainRecordToDomain(in *prototypes.CTSubdomain) *am.CTSubdomain {
+	return &am.CTSubdomain{
+		SubdomainID:  in.SubdomainID,
+		InsertedTime: in.InsertedTime,
+		Subdomain:    in.CommonName,
+		ETLD:         in.ETLD,
+	}
+}
+
+func DomainToCTSubdomainRecords(in map[string]*am.CTSubdomain) map[string]*prototypes.CTSubdomain {
+	subRecords := make(map[string]*prototypes.CTSubdomain, len(in))
+	for k, v := range in {
+		subRecords[k] = DomainToCTSubdomainRecord(v)
+	}
+	return subRecords
+}
+
+func CTSubdomainRecordsToDomain(in map[string]*prototypes.CTSubdomain) map[string]*am.CTSubdomain {
+	subRecords := make(map[string]*am.CTSubdomain, len(in))
+	for k, v := range in {
+		subRecords[k] = CTSubdomainRecordToDomain(v)
+	}
+	return subRecords
+}

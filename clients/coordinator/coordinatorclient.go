@@ -55,3 +55,24 @@ func (c *Client) StartGroup(ctx context.Context, userContext am.UserContext, sca
 		return errors.Wrap(retryErr, "unable to start group from coordinator client")
 	}, "rpc error: code = Unavailable desc")
 }
+
+func (c *Client) StopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (string, error) {
+	var message *service.GroupStoppedResponse
+
+	in := &service.StopGroupRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		GroupID:     int32(scanGroupID),
+	}
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+	err := retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		message, retryErr = c.client.StopGroup(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to start group from coordinator client")
+	}, "rpc error: code = Unavailable desc")
+	if err != nil {
+		return "", err
+	}
+	return message.Message, nil
+}
