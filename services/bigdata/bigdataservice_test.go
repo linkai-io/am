@@ -41,6 +41,26 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestEmptyGetSubdomains(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	auth := amtest.MockAuthorizer()
+	service := bigdata.New(auth)
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(1, 1)
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing bigdata service: %s\n", err)
+	}
+
+	addedTime, returned, err := service.GetCTSubdomains(ctx, userContext, "example.com")
+	if err != nil {
+		t.Fatalf("error getting CT subdomain records: %#v\n", err)
+	}
+	t.Logf("%v %v\n", addedTime, returned)
+
+}
 func TestAddGetSubdomains(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")

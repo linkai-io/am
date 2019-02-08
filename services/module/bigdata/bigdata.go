@@ -63,7 +63,7 @@ func (b *BigData) Init(config []byte) error {
 
 // shouldAnalyze determines if we should analyze the specific address or not.
 func (b *BigData) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
-	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
+	if address.HostAddress == "" || address.IsHostedService {
 		return false
 	}
 
@@ -108,6 +108,7 @@ func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, addre
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to get etld, not running bigdata tests")
 		return address, bigDataRecords, nil
 	}
+
 	records, err := b.doCTSubdomainAnalysis(ctx, userContext, nsCfg, address, etld)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to do certificate transparency analysis")
@@ -124,8 +125,10 @@ func (b *BigData) doCTSubdomainAnalysis(ctx context.Context, userContext am.User
 	subdomains := make(map[string]*am.CTSubdomain, 0)
 	records := make(map[string]*am.ScanGroupAddress, 0)
 
+	log.Ctx(ctx).Info().Str("etld", etld).Int("GroupID", address.GroupID).Msg("checking state for etld")
 	shouldCT, err := b.st.DoCTDomain(ctx, address.OrgID, address.GroupID, oneHour, etld)
 	if err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do ct domain")
 		return records, err
 	}
 
@@ -141,7 +144,7 @@ func (b *BigData) doCTSubdomainAnalysis(ctx context.Context, userContext am.User
 
 	// if we can't check the database reliably, we don't want to hammer bigquery (costs) so just fail closed here.
 	if retryErr != nil {
-		log.Ctx(ctx).Warn().Msg("unable to get CT records from database, returning")
+		log.Ctx(ctx).Warn().Err(retryErr).Msg("unable to get CT records from database, returning")
 		return records, nil
 	}
 
@@ -185,7 +188,7 @@ func (b *BigData) addNewCTSubDomainRecords(ctx context.Context, userContext am.U
 	}
 
 	if len(bqRecords) == 0 {
-		log.Info().Msg("no new records found in bigquery")
+		log.Ctx(ctx).Info().Msg("no new records found in bigquery")
 		return subdomains
 	}
 

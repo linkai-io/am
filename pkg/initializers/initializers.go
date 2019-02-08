@@ -124,7 +124,7 @@ func State(appConfig *AppConfig) *redis.State {
 	}
 
 	err = retrier.RetryUntil(func() error {
-		log.Info().Msg("attempting to connect to redis")
+		log.Info().Str("addr", addr).Msg("attempting to connect to redis")
 		return redisState.Init(addr, pass)
 	}, time.Minute*1, time.Second*3)
 

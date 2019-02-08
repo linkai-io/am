@@ -122,6 +122,9 @@ deployscangroupservice: pushscangroupservice
 deploywebdataservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service webdataservice
 
+deploybigdataservice:
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service bigdataservice
+
 pushwebmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
 	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice

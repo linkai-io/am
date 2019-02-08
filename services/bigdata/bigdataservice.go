@@ -242,6 +242,7 @@ func (s *Service) DeleteCT(ctx context.Context, userContext am.UserContext, etld
 func (s *Service) GetCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
 	var emptyTS time.Time
 	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "read") {
+		log.Warn().Int("UserID", userContext.GetUserID()).Msg("user not authorized")
 		return emptyTS, nil, am.ErrUserNotAuthorized
 	}
 
@@ -282,6 +283,7 @@ func (s *Service) GetCTSubdomains(ctx context.Context, userContext am.UserContex
 // particular ETLD so we don't have to scan the entire cert transparency db every time.
 func (s *Service) AddCTSubdomains(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, subdomains map[string]*am.CTSubdomain) error {
 	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "create") {
+		log.Warn().Int("UserID", userContext.GetUserID()).Msg("user not authorized")
 		return am.ErrUserNotAuthorized
 	}
 
