@@ -46,9 +46,12 @@ func init() {
 	consul.RegisterDefault(time.Second*5, consulAddr) // Address comes from CONSUL_HTTP_ADDR or from aws metadata
 
 	// configure bigquery details, credentials come from secretscache.
-	bqConfig.DatasetName = os.Getenv("APP_BQ_DATASET_NAME")
 	bqConfig.ProjectID = os.Getenv("APP_BQ_PROJECT_ID")
+	bqConfig.DatasetName = os.Getenv("APP_BQ_DATASET_NAME")
 	bqConfig.TableName = os.Getenv("APP_BQ_TABLENAME")
+	if bqConfig.ProjectID == "" || bqConfig.DatasetName == "" || bqConfig.TableName == "" {
+		log.Fatal().Msgf("failed to get bigquery details %v", bqConfig)
+	}
 }
 
 // main starts the BigDataModuleService
