@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/linkai-io/am/pkg/bq"
+
 	"github.com/linkai-io/am/pkg/discovery"
 
 	"github.com/jackc/pgx"
@@ -228,6 +230,23 @@ func BigDataClient() am.BigDataService {
 		log.Fatal().Err(err).Msg("error connecting to bigdata server")
 	}
 	return bigDataClient
+}
+
+func BigQueryClient(cfg *bq.ClientConfig, credentials []byte) bq.BigQuerier {
+	bqClient := bq.NewClient()
+	cfgData, err := json.Marshal(cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to marshal bigquery config")
+	}
+
+	err = retrier.RetryUntil(func() error {
+		return bqClient.Init(cfgData, credentials)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error initializing bigquery client")
+	}
+	return bqClient
 }
 
 // Module returns the connected module depending on moduleType

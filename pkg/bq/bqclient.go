@@ -83,13 +83,13 @@ type ClientConfig struct {
 	ProjectID   string `json:"project_id"`
 	DatasetName string `json:"dataset_name"`
 	TableName   string `json:"table_name"`
-	Credentials string `json:"credentials"`
 }
 
 // Client for querying BigQuery
 type Client struct {
 	bqClient               *bigquery.Client
 	config                 *ClientConfig
+	credentials            []byte
 	query                  string
 	subDomainQuery         string
 	subDomainQueryFirstRun string
@@ -101,11 +101,13 @@ func NewClient() *Client {
 }
 
 // Init the BigQuery client by parsing config and calling initBQClient
-func (c *Client) Init(config []byte) error {
+func (c *Client) Init(config, credentials []byte) error {
+	c.credentials = credentials
+
 	if err := json.Unmarshal(config, c.config); err != nil {
 		return err
 	}
-	if c.config.DatasetName == "" || c.config.TableName == "" || c.config.Credentials == "" {
+	if c.config.DatasetName == "" || c.config.TableName == "" || c.credentials == nil || len(c.credentials) == 0 {
 		return ErrConfigInvalid
 	}
 
@@ -157,7 +159,7 @@ func (c *Client) QuerySubdomains(ctx context.Context, from time.Time, etld strin
 			log.Error().Err(err).Str("etld", etld).Msg("error iterating data")
 			break
 		}
-
+		// replace *.example.com -> example.com
 		subdomain := strings.Replace(strings.Trim(r.CommonName, " "), "*.", "", -1)
 		if !strings.HasSuffix(subdomain, etld) {
 			log.Warn().Str("subdomain", subdomain).Str("etld", etld).Msg("subdomain did not contain etld")
@@ -208,12 +210,11 @@ func (c *Client) QueryETLD(ctx context.Context, from time.Time, etld string) (ma
 func (c *Client) initBQClient() error {
 	var err error
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
+	ctx := context.Background()
 
 	c.bqClient, err = bigquery.NewClient(ctx,
 		c.config.ProjectID,
-		option.WithCredentialsJSON([]byte(c.config.Credentials)))
+		option.WithCredentialsJSON([]byte(c.credentials)))
 
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize bigquery client")

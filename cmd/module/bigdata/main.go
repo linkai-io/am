@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/bq"
+
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/mock"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/lb/consul"
@@ -32,6 +33,7 @@ const (
 
 var (
 	appConfig initializers.AppConfig
+	bqConfig  bq.ClientConfig
 )
 
 func init() {
@@ -42,6 +44,11 @@ func init() {
 	appConfig.ServiceKey = serviceKey
 	consulAddr := initializers.ServiceDiscovery(&appConfig)
 	consul.RegisterDefault(time.Second*5, consulAddr) // Address comes from CONSUL_HTTP_ADDR or from aws metadata
+
+	// configure bigquery details, credentials come from secretscache.
+	bqConfig.DatasetName = os.Getenv("APP_BQ_DATASET_NAME")
+	bqConfig.ProjectID = os.Getenv("APP_BQ_PROJECT_ID")
+	bqConfig.TableName = os.Getenv("APP_BQ_TABLENAME")
 }
 
 // main starts the BigDataModuleService
@@ -52,6 +59,11 @@ func main() {
 	log.Logger = log.With().Str("service", "BigDataModuleService").Logger()
 
 	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
+
+	bqCredentials, err := sec.BigQueryCredentials()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to get bigquery credentials")
+	}
 
 	dnsAddrs, err := sec.DNSAddresses()
 	if err != nil {
@@ -71,11 +83,15 @@ func main() {
 
 	state := initializers.State(&appConfig)
 	dc := dnsclient.New(dnsAddrs, 3)
-	bdService := &mock.BigDataService{}
-	service := bigdata.New(dc, state, bdService, &mock.BigQuerier{})
+	bdService := initializers.BigDataClient()
+
+	bqClient := initializers.BigQueryClient(&bqConfig, []byte(bqCredentials))
+
+	service := bigdata.New(dc, state, bdService, bqClient)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("initializing service failed")
 	}

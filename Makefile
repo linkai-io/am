@@ -1,6 +1,6 @@
-ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice brutemoduleservice
-BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice
-MODULE_SERVICES = nsmoduleservice brutemoduleservice
+ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice
+BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice
+MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
 APP_ENV = dev
 build:
 	go build -v ./...
@@ -46,15 +46,21 @@ nsmoduleservice:
 webdataservice:
 	docker build -t webdataservice -f Dockerfile.webdataservice .
 
+bigdataservice:
+	docker build -t bigdataservice -f Dockerfile.bigdataservice .
+
 brutemoduleservice:
 	docker build -t brutemoduleservice -f Dockerfile.brutemoduleservice .
 
 webmoduleservice:
 	docker build -t webmoduleservice -f Dockerfile.webmoduleservice .
 
-allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice brutemoduleservice webmoduleservice
+bigdatamoduleservice:
+	docker build -t bigdatamoduleservice -f Dockerfile.bigdatamoduleservice .
 
-backend: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice
+allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice webmoduleservice bigdatamoduleservice
+
+backend: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice
 
 pushbackend: 
 	$(foreach var,$(BACKEND_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
@@ -67,6 +73,9 @@ pushnsmoduleservice: nsmoduleservice
 
 pushbrutemoduleservice: brutemoduleservice
 	docker tag brutemoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest
+
+pushbigdatamoduleservice: bigdatamoduleservice
+	docker tag bigdatamoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdatamoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdatamoduleservice:latest
 
 pushorgservice: orgservice
 	docker tag orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
@@ -88,6 +97,9 @@ pushdispatcherservice:
 
 pushwebdataservice:
 	docker tag webdataservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/webdataservice:latest
+
+pushbigdataservice:
+	docker tag bigdataservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdataservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdataservice:latest
 
 deploybackend: 
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)

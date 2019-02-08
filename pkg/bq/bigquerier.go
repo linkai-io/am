@@ -8,7 +8,7 @@ import (
 )
 
 type BigQuerier interface {
-	Init(config []byte) error
+	Init(config, credentials []byte) error
 	QueryETLD(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error)
 	QuerySubdomains(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error)
 }

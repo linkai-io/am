@@ -8,7 +8,7 @@ import (
 )
 
 type BigQuerier struct {
-	InitFn func(config []byte) error
+	InitFn func(config, credentials []byte) error
 
 	QueryETLDFn      func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error)
 	QueryETLDInvoked bool
@@ -17,7 +17,7 @@ type BigQuerier struct {
 	QuerySubdomainsInvoked bool
 }
 
-func (b *BigQuerier) Init(config []byte) error {
+func (b *BigQuerier) Init(config, credentials []byte) error {
 	return nil
 }
 
