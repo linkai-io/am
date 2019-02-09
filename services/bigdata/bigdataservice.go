@@ -131,6 +131,7 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 // AddCT adds certificate transparency records
 func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld string, queryTime time.Time, ctRecords map[string]*am.CTRecord) error {
 	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "create") {
+		log.Warn().Int("UserID", userContext.GetUserID()).Msg("user not authorized")
 		return am.ErrUserNotAuthorized
 	}
 
@@ -207,6 +208,7 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 
 func (s *Service) DeleteCT(ctx context.Context, userContext am.UserContext, etld string) error {
 	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "delete") {
+		log.Warn().Int("UserID", userContext.GetUserID()).Msg("user not authorized")
 		return am.ErrUserNotAuthorized
 	}
 

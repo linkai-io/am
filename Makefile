@@ -110,6 +110,9 @@ deploymodules:
 deploybrutemoduleservice:
 	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service brutemoduleservice
 
+deploybigdatamoduleservice:
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service bigdatamoduleservice	
+
 deploycoordinatorservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service coordinatorservice
 

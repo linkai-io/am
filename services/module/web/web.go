@@ -73,10 +73,6 @@ func (w *Web) Init() error {
 
 // shouldAnalyze determines if we should analyze the specific address or not.
 func (w *Web) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
-	if address.IsWildcardZone {
-		return false
-	}
-
 	switch uint16(address.NSRecord) {
 	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
 		return false
