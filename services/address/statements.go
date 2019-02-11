@@ -1,7 +1,5 @@
 package address
 
-import "fmt"
-
 const (
 	sharedColumns = `organization_id, 
 		address_id, 
@@ -28,32 +26,16 @@ var queryMap = map[string]string{
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
 		and scan_group_id=$2`,
 
-	// returns
-	"scanGroupAddressesAll": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and 
-		scan_group_id=$2 and 
-		address_id > $3 order by address_id limit $4`, sharedColumns),
-
-	"scanGroupAddressesSinceScannedTime": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and
-		scan_group_id=$2 and 
-		(last_scanned_timestamp=0 OR last_scanned_timestamp < $3) and 
-		address_id > $4 order by address_id limit $5`, sharedColumns),
-
-	"scanGroupAddressesSinceSeenTime": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and
-		scan_group_id=$2 and 
-		(last_seen_timestamp=0 OR last_seen_timestamp < $3) and 
-		address_id > $4 order by address_id limit $5`, sharedColumns),
-
-	"scanGroupAddressesIgnored": fmt.Sprintf(`select 
-		%s
-		from am.scan_group_addresses as sga where organization_id=$1 and 
-		scan_group_id=$2 and 
-		ignored=$3 and address_id > $4 order by address_id limit $5`, sharedColumns),
+	"scanGroupHostList": `select 
+			top.organization_id, 
+			top.scan_group_id, 
+			top.host_address, 
+			array_agg(arr.ip_address) as addresses, 
+			array_agg(arr.address_id) as address_ids 
+		from am.scan_group_addresses as top 
+			left join am.scan_group_addresses as arr on 
+				top.address_id=arr.address_id 
+		where top.organization_id=$1 and top.scan_group_id=$2 and top.host_address != '' group by top.organization_id, top.scan_group_id, top.host_address;`,
 }
 
 var (

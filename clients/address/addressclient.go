@@ -85,6 +85,51 @@ func (c *Client) Get(ctx context.Context, userContext am.UserContext, filter *am
 	return oid, addresses, nil
 }
 
+func (c *Client) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {
+	var resp service.Address_GetHostListClient
+	oid = userContext.GetOrgID()
+
+	in := &service.HostListRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Filter:      convert.DomainToAddressFilter(filter),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetHostList(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get hostlist from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	hosts = make([]*am.ScanGroupHostList, 0)
+	for {
+		host, err := resp.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return 0, nil, err
+		}
+		// empty address
+		if host.GetOrgID() == 0 {
+			continue
+		}
+		hosts = append(hosts, convert.HostListToDomain(host.HostList))
+		if host.GetOrgID() != int32(oid) {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+	}
+	return oid, hosts, nil
+}
+
 func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error) {
 	var resp *service.UpdateAddressesResponse
 

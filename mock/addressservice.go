@@ -13,6 +13,9 @@ type AddressService struct {
 	GetFn      func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error)
 	GetInvoked bool
 
+	GetHostListFn      func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error)
+	GetHostListInvoked bool
+
 	CountFn      func(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error)
 	CountInvoked bool
 
@@ -33,6 +36,11 @@ func (c *AddressService) Init(config []byte) error {
 func (c *AddressService) Get(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, addresses []*am.ScanGroupAddress, err error) {
 	c.GetInvoked = true
 	return c.GetFn(ctx, userContext, filter)
+}
+
+func (c *AddressService) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {
+	c.GetHostListInvoked = true
+	return c.GetHostListFn(ctx, userContext, filter)
 }
 
 func (c *AddressService) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {

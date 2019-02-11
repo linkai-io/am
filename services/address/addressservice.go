@@ -2,14 +2,15 @@ package address
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
+	"github.com/linkai-io/am/pkg/convert"
 )
 
 var (
@@ -88,6 +89,14 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	serviceLog.Info().Msg("getting address list")
+
 	var rows *pgx.Rows
 	if filter.Limit > 10000 {
 		return 0, nil, am.ErrLimitTooLarge
@@ -97,15 +106,8 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	if filter.WithIgnored {
-		rows, err = s.pool.Query("scanGroupAddressesIgnored", userContext.GetOrgID(), filter.GroupID, filter.IgnoredValue, filter.Start, filter.Limit)
-	} else if filter.WithLastScannedTime {
-		rows, err = s.pool.Query("scanGroupAddressesSinceScannedTime", userContext.GetOrgID(), filter.GroupID, filter.SinceScannedTime, filter.Start, filter.Limit)
-	} else if filter.WithLastSeenTime {
-		rows, err = s.pool.Query("scanGroupAddressesSinceSeenTime", userContext.GetOrgID(), filter.GroupID, filter.SinceSeenTime, filter.Start, filter.Limit)
-	} else {
-		rows, err = s.pool.Query("scanGroupAddressesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
-	}
+	query, args := s.BuildGetFilterQuery(userContext, filter)
+	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 
 	if err != nil {
@@ -132,6 +134,112 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	}
 
 	return userContext.GetOrgID(), addresses, err
+}
+
+// GetHostList returns hostnames and a list of IP addresses for each host
+func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	serviceLog.Info().Msg("getting host list")
+
+	var rows *pgx.Rows
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	rows, err = s.pool.Query("scanGroupHostList", userContext.GetOrgID(), filter.GroupID)
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	hosts = make([]*am.ScanGroupHostList, 0)
+
+	for i := 0; rows.Next(); i++ {
+		h := &am.ScanGroupHostList{}
+		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs); err != nil {
+
+			return 0, nil, err
+		}
+
+		if h.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		hosts = append(hosts, h)
+	}
+
+	return userContext.GetOrgID(), hosts, err
+}
+
+// BuildGetFilterQuery creates a 'dynamic' (but prepared statement) filter for filtering scan group addresses
+func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddressFilter) (string, []interface{}) {
+	args := make([]interface{}, 0)
+
+	query := fmt.Sprintf(`select %s from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and `, sharedColumns)
+	args = append(args, userContext.GetOrgID())
+	args = append(args, filter.GroupID)
+	i := 3
+	prefix := ""
+	if filter.WithIgnored {
+		AppendConditionalQuery(&query, &prefix, "ignored=$%d", filter.IgnoredValue, &args, &i)
+	}
+
+	if filter.WithLastScannedTime {
+		AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.SinceScannedTime, &args, &i)
+	}
+
+	if filter.WithLastSeenTime {
+		AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.SinceSeenTime, &args, &i)
+	}
+
+	if filter.WithIsWildcard {
+		AppendConditionalQuery(&query, &prefix, "is_wildcard_zone=$%d", filter.IsWildcardValue, &args, &i)
+	}
+
+	if filter.WithIsHostedService {
+		AppendConditionalQuery(&query, &prefix, "is_hosted_service=$%d", filter.IsHostedServiceValue, &args, &i)
+	}
+
+	if filter.MatchesHost != "" {
+		AppendConditionalQuery(&query, &prefix, "reverse(host_address) like '%%$%d'", convert.Reverse(filter.MatchesHost), &args, &i)
+	}
+
+	if filter.MatchesIP != "" {
+		AppendConditionalQuery(&query, &prefix, "reverse(ip_address) like '%%$%d'", convert.Reverse(filter.MatchesIP), &args, &i)
+	}
+
+	if filter.NSRecord != 0 {
+		AppendConditionalQuery(&query, &prefix, "ns_record=$%d", filter.NSRecord, &args, &i)
+	}
+
+	query += fmt.Sprintf("%saddress_id > $%d order by address_id limit $%d", prefix, i, i+1)
+	args = append(args, filter.Start)
+	args = append(args, filter.Limit)
+	return query, args
+}
+
+func AppendConditionalQuery(query, prefix *string, filter string, value interface{}, args *[]interface{}, i *int) {
+	filter = fmt.Sprintf(filter, *i)
+	*query += fmt.Sprintf("%s%s", *prefix, filter)
+	*i++
+	*args = append(*args, value)
+	if *prefix == "" {
+		*prefix = " and "
+	}
 }
 
 // Update or insert new addresses
@@ -189,7 +297,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 
 	if _, err := tx.Exec(AddAddressesTempToAddress); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
-			return 0, 0, fmt.Errorf("%#v", v)
+			return 0, 0, errors.Wrap(v, "failed to update addresses")
 		}
 		return 0, 0, err
 	}
@@ -243,6 +351,9 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 	}
 
 	if _, err := tx.Exec(DeleteAddressesTempToAddress, orgID, groupID); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to delete addresses")
+		}
 		return 0, err
 	}
 

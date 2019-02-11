@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,6 +36,116 @@ func init() {
 	}
 }
 
+func TestBuildGetFilter(t *testing.T) {
+	service := address.New(nil)
+
+	userContext := &am.UserContextData{OrgID: 1}
+	filter := &am.ScanGroupAddressFilter{
+		OrgID:               1,
+		GroupID:             1,
+		Start:               0,
+		Limit:               1000,
+		WithIgnored:         false,
+		IgnoredValue:        false,
+		WithLastScannedTime: false,
+		SinceScannedTime:    0,
+		WithLastSeenTime:    false,
+		SinceSeenTime:       0,
+		WithIsWildcard:      false,
+		IsWildcardValue:     false,
+		MatchesHost:         "",
+		MatchesIP:           "",
+		NSRecord:            0,
+	}
+
+	noFilters, noFilterArgs := service.BuildGetFilterQuery(userContext, filter)
+	if len(noFilterArgs) != 4 {
+		t.Fatalf("expected args len of 4, got %v\n", len(noFilterArgs))
+	}
+
+	if !strings.HasSuffix(noFilters, "$4") {
+		t.Fatalf("query should have ended with $4 got %v\n", noFilters)
+	}
+
+	if noFilterArgs[0] != 1 && noFilterArgs[1] != 1 && noFilterArgs[2] != 0 && noFilterArgs[3] != 1000 {
+		t.Fatalf("expected 1, 1, 0, 1000 for args, got %#v\n", noFilterArgs)
+	}
+
+	filter = &am.ScanGroupAddressFilter{
+		OrgID:                1,
+		GroupID:              1,
+		Start:                1000,
+		Limit:                2000,
+		WithIgnored:          true,
+		IgnoredValue:         false,
+		WithLastScannedTime:  true,
+		SinceScannedTime:     1000000000,
+		WithLastSeenTime:     true,
+		SinceSeenTime:        1000000001,
+		WithIsWildcard:       true,
+		IsWildcardValue:      true,
+		WithIsHostedService:  true,
+		IsHostedServiceValue: true,
+		MatchesHost:          "asdf.com",
+		MatchesIP:            "192.168.9",
+		NSRecord:             33,
+	}
+
+	filters, filterArgs := service.BuildGetFilterQuery(userContext, filter)
+	t.Logf("%s %#v\n", filters, filterArgs)
+	if len(filterArgs) != 12 {
+		t.Fatalf("expected args len of 12, got %d %#v\n", len(filterArgs), filterArgs)
+	}
+
+	if filterArgs[0] != filter.OrgID {
+		t.Fatalf("expected OrgID %v got %v", filter.OrgID, filterArgs[0])
+	}
+
+	if filterArgs[1] != filter.GroupID {
+		t.Fatalf("expected GroupID %v got %v", filter.OrgID, filterArgs[1])
+	}
+
+	if filterArgs[2] != filter.IgnoredValue {
+		t.Fatalf("expected IgnoredValue %v got %v", filter.IgnoredValue, filterArgs[2])
+	}
+
+	if filterArgs[3] != filter.SinceScannedTime {
+		t.Fatalf("expected SinceScannedTime %v got %v", filter.SinceScannedTime, filterArgs[3])
+	}
+
+	if filterArgs[4] != filter.SinceSeenTime {
+		t.Fatalf("expected SinceSeenTime %v got %v", filter.SinceSeenTime, filterArgs[4])
+	}
+
+	if filterArgs[5] != filter.IsWildcardValue {
+		t.Fatalf("expected IsWildcardValue %v got %v", filter.IsWildcardValue, filterArgs[5])
+	}
+
+	if filterArgs[6] != filter.IsHostedServiceValue {
+		t.Fatalf("expected IsHostedServiceValue %v got %v", filter.IsHostedServiceValue, filterArgs[6])
+	}
+
+	if filterArgs[7] != convert.Reverse(filter.MatchesHost) {
+		t.Fatalf("expected MatchesHost %v got %v", convert.Reverse(filter.MatchesHost), filterArgs[7])
+	}
+
+	if filterArgs[8] != convert.Reverse(filter.MatchesIP) {
+		t.Fatalf("expected MatchesIP %v got %v", convert.Reverse(filter.MatchesIP), filterArgs[8])
+	}
+
+	if filterArgs[9] != filter.NSRecord {
+		t.Fatalf("expected NSRecord %v got %v", filter.NSRecord, filterArgs[9])
+	}
+
+	if filterArgs[10] != filter.Start {
+		t.Fatalf("expected Start %v got %v", filter.Start, filterArgs[10])
+	}
+
+	if filterArgs[11] != filter.Limit {
+		t.Fatalf("expected Limit %v got %v", filter.Limit, filterArgs[11])
+	}
+}
+
 func TestNew(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -51,6 +162,107 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestGetHostList(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "hostlist"
+	groupName := "hostlistgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	// test empty count first
+	_, count, err := service.Count(ctx, userContext, groupID)
+	if err != nil {
+		t.Fatalf("error getting empty count: %s\n", err)
+	}
+
+	if count != 0 {
+		t.Fatalf("count should be zero for empty scangroup got: %d\n", count)
+	}
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now().UnixNano()
+	for i := 0; i < 100; i++ {
+		host := "www.example.com"
+		ip := fmt.Sprintf("192.168.1.%d", i)
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, host),
+			DiscoveryTime:       now,
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     0,
+			LastSeenTime:        0,
+			ConfidenceScore:     0.0,
+			UserConfidenceScore: 0.0,
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, count, err = service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addreses: %s\n", err)
+	}
+
+	if count != 100 {
+		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+	// test invalid (missing groupID) filter first
+	filter := &am.ScanGroupAddressFilter{
+		Start:   0,
+		Limit:   10000,
+		GroupID: groupID,
+	}
+
+	oid, hosts, err := service.GetHostList(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting host list: %v\n", err)
+	}
+
+	if oid != userContext.GetOrgID() {
+		t.Fatalf("oid %v did not equal userContext id %v\n", oid, userContext.GetOrgID())
+	}
+
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host (multiple IPs) got %d\n", len(hosts))
+	}
+
+	if len(hosts[0].IPAddresses) != 100 {
+		t.Fatalf("expected 100 IP addresses for host got %d\n", len(hosts[0].IPAddresses))
+	}
+
+	if len(hosts[0].AddressIDs) != 100 {
+		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
+	}
+
+}
 func TestAdd(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")

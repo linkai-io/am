@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:6efe7977f098795232340ce6e68bef8211d8ca635ca09d44edf1457a2a086c1c"
+  digest = "1:d7dc158f24836f16a8d55da4a93c4a5d392dead4677ed164a8efc07070e1b69b"
   name = "cloud.google.com/go"
   packages = [
     "bigquery",
@@ -15,8 +15,8 @@
     "internal/version",
   ]
   pruneopts = "UT"
-  revision = "28a4bc8c44b3acbcc482cff0cdf7de29a4688b61"
-  version = "v0.35.1"
+  revision = "c9474f2f8deb81759839474b6bd1726bbfe1c1c4"
+  version = "v0.36.0"
 
 [[projects]]
   branch = "master"
@@ -35,15 +35,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:5fd5559ffc7cc82254d47aad28e9da212803b392dc8fe63f5db05488e2266621"
+  digest = "1:c85d9e2f6abcd9a7bd0f16d91be25c4a2dfb7c95e74cfe17608722b3afffa88a"
   name = "github.com/aws/aws-lambda-go"
   packages = ["events"]
   pruneopts = "UT"
-  revision = "928161204cad89472f9e6b5dd49ce16bc91230de"
-  version = "v1.8.1"
+  revision = "527f5d301d2993af078be6d0b63372786b3fc18f"
+  version = "v1.8.2"
 
 [[projects]]
-  digest = "1:3e4f58048f5b28034ded0278f37d3a109ea1d39619e713e1b567cd518cfc9cfc"
+  digest = "1:3cee6bb7da60f0e75e344d97250b3556a42bff3e3e4116392bdaa4fbcbf8e17c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -85,8 +85,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
-  version = "v1.16.26"
+  revision = "a86c8123483bed64c20a08cddc5155e8e8c89dcb"
+  version = "v1.16.31"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -98,11 +98,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e680f9b6bd25206c329eaf18f6aca31b2952640d96ffae031138b0eaef79a48a"
+  digest = "1:fe1f5a8a2884a361b21421c8a07df5f1a66ce7171904235bad427659a42b0d70"
   name = "github.com/gammazero/deque"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f6adf94963e448a692b33e9ddc931ff10afbb79b"
+  revision = "2afb3858e9c73b567e0e05ea79906f4e1138bd4e"
 
 [[projects]]
   branch = "master"
@@ -236,12 +236,12 @@
   revision = "c2b33e84"
 
 [[projects]]
-  digest = "1:d64a0aa67f715fd28f5ddfe0d74c06b6d6fe0fed931d77e662f2c4694f6854dc"
+  digest = "1:1b46adc9e3d878cdf38a164cfdac2e19340f4d2662aa5bee88062f6ee08ac9df"
   name = "github.com/miekg/dns"
   packages = ["."]
   pruneopts = "UT"
-  revision = "56be65265e34e731425e0269a301774938827c60"
-  version = "v1.1.3"
+  revision = "8fc2e5773bbd308ca2fcc962fd8d25c1bd0f6743"
+  version = "v1.1.4"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
@@ -370,7 +370,7 @@
     "ed25519/internal/edwards25519",
   ]
   pruneopts = "UT"
-  revision = "c7b33c32a30bae9ba07d37eb4d86f1f8b0f644fb"
+  revision = "193df9c0f06f8bb35fba505183eaf0acc0136505"
 
 [[projects]]
   branch = "master"
@@ -394,7 +394,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
+  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
 
 [[projects]]
   branch = "master"
@@ -408,15 +408,15 @@
     "jwt",
   ]
   pruneopts = "UT"
-  revision = "5dab4167f31cbd76b407f1486c86b40748bc5073"
+  revision = "99b60b757ec124ebb7d6b7e97f153b19c10ce163"
 
 [[projects]]
   branch = "master"
-  digest = "1:db12953ac7a80656b159265fe13146959beaada45938a532f484a3aeb289462e"
+  digest = "1:8b466798e96432c23185ca32826702885299f94eb644c9a8dedb79771dff383a"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "b90733256f2e882e81d52f9126de08df5615afd9"
+  revision = "3b5209105503162ded1863c307ac66fec31120dd"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -488,7 +488,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "8ac453e89fca495c0d17f98932642f392e2a11f3"
+  revision = "4b09977fb92221987e99d190c8f88f2c92727a29"
 
 [[projects]]
   digest = "1:dbf651d636a3bbf2f586d74bfa8b61f8e5625d7e9ef8159fa94cc7a8e5d8fc6c"
@@ -567,6 +567,7 @@
     "golang.org/x/net/context",
     "golang.org/x/net/publicsuffix",
     "google.golang.org/api/iterator",
+    "google.golang.org/api/option",
     "google.golang.org/grpc",
     "google.golang.org/grpc/balancer/roundrobin",
     "google.golang.org/grpc/health",

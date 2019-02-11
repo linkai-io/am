@@ -223,33 +223,69 @@ func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
 	}
 }
 
+func HostListToDomain(in *prototypes.HostListData) *am.ScanGroupHostList {
+	return &am.ScanGroupHostList{
+		AddressIDs:  in.AddressIDs,
+		OrgID:       int(in.OrgID),
+		GroupID:     int(in.GroupID),
+		ETLD:        in.ETLD,
+		HostAddress: in.HostAddress,
+		IPAddresses: in.IPAddresses,
+	}
+}
+
+func DomainToHostList(in *am.ScanGroupHostList) *prototypes.HostListData {
+	return &prototypes.HostListData{
+		AddressIDs:  in.AddressIDs,
+		OrgID:       int32(in.OrgID),
+		GroupID:     int32(in.GroupID),
+		ETLD:        in.ETLD,
+		HostAddress: in.HostAddress,
+		IPAddresses: in.IPAddresses,
+	}
+}
+
 func AddressFilterToDomain(in *prototypes.AddressFilter) *am.ScanGroupAddressFilter {
 	return &am.ScanGroupAddressFilter{
-		OrgID:               int(in.OrgID),
-		GroupID:             int(in.GroupID),
-		WithIgnored:         in.WithIgnored,
-		IgnoredValue:        in.IgnoredValue,
-		Start:               in.Start,
-		Limit:               int(in.Limit),
-		WithLastScannedTime: in.WithLastScannedTime,
-		SinceScannedTime:    in.SinceScannedTime,
-		WithLastSeenTime:    in.WithLastSeenTime,
-		SinceSeenTime:       in.SinceSeenTime,
+		OrgID:                int(in.OrgID),
+		GroupID:              int(in.GroupID),
+		Start:                in.Start,
+		Limit:                int(in.Limit),
+		WithIgnored:          in.WithIgnored,
+		IgnoredValue:         in.IgnoredValue,
+		WithLastScannedTime:  in.WithLastScannedTime,
+		SinceScannedTime:     in.SinceScannedTime,
+		WithLastSeenTime:     in.WithLastSeenTime,
+		SinceSeenTime:        in.SinceSeenTime,
+		WithIsWildcard:       in.WithIsWildcard,
+		IsWildcardValue:      in.IsWildcardValue,
+		WithIsHostedService:  in.WithIsHostedService,
+		IsHostedServiceValue: in.IsHostedServiceValue,
+		MatchesHost:          in.MatchesHost,
+		MatchesIP:            in.MatchesIP,
+		NSRecord:             int(in.NSRecord),
 	}
 }
 
 func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *prototypes.AddressFilter {
 	return &prototypes.AddressFilter{
-		OrgID:               int32(in.OrgID),
-		GroupID:             int32(in.GroupID),
-		WithIgnored:         in.WithIgnored,
-		IgnoredValue:        in.IgnoredValue,
-		Start:               in.Start,
-		Limit:               int32(in.Limit),
-		WithLastScannedTime: in.WithLastScannedTime,
-		SinceScannedTime:    in.SinceScannedTime,
-		WithLastSeenTime:    in.WithLastSeenTime,
-		SinceSeenTime:       in.SinceSeenTime,
+		OrgID:                int32(in.OrgID),
+		GroupID:              int32(in.GroupID),
+		Start:                in.Start,
+		Limit:                int32(in.Limit),
+		WithIgnored:          in.WithIgnored,
+		IgnoredValue:         in.IgnoredValue,
+		WithLastScannedTime:  in.WithLastScannedTime,
+		SinceScannedTime:     in.SinceScannedTime,
+		WithLastSeenTime:     in.WithLastSeenTime,
+		SinceSeenTime:        in.SinceSeenTime,
+		WithIsWildcard:       in.WithIsWildcard,
+		IsWildcardValue:      in.IsWildcardValue,
+		WithIsHostedService:  in.WithIsHostedService,
+		IsHostedServiceValue: in.IsHostedServiceValue,
+		MatchesHost:          in.MatchesHost,
+		MatchesIP:            in.MatchesIP,
+		NSRecord:             int32(in.NSRecord),
 	}
 }
 

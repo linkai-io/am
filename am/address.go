@@ -64,23 +64,40 @@ type ScanGroupAddress struct {
 	AddressHash         string  `json:"address_hash"`
 }
 
+type ScanGroupHostList struct {
+	OrgID       int      `json:"org_id"`
+	GroupID     int      `json:"group_id"`
+	ETLD        string   `json:"etld"`
+	HostAddress string   `json:"host_address"` // or ip address if no hostname
+	AddressIDs  []int64  `json:"address_ids"`
+	IPAddresses []string `json:"ip_addresses"`
+}
+
 // ScanGroupAddressFilter filters the results of an Addresses search
 type ScanGroupAddressFilter struct {
-	OrgID               int   `json:"org_id"`
-	GroupID             int   `json:"group_id"`
-	WithIgnored         bool  `json:"with_ignored"`
-	IgnoredValue        bool  `json:"ignored_value"`
-	WithLastScannedTime bool  `json:"with_scanned_time"`
-	SinceScannedTime    int64 `json:"since_scanned_time"`
-	WithLastSeenTime    bool  `json:"with_seen_time"`
-	SinceSeenTime       int64 `json:"since_seen_time"`
-	Start               int64 `json:"start"`
-	Limit               int   `json:"limit"`
+	OrgID                int    `json:"org_id"`
+	GroupID              int    `json:"group_id"`
+	Start                int64  `json:"start"`
+	Limit                int    `json:"limit"`
+	WithIgnored          bool   `json:"with_ignored"`
+	IgnoredValue         bool   `json:"ignored_value"`
+	WithLastScannedTime  bool   `json:"with_scanned_time"`
+	SinceScannedTime     int64  `json:"since_scanned_time"`
+	WithLastSeenTime     bool   `json:"with_seen_time"`
+	SinceSeenTime        int64  `json:"since_seen_time"`
+	WithIsWildcard       bool   `json:"with_wildcard"`
+	IsWildcardValue      bool   `json:"wildcard_value"`
+	WithIsHostedService  bool   `json:"with_hosted_service"`
+	IsHostedServiceValue bool   `json:"hosted_service_value"`
+	MatchesHost          string `json:"matches_host,omitempty"`
+	MatchesIP            string `json:"matches_ip,omitempty"`
+	NSRecord             int    `json:"ns_record,omitempty"`
 }
 
 type AddressService interface {
 	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
+	GetHostList(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, hostList []*ScanGroupHostList, err error)
 	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
 	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64) (oid int, err error)
