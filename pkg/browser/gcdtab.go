@@ -356,16 +356,18 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 	return response
 }
 
+// encode the header depending on type, and lower case the header name so easier to search in DB.
 func (t *Tab) encodeHeaders(gcdHeaders map[string]interface{}) map[string]string {
 	headers := make(map[string]string, len(gcdHeaders))
 	for k, v := range gcdHeaders {
+		name := strings.ToLower(k)
 		switch rv := v.(type) {
 		case string:
-			headers[k] = rv
+			headers[name] = rv
 		case []string:
-			headers[k] = strings.Join(rv, ",")
+			headers[name] = strings.Join(rv, ",")
 		case nil:
-			headers[k] = ""
+			headers[name] = ""
 		default:
 			log.Warn().Str("header_name", k).Msg("unable to encode header value")
 		}

@@ -215,13 +215,14 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	tab := NewTab(t, address)
 	defer tab.Close()
-	
+
 	log.Info().Msg("capturing traffic")
 	tab.CaptureNetworkTraffic(ctx, address, port)
 
 	url := b.buildURL(tab, address, scheme, port)
 
 	log.Info().Msg("loading url")
+	start := time.Now().UnixNano()
 	if err := tab.LoadPage(ctx, url); err != nil {
 		log.Warn().Err(err).Msg("loading page")
 		if err == ErrNavigationTimedOut {
@@ -244,12 +245,13 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	}
 	dom := tab.SerializeDOM()
 	webData := &am.WebData{
-		Address:           address,
-		SerializedDOM:     dom,
-		SerializedDOMHash: convert.HashData([]byte(dom)),
-		Responses:         tab.GetNetworkTraffic(),
-		Snapshot:          img,
-		ResponseTimestamp: time.Now().UnixNano(),
+		Address:             address,
+		SerializedDOM:       dom,
+		SerializedDOMHash:   convert.HashData([]byte(dom)),
+		Responses:           tab.GetNetworkTraffic(),
+		Snapshot:            img,
+		URLRequestTimestamp: start,
+		ResponseTimestamp:   time.Now().UnixNano(),
 	}
 
 	log.Info().Msg("closed browser")

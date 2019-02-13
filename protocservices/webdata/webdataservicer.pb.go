@@ -38,7 +38,7 @@ func (m *GetSnapshotsRequest) Reset()         { *m = GetSnapshotsRequest{} }
 func (m *GetSnapshotsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetSnapshotsRequest) ProtoMessage()    {}
 func (*GetSnapshotsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{0}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{0}
 }
 func (m *GetSnapshotsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -93,7 +93,7 @@ func (m *GetSnapshotsResponse) Reset()         { *m = GetSnapshotsResponse{} }
 func (m *GetSnapshotsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetSnapshotsResponse) ProtoMessage()    {}
 func (*GetSnapshotsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{1}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{1}
 }
 func (m *GetSnapshotsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -148,7 +148,7 @@ func (m *GetCertificatesRequest) Reset()         { *m = GetCertificatesRequest{}
 func (m *GetCertificatesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetCertificatesRequest) ProtoMessage()    {}
 func (*GetCertificatesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{2}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{2}
 }
 func (m *GetCertificatesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -203,7 +203,7 @@ func (m *GetCertificatesResponse) Reset()         { *m = GetCertificatesResponse
 func (m *GetCertificatesResponse) String() string { return proto.CompactTextString(m) }
 func (*GetCertificatesResponse) ProtoMessage()    {}
 func (*GetCertificatesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{3}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{3}
 }
 func (m *GetCertificatesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -258,7 +258,7 @@ func (m *GetResponsesRequest) Reset()         { *m = GetResponsesRequest{} }
 func (m *GetResponsesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetResponsesRequest) ProtoMessage()    {}
 func (*GetResponsesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{4}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{4}
 }
 func (m *GetResponsesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -313,7 +313,7 @@ func (m *GetResponsesResponse) Reset()         { *m = GetResponsesResponse{} }
 func (m *GetResponsesResponse) String() string { return proto.CompactTextString(m) }
 func (*GetResponsesResponse) ProtoMessage()    {}
 func (*GetResponsesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{5}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{5}
 }
 func (m *GetResponsesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -356,6 +356,116 @@ func (m *GetResponsesResponse) GetResponses() []*prototypes.HTTPResponse {
 	return nil
 }
 
+type GetURLListRequest struct {
+	UserContext          *prototypes.UserContext       `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	Filter               *prototypes.WebResponseFilter `protobuf:"bytes,2,opt,name=Filter" json:"Filter,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *GetURLListRequest) Reset()         { *m = GetURLListRequest{} }
+func (m *GetURLListRequest) String() string { return proto.CompactTextString(m) }
+func (*GetURLListRequest) ProtoMessage()    {}
+func (*GetURLListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{6}
+}
+func (m *GetURLListRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetURLListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetURLListRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetURLListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetURLListRequest.Merge(dst, src)
+}
+func (m *GetURLListRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetURLListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetURLListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetURLListRequest proto.InternalMessageInfo
+
+func (m *GetURLListRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *GetURLListRequest) GetFilter() *prototypes.WebResponseFilter {
+	if m != nil {
+		return m.Filter
+	}
+	return nil
+}
+
+type GetURLListResponse struct {
+	OrgID                int32                         `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	URLList              []*prototypes.URLListResponse `protobuf:"bytes,2,rep,name=URLList" json:"URLList,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *GetURLListResponse) Reset()         { *m = GetURLListResponse{} }
+func (m *GetURLListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetURLListResponse) ProtoMessage()    {}
+func (*GetURLListResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{7}
+}
+func (m *GetURLListResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetURLListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetURLListResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetURLListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetURLListResponse.Merge(dst, src)
+}
+func (m *GetURLListResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetURLListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetURLListResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetURLListResponse proto.InternalMessageInfo
+
+func (m *GetURLListResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GetURLListResponse) GetURLList() []*prototypes.URLListResponse {
+	if m != nil {
+		return m.URLList
+	}
+	return nil
+}
+
 type AddRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Data                 *prototypes.WebData     `protobuf:"bytes,2,opt,name=Data" json:"Data,omitempty"`
@@ -368,7 +478,7 @@ func (m *AddRequest) Reset()         { *m = AddRequest{} }
 func (m *AddRequest) String() string { return proto.CompactTextString(m) }
 func (*AddRequest) ProtoMessage()    {}
 func (*AddRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{6}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{8}
 }
 func (m *AddRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -422,7 +532,7 @@ func (m *AddedResponse) Reset()         { *m = AddedResponse{} }
 func (m *AddedResponse) String() string { return proto.CompactTextString(m) }
 func (*AddedResponse) ProtoMessage()    {}
 func (*AddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_webdataservicer_b3ba1b9cb798bca8, []int{7}
+	return fileDescriptor_webdataservicer_4a801fb374e959e8, []int{9}
 }
 func (m *AddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -465,6 +575,8 @@ func init() {
 	proto.RegisterType((*GetCertificatesResponse)(nil), "webdata.GetCertificatesResponse")
 	proto.RegisterType((*GetResponsesRequest)(nil), "webdata.GetResponsesRequest")
 	proto.RegisterType((*GetResponsesResponse)(nil), "webdata.GetResponsesResponse")
+	proto.RegisterType((*GetURLListRequest)(nil), "webdata.GetURLListRequest")
+	proto.RegisterType((*GetURLListResponse)(nil), "webdata.GetURLListResponse")
 	proto.RegisterType((*AddRequest)(nil), "webdata.AddRequest")
 	proto.RegisterType((*AddedResponse)(nil), "webdata.AddedResponse")
 }
@@ -484,6 +596,7 @@ type WebDataClient interface {
 	GetSnapshots(ctx context.Context, in *GetSnapshotsRequest, opts ...grpc.CallOption) (*GetSnapshotsResponse, error)
 	GetResponses(ctx context.Context, in *GetResponsesRequest, opts ...grpc.CallOption) (*GetResponsesResponse, error)
 	GetCertificates(ctx context.Context, in *GetCertificatesRequest, opts ...grpc.CallOption) (*GetCertificatesResponse, error)
+	GetURLList(ctx context.Context, in *GetURLListRequest, opts ...grpc.CallOption) (*GetURLListResponse, error)
 	Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*AddedResponse, error)
 }
 
@@ -522,6 +635,15 @@ func (c *webDataClient) GetCertificates(ctx context.Context, in *GetCertificates
 	return out, nil
 }
 
+func (c *webDataClient) GetURLList(ctx context.Context, in *GetURLListRequest, opts ...grpc.CallOption) (*GetURLListResponse, error) {
+	out := new(GetURLListResponse)
+	err := c.cc.Invoke(ctx, "/webdata.WebData/GetURLList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *webDataClient) Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*AddedResponse, error) {
 	out := new(AddedResponse)
 	err := c.cc.Invoke(ctx, "/webdata.WebData/Add", in, out, opts...)
@@ -536,6 +658,7 @@ type WebDataServer interface {
 	GetSnapshots(context.Context, *GetSnapshotsRequest) (*GetSnapshotsResponse, error)
 	GetResponses(context.Context, *GetResponsesRequest) (*GetResponsesResponse, error)
 	GetCertificates(context.Context, *GetCertificatesRequest) (*GetCertificatesResponse, error)
+	GetURLList(context.Context, *GetURLListRequest) (*GetURLListResponse, error)
 	Add(context.Context, *AddRequest) (*AddedResponse, error)
 }
 
@@ -597,6 +720,24 @@ func _WebData_GetCertificates_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WebData_GetURLList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetURLListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WebDataServer).GetURLList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/webdata.WebData/GetURLList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WebDataServer).GetURLList(ctx, req.(*GetURLListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _WebData_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddRequest)
 	if err := dec(in); err != nil {
@@ -630,6 +771,10 @@ var _WebData_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCertificates",
 			Handler:    _WebData_GetCertificates_Handler,
+		},
+		{
+			MethodName: "GetURLList",
+			Handler:    _WebData_GetURLList_Handler,
 		},
 		{
 			MethodName: "Add",
@@ -877,6 +1022,85 @@ func (m *GetResponsesResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *GetURLListRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetURLListRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintWebdataservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n7, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	if m.Filter != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintWebdataservicer(dAtA, i, uint64(m.Filter.Size()))
+		n8, err := m.Filter.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n8
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetURLListResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetURLListResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintWebdataservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if len(m.URLList) > 0 {
+		for _, msg := range m.URLList {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintWebdataservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
 func (m *AddRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -896,21 +1120,21 @@ func (m *AddRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintWebdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n7, err := m.UserContext.MarshalTo(dAtA[i:])
+		n9, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n7
+		i += n9
 	}
 	if m.Data != nil {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintWebdataservicer(dAtA, i, uint64(m.Data.Size()))
-		n8, err := m.Data.MarshalTo(dAtA[i:])
+		n10, err := m.Data.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n8
+		i += n10
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -1066,6 +1290,47 @@ func (m *GetResponsesResponse) Size() (n int) {
 	}
 	if len(m.Responses) > 0 {
 		for _, e := range m.Responses {
+			l = e.Size()
+			n += 1 + l + sovWebdataservicer(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetURLListRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovWebdataservicer(uint64(l))
+	}
+	if m.Filter != nil {
+		l = m.Filter.Size()
+		n += 1 + l + sovWebdataservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetURLListResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovWebdataservicer(uint64(m.OrgID))
+	}
+	if len(m.URLList) > 0 {
+		for _, e := range m.URLList {
 			l = e.Size()
 			n += 1 + l + sovWebdataservicer(uint64(l))
 		}
@@ -1778,6 +2043,224 @@ func (m *GetResponsesResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *GetURLListRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowWebdataservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetURLListRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetURLListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowWebdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthWebdataservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Filter", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowWebdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthWebdataservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Filter == nil {
+				m.Filter = &prototypes.WebResponseFilter{}
+			}
+			if err := m.Filter.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipWebdataservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthWebdataservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetURLListResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowWebdataservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetURLListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetURLListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowWebdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field URLList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowWebdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthWebdataservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.URLList = append(m.URLList, &prototypes.URLListResponse{})
+			if err := m.URLList[len(m.URLList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipWebdataservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthWebdataservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *AddRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2071,38 +2554,41 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("webdata/webdataservicer.proto", fileDescriptor_webdataservicer_b3ba1b9cb798bca8)
+	proto.RegisterFile("webdata/webdataservicer.proto", fileDescriptor_webdataservicer_4a801fb374e959e8)
 }
 
-var fileDescriptor_webdataservicer_b3ba1b9cb798bca8 = []byte{
-	// 459 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xd1, 0x6e, 0xd3, 0x30,
-	0x14, 0x25, 0x1d, 0xdb, 0xd8, 0x5d, 0xa7, 0x49, 0x5e, 0x37, 0xaa, 0x68, 0x2b, 0x55, 0x24, 0x24,
-	0x34, 0x34, 0x47, 0xea, 0x7e, 0x80, 0xb2, 0x89, 0x81, 0x78, 0x00, 0x99, 0x22, 0x60, 0x6f, 0x4e,
-	0x7d, 0xd9, 0x2c, 0xb6, 0x24, 0x8b, 0x5d, 0x0a, 0x7f, 0xc2, 0x4f, 0xf0, 0x1f, 0x3c, 0xf2, 0x09,
-	0xa8, 0xfc, 0x08, 0xaa, 0xe3, 0x24, 0x4e, 0xb6, 0xf5, 0x61, 0xe2, 0x29, 0xf2, 0xb9, 0x27, 0xe7,
-	0xf8, 0xf8, 0xda, 0x17, 0xf6, 0xa6, 0x18, 0x09, 0xae, 0x79, 0x68, 0xbf, 0x0a, 0xb3, 0xaf, 0x72,
-	0x8c, 0x19, 0x4d, 0xb3, 0x44, 0x27, 0x64, 0xd5, 0xc2, 0xfe, 0xb6, 0x59, 0xeb, 0xef, 0x29, 0xaa,
-	0x70, 0xa2, 0x8a, 0xba, 0xdf, 0x71, 0xe0, 0x29, 0x46, 0x39, 0x1a, 0x5c, 0xc1, 0xd6, 0x09, 0xea,
-	0x77, 0x31, 0x4f, 0xd5, 0x79, 0xa2, 0x15, 0xc3, 0xab, 0x09, 0x2a, 0x4d, 0x28, 0xac, 0xbf, 0x57,
-	0x98, 0x1d, 0x25, 0xb1, 0xc6, 0x6f, 0xba, 0xeb, 0xf5, 0xbd, 0x27, 0xeb, 0x83, 0x36, 0x75, 0x30,
-	0xe6, 0x12, 0xc8, 0x3e, 0xac, 0xbc, 0x90, 0x17, 0x1a, 0xb3, 0x6e, 0xcb, 0x50, 0x09, 0xfd, 0x80,
-	0x51, 0xa1, 0x9a, 0x57, 0x98, 0x65, 0x04, 0x1f, 0xa1, 0x53, 0xb7, 0x54, 0x69, 0x12, 0x2b, 0x24,
-	0x1d, 0x58, 0x7e, 0x93, 0x9d, 0xbd, 0x3a, 0x36, 0x6e, 0xcb, 0x2c, 0x5f, 0x90, 0x7d, 0x58, 0x2b,
-	0xa9, 0xdd, 0x56, 0x7f, 0xc9, 0xec, 0xc3, 0x11, 0x67, 0x55, 0x39, 0x98, 0xc2, 0xce, 0x09, 0xea,
-	0x23, 0xcc, 0xb4, 0xfc, 0x2c, 0xc7, 0x5c, 0xe3, 0x9d, 0xf3, 0x1c, 0x34, 0xf2, 0x6c, 0xcf, 0x2d,
-	0x1d, 0xe1, 0x46, 0x24, 0x01, 0x0f, 0xaf, 0x19, 0x2f, 0x4c, 0x75, 0x08, 0x6d, 0x97, 0x6d, 0x83,
-	0x6d, 0x36, 0x5c, 0x58, 0x8d, 0x64, 0x7b, 0x55, 0x28, 0xff, 0xdf, 0x5e, 0x15, 0xaa, 0x8d, 0x60,
-	0x9f, 0x4c, 0xaf, 0x1c, 0xcb, 0x85, 0xa9, 0x9e, 0xc2, 0x5a, 0x49, 0xb5, 0x91, 0x36, 0xe8, 0xcb,
-	0xd1, 0xe8, 0x6d, 0x81, 0xb2, 0xaa, 0x1e, 0x9c, 0x02, 0x0c, 0x85, 0xb8, 0x6b, 0x88, 0x5d, 0xb8,
-	0x7f, 0xcc, 0x35, 0xb7, 0x11, 0x1e, 0xcc, 0x23, 0xcc, 0xd7, 0xcc, 0xa0, 0xc1, 0x63, 0xd8, 0x18,
-	0x0a, 0x81, 0x62, 0xf1, 0x7e, 0x07, 0x3f, 0x5b, 0xb0, 0x6a, 0x7f, 0x24, 0xaf, 0xa1, 0xed, 0xde,
-	0x4a, 0xb2, 0x4b, 0xed, 0x7b, 0xa2, 0x37, 0xbc, 0x0f, 0x7f, 0xef, 0x96, 0xaa, 0xb5, 0xcb, 0xc5,
-	0xca, 0xac, 0x75, 0xb1, 0x66, 0x03, 0xeb, 0x62, 0xd7, 0xcf, 0x7a, 0x04, 0x9b, 0x8d, 0xcb, 0x45,
-	0x1e, 0xb9, 0x7f, 0xdc, 0x70, 0xdf, 0xfd, 0xfe, 0xed, 0x04, 0xab, 0x3a, 0x80, 0xa5, 0xa1, 0x10,
-	0x64, 0xab, 0x24, 0x56, 0xcd, 0xf0, 0x77, 0x5c, 0xb0, 0x3a, 0xc5, 0xe7, 0xcf, 0x7e, 0xcd, 0x7a,
-	0xde, 0xef, 0x59, 0xcf, 0xfb, 0x33, 0xeb, 0x79, 0x3f, 0xfe, 0xf6, 0xee, 0x9d, 0xd2, 0x33, 0xa9,
-	0xcf, 0x27, 0x11, 0x1d, 0x27, 0x97, 0xe1, 0x85, 0x8c, 0xbf, 0x70, 0x79, 0x20, 0x93, 0x90, 0x5f,
-	0x86, 0x66, 0xba, 0x8c, 0xed, 0x88, 0x52, 0xc5, 0xc8, 0x8a, 0x56, 0x0c, 0x7e, 0xf8, 0x2f, 0x00,
-	0x00, 0xff, 0xff, 0x7c, 0x04, 0xed, 0x55, 0xcc, 0x04, 0x00, 0x00,
+var fileDescriptor_webdataservicer_4a801fb374e959e8 = []byte{
+	// 508 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x54, 0xed, 0x4e, 0x13, 0x41,
+	0x14, 0x75, 0x8b, 0x50, 0xb9, 0x94, 0xa0, 0x43, 0xc1, 0x66, 0x85, 0xda, 0x6c, 0x62, 0x62, 0x30,
+	0xcc, 0x26, 0xe5, 0x05, 0xac, 0xa0, 0xd5, 0x48, 0xa2, 0x19, 0x8b, 0x1f, 0xfc, 0xdb, 0xed, 0x5c,
+	0x61, 0x22, 0x74, 0xcb, 0xce, 0xad, 0xd5, 0x37, 0xf1, 0x91, 0xfc, 0xe9, 0x23, 0x98, 0xfa, 0x0a,
+	0x3e, 0x80, 0xe9, 0x76, 0xb6, 0x3b, 0xbb, 0x94, 0x9a, 0x10, 0xe3, 0xaf, 0xcd, 0x9e, 0x7b, 0xe6,
+	0x9c, 0x39, 0xb9, 0x73, 0x2f, 0x6c, 0x0f, 0x31, 0x94, 0x01, 0x05, 0xbe, 0xf9, 0x6a, 0x8c, 0x3f,
+	0xab, 0x2e, 0xc6, 0xbc, 0x1f, 0x47, 0x14, 0xb1, 0xb2, 0x81, 0xdd, 0x8d, 0xe4, 0x9f, 0xbe, 0xf6,
+	0x51, 0xfb, 0x03, 0x9d, 0xd6, 0xdd, 0xaa, 0x05, 0x0f, 0x31, 0x9c, 0xa0, 0xde, 0x05, 0xac, 0xb7,
+	0x91, 0xde, 0xf4, 0x82, 0xbe, 0x3e, 0x8d, 0x48, 0x0b, 0xbc, 0x18, 0xa0, 0x26, 0xc6, 0x61, 0xe5,
+	0x48, 0x63, 0xbc, 0x1f, 0xf5, 0x08, 0xbf, 0x50, 0xcd, 0x69, 0x38, 0x0f, 0x57, 0x9a, 0x15, 0x6e,
+	0x61, 0xc2, 0x26, 0xb0, 0x1d, 0x58, 0x7a, 0xa6, 0xce, 0x08, 0xe3, 0x5a, 0x29, 0xa1, 0x32, 0xfe,
+	0x0e, 0xc3, 0x54, 0x75, 0x52, 0x11, 0x86, 0xe1, 0xbd, 0x87, 0x6a, 0xde, 0x52, 0xf7, 0xa3, 0x9e,
+	0x46, 0x56, 0x85, 0xc5, 0x57, 0xf1, 0xc9, 0x8b, 0x83, 0xc4, 0x6d, 0x51, 0x4c, 0x7e, 0xd8, 0x0e,
+	0x2c, 0x4f, 0xa9, 0xb5, 0x52, 0x63, 0x21, 0xb9, 0x87, 0x25, 0x2e, 0xb2, 0xb2, 0x37, 0x84, 0xcd,
+	0x36, 0xd2, 0x3e, 0xc6, 0xa4, 0x3e, 0xaa, 0x6e, 0x40, 0x78, 0xed, 0x3c, 0xbb, 0x85, 0x3c, 0x1b,
+	0x63, 0x4b, 0x4b, 0xb8, 0x10, 0x49, 0xc2, 0xdd, 0x4b, 0xc6, 0x73, 0x53, 0xed, 0x41, 0xc5, 0x66,
+	0x9b, 0x60, 0x6b, 0x05, 0x17, 0x91, 0x23, 0x99, 0x5e, 0xa5, 0xca, 0xff, 0xb6, 0x57, 0xa9, 0x6a,
+	0x21, 0xd8, 0x87, 0xa4, 0x57, 0x96, 0xe5, 0xdc, 0x54, 0x8f, 0x60, 0x79, 0x4a, 0x35, 0x91, 0x56,
+	0xf9, 0xf3, 0x4e, 0xe7, 0x75, 0x8a, 0x8a, 0xac, 0xee, 0x45, 0x70, 0xa7, 0x8d, 0x74, 0x24, 0x0e,
+	0x0f, 0x95, 0xa6, 0xff, 0x91, 0xe5, 0x2d, 0x30, 0xdb, 0xf0, 0x2f, 0xaf, 0xae, 0x6c, 0x88, 0x26,
+	0xc7, 0x6d, 0x5e, 0x38, 0x28, 0x52, 0x82, 0x77, 0x0c, 0xd0, 0x92, 0xf2, 0xba, 0x09, 0xb6, 0xe0,
+	0xe6, 0x41, 0x40, 0x81, 0xb9, 0xff, 0xad, 0xf1, 0xfd, 0xc7, 0xff, 0x22, 0x41, 0xbd, 0x07, 0xb0,
+	0xda, 0x92, 0x12, 0xe5, 0xfc, 0xeb, 0x36, 0x7f, 0x97, 0xa0, 0x6c, 0x0e, 0xb2, 0x97, 0x50, 0xb1,
+	0xc7, 0x8b, 0x6d, 0x71, 0xb3, 0x18, 0xf8, 0x8c, 0x41, 0x77, 0xb7, 0xaf, 0xa8, 0x1a, 0xbb, 0x89,
+	0xd8, 0xb4, 0x69, 0x79, 0xb1, 0xe2, 0x4b, 0xcc, 0x8b, 0x5d, 0x7e, 0x34, 0x1d, 0x58, 0x2b, 0x4c,
+	0x09, 0xbb, 0x6f, 0x9f, 0x98, 0x31, 0xb8, 0x6e, 0xe3, 0x6a, 0x82, 0x51, 0x7d, 0x0a, 0x90, 0xb5,
+	0x95, 0xb9, 0x36, 0x3f, 0xff, 0xb8, 0xdc, 0x7b, 0x33, 0x6b, 0x46, 0xa6, 0x09, 0x0b, 0x2d, 0x29,
+	0xd9, 0xfa, 0x94, 0x93, 0xf5, 0xd4, 0xdd, 0xb4, 0xc1, 0xac, 0x19, 0x4f, 0x1e, 0x7f, 0x1f, 0xd5,
+	0x9d, 0x1f, 0xa3, 0xba, 0xf3, 0x73, 0x54, 0x77, 0xbe, 0xfd, 0xaa, 0xdf, 0x38, 0xe6, 0x27, 0x8a,
+	0x4e, 0x07, 0x21, 0xef, 0x46, 0xe7, 0xfe, 0x99, 0xea, 0x7d, 0x0a, 0xd4, 0xae, 0x8a, 0xfc, 0xe0,
+	0xdc, 0x4f, 0xb6, 0x6d, 0xd7, 0xac, 0x6c, 0x9d, 0xae, 0xf0, 0x70, 0x29, 0xc1, 0xf7, 0xfe, 0x04,
+	0x00, 0x00, 0xff, 0xff, 0x81, 0x21, 0xbc, 0xbb, 0xdc, 0x05, 0x00, 0x00,
 }

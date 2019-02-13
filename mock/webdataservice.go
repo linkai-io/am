@@ -21,6 +21,9 @@ type WebDataService struct {
 
 	GetSnapshotsFn      func(ctx context.Context, userContext am.UserContext, filter *am.WebSnapshotFilter) (int, []*am.WebSnapshot, error)
 	GetSnapshotsInvoked bool
+
+	GetURLListFn      func(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error)
+	GetURLListInvoked bool
 }
 
 func (s *WebDataService) Init(config []byte) error {
@@ -45,4 +48,9 @@ func (s *WebDataService) GetCertificates(ctx context.Context, userContext am.Use
 func (s *WebDataService) GetSnapshots(ctx context.Context, userContext am.UserContext, filter *am.WebSnapshotFilter) (int, []*am.WebSnapshot, error) {
 	s.GetSnapshotsInvoked = true
 	return s.GetSnapshotsFn(ctx, userContext, filter)
+}
+
+func (s *WebDataService) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
+	s.GetURLListInvoked = true
+	return s.GetURLListFn(ctx, userContext, filter)
 }

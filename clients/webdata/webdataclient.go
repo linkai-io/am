@@ -82,7 +82,7 @@ func (c *Client) GetResponses(ctx context.Context, userContext am.UserContext, f
 
 		resp, retryErr = c.client.GetResponses(ctxDeadline, in)
 
-		return errors.Wrap(retryErr, "unable to get ct records from client")
+		return errors.Wrap(retryErr, "unable to get get responses from client")
 	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
@@ -135,11 +135,37 @@ func (c *Client) GetSnapshots(ctx context.Context, userContext am.UserContext, f
 
 		resp, retryErr = c.client.GetSnapshots(ctxDeadline, in)
 
-		return errors.Wrap(retryErr, "unable to get ct records from client")
+		return errors.Wrap(retryErr, "unable to get snapshots from client")
 	}, "rpc error: code = Unavailable desc")
 
 	if err != nil {
 		return 0, nil, err
 	}
 	return int(resp.OrgID), convert.WebSnapshotsToDomain(resp.Snapshots), nil
+}
+
+func (c *Client) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
+	var resp *service.GetURLListResponse
+	var err error
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	in := &service.GetURLListRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Filter:      convert.DomainToWebResponseFilter(filter),
+	}
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetURLList(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get url list from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.OrgID), convert.URLListsToDomain(resp.GetURLList()), nil
 }

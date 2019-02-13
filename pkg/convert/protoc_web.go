@@ -99,8 +99,6 @@ func DomainToHTTPResponse(in *am.HTTPResponse) *prototypes.HTTPResponse {
 		OrgID:                int32(in.OrgID),
 		GroupID:              int32(in.GroupID),
 		AddressID:            in.AddressID,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
 		Scheme:               in.Scheme,
 		HostAddress:          in.HostAddress,
 		IPAddress:            in.IPAddress,
@@ -117,6 +115,9 @@ func DomainToHTTPResponse(in *am.HTTPResponse) *prototypes.HTTPResponse {
 		IsDocument:           in.IsDocument,
 		WebCertificate:       DomainToWebCertificate(in.WebCertificate),
 		IsDeleted:            in.IsDeleted,
+		AddressIDHostAddress: in.AddressIDHostAddress,
+		AddressIDIPAddress:   in.AddressIDIPAddress,
+		URLRequestTimestamp:  in.URLRequestTimestamp,
 	}
 }
 
@@ -145,6 +146,7 @@ func HTTPResponseToDomain(in *prototypes.HTTPResponse) *am.HTTPResponse {
 		RawBodyLink:          in.RawBodyLink,
 		RawBodyHash:          in.RawBodyHash,
 		ResponseTimestamp:    in.ResponseTimestamp,
+		URLRequestTimestamp:  in.URLRequestTimestamp,
 		IsDocument:           in.IsDocument,
 		WebCertificate:       WebCertificateToDomain(in.WebCertificate),
 		IsDeleted:            in.IsDeleted,
@@ -187,12 +189,13 @@ func DomainToWebData(in *am.WebData) *prototypes.WebData {
 	responses := DomainToHTTPResponses(in.Responses)
 
 	return &prototypes.WebData{
-		Address:           DomainToAddress(in.Address),
-		Responses:         responses,
-		SnapshotLink:      in.SnapshotLink,
-		SerializedDOMHash: in.SerializedDOMHash,
-		SerializedDOMLink: in.SerializedDOMLink,
-		ResponseTimestamp: in.ResponseTimestamp,
+		Address:             DomainToAddress(in.Address),
+		Responses:           responses,
+		SnapshotLink:        in.SnapshotLink,
+		SerializedDOMHash:   in.SerializedDOMHash,
+		SerializedDOMLink:   in.SerializedDOMLink,
+		ResponseTimestamp:   in.ResponseTimestamp,
+		URLRequestTimestamp: in.URLRequestTimestamp,
 	}
 }
 
@@ -204,12 +207,13 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 	responses := HTTPResponsesToDomain(in.Responses)
 
 	return &am.WebData{
-		Address:           AddressToDomain(in.Address),
-		Responses:         responses,
-		SnapshotLink:      in.SnapshotLink,
-		SerializedDOMHash: in.SerializedDOMHash,
-		SerializedDOMLink: in.SerializedDOMLink,
-		ResponseTimestamp: in.ResponseTimestamp,
+		Address:             AddressToDomain(in.Address),
+		Responses:           responses,
+		SnapshotLink:        in.SnapshotLink,
+		SerializedDOMHash:   in.SerializedDOMHash,
+		SerializedDOMLink:   in.SerializedDOMLink,
+		ResponseTimestamp:   in.ResponseTimestamp,
+		URLRequestTimestamp: in.URLRequestTimestamp,
 	}
 }
 
@@ -218,28 +222,28 @@ func DomainToWebSnapshot(in *am.WebSnapshot) *prototypes.WebSnapshot {
 		OrgID:                int32(in.OrgID),
 		GroupID:              int32(in.GroupID),
 		AddressID:            in.AddressID,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
 		SnapshotID:           in.SnapshotID,
 		SnapshotLink:         in.SnapshotLink,
 		SerializedDOMLink:    in.SerializedDOMLink,
-		SerializedDOMHash:    in.SerializedDOMHash,
 		ResponseTimestamp:    in.ResponseTimestamp,
 		IsDeleted:            in.IsDeleted,
+		SerializedDOMHash:    in.SerializedDOMHash,
+		AddressIDHostAddress: in.AddressIDHostAddress,
+		AddressIDIPAddress:   in.AddressIDIPAddress,
 	}
 }
 
 func WebSnapshotToDomain(in *prototypes.WebSnapshot) *am.WebSnapshot {
 	return &am.WebSnapshot{
+		SnapshotID:           in.SnapshotID,
 		OrgID:                int(in.OrgID),
 		GroupID:              int(in.GroupID),
 		AddressID:            in.AddressID,
 		AddressIDHostAddress: in.AddressIDHostAddress,
 		AddressIDIPAddress:   in.AddressIDIPAddress,
-		SnapshotID:           in.SnapshotID,
 		SnapshotLink:         in.SnapshotLink,
-		SerializedDOMLink:    in.SerializedDOMLink,
 		SerializedDOMHash:    in.SerializedDOMHash,
+		SerializedDOMLink:    in.SerializedDOMLink,
 		ResponseTimestamp:    in.ResponseTimestamp,
 		IsDeleted:            in.IsDeleted,
 	}
@@ -281,6 +285,9 @@ func DomainToWebSnapshotFilter(in *am.WebSnapshotFilter) *prototypes.WebSnapshot
 		SinceResponseTime: in.SinceResponseTime,
 		Start:             in.Start,
 		Limit:             int32(in.Limit),
+		LatestOnlyValue:   in.LatestOnlyValue,
+		MatchesHost:       in.MatchesHost,
+		MatchesIP:         in.MatchesIP,
 	}
 }
 
@@ -290,6 +297,9 @@ func WebSnapshotFilterToDomain(in *prototypes.WebSnapshotFilter) *am.WebSnapshot
 		GroupID:           int(in.GroupID),
 		WithResponseTime:  in.WithResponseTime,
 		SinceResponseTime: in.SinceResponseTime,
+		LatestOnlyValue:   in.LatestOnlyValue,
+		MatchesHost:       in.MatchesHost,
+		MatchesIP:         in.MatchesIP,
 		Start:             in.Start,
 		Limit:             int(in.Limit),
 	}
@@ -303,6 +313,10 @@ func DomainToWebResponseFilter(in *am.WebResponseFilter) *prototypes.WebResponse
 		SinceResponseTime: in.SinceResponseTime,
 		Start:             in.Start,
 		Limit:             int32(in.Limit),
+		MimeType:          in.MimeType,
+		WithHeader:        in.WithHeader,
+		WithoutHeader:     in.WithoutHeader,
+		LatestOnlyValue:   in.LatestOnlyValue,
 	}
 }
 
@@ -312,6 +326,10 @@ func WebResponseFilterToDomain(in *prototypes.WebResponseFilter) *am.WebResponse
 		GroupID:           int(in.GroupID),
 		WithResponseTime:  in.WithResponseTime,
 		SinceResponseTime: in.SinceResponseTime,
+		MimeType:          in.MimeType,
+		WithHeader:        in.WithHeader,
+		WithoutHeader:     in.WithoutHeader,
+		LatestOnlyValue:   in.LatestOnlyValue,
 		Start:             in.Start,
 		Limit:             int(in.Limit),
 	}
@@ -324,9 +342,11 @@ func DomainToWebCertificateFilter(in *am.WebCertificateFilter) *prototypes.WebCe
 		WithResponseTime:  in.WithResponseTime,
 		SinceResponseTime: in.SinceResponseTime,
 		WithValidTo:       in.WithValidTo,
-		ValidToTime:       in.ValidToTime,
+		ValidToValue:      in.ValidToValue,
 		Start:             in.Start,
 		Limit:             int32(in.Limit),
+		WithValidFrom:     in.WithValidFrom,
+		ValidFromValue:    in.ValidFromValue,
 	}
 }
 
@@ -337,8 +357,64 @@ func WebCertificateFilterToDomain(in *prototypes.WebCertificateFilter) *am.WebCe
 		WithResponseTime:  in.WithResponseTime,
 		SinceResponseTime: in.SinceResponseTime,
 		WithValidTo:       in.WithValidTo,
-		ValidToTime:       in.ValidToTime,
+		ValidToValue:      in.ValidToValue,
+		WithValidFrom:     in.WithValidFrom,
+		ValidFromValue:    in.ValidFromValue,
 		Start:             in.Start,
 		Limit:             int(in.Limit),
 	}
+}
+
+func DomainToURLListResponse(in *am.URLListResponse) *prototypes.URLListResponse {
+	return &prototypes.URLListResponse{
+		OrgID:                int32(in.OrgID),
+		GroupID:              int32(in.GroupID),
+		AddressIDHostAddress: in.AddressIDHostAddress,
+		AddressIDIPAddress:   in.AddressIDIPAddress,
+		URLRequestTimestamp:  in.URLRequestTimestamp,
+		URLs:                 in.URLs,
+		RawBodyLinks:         in.RawBodyLinks,
+		MimeTypes:            in.MimeTypes,
+	}
+}
+
+func URLListResponseToDomain(in *prototypes.URLListResponse) *am.URLListResponse {
+	return &am.URLListResponse{
+		OrgID:                int(in.OrgID),
+		GroupID:              int(in.GroupID),
+		AddressIDHostAddress: in.AddressIDHostAddress,
+		AddressIDIPAddress:   in.AddressIDIPAddress,
+		URLRequestTimestamp:  in.URLRequestTimestamp,
+		URLs:                 in.URLs,
+		RawBodyLinks:         in.RawBodyLinks,
+		MimeTypes:            in.MimeTypes,
+	}
+}
+
+func DomainToURLLists(in []*am.URLListResponse) []*prototypes.URLListResponse {
+	if in == nil {
+		return nil
+	}
+
+	urlListLen := len(in)
+
+	urlLists := make([]*prototypes.URLListResponse, urlListLen)
+	for i := 0; i < urlListLen; i++ {
+		urlLists[i] = DomainToURLListResponse(in[i])
+	}
+	return urlLists
+}
+
+func URLListsToDomain(in []*prototypes.URLListResponse) []*am.URLListResponse {
+	if in == nil {
+		return nil
+	}
+
+	urlListLen := len(in)
+
+	urlLists := make([]*am.URLListResponse, urlListLen)
+	for i := 0; i < urlListLen; i++ {
+		urlLists[i] = URLListResponseToDomain(in[i])
+	}
+	return urlLists
 }

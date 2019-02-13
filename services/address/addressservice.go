@@ -11,6 +11,7 @@ import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/generators"
 )
 
 var (
@@ -137,6 +138,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 }
 
 // GetHostList returns hostnames and a list of IP addresses for each host
+// TODO: add filtering for start/limit
 func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
@@ -195,51 +197,41 @@ func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.Sca
 	i := 3
 	prefix := ""
 	if filter.WithIgnored {
-		AppendConditionalQuery(&query, &prefix, "ignored=$%d", filter.IgnoredValue, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "ignored=$%d", filter.IgnoredValue, &args, &i)
 	}
 
 	if filter.WithLastScannedTime {
-		AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.SinceScannedTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.SinceScannedTime, &args, &i)
 	}
 
 	if filter.WithLastSeenTime {
-		AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.SinceSeenTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.SinceSeenTime, &args, &i)
 	}
 
 	if filter.WithIsWildcard {
-		AppendConditionalQuery(&query, &prefix, "is_wildcard_zone=$%d", filter.IsWildcardValue, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "is_wildcard_zone=$%d", filter.IsWildcardValue, &args, &i)
 	}
 
 	if filter.WithIsHostedService {
-		AppendConditionalQuery(&query, &prefix, "is_hosted_service=$%d", filter.IsHostedServiceValue, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "is_hosted_service=$%d", filter.IsHostedServiceValue, &args, &i)
 	}
 
 	if filter.MatchesHost != "" {
-		AppendConditionalQuery(&query, &prefix, "reverse(host_address) like '%%$%d'", convert.Reverse(filter.MatchesHost), &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "reverse(host_address) like '%%$%d'", convert.Reverse(filter.MatchesHost), &args, &i)
 	}
 
 	if filter.MatchesIP != "" {
-		AppendConditionalQuery(&query, &prefix, "reverse(ip_address) like '%%$%d'", convert.Reverse(filter.MatchesIP), &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "reverse(ip_address) like '%%$%d'", convert.Reverse(filter.MatchesIP), &args, &i)
 	}
 
 	if filter.NSRecord != 0 {
-		AppendConditionalQuery(&query, &prefix, "ns_record=$%d", filter.NSRecord, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "ns_record=$%d", filter.NSRecord, &args, &i)
 	}
 
 	query += fmt.Sprintf("%saddress_id > $%d order by address_id limit $%d", prefix, i, i+1)
 	args = append(args, filter.Start)
 	args = append(args, filter.Limit)
 	return query, args
-}
-
-func AppendConditionalQuery(query, prefix *string, filter string, value interface{}, args *[]interface{}, i *int) {
-	filter = fmt.Sprintf(filter, *i)
-	*query += fmt.Sprintf("%s%s", *prefix, filter)
-	*i++
-	*args = append(*args, value)
-	if *prefix == "" {
-		*prefix = " and "
-	}
 }
 
 // Update or insert new addresses

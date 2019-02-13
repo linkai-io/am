@@ -12,6 +12,32 @@ const (
 	WebDataServiceKey     = "webdataservice"
 )
 
+// WebData is the primary container of a scangroup address's http response data.
+type WebData struct {
+	Address             *ScanGroupAddress `json:"address"`
+	Responses           []*HTTPResponse   `json:"responses"`
+	Snapshot            string            `json:"snapshot,omitempty"` // only used internally by browser package
+	SnapshotLink        string            `json:"snapshot_link"`
+	SerializedDOM       string            `json:"serialized_dom,omitempty"` // only used internally by browser package
+	SerializedDOMHash   string            `json:"serialized_dom_hash"`
+	SerializedDOMLink   string            `json:"serialized_dom_link"`
+	ResponseTimestamp   int64             `json:"response_timestamp"`
+	URLRequestTimestamp int64             `json:"url_request_timestamp"`
+}
+
+// URLListResponse is for holding a list of urls from an intial request
+type URLListResponse struct {
+	OrgID                int      `json:"organization_id,omitempty"`
+	GroupID              int      `json:"group_id,omitempty"`
+	URLRequestTimestamp  int64    `json:"url_request_timestamp"`
+	AddressIDHostAddress string   `json:"address_id_host_address,omitempty"` // used for returning data to user
+	AddressIDIPAddress   string   `json:"address_id_ip_address,omitempty"`   // used for returning data to user
+	URLs                 []string `json:"urls"`
+	RawBodyLinks         []string `json:"raw_body_link"`
+	MimeTypes            []string `json:"mime_types"`
+	ResponseIDs          []int64  `json:"response_ids"`
+}
+
 // HTTPResponse represents a captured network response
 type HTTPResponse struct {
 	ResponseID           int64             `json:"response_id,omitempty"`
@@ -35,6 +61,7 @@ type HTTPResponse struct {
 	RawBodyLink          string            `json:"raw_body_link"`
 	RawBodyHash          string            `json:"raw_body_hash"`
 	ResponseTimestamp    int64             `json:"response_timestamp"`
+	URLRequestTimestamp  int64             `json:"url_request_timestamp"`
 	IsDocument           bool              `json:"is_document"`
 	WebCertificate       *WebCertificate   `json:"web_certificate,omitempty"`
 	IsDeleted            bool              `json:"is_deleted"`
@@ -63,18 +90,6 @@ type WebCertificate struct {
 	IsDeleted                         bool     `json:"is_deleted"`
 }
 
-// WebData is the primary container of a scangroup address's http response data.
-type WebData struct {
-	Address           *ScanGroupAddress `json:"address"`
-	Responses         []*HTTPResponse   `json:"responses"`
-	Snapshot          string            `json:"snapshot,omitempty"` // only used internally by browser package
-	SnapshotLink      string            `json:"snapshot_link"`
-	SerializedDOM     string            `json:"serialized_dom,omitempty"` // only used internally by browser package
-	SerializedDOMHash string            `json:"serialized_dom_hash"`
-	SerializedDOMLink string            `json:"serialized_dom_link"`
-	ResponseTimestamp int64             `json:"response_timestamp"`
-}
-
 // WebSnapshot for returning serialized dom and image snapshot links
 type WebSnapshot struct {
 	SnapshotID           int64  `json:"snapshot_id,omitempty"`
@@ -90,23 +105,30 @@ type WebSnapshot struct {
 	IsDeleted            bool   `json:"is_deleted"`
 }
 
-type WebSnapshotFilter struct {
-	OrgID             int   `json:"org_id"`
-	GroupID           int   `json:"group_id"`
-	WithResponseTime  bool  `json:"with_response_time"`
-	SinceResponseTime int64 `json:"since_response_time"`
-	Start             int64 `json:"start"`
-	Limit             int   `json:"limit"`
-}
-
 // WebResponseFilter used to filter results when searching web data.
 type WebResponseFilter struct {
-	OrgID             int   `json:"org_id"`
-	GroupID           int   `json:"group_id"`
-	WithResponseTime  bool  `json:"with_response_time"`
-	SinceResponseTime int64 `json:"since_response_time"`
-	Start             int64 `json:"start"`
-	Limit             int   `json:"limit"`
+	OrgID             int    `json:"org_id"`
+	GroupID           int    `json:"group_id"`
+	WithResponseTime  bool   `json:"with_response_time"`
+	SinceResponseTime int64  `json:"since_response_time"`
+	MimeType          string `json:"mime_type"`
+	WithHeader        string `json:"with_header"`
+	WithoutHeader     string `json:"without_header"`
+	LatestOnlyValue   bool   `json:"latest_only_value"`
+	Start             int64  `json:"start"`
+	Limit             int    `json:"limit"`
+}
+
+type WebSnapshotFilter struct {
+	OrgID             int    `json:"org_id"`
+	GroupID           int    `json:"group_id"`
+	WithResponseTime  bool   `json:"with_response_time"`
+	SinceResponseTime int64  `json:"since_response_time"`
+	LatestOnlyValue   bool   `json:"latest_only_value"`
+	MatchesHost       string `json:"matches_host"`
+	MatchesIP         string `json:"matches_ip"`
+	Start             int64  `json:"start"`
+	Limit             int    `json:"limit"`
 }
 
 // WebCertificateFilter used to filter results when searching web data.
@@ -116,7 +138,9 @@ type WebCertificateFilter struct {
 	WithResponseTime  bool  `json:"with_response_time"`
 	SinceResponseTime int64 `json:"since_response_time"`
 	WithValidTo       bool  `json:"with_valid_to"`
-	ValidToTime       int64 `json:"valid_to_time"`
+	ValidToValue      int64 `json:"valid_to_value"`
+	WithValidFrom     bool  `json:"with_valid_from"`
+	ValidFromValue    int64 `json:"valid_from_value"`
 	Start             int64 `json:"start"`
 	Limit             int   `json:"limit"`
 }
@@ -124,6 +148,7 @@ type WebCertificateFilter struct {
 type WebDataService interface {
 	Init(config []byte) error
 	Add(ctx context.Context, userContext UserContext, webData *WebData) (int, error)
+	GetURLList(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*URLListResponse, error)
 	GetResponses(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*HTTPResponse, error)
 	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)
 	GetSnapshots(ctx context.Context, userContext UserContext, filter *WebSnapshotFilter) (int, []*WebSnapshot, error)

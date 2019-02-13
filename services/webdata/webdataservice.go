@@ -2,7 +2,10 @@ package webdata
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+
+	"github.com/linkai-io/am/pkg/generators"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -84,14 +87,22 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
-// GetResponses that match the provided filter.
-func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.HTTPResponse, error) {
+// GetURLList returns a list of urls for a series of responses (key'd off of urlrequesttimestamp)
+func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 
+	var getQuery string
 	var rows *pgx.Rows
+	var args []interface{}
 	var err error
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
 
 	if filter.Limit > 10000 {
 		return 0, nil, am.ErrLimitTooLarge
@@ -101,11 +112,99 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	if filter.WithResponseTime {
-		rows, err = s.pool.Query("responsesSinceResponseTime", userContext.GetOrgID(), filter.GroupID, filter.SinceResponseTime, filter.Start, filter.Limit)
+	if filter.LatestOnlyValue {
+		getQuery, args = s.BuildURLListFilterQuery(userContext, latestOnlyUrlListQueryPrefix, filter)
 	} else {
-		rows, err = s.pool.Query("responsesAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+		getQuery, args = s.BuildURLListFilterQuery(userContext, urlListQueryPrefix, filter)
 	}
+
+	serviceLog.Info().Str("query", getQuery).Msg("executing query")
+	rows, err = s.pool.Query(getQuery, args...)
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	urlLists := make([]*am.URLListResponse, 0)
+	for i := 0; rows.Next(); i++ {
+		urlList := &am.URLListResponse{}
+		var urls [][]byte
+		if err := rows.Scan(&urlList.OrgID, &urlList.GroupID,
+			&urlList.URLRequestTimestamp, &urlList.AddressIDHostAddress, &urlList.AddressIDIPAddress,
+			&urls, &urlList.RawBodyLinks, &urlList.ResponseIDs, &urlList.MimeTypes); err != nil {
+
+			return 0, nil, err
+		}
+
+		if urlList.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+		// this is terrible TODO Fix
+		urlList.URLs = make([]string, len(urls))
+		for i, url := range urls {
+			urlList.URLs[i] = string(url)
+		}
+
+		urlLists = append(urlLists, urlList)
+	}
+
+	return userContext.GetOrgID(), urlLists, err
+}
+
+func (s *Service) BuildURLListFilterQuery(userContext am.UserContext, query string, filter *am.WebResponseFilter) (string, []interface{}) {
+	args := make([]interface{}, 0)
+
+	args = append(args, userContext.GetOrgID())
+	args = append(args, filter.GroupID)
+	i := 3
+	prefix := ""
+
+	if filter.WithResponseTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(wb.url_request_timestamp=0 OR wb.url_request_timestamp > $%d)", filter.SinceResponseTime, &args, &i)
+	}
+	if filter.LatestOnlyValue {
+		query += " group by wb.organization_id, wb.scan_group_id, address_id_host_address, address_id_ip_address, latest.url_request_timestamp"
+	} else {
+		query += " group by wb.organization_id, wb.scan_group_id, address_id_host_address, address_id_ip_address, wb.url_request_timestamp order by wb.url_request_timestamp"
+	}
+
+	return query, args
+}
+
+// GetResponses that match the provided filter.
+func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.HTTPResponse, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+	var getQuery string
+	var args []interface{}
+	var rows *pgx.Rows
+	var err error
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	if filter.LatestOnlyValue {
+		getQuery, args = s.BuildWebFilterQuery(userContext, latestOnlyResponseQueryPrefix, filter)
+	} else {
+		getQuery, args = s.BuildWebFilterQuery(userContext, responseQueryPrefix, filter)
+	}
+
+	serviceLog.Info().Str("query", getQuery).Msg("executing query")
+
+	rows, err = s.pool.Query(getQuery, args...)
 	defer rows.Close()
 
 	if err != nil {
@@ -120,9 +219,10 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 		var requestedPort int
 		var url []byte
 
-		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.ResponseTimestamp,
-			&r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort, &requestedPort,
-			&url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash, &r.RawBodyLink, &r.IsDeleted, &r.AddressIDHostAddress, &r.AddressIDIPAddress); err != nil {
+		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &r.URLRequestTimestamp,
+			&r.ResponseTimestamp, &r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort,
+			&requestedPort, &url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash,
+			&r.RawBodyLink, &r.IsDeleted, &r.AddressIDHostAddress, &r.AddressIDIPAddress); err != nil {
 
 			return 0, nil, err
 		}
@@ -139,6 +239,53 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 	}
 
 	return userContext.GetOrgID(), responses, err
+}
+
+// BuildWebFilterQuery for building a parameterized query that allows for dynamic conditionals. I'll admit, this
+// is one hell of a gnarly generator :/.
+func (s *Service) BuildWebFilterQuery(userContext am.UserContext, query string, filter *am.WebResponseFilter) (string, []interface{}) {
+	args := make([]interface{}, 0)
+
+	args = append(args, userContext.GetOrgID())
+	args = append(args, filter.GroupID)
+	i := 3
+	prefix := ""
+
+	if filter.WithResponseTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(response_timestamp=0 OR response_timestamp > $%d)", filter.SinceResponseTime, &args, &i)
+	}
+
+	if filter.WithHeader != "" {
+		generators.AppendConditionalQuery(&query, &prefix, "headers ? $%d", filter.WithHeader, &args, &i)
+	}
+
+	if filter.WithoutHeader != "" {
+		generators.AppendConditionalQuery(&query, &prefix, "not(headers ? $%d)", filter.WithoutHeader, &args, &i)
+	}
+
+	if filter.MimeType != "" {
+		if filter.LatestOnlyValue {
+			generators.AppendConditionalQuery(&query, &prefix, "web_responses.mime_type_id=(select mime_type_id from am.web_mime_type where mime_type=$%d)", filter.MimeType, &args, &i)
+		} else {
+			generators.AppendConditionalQuery(&query, &prefix, "wb.mime_type_id=(select mime_type_id from am.web_mime_type where mime_type=$%d)", filter.MimeType, &args, &i)
+		}
+	}
+
+	if filter.LatestOnlyValue {
+		query += fmt.Sprintf(`group by web_responses.url) as latest 
+		inner join am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp
+		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
+		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+		where wb.response_id > $%d order by wb.response_id limit $%d`, i, i+1)
+		args = append(args, filter.Start)
+		args = append(args, filter.Limit)
+		return query, args
+	}
+	query += fmt.Sprintf("%sresponse_id > $%d order by response_id limit $%d", prefix, i, i+1)
+	args = append(args, filter.Start)
+	args = append(args, filter.Limit)
+
+	return query, args
 }
 
 // GetCertificates that match the provided filter.
@@ -241,7 +388,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	return userContext.GetOrgID(), snapshots, err
 }
 
-// Add webdata tos the database, includes serialized dom & snapshot links, all responses and links, and web certificates
+// Add webdata to the database, includes serialized dom & snapshot links, all responses and links, and web certificates
 // extracted by the web module
 func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "create") {
@@ -404,7 +551,7 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 			requestedPort = 0
 		}
 
-		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), aid, r.ResponseTimestamp, r.IsDocument, r.Scheme, r.IPAddress,
+		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), aid, webData.URLRequestTimestamp, r.ResponseTimestamp, r.IsDocument, r.Scheme, r.IPAddress,
 			r.HostAddress, responsePort, requestedPort, r.URL, r.Headers, r.Status, r.StatusText, r.MimeType, r.RawBodyHash, r.RawBodyLink,
 		})
 

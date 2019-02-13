@@ -3,10 +3,11 @@ package webdata
 import "fmt"
 
 var (
-	responseColumns = `response_id,
+	responseColumns = `wb.response_id,
 		organization_id,
 		scan_group_id,
 		address_id,
+		wb.url_request_timestamp,
 		response_timestamp,
 		is_document,
 		scheme,
@@ -14,7 +15,7 @@ var (
 		host_address,
 		response_port,
 		requested_port,
-		url,
+		wb.url,
 		headers,
 		status, 
 		wst.status_text,
@@ -26,6 +27,46 @@ var (
 	// for adding additional context to responses
 	referencedResponseColumns = `(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
 	(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address`
+
+	responseQueryPrefix = fmt.Sprintf(`select %s,%s from am.web_responses as wb 
+	join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
+	join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+		where organization_id=$1 and
+		scan_group_id=$2 and 
+		`, responseColumns, referencedResponseColumns)
+
+	latestOnlyResponseQueryPrefix = fmt.Sprintf(`select distinct %s,
+		%s from (select web_responses.url, max(web_responses.url_request_timestamp) as url_request_timestamp from am.web_responses 
+			where organization_id=$1 and
+			scan_group_id=$2 and
+		`, responseColumns, referencedResponseColumns)
+
+	latestOnlyUrlListQueryPrefix = `select wb.organization_id,
+	wb.scan_group_id,
+	latest.url_request_timestamp,
+	(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
+	(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address,
+	array_agg(wb.url),
+	array_agg(wb.raw_body_link) as raw_body_links,
+	array_agg(wb.response_id) as response_ids,
+	array_agg((select mime_type from am.web_mime_type where wb.mime_type_id=wmt.mime_type_id)) as mime_types
+	 from (select url, max(url_request_timestamp) as url_request_timestamp from am.web_responses group by url) as latest
+	join am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp
+	join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+	where wb.organization_id=$1 and wb.scan_group_id=$2`
+
+	urlListQueryPrefix = `select wb.organization_id,
+		wb.scan_group_id,
+		wb.url_request_timestamp,
+		(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
+		(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address,
+		array_agg(wb.url),
+		array_agg(wb.raw_body_link) as raw_body_links,
+		array_agg(wb.response_id) as response_ids,
+		array_agg((select mime_type from am.web_mime_type where wb.mime_type_id=wmt.mime_type_id)) as mime_types
+		from am.web_responses as wb
+		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
+		where wb.organization_id=$1 and scan_group_id=$2 `
 
 	certificateColumns = `certificate_id,
 		organization_id,
@@ -63,27 +104,21 @@ var (
 )
 
 var queryMap = map[string]string{
+	"responseURLList": `select 
+		top.organization_id, 
+		top.scan_group_id, 
+		top.host_address, 
+		array_agg(arr.ip_address) as addresses, 
+		array_agg(arr.address_id) as address_ids 
+			from am.scan_group_addresses as top 
+		left join am.scan_group_addresses as arr on 
+			top.address_id=arr.address_id 
+		where top.organization_id=$1 and top.scan_group_id=$2 and top.host_address != '' group by top.organization_id, top.scan_group_id, top.host_address;`,
+
 	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_id, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, is_deleted)
 			values ($1, $2, $3, $4, $5, $6, $7, false) 
 		on conflict (organization_id, scan_group_id, serialized_dom_hash) do update set
 			response_timestamp=EXCLUDED.response_timestamp`,
-
-	"responsesSinceResponseTime": fmt.Sprintf(`select %s,%s from am.web_responses as wb 
-		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
-		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
-			where organization_id=$1 and
-			scan_group_id=$2 and 
-			response_timestamp > $3 and 
-			is_deleted = false and
-			response_id > $4 order by response_id limit $5`, responseColumns, referencedResponseColumns),
-
-	"responsesAll": fmt.Sprintf(`select %s,%s from am.web_responses as wb 
-		join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
-		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
-			where organization_id=$1 and
-			scan_group_id=$2 and 
-			is_deleted = false and
-			response_id > $3 order by response_id limit $4`, responseColumns, referencedResponseColumns),
 
 	"certificatesSinceResponseTime": fmt.Sprintf(`select %s from am.web_certificates as wb 
 		where organization_id=$1 and
@@ -114,7 +149,7 @@ var queryMap = map[string]string{
 
 var (
 	AddResponsesTempTableKey     = "resp_add_temp"
-	AddResponsesTempTableColumns = []string{"organization_id", "scan_group_id", "address_id", "response_timestamp",
+	AddResponsesTempTableColumns = []string{"organization_id", "scan_group_id", "address_id", "url_request_timestamp", "response_timestamp",
 		"is_document", "scheme", "ip_address", "host_address", "response_port", "requested_port",
 		"url", "headers", "status", "status_text", "mime_type", "raw_body_hash", "raw_body_link"}
 
@@ -122,6 +157,7 @@ var (
 			organization_id int,
 			scan_group_id int,
 			address_id bigint,
+			url_request_timestamp bigint,
 			response_timestamp bigint,
 			is_document boolean,
 			scheme varchar(12),
@@ -148,6 +184,7 @@ var (
 			organization_id, 
 			scan_group_id,
 			address_id,
+			url_request_timestamp,
 			response_timestamp,
 			is_document,
 			scheme,
@@ -168,6 +205,7 @@ var (
 			temp.organization_id, 
 			temp.scan_group_id, 
 			temp.address_id, 
+			temp.url_request_timestamp,
 			temp.response_timestamp,
 			temp.is_document, 
 			temp.scheme,

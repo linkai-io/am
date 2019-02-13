@@ -224,11 +224,228 @@ func TestGetResponses(t *testing.T) {
 	if responses[0].AddressIDIPAddress != "93.184.216.34" {
 		t.Fatalf("expected address id ip address to be set")
 	}
+
+	if responses[0].URLRequestTimestamp == 0 {
+		t.Fatalf("expected URLRequestTimestamp to be set (from webdata) got 0")
+	}
+}
+
+func TestGetResponsesWithAdvancedFilters(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetresponsesadvfilter", "webdatagetresponsesadvfilter", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+
+	for _, web := range webData {
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	filter := &am.WebResponseFilter{
+		OrgID:             org.OrgID,
+		GroupID:           org.GroupID,
+		WithResponseTime:  true,
+		SinceResponseTime: 0,
+		WithHeader:        "content-type",
+		WithoutHeader:     "x-content-type",
+		MimeType:          "text/html",
+		Start:             0,
+		Limit:             1000,
+	}
+
+	_, responses, err := service.GetResponses(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	if len(responses) != 100 {
+		t.Fatalf("expected 100 response got: %d\n", len(responses))
+	}
+
+	if responses[0].AddressIDHostAddress != "example.com" {
+		t.Fatalf("expected address id host address to be set")
+	}
+
+	if responses[0].AddressIDIPAddress != "93.184.216.34" {
+		t.Fatalf("expected address id ip address to be set")
+	}
+
+	if responses[0].URLRequestTimestamp == 0 {
+		t.Fatalf("expected URLRequestTimestamp to be set (from webdata) got 0")
+	}
+
+	filter.LatestOnlyValue = true
+
+	_, responses, err = service.GetResponses(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting responses again: %#v\n", err)
+	}
+
+	if len(responses) != 10 {
+		t.Fatalf("expected 10 responses with latest got: %d\n", len(responses))
+	}
+	if responses[0].URLRequestTimestamp != 10 && responses[9].URLRequestTimestamp != 10 {
+		t.Fatalf("expected latest only, got %d and %d\n", responses[0].URLRequestTimestamp, responses[9].URLRequestTimestamp)
+	}
+}
+
+func TestGetURLList(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatageturllist", "webdatageturllist", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+
+	for i, web := range webData {
+		t.Logf("%d: %d\n", i, len(web.Responses))
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	filter := &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Start:   0,
+		Limit:   1000,
+	}
+	oid, urlLists, err := service.GetURLList(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	if oid != org.OrgID {
+		t.Fatalf("oid %v did not equal orgID: %v\n", oid, org.OrgID)
+	}
+
+	if len(urlLists) != 10 {
+		t.Fatalf("expected 10 rows of results, got %d\n", len(urlLists))
+	}
+
+	for i, urlList := range urlLists {
+		if urlList.URLs == nil {
+			t.Fatalf("error urls were empty")
+		}
+		// first iteration only has a single url
+		if i > 1 && len(urlList.URLs) != 10 {
+			t.Fatalf("expected 10 urls got: %d %#v\n", len(urlList.URLs), urlList.URLs)
+		}
+
+		if len(urlList.URLs) != len(urlList.RawBodyLinks) && len(urlList.MimeTypes) != len(urlList.ResponseIDs) && len(urlList.URLs) != len(urlList.MimeTypes) {
+			t.Fatalf("lengths did not match: %v %v %v %v\n", len(urlList.URLs), len(urlList.RawBodyLinks), len(urlList.MimeTypes), len(urlList.ResponseIDs))
+		}
+	}
+
+	filter.LatestOnlyValue = true
+	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	t.Logf("%#v\n", urlLists)
+	if oid != org.OrgID {
+		t.Fatalf("oid %v did not equal orgID: %v\n", oid, org.OrgID)
+	}
+
+	if len(urlLists) != 1 {
+		t.Fatalf("expected 1 row of results, got %d\n", len(urlLists))
+	}
+
+	if len(urlLists[0].URLs) != 10 {
+		t.Fatalf("expected 100 urls, got %d\n", len(urlLists[0].URLs))
+	}
+
+	if urlLists[0].URLRequestTimestamp != 10 {
+		t.Fatalf("last series of URLs should all have timestamp fo 10 got %d", urlLists[0].URLRequestTimestamp)
+	}
+}
+
+func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip string) []*am.WebData {
+	webData := make([]*am.WebData, 0)
+	insertHost := host
+
+	responses := make([]*am.HTTPResponse, 0)
+	urlIndex := 0
+	groupIdx := 0
+
+	for i := 1; i < 101; i++ {
+		headers := make(map[string]string, 0)
+		headers["host"] = host
+		headers["content-type"] = "text/html"
+
+		response := &am.HTTPResponse{
+			Scheme:            "http",
+			HostAddress:       host,
+			IPAddress:         ip,
+			ResponsePort:      "80",
+			RequestedPort:     "80",
+			Status:            200,
+			StatusText:        "HTTP 200 OK",
+			URL:               fmt.Sprintf("http://%s/%d", host, urlIndex),
+			Headers:           headers,
+			MimeType:          "text/html",
+			RawBody:           "",
+			RawBodyLink:       "s3://data/1/1/1/1",
+			RawBodyHash:       "1111",
+			ResponseTimestamp: time.Now().UnixNano(),
+			IsDocument:        true,
+			WebCertificate: &am.WebCertificate{
+				Protocol:                          "h2",
+				KeyExchange:                       "kex",
+				KeyExchangeGroup:                  "keg",
+				Cipher:                            "aes",
+				Mac:                               "1234",
+				CertificateValue:                  0,
+				SubjectName:                       host,
+				SanList:                           []string{"www." + insertHost, insertHost},
+				ValidFrom:                         time.Now().UnixNano(),
+				ValidTo:                           time.Now().UnixNano(),
+				CertificateTransparencyCompliance: "unknown",
+			},
+		}
+		responses = append(responses, response)
+		urlIndex++
+
+		if i%10 == 0 {
+			groupIdx++
+			data := &am.WebData{
+				Address:             address,
+				Responses:           responses,
+				SerializedDOM:       "",
+				SerializedDOMHash:   "1234",
+				SerializedDOMLink:   "s3:/1/2/3/4",
+				Snapshot:            "",
+				SnapshotLink:        "s3://snapshot/1",
+				URLRequestTimestamp: int64(groupIdx),
+				ResponseTimestamp:   time.Now().UnixNano(),
+			}
+			urlIndex = 0
+			webData = append(webData, data)
+
+			insertHost = fmt.Sprintf("%d.%s", i, host)
+			responses = make([]*am.HTTPResponse, 0)
+		}
+	}
+
+	return webData
 }
 
 func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip string) *am.WebData {
 	headers := make(map[string]string, 0)
 	headers["host"] = host
+	headers["content-type"] = "text/html"
 
 	response := &am.HTTPResponse{
 		Scheme:            "http",
@@ -264,14 +481,15 @@ func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip stri
 	responses[0] = response
 
 	webData := &am.WebData{
-		Address:           address,
-		Responses:         responses,
-		SerializedDOM:     "",
-		SerializedDOMHash: "1234",
-		SerializedDOMLink: "s3:/1/2/3/4",
-		Snapshot:          "",
-		SnapshotLink:      "s3://snapshot/1",
-		ResponseTimestamp: time.Now().UnixNano(),
+		Address:             address,
+		Responses:           responses,
+		SerializedDOM:       "",
+		SerializedDOMHash:   "1234",
+		SerializedDOMLink:   "s3:/1/2/3/4",
+		Snapshot:            "",
+		SnapshotLink:        "s3://snapshot/1",
+		URLRequestTimestamp: time.Now().UnixNano(),
+		ResponseTimestamp:   time.Now().UnixNano(),
 	}
 
 	return webData

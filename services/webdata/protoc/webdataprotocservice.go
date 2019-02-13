@@ -62,3 +62,14 @@ func (s *WebDataProtocService) GetSnapshots(ctx context.Context, in *webdata.Get
 
 	return &webdata.GetSnapshotsResponse{OrgID: int32(oid), Snapshots: convert.DomainToWebSnapshots(snapshots)}, nil
 }
+
+func (s *WebDataProtocService) GetURLList(ctx context.Context, in *webdata.GetURLListRequest) (*webdata.GetURLListResponse, error) {
+	s.reporter.Increment(1)
+	oid, urls, err := s.wds.GetURLList(ctx, convert.UserContextToDomain(in.UserContext), convert.WebResponseFilterToDomain(in.Filter))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	return &webdata.GetURLListResponse{OrgID: int32(oid), URLList: convert.DomainToURLLists(urls)}, nil
+}
