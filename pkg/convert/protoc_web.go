@@ -365,6 +365,22 @@ func WebCertificateFilterToDomain(in *prototypes.WebCertificateFilter) *am.WebCe
 	}
 }
 
+func DomainToURLData(in []*am.URLData) []*prototypes.URLData {
+	if in == nil {
+		return nil
+	}
+	urls := make([]*prototypes.URLData, len(in))
+	for i, inURL := range in {
+		urls[i] = &prototypes.URLData{
+			ResponseID:  inURL.ResponseID,
+			URL:         inURL.URL,
+			RawBodyLink: inURL.RawBodyLink,
+			MimeType:    inURL.MimeType,
+		}
+	}
+	return urls
+}
+
 func DomainToURLListResponse(in *am.URLListResponse) *prototypes.URLListResponse {
 	return &prototypes.URLListResponse{
 		OrgID:                int32(in.OrgID),
@@ -372,10 +388,24 @@ func DomainToURLListResponse(in *am.URLListResponse) *prototypes.URLListResponse
 		AddressIDHostAddress: in.AddressIDHostAddress,
 		AddressIDIPAddress:   in.AddressIDIPAddress,
 		URLRequestTimestamp:  in.URLRequestTimestamp,
-		URLs:                 in.URLs,
-		RawBodyLinks:         in.RawBodyLinks,
-		MimeTypes:            in.MimeTypes,
+		URLs:                 DomainToURLData(in.URLs),
 	}
+}
+
+func URLDataToDomain(in []*prototypes.URLData) []*am.URLData {
+	if in == nil {
+		return nil
+	}
+	urls := make([]*am.URLData, len(in))
+	for i, inURL := range in {
+		urls[i] = &am.URLData{
+			ResponseID:  inURL.ResponseID,
+			URL:         inURL.URL,
+			RawBodyLink: inURL.RawBodyLink,
+			MimeType:    inURL.MimeType,
+		}
+	}
+	return urls
 }
 
 func URLListResponseToDomain(in *prototypes.URLListResponse) *am.URLListResponse {
@@ -385,9 +415,7 @@ func URLListResponseToDomain(in *prototypes.URLListResponse) *am.URLListResponse
 		AddressIDHostAddress: in.AddressIDHostAddress,
 		AddressIDIPAddress:   in.AddressIDIPAddress,
 		URLRequestTimestamp:  in.URLRequestTimestamp,
-		URLs:                 in.URLs,
-		RawBodyLinks:         in.RawBodyLinks,
-		MimeTypes:            in.MimeTypes,
+		URLs:                 URLDataToDomain(in.URLs),
 	}
 }
 

@@ -25,17 +25,21 @@ type WebData struct {
 	URLRequestTimestamp int64             `json:"url_request_timestamp"`
 }
 
+type URLData struct {
+	ResponseID  int64  `json:"response_id"`
+	URL         string `json:"url"`
+	RawBodyLink string `json:"raw_body_link"`
+	MimeType    string `json:"mime_type"`
+}
+
 // URLListResponse is for holding a list of urls from an intial request
 type URLListResponse struct {
-	OrgID                int      `json:"organization_id,omitempty"`
-	GroupID              int      `json:"group_id,omitempty"`
-	URLRequestTimestamp  int64    `json:"url_request_timestamp"`
-	AddressIDHostAddress string   `json:"address_id_host_address,omitempty"` // used for returning data to user
-	AddressIDIPAddress   string   `json:"address_id_ip_address,omitempty"`   // used for returning data to user
-	URLs                 []string `json:"urls"`
-	RawBodyLinks         []string `json:"raw_body_link"`
-	MimeTypes            []string `json:"mime_types"`
-	ResponseIDs          []int64  `json:"response_ids"`
+	OrgID                int        `json:"organization_id,omitempty"`
+	GroupID              int        `json:"group_id,omitempty"`
+	URLRequestTimestamp  int64      `json:"url_request_timestamp"`
+	AddressIDHostAddress string     `json:"address_id_host_address,omitempty"` // used for returning data to user
+	AddressIDIPAddress   string     `json:"address_id_ip_address,omitempty"`   // used for returning data to user
+	URLs                 []*URLData `json:"urls"`
 }
 
 // HTTPResponse represents a captured network response

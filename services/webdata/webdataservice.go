@@ -130,9 +130,12 @@ func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, fi
 	for i := 0; rows.Next(); i++ {
 		urlList := &am.URLListResponse{}
 		var urls [][]byte
+		var links []string
+		var responseIDs []int64
+		var mimeTypes []string
 		if err := rows.Scan(&urlList.OrgID, &urlList.GroupID,
 			&urlList.URLRequestTimestamp, &urlList.AddressIDHostAddress, &urlList.AddressIDIPAddress,
-			&urls, &urlList.RawBodyLinks, &urlList.ResponseIDs, &urlList.MimeTypes); err != nil {
+			&urls, &links, &responseIDs, &mimeTypes); err != nil {
 
 			return 0, nil, err
 		}
@@ -140,12 +143,17 @@ func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, fi
 		if urlList.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
-		// this is terrible TODO Fix
-		urlList.URLs = make([]string, len(urls))
-		for i, url := range urls {
-			urlList.URLs[i] = string(url)
-		}
 
+		// this is terrible TODO Fix
+		urlList.URLs = make([]*am.URLData, len(urls))
+		for i, url := range urls {
+			urlList.URLs[i] = &am.URLData{
+				ResponseID:  responseIDs[i],
+				URL:         string(url),
+				RawBodyLink: links[i],
+				MimeType:    mimeTypes[i],
+			}
+		}
 		urlLists = append(urlLists, urlList)
 	}
 

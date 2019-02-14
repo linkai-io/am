@@ -343,10 +343,6 @@ func TestGetURLList(t *testing.T) {
 		if i > 1 && len(urlList.URLs) != 10 {
 			t.Fatalf("expected 10 urls got: %d %#v\n", len(urlList.URLs), urlList.URLs)
 		}
-
-		if len(urlList.URLs) != len(urlList.RawBodyLinks) && len(urlList.MimeTypes) != len(urlList.ResponseIDs) && len(urlList.URLs) != len(urlList.MimeTypes) {
-			t.Fatalf("lengths did not match: %v %v %v %v\n", len(urlList.URLs), len(urlList.RawBodyLinks), len(urlList.MimeTypes), len(urlList.ResponseIDs))
-		}
 	}
 
 	filter.LatestOnlyValue = true

@@ -2,8 +2,6 @@ package bigdata
 
 import (
 	"context"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/linkai-io/am/services/module"
@@ -22,7 +20,7 @@ import (
 )
 
 const (
-	defaultCacheTime = time.Hour * 4
+	defaultCacheTime = time.Hour * 24
 	oneHour          = 60 * 60
 )
 
@@ -152,6 +150,11 @@ func (b *BigData) doCTSubdomainAnalysis(ctx context.Context, userContext am.User
 	if subdomains == nil || len(subdomains) == 0 {
 		log.Ctx(ctx).Info().Str("etld", etld).Msg("first time etld seen, searching big query")
 		queryTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, time.Local)
+	} else {
+		// we already have results
+		log.Ctx(ctx).Info().Str("etld", etld).Msg("DEV MODE: already searched bigquery and data is stored in database")
+		// TODO: For Dev mode we are only going to use an exported, reduced, data set
+		return b.processCTSubdomainRecords(ctx, nsCfg, address, subdomains, etld)
 	}
 
 	// check if we should add new CTSubDomains and update the ctRecords with new records found from bigquery
@@ -193,7 +196,10 @@ func (b *BigData) addNewCTSubDomainRecords(ctx context.Context, userContext am.U
 	}
 
 	// if we still have any left, we want to add new ones, and update the last query time.
-	if err := b.bdClient.AddCTSubdomains(ctx, userContext, etld, time.Now(), bqRecords); err != nil {
+	devModeQueryTime := time.Date(2019, time.February, 13, 0, 0, 0, 0, time.Local)
+	// TODO: change devModeQueryTime to just time.Now()
+	// if we still have any left, we want to add new ones, and update the last query time.
+	if err := b.bdClient.AddCTSubdomains(ctx, userContext, etld, devModeQueryTime, bqRecords); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to add new ct records and update query time")
 	}
 
@@ -206,119 +212,6 @@ func (b *BigData) processCTSubdomainRecords(ctx context.Context, nsCfg *am.NSMod
 
 	for record := range records {
 		newHosts[record] = struct{}{}
-	}
-
-	log.Ctx(ctx).Info().Int("new_hosts", len(newHosts)).Msg("resolving with ResolveNewAddresses")
-	newAddresses = module.ResolveNewAddresses(ctx, b.dc, &module.ResolverData{
-		Address:           address,
-		RequestsPerSecond: int(nsCfg.RequestsPerSecond),
-		NewAddresses:      newHosts,
-		DiscoveryMethod:   am.DiscoveryBigDataCT,
-		Cache:             b.groupCache,
-	})
-	log.Ctx(ctx).Info().Int("new_addresses", len(newAddresses)).Msg("returning from ResolveNewAddresses")
-	return newAddresses, nil
-}
-
-// doCTAnalysis does FULL table scan analysis for bigquery
-// TODO: Enable this analysis module when making $$$
-func (b *BigData) doCTAnalysis(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, etld string) (map[string]*am.ScanGroupAddress, error) {
-	var queryTime time.Time
-	ctRecords := make(map[string]*am.CTRecord, 0)
-	records := make(map[string]*am.ScanGroupAddress, 0)
-
-	shouldCT, err := b.st.DoCTDomain(ctx, address.OrgID, address.GroupID, oneHour, etld)
-	if err != nil {
-		return records, err
-	}
-
-	if !shouldCT {
-		log.Ctx(ctx).Info().Msg("not analyzing etld, as it is already complete")
-		return records, nil
-	}
-
-	retryErr := retrier.Retry(func() error {
-		queryTime, ctRecords, err = b.bdClient.GetCT(ctx, userContext, etld)
-		return err
-	})
-
-	// if we can't check the database reliably, we don't want to hammer bigquery (costs) so just fail closed here.
-	if retryErr != nil {
-		log.Ctx(ctx).Warn().Msg("unable to get CT records from database, returning")
-		return records, nil
-	}
-
-	// we've never looked up this etld before
-	if ctRecords == nil || len(ctRecords) == 0 {
-		log.Ctx(ctx).Info().Str("etld", etld).Msg("first time etld seen, searching big query")
-		queryTime = time.Date(2018, time.May, 0, 0, 0, 0, 0, time.Local)
-	}
-
-	// check if we should add new CTRecords and update the ctRecords with new records found from bigquery
-	allRecords := b.addNewCTRecords(ctx, userContext, ctRecords, queryTime, etld)
-	newAddresses, err := b.processCTRecords(ctx, nsCfg, address, allRecords, etld)
-	return newAddresses, err
-}
-
-// addNewCTRecords queries BigQuery to see if we have any new records for this etld, provided that now - queryTime is > cachetime (default 4 hours).
-// Note, this *DOES* modify ctRecords by adding the bigquery results to it.
-func (b *BigData) addNewCTRecords(ctx context.Context, userContext am.UserContext, ctRecords map[string]*am.CTRecord, queryTime time.Time, etld string) map[string]*am.CTRecord {
-
-	if time.Now().Sub(queryTime) < defaultCacheTime {
-		log.Ctx(ctx).Info().TimeDiff("query_diff", queryTime, time.Now()).Msg("< cacheTime not querying bigquery")
-		return ctRecords
-	}
-
-	bqRecords, err := b.bigQuerier.QueryETLD(ctx, queryTime, etld)
-	if err != nil {
-		log.Ctx(ctx).Warn().Err(err).Msg("unable to query big query")
-		return ctRecords
-	}
-
-	if ctRecords != nil {
-		for hash, record := range bqRecords {
-			if _, ok := ctRecords[hash]; ok {
-				// already exists, remove it from our bigquery records map
-				delete(bqRecords, hash)
-				continue
-			}
-			// add the new record to our ct records map
-			ctRecords[hash] = record
-		}
-	} else {
-		ctRecords = bqRecords
-	}
-
-	if len(bqRecords) == 0 {
-		log.Info().Msg("no new records found in bigquery")
-		return ctRecords
-	}
-
-	// if we still have any left, we want to add new ones, and update the last query time.
-	if err := b.bdClient.AddCT(ctx, userContext, etld, time.Now(), bqRecords); err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to add new ct records and update query time")
-	}
-	return ctRecords
-}
-
-func (b *BigData) processCTRecords(ctx context.Context, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, records map[string]*am.CTRecord, etld string) (map[string]*am.ScanGroupAddress, error) {
-	newAddresses := make(map[string]*am.ScanGroupAddress, 0)
-	newHosts := make(map[string]struct{})
-
-	needle, err := regexp.Compile("(?i)" + etld)
-	if err != nil {
-		return newAddresses, err
-	}
-
-	needles := make([]*regexp.Regexp, 1)
-	needles[0] = needle
-	for _, record := range records {
-		allHosts := strings.Join([]string{record.CommonName, record.VerifiedDNSNames, record.UnverifiedDNSNames}, " ")
-		log.Ctx(ctx).Info().Str("allHosts", allHosts).Msg("searching...")
-		recordHosts := parsers.ExtractHostsFromResponse(needles, allHosts)
-		for k, v := range recordHosts {
-			newHosts[k] = v
-		}
 	}
 
 	log.Ctx(ctx).Info().Int("new_hosts", len(newHosts)).Msg("resolving with ResolveNewAddresses")
