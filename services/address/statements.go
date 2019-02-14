@@ -35,7 +35,9 @@ var queryMap = map[string]string{
 		from am.scan_group_addresses as top 
 			left join am.scan_group_addresses as arr on 
 				top.address_id=arr.address_id 
-		where top.organization_id=$1 and top.scan_group_id=$2 and top.host_address != '' group by top.organization_id, top.scan_group_id, top.host_address;`,
+		where top.organization_id=$1 and top.scan_group_id=$2 
+			and top.host_address != '' 
+			and top.address_id > $3 group by top.organization_id, top.scan_group_id, top.host_address limit $4;`,
 }
 
 var (

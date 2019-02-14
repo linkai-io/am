@@ -161,7 +161,7 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	rows, err = s.pool.Query("scanGroupHostList", userContext.GetOrgID(), filter.GroupID)
+	rows, err = s.pool.Query("scanGroupHostList", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
 	defer rows.Close()
 
 	if err != nil {

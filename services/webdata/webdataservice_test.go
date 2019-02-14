@@ -77,7 +77,6 @@ func TestNew(t *testing.T) {
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing address service: %s\n", err)
 	}
-
 }
 
 func TestAdd(t *testing.T) {
@@ -318,10 +317,12 @@ func TestGetURLList(t *testing.T) {
 	}
 
 	filter := &am.WebResponseFilter{
-		OrgID:   org.OrgID,
-		GroupID: org.GroupID,
-		Start:   0,
-		Limit:   1000,
+		OrgID:             org.OrgID,
+		GroupID:           org.GroupID,
+		WithResponseTime:  true,
+		SinceResponseTime: 0,
+		Start:             0,
+		Limit:             1000,
 	}
 	oid, urlLists, err := service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
