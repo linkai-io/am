@@ -201,11 +201,11 @@ func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.Sca
 	}
 
 	if filter.WithLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.SinceScannedTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp > $%d)", filter.SinceScannedTime, &args, &i)
 	}
 
 	if filter.WithLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.SinceSeenTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp > $%d)", filter.SinceSeenTime, &args, &i)
 	}
 
 	if filter.WithIsWildcard {
