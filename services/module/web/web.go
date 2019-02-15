@@ -218,7 +218,7 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 			newAddresses[k] = v
 		}
 	}
-
+	log.Ctx(ctx).Info().Int64("url_request_timestamp", webData.URLRequestTimestamp).Msg("uploading results")
 	if _, err := w.webDataClient.Add(ctx, userContext, webData); err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to upload webdata to service")
 	}

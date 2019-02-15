@@ -417,7 +417,7 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *
 	if err := s.addSnapshots(ctx, userContext, logger, webData); err != nil {
 		logger.Warn().Err(err).Msg("failed to insert snapshot and serialized dom")
 	}
-
+	logger.Info().Int64("url_request_timestamp", webData.URLRequestTimestamp).Msg("adding responses for webData")
 	orgID, err := s.addResponses(ctx, userContext, logger, webData)
 	if err != nil {
 		return 0, err

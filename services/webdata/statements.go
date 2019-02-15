@@ -49,10 +49,9 @@ var (
 	array_agg(wb.url),
 	array_agg(wb.raw_body_link) as raw_body_links,
 	array_agg(wb.response_id) as response_ids,
-	array_agg((select mime_type from am.web_mime_type where wb.mime_type_id=wmt.mime_type_id)) as mime_types
+	array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types 
 	 from (select url, max(url_request_timestamp) as url_request_timestamp from am.web_responses group by url) as latest
 	join am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp
-	join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
 	where wb.organization_id=$1 and wb.scan_group_id=$2`
 
 	urlListQueryPrefix = `select wb.organization_id,
@@ -63,9 +62,8 @@ var (
 		array_agg(wb.url),
 		array_agg(wb.raw_body_link) as raw_body_links,
 		array_agg(wb.response_id) as response_ids,
-		array_agg((select mime_type from am.web_mime_type where wb.mime_type_id=wmt.mime_type_id)) as mime_types
+		array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types
 		from am.web_responses as wb
-		join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
 		where wb.organization_id=$1 and scan_group_id=$2 `
 
 	certificateColumns = `certificate_id,

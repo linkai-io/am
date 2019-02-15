@@ -68,25 +68,25 @@ pushbackend:
 pushallservices:
 	$(foreach var,$(ALL_SERVICES),docker tag $(var):latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/$(var):latest;)
 
-pushnsmoduleservice: nsmoduleservice
+pushnsmoduleservice: 
 	docker tag nsmoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/nsmoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/nsmoduleservice:latest
 
-pushbrutemoduleservice: brutemoduleservice
+pushbrutemoduleservice: 
 	docker tag brutemoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/brutemoduleservice:latest
 
-pushbigdatamoduleservice: bigdatamoduleservice
+pushbigdatamoduleservice: 
 	docker tag bigdatamoduleservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdatamoduleservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdatamoduleservice:latest
 
-pushorgservice: orgservice
+pushorgservice: 
 	docker tag orgservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/orgservice:latest
 
-pushuserservice: userservice
+pushuserservice: 
 	docker tag userservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/userservice:latest
 
-pushaddressservice: addressservice
+pushaddressservice: 
 	docker tag addressservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/addressservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/addressservice:latest
 
-pushscangroupservice: scangroupservice 
+pushscangroupservice:  
 	docker tag scangroupservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/scangroupservice:latest
 
 pushcoordinatorservice:
@@ -119,7 +119,7 @@ deploycoordinatorservice:
 deploydispatcherservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service dispatcherservice
 
-deployscangroupservice: pushscangroupservice 
+deployscangroupservice: 
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service scangroupservice
 
 deploywebdataservice:

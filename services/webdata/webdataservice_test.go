@@ -201,7 +201,7 @@ func TestGetResponses(t *testing.T) {
 	filter := &am.WebResponseFilter{
 		OrgID:             org.OrgID,
 		GroupID:           org.GroupID,
-		WithResponseTime:  false,
+		WithResponseTime:  true,
 		SinceResponseTime: 0,
 		Start:             0,
 		Limit:             1000,
