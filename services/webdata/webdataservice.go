@@ -166,10 +166,10 @@ func (s *Service) BuildURLListFilterQuery(userContext am.UserContext, query stri
 	args = append(args, userContext.GetOrgID())
 	args = append(args, filter.GroupID)
 	i := 3
-	prefix := ""
+	prefix := " and "
 
 	if filter.WithResponseTime {
-		generators.AppendConditionalQuery(&query, &prefix, "and (wb.url_request_timestamp=0 OR wb.url_request_timestamp > $%d)", filter.SinceResponseTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, " (wb.url_request_timestamp=0 OR wb.url_request_timestamp > $%d)", filter.SinceResponseTime, &args, &i)
 	}
 	generators.AppendConditionalQuery(&query, &prefix, " wb.response_id > $%d", filter.Start, &args, &i)
 
