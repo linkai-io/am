@@ -171,11 +171,16 @@ func (s *Service) BuildURLListFilterQuery(userContext am.UserContext, query stri
 	if filter.WithResponseTime {
 		generators.AppendConditionalQuery(&query, &prefix, "and (wb.url_request_timestamp=0 OR wb.url_request_timestamp > $%d)", filter.SinceResponseTime, &args, &i)
 	}
+	generators.AppendConditionalQuery(&query, &prefix, " wb.response_id > $%d", filter.Start, &args, &i)
+
 	if filter.LatestOnlyValue {
 		query += " group by wb.organization_id, wb.scan_group_id, address_id_host_address, address_id_ip_address, latest.url_request_timestamp"
 	} else {
 		query += " group by wb.organization_id, wb.scan_group_id, address_id_host_address, address_id_ip_address, wb.url_request_timestamp order by wb.url_request_timestamp"
 	}
+	// reset prefix
+	prefix = ""
+	generators.AppendConditionalQuery(&query, &prefix, " limit $%d", filter.Limit, &args, &i)
 
 	return query, args
 }
