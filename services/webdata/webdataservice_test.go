@@ -328,6 +328,7 @@ func TestGetURLList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)
 	}
+
 	if oid != org.OrgID {
 		t.Fatalf("oid %v did not equal orgID: %v\n", oid, org.OrgID)
 	}
