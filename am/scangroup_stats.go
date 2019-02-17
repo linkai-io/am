@@ -107,14 +107,14 @@ func (s *ScanGroupsStats) DeleteGroup(groupID int) {
 
 // GroupStats holds basic information on active groups running
 type GroupStats struct {
-	UserContext     UserContext
-	OrgID           int   `json:"org_id"`
-	GroupID         int   `json:"group_id"`
-	ActiveAddresses int32 `json:"active_addresses"`
-	BatchSize       int32 `json:"batch_size"`
-	LastUpdated     int64 `json:"last_updated"` // only comes back from DB
-	BatchStart      int64 `json:"batch_start"`
-	BatchEnd        int64 `json:"batch_end"`
+	UserContext     UserContext `json:"-"`
+	OrgID           int         `json:"org_id"`
+	GroupID         int         `json:"group_id"`
+	ActiveAddresses int32       `json:"active_addresses"`
+	BatchSize       int32       `json:"batch_size"`
+	LastUpdated     int64       `json:"last_updated"` // only comes back from DB
+	BatchStart      int64       `json:"batch_start"`
+	BatchEnd        int64       `json:"batch_end"`
 }
 
 // NewGroupStats initializes with org/group ids
@@ -122,7 +122,7 @@ func NewGroupStats(userContext UserContext, orgID, groupID int) *GroupStats {
 	return &GroupStats{UserContext: userContext, OrgID: orgID, GroupID: groupID, BatchStart: time.Now().UnixNano()}
 }
 
-// IncActive addresses by count
+// IncActive addresses by count ( can be negative to decrease)
 func (g *GroupStats) IncActive(count int32) {
 	atomic.AddInt32(&g.ActiveAddresses, count)
 }

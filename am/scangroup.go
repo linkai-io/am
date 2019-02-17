@@ -68,6 +68,7 @@ type ScanGroupService interface {
 	Delete(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
 	Pause(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
 	Resume(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
-	UpdateStats(ctx context.Context, userContext UserContext, stats *GroupStats) (oid int, err error)
 	GroupStats(ctx context.Context, userContext UserContext) (oid int, stats map[int]*GroupStats, err error)
+	UpdateStats(ctx context.Context, userContext UserContext, stats *GroupStats) (oid int, err error)
+	
 }
