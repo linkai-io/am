@@ -456,11 +456,11 @@ func (s *Service) GetActiveAddresses() int32 {
 
 func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
 	return &am.ScanGroupAddressFilter{
-		OrgID:            userContext.GetOrgID(),
-		GroupID:          scanGroupID,
-		Start:            0,
-		Limit:            1000,
-		WithLastSeenTime: true,
-		SinceSeenTime:    then,
+		OrgID:                  userContext.GetOrgID(),
+		GroupID:                scanGroupID,
+		Start:                  0,
+		Limit:                  1000,
+		WithBeforeLastSeenTime: true,
+		BeforeSeenTime:         then,
 	}
 }

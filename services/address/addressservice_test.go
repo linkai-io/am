@@ -41,21 +41,27 @@ func TestBuildGetFilter(t *testing.T) {
 
 	userContext := &am.UserContextData{OrgID: 1}
 	filter := &am.ScanGroupAddressFilter{
-		OrgID:               1,
-		GroupID:             1,
-		Start:               0,
-		Limit:               1000,
-		WithIgnored:         false,
-		IgnoredValue:        false,
-		WithLastScannedTime: false,
-		SinceScannedTime:    0,
-		WithLastSeenTime:    false,
-		SinceSeenTime:       0,
-		WithIsWildcard:      false,
-		IsWildcardValue:     false,
-		MatchesHost:         "",
-		MatchesIP:           "",
-		NSRecord:            0,
+		OrgID:                     1,
+		GroupID:                   1,
+		Start:                     0,
+		Limit:                     1000,
+		WithIgnored:               false,
+		IgnoredValue:              false,
+		WithBeforeLastScannedTime: false,
+		WithAfterLastScannedTime:  false,
+		AfterScannedTime:          0,
+		BeforeScannedTime:         0,
+		WithBeforeLastSeenTime:    false,
+		WithAfterLastSeenTime:     false,
+		AfterSeenTime:             0,
+		BeforeSeenTime:            0,
+		WithIsWildcard:            false,
+		IsWildcardValue:           false,
+		WithIsHostedService:       false,
+		IsHostedServiceValue:      false,
+		MatchesHost:               "",
+		MatchesIP:                 "",
+		NSRecord:                  0,
 	}
 
 	noFilters, noFilterArgs := service.BuildGetFilterQuery(userContext, filter)
@@ -72,29 +78,33 @@ func TestBuildGetFilter(t *testing.T) {
 	}
 
 	filter = &am.ScanGroupAddressFilter{
-		OrgID:                1,
-		GroupID:              1,
-		Start:                1000,
-		Limit:                2000,
-		WithIgnored:          true,
-		IgnoredValue:         false,
-		WithLastScannedTime:  true,
-		SinceScannedTime:     1000000000,
-		WithLastSeenTime:     true,
-		SinceSeenTime:        1000000001,
-		WithIsWildcard:       true,
-		IsWildcardValue:      true,
-		WithIsHostedService:  true,
-		IsHostedServiceValue: true,
-		MatchesHost:          "asdf.com",
-		MatchesIP:            "192.168.9",
-		NSRecord:             33,
+		OrgID:                     1,
+		GroupID:                   1,
+		Start:                     1000,
+		Limit:                     2000,
+		WithIgnored:               true,
+		IgnoredValue:              false,
+		WithBeforeLastScannedTime: true,
+		WithAfterLastScannedTime:  true,
+		AfterScannedTime:          0,
+		BeforeScannedTime:         0,
+		WithBeforeLastSeenTime:    true,
+		WithAfterLastSeenTime:     true,
+		AfterSeenTime:             0,
+		BeforeSeenTime:            0,
+		WithIsWildcard:            true,
+		IsWildcardValue:           true,
+		WithIsHostedService:       true,
+		IsHostedServiceValue:      true,
+		MatchesHost:               "asdf.com",
+		MatchesIP:                 "192.168.9",
+		NSRecord:                  33,
 	}
 
 	filters, filterArgs := service.BuildGetFilterQuery(userContext, filter)
 	t.Logf("%s %#v\n", filters, filterArgs)
-	if len(filterArgs) != 12 {
-		t.Fatalf("expected args len of 12, got %d %#v\n", len(filterArgs), filterArgs)
+	if len(filterArgs) != 14 {
+		t.Fatalf("expected args len of 14, got %d %#v\n", len(filterArgs), filterArgs)
 	}
 
 	if filterArgs[0] != filter.OrgID {
@@ -109,39 +119,47 @@ func TestBuildGetFilter(t *testing.T) {
 		t.Fatalf("expected IgnoredValue %v got %v", filter.IgnoredValue, filterArgs[2])
 	}
 
-	if filterArgs[3] != filter.SinceScannedTime {
-		t.Fatalf("expected SinceScannedTime %v got %v", filter.SinceScannedTime, filterArgs[3])
+	if filterArgs[3] != filter.AfterScannedTime {
+		t.Fatalf("expected AfterScannedTime %v got %v", filter.AfterScannedTime, filterArgs[3])
 	}
 
-	if filterArgs[4] != filter.SinceSeenTime {
-		t.Fatalf("expected SinceSeenTime %v got %v", filter.SinceSeenTime, filterArgs[4])
+	if filterArgs[4] != filter.BeforeScannedTime {
+		t.Fatalf("expected BeforeScannedTime %v got %v", filter.BeforeScannedTime, filterArgs[4])
 	}
 
-	if filterArgs[5] != filter.IsWildcardValue {
+	if filterArgs[5] != filter.AfterSeenTime {
+		t.Fatalf("expected AfterSeenTime %v got %v", filter.AfterSeenTime, filterArgs[3])
+	}
+
+	if filterArgs[6] != filter.BeforeSeenTime {
+		t.Fatalf("expected BeforeSeenTime %v got %v", filter.BeforeSeenTime, filterArgs[4])
+	}
+
+	if filterArgs[7] != filter.IsWildcardValue {
 		t.Fatalf("expected IsWildcardValue %v got %v", filter.IsWildcardValue, filterArgs[5])
 	}
 
-	if filterArgs[6] != filter.IsHostedServiceValue {
+	if filterArgs[8] != filter.IsHostedServiceValue {
 		t.Fatalf("expected IsHostedServiceValue %v got %v", filter.IsHostedServiceValue, filterArgs[6])
 	}
 
-	if filterArgs[7] != convert.Reverse(filter.MatchesHost) {
+	if filterArgs[9] != convert.Reverse(filter.MatchesHost) {
 		t.Fatalf("expected MatchesHost %v got %v", convert.Reverse(filter.MatchesHost), filterArgs[7])
 	}
 
-	if filterArgs[8] != convert.Reverse(filter.MatchesIP) {
+	if filterArgs[10] != convert.Reverse(filter.MatchesIP) {
 		t.Fatalf("expected MatchesIP %v got %v", convert.Reverse(filter.MatchesIP), filterArgs[8])
 	}
 
-	if filterArgs[9] != filter.NSRecord {
+	if filterArgs[11] != filter.NSRecord {
 		t.Fatalf("expected NSRecord %v got %v", filter.NSRecord, filterArgs[9])
 	}
 
-	if filterArgs[10] != filter.Start {
+	if filterArgs[12] != filter.Start {
 		t.Fatalf("expected Start %v got %v", filter.Start, filterArgs[10])
 	}
 
-	if filterArgs[11] != filter.Limit {
+	if filterArgs[13] != filter.Limit {
 		t.Fatalf("expected Limit %v got %v", filter.Limit, filterArgs[11])
 	}
 }

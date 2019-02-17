@@ -109,6 +109,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 
 	query, args := s.BuildGetFilterQuery(userContext, filter)
 	serviceLog.Info().Msgf("Building Get query with filter: %#v", filter)
+
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 
@@ -201,12 +202,20 @@ func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.Sca
 		generators.AppendConditionalQuery(&query, &prefix, "ignored=$%d", filter.IgnoredValue, &args, &i)
 	}
 
-	if filter.WithLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp > $%d)", filter.SinceScannedTime, &args, &i)
+	if filter.WithAfterLastScannedTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp > $%d)", filter.AfterScannedTime, &args, &i)
 	}
 
-	if filter.WithLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp > $%d)", filter.SinceSeenTime, &args, &i)
+	if filter.WithBeforeLastScannedTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.BeforeScannedTime, &args, &i)
+	}
+
+	if filter.WithAfterLastSeenTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp > $%d)", filter.AfterSeenTime, &args, &i)
+	}
+
+	if filter.WithBeforeLastSeenTime {
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.BeforeSeenTime, &args, &i)
 	}
 
 	if filter.WithIsWildcard {
