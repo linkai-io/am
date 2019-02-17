@@ -46,7 +46,7 @@ func (x GroupRequest_RequestBy) String() string {
 	return proto.EnumName(GroupRequest_RequestBy_name, int32(x))
 }
 func (GroupRequest_RequestBy) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{14, 0}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{15, 0}
 }
 
 type NSModuleConfig struct {
@@ -60,7 +60,7 @@ func (m *NSModuleConfig) Reset()         { *m = NSModuleConfig{} }
 func (m *NSModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*NSModuleConfig) ProtoMessage()    {}
 func (*NSModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{0}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{0}
 }
 func (m *NSModuleConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -109,7 +109,7 @@ func (m *BruteModuleConfig) Reset()         { *m = BruteModuleConfig{} }
 func (m *BruteModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*BruteModuleConfig) ProtoMessage()    {}
 func (*BruteModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{1}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{1}
 }
 func (m *BruteModuleConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -171,7 +171,7 @@ func (m *PortModuleConfig) Reset()         { *m = PortModuleConfig{} }
 func (m *PortModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*PortModuleConfig) ProtoMessage()    {}
 func (*PortModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{2}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{2}
 }
 func (m *PortModuleConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -229,7 +229,7 @@ func (m *WebModuleConfig) Reset()         { *m = WebModuleConfig{} }
 func (m *WebModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*WebModuleConfig) ProtoMessage()    {}
 func (*WebModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{3}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{3}
 }
 func (m *WebModuleConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -304,7 +304,7 @@ func (m *KeywordModuleConfig) Reset()         { *m = KeywordModuleConfig{} }
 func (m *KeywordModuleConfig) String() string { return proto.CompactTextString(m) }
 func (*KeywordModuleConfig) ProtoMessage()    {}
 func (*KeywordModuleConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{4}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{4}
 }
 func (m *KeywordModuleConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -356,7 +356,7 @@ func (m *ModuleConfiguration) Reset()         { *m = ModuleConfiguration{} }
 func (m *ModuleConfiguration) String() string { return proto.CompactTextString(m) }
 func (*ModuleConfiguration) ProtoMessage()    {}
 func (*ModuleConfiguration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{5}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{5}
 }
 func (m *ModuleConfiguration) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -450,7 +450,7 @@ func (m *Group) Reset()         { *m = Group{} }
 func (m *Group) String() string { return proto.CompactTextString(m) }
 func (*Group) ProtoMessage()    {}
 func (*Group) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{6}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{6}
 }
 func (m *Group) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -582,7 +582,7 @@ func (m *ScanGroupFilter) Reset()         { *m = ScanGroupFilter{} }
 func (m *ScanGroupFilter) String() string { return proto.CompactTextString(m) }
 func (*ScanGroupFilter) ProtoMessage()    {}
 func (*ScanGroupFilter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{7}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{7}
 }
 func (m *ScanGroupFilter) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -625,6 +625,101 @@ func (m *ScanGroupFilter) GetPausedValue() bool {
 	return false
 }
 
+type GroupStats struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	ActiveAddresses      int32    `protobuf:"varint,3,opt,name=ActiveAddresses,proto3" json:"ActiveAddresses,omitempty"`
+	BatchSize            int32    `protobuf:"varint,4,opt,name=BatchSize,proto3" json:"BatchSize,omitempty"`
+	LastUpdated          int64    `protobuf:"varint,5,opt,name=LastUpdated,proto3" json:"LastUpdated,omitempty"`
+	BatchStart           int64    `protobuf:"varint,6,opt,name=BatchStart,proto3" json:"BatchStart,omitempty"`
+	BatchEnd             int64    `protobuf:"varint,7,opt,name=BatchEnd,proto3" json:"BatchEnd,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GroupStats) Reset()         { *m = GroupStats{} }
+func (m *GroupStats) String() string { return proto.CompactTextString(m) }
+func (*GroupStats) ProtoMessage()    {}
+func (*GroupStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{8}
+}
+func (m *GroupStats) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupStats.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GroupStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupStats.Merge(dst, src)
+}
+func (m *GroupStats) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupStats proto.InternalMessageInfo
+
+func (m *GroupStats) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupStats) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *GroupStats) GetActiveAddresses() int32 {
+	if m != nil {
+		return m.ActiveAddresses
+	}
+	return 0
+}
+
+func (m *GroupStats) GetBatchSize() int32 {
+	if m != nil {
+		return m.BatchSize
+	}
+	return 0
+}
+
+func (m *GroupStats) GetLastUpdated() int64 {
+	if m != nil {
+		return m.LastUpdated
+	}
+	return 0
+}
+
+func (m *GroupStats) GetBatchStart() int64 {
+	if m != nil {
+		return m.BatchStart
+	}
+	return 0
+}
+
+func (m *GroupStats) GetBatchEnd() int64 {
+	if m != nil {
+		return m.BatchEnd
+	}
+	return 0
+}
+
 type NewGroupRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Group                *Group                  `protobuf:"bytes,2,opt,name=Group" json:"Group,omitempty"`
@@ -637,7 +732,7 @@ func (m *NewGroupRequest) Reset()         { *m = NewGroupRequest{} }
 func (m *NewGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*NewGroupRequest) ProtoMessage()    {}
 func (*NewGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{8}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{9}
 }
 func (m *NewGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -692,7 +787,7 @@ func (m *GroupCreatedResponse) Reset()         { *m = GroupCreatedResponse{} }
 func (m *GroupCreatedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupCreatedResponse) ProtoMessage()    {}
 func (*GroupCreatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{9}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{10}
 }
 func (m *GroupCreatedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -747,7 +842,7 @@ func (m *UpdateGroupRequest) Reset()         { *m = UpdateGroupRequest{} }
 func (m *UpdateGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateGroupRequest) ProtoMessage()    {}
 func (*UpdateGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{10}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{11}
 }
 func (m *UpdateGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -802,7 +897,7 @@ func (m *GroupUpdatedResponse) Reset()         { *m = GroupUpdatedResponse{} }
 func (m *GroupUpdatedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupUpdatedResponse) ProtoMessage()    {}
 func (*GroupUpdatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{11}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{12}
 }
 func (m *GroupUpdatedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -857,7 +952,7 @@ func (m *DeleteGroupRequest) Reset()         { *m = DeleteGroupRequest{} }
 func (m *DeleteGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteGroupRequest) ProtoMessage()    {}
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{12}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{13}
 }
 func (m *DeleteGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -912,7 +1007,7 @@ func (m *GroupDeletedResponse) Reset()         { *m = GroupDeletedResponse{} }
 func (m *GroupDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupDeletedResponse) ProtoMessage()    {}
 func (*GroupDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{13}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{14}
 }
 func (m *GroupDeletedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -969,7 +1064,7 @@ func (m *GroupRequest) Reset()         { *m = GroupRequest{} }
 func (m *GroupRequest) String() string { return proto.CompactTextString(m) }
 func (*GroupRequest) ProtoMessage()    {}
 func (*GroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{14}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{15}
 }
 func (m *GroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1038,7 +1133,7 @@ func (m *AllGroupsRequest) Reset()         { *m = AllGroupsRequest{} }
 func (m *AllGroupsRequest) String() string { return proto.CompactTextString(m) }
 func (*AllGroupsRequest) ProtoMessage()    {}
 func (*AllGroupsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{15}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{16}
 }
 func (m *AllGroupsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1092,7 +1187,7 @@ func (m *AllGroupsResponse) Reset()         { *m = AllGroupsResponse{} }
 func (m *AllGroupsResponse) String() string { return proto.CompactTextString(m) }
 func (*AllGroupsResponse) ProtoMessage()    {}
 func (*AllGroupsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{16}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{17}
 }
 func (m *AllGroupsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1139,7 +1234,7 @@ func (m *GroupsRequest) Reset()         { *m = GroupsRequest{} }
 func (m *GroupsRequest) String() string { return proto.CompactTextString(m) }
 func (*GroupsRequest) ProtoMessage()    {}
 func (*GroupsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{17}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{18}
 }
 func (m *GroupsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1187,7 +1282,7 @@ func (m *GroupResponse) Reset()         { *m = GroupResponse{} }
 func (m *GroupResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupResponse) ProtoMessage()    {}
 func (*GroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{18}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{19}
 }
 func (m *GroupResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1242,7 +1337,7 @@ func (m *PauseGroupRequest) Reset()         { *m = PauseGroupRequest{} }
 func (m *PauseGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*PauseGroupRequest) ProtoMessage()    {}
 func (*PauseGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{19}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{20}
 }
 func (m *PauseGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1297,7 +1392,7 @@ func (m *GroupPausedResponse) Reset()         { *m = GroupPausedResponse{} }
 func (m *GroupPausedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupPausedResponse) ProtoMessage()    {}
 func (*GroupPausedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{20}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{21}
 }
 func (m *GroupPausedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1352,7 +1447,7 @@ func (m *ResumeGroupRequest) Reset()         { *m = ResumeGroupRequest{} }
 func (m *ResumeGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*ResumeGroupRequest) ProtoMessage()    {}
 func (*ResumeGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{21}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{22}
 }
 func (m *ResumeGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1407,7 +1502,7 @@ func (m *GroupResumedResponse) Reset()         { *m = GroupResumedResponse{} }
 func (m *GroupResumedResponse) String() string { return proto.CompactTextString(m) }
 func (*GroupResumedResponse) ProtoMessage()    {}
 func (*GroupResumedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_scangroupservicer_78dbb56e5348e763, []int{22}
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{23}
 }
 func (m *GroupResumedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1450,6 +1545,210 @@ func (m *GroupResumedResponse) GetGroupID() int32 {
 	return 0
 }
 
+type GroupStatsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GroupStatsRequest) Reset()         { *m = GroupStatsRequest{} }
+func (m *GroupStatsRequest) String() string { return proto.CompactTextString(m) }
+func (*GroupStatsRequest) ProtoMessage()    {}
+func (*GroupStatsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{24}
+}
+func (m *GroupStatsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupStatsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupStatsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GroupStatsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupStatsRequest.Merge(dst, src)
+}
+func (m *GroupStatsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupStatsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupStatsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupStatsRequest proto.InternalMessageInfo
+
+func (m *GroupStatsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type GroupStatsResponse struct {
+	OrgID                int32                 `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	Stats                map[int32]*GroupStats `protobuf:"bytes,2,rep,name=Stats" json:"Stats,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *GroupStatsResponse) Reset()         { *m = GroupStatsResponse{} }
+func (m *GroupStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupStatsResponse) ProtoMessage()    {}
+func (*GroupStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{25}
+}
+func (m *GroupStatsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupStatsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GroupStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupStatsResponse.Merge(dst, src)
+}
+func (m *GroupStatsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupStatsResponse proto.InternalMessageInfo
+
+func (m *GroupStatsResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupStatsResponse) GetStats() map[int32]*GroupStats {
+	if m != nil {
+		return m.Stats
+	}
+	return nil
+}
+
+type UpdateStatsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	Stats                *GroupStats             `protobuf:"bytes,2,opt,name=Stats" json:"Stats,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *UpdateStatsRequest) Reset()         { *m = UpdateStatsRequest{} }
+func (m *UpdateStatsRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateStatsRequest) ProtoMessage()    {}
+func (*UpdateStatsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{26}
+}
+func (m *UpdateStatsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateStatsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateStatsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *UpdateStatsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateStatsRequest.Merge(dst, src)
+}
+func (m *UpdateStatsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateStatsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateStatsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateStatsRequest proto.InternalMessageInfo
+
+func (m *UpdateStatsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *UpdateStatsRequest) GetStats() *GroupStats {
+	if m != nil {
+		return m.Stats
+	}
+	return nil
+}
+
+type StatsUpdatedResponse struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StatsUpdatedResponse) Reset()         { *m = StatsUpdatedResponse{} }
+func (m *StatsUpdatedResponse) String() string { return proto.CompactTextString(m) }
+func (*StatsUpdatedResponse) ProtoMessage()    {}
+func (*StatsUpdatedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_scangroupservicer_86fc461bf4c98bc7, []int{27}
+}
+func (m *StatsUpdatedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *StatsUpdatedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_StatsUpdatedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *StatsUpdatedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StatsUpdatedResponse.Merge(dst, src)
+}
+func (m *StatsUpdatedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *StatsUpdatedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_StatsUpdatedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StatsUpdatedResponse proto.InternalMessageInfo
+
+func (m *StatsUpdatedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*NSModuleConfig)(nil), "scangroup.NSModuleConfig")
 	proto.RegisterType((*BruteModuleConfig)(nil), "scangroup.BruteModuleConfig")
@@ -1459,6 +1758,7 @@ func init() {
 	proto.RegisterType((*ModuleConfiguration)(nil), "scangroup.ModuleConfiguration")
 	proto.RegisterType((*Group)(nil), "scangroup.Group")
 	proto.RegisterType((*ScanGroupFilter)(nil), "scangroup.ScanGroupFilter")
+	proto.RegisterType((*GroupStats)(nil), "scangroup.GroupStats")
 	proto.RegisterType((*NewGroupRequest)(nil), "scangroup.NewGroupRequest")
 	proto.RegisterType((*GroupCreatedResponse)(nil), "scangroup.GroupCreatedResponse")
 	proto.RegisterType((*UpdateGroupRequest)(nil), "scangroup.UpdateGroupRequest")
@@ -1474,6 +1774,11 @@ func init() {
 	proto.RegisterType((*GroupPausedResponse)(nil), "scangroup.GroupPausedResponse")
 	proto.RegisterType((*ResumeGroupRequest)(nil), "scangroup.ResumeGroupRequest")
 	proto.RegisterType((*GroupResumedResponse)(nil), "scangroup.GroupResumedResponse")
+	proto.RegisterType((*GroupStatsRequest)(nil), "scangroup.GroupStatsRequest")
+	proto.RegisterType((*GroupStatsResponse)(nil), "scangroup.GroupStatsResponse")
+	proto.RegisterMapType((map[int32]*GroupStats)(nil), "scangroup.GroupStatsResponse.StatsEntry")
+	proto.RegisterType((*UpdateStatsRequest)(nil), "scangroup.UpdateStatsRequest")
+	proto.RegisterType((*StatsUpdatedResponse)(nil), "scangroup.StatsUpdatedResponse")
 	proto.RegisterEnum("scangroup.GroupRequest_RequestBy", GroupRequest_RequestBy_name, GroupRequest_RequestBy_value)
 }
 
@@ -1497,6 +1802,8 @@ type ScanGroupClient interface {
 	Groups(ctx context.Context, in *GroupsRequest, opts ...grpc.CallOption) (ScanGroup_GroupsClient, error)
 	Pause(ctx context.Context, in *PauseGroupRequest, opts ...grpc.CallOption) (*GroupPausedResponse, error)
 	Resume(ctx context.Context, in *ResumeGroupRequest, opts ...grpc.CallOption) (*GroupResumedResponse, error)
+	GroupStats(ctx context.Context, in *GroupStatsRequest, opts ...grpc.CallOption) (*GroupStatsResponse, error)
+	UpdateStats(ctx context.Context, in *UpdateStatsRequest, opts ...grpc.CallOption) (*StatsUpdatedResponse, error)
 }
 
 type scanGroupClient struct {
@@ -1625,6 +1932,24 @@ func (c *scanGroupClient) Resume(ctx context.Context, in *ResumeGroupRequest, op
 	return out, nil
 }
 
+func (c *scanGroupClient) GroupStats(ctx context.Context, in *GroupStatsRequest, opts ...grpc.CallOption) (*GroupStatsResponse, error) {
+	out := new(GroupStatsResponse)
+	err := c.cc.Invoke(ctx, "/scangroup.ScanGroup/GroupStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scanGroupClient) UpdateStats(ctx context.Context, in *UpdateStatsRequest, opts ...grpc.CallOption) (*StatsUpdatedResponse, error) {
+	out := new(StatsUpdatedResponse)
+	err := c.cc.Invoke(ctx, "/scangroup.ScanGroup/UpdateStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ScanGroupServer is the server API for ScanGroup service.
 type ScanGroupServer interface {
 	Get(context.Context, *GroupRequest) (*GroupResponse, error)
@@ -1635,6 +1960,8 @@ type ScanGroupServer interface {
 	Groups(*GroupsRequest, ScanGroup_GroupsServer) error
 	Pause(context.Context, *PauseGroupRequest) (*GroupPausedResponse, error)
 	Resume(context.Context, *ResumeGroupRequest) (*GroupResumedResponse, error)
+	GroupStats(context.Context, *GroupStatsRequest) (*GroupStatsResponse, error)
+	UpdateStats(context.Context, *UpdateStatsRequest) (*StatsUpdatedResponse, error)
 }
 
 func RegisterScanGroupServer(s *grpc.Server, srv ScanGroupServer) {
@@ -1791,6 +2118,42 @@ func _ScanGroup_Resume_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ScanGroup_GroupStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GroupStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).GroupStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/scangroup.ScanGroup/GroupStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).GroupStats(ctx, req.(*GroupStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScanGroup_UpdateStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScanGroupServer).UpdateStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/scangroup.ScanGroup/UpdateStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScanGroupServer).UpdateStats(ctx, req.(*UpdateStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "scangroup.ScanGroup",
 	HandlerType: (*ScanGroupServer)(nil),
@@ -1818,6 +2181,14 @@ var _ScanGroup_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Resume",
 			Handler:    _ScanGroup_Resume_Handler,
+		},
+		{
+			MethodName: "GroupStats",
+			Handler:    _ScanGroup_GroupStats_Handler,
+		},
+		{
+			MethodName: "UpdateStats",
+			Handler:    _ScanGroup_UpdateStats_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -2276,6 +2647,62 @@ func (m *ScanGroupFilter) MarshalTo(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i++
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GroupStats) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupStats) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.GroupID))
+	}
+	if m.ActiveAddresses != 0 {
+		dAtA[i] = 0x18
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.ActiveAddresses))
+	}
+	if m.BatchSize != 0 {
+		dAtA[i] = 0x20
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.BatchSize))
+	}
+	if m.LastUpdated != 0 {
+		dAtA[i] = 0x28
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.LastUpdated))
+	}
+	if m.BatchStart != 0 {
+		dAtA[i] = 0x30
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.BatchStart))
+	}
+	if m.BatchEnd != 0 {
+		dAtA[i] = 0x38
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.BatchEnd))
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -2814,6 +3241,157 @@ func (m *GroupResumedResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *GroupStatsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupStatsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n24, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n24
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GroupStatsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupStatsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if len(m.Stats) > 0 {
+		for k, _ := range m.Stats {
+			dAtA[i] = 0x12
+			i++
+			v := m.Stats[k]
+			msgSize := 0
+			if v != nil {
+				msgSize = v.Size()
+				msgSize += 1 + sovScangroupservicer(uint64(msgSize))
+			}
+			mapSize := 1 + sovScangroupservicer(uint64(k)) + msgSize
+			i = encodeVarintScangroupservicer(dAtA, i, uint64(mapSize))
+			dAtA[i] = 0x8
+			i++
+			i = encodeVarintScangroupservicer(dAtA, i, uint64(k))
+			if v != nil {
+				dAtA[i] = 0x12
+				i++
+				i = encodeVarintScangroupservicer(dAtA, i, uint64(v.Size()))
+				n25, err := v.MarshalTo(dAtA[i:])
+				if err != nil {
+					return 0, err
+				}
+				i += n25
+			}
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *UpdateStatsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateStatsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n26, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n26
+	}
+	if m.Stats != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.Stats.Size()))
+		n27, err := m.Stats.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n27
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *StatsUpdatedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StatsUpdatedResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintScangroupservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
 func encodeVarintScangroupservicer(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -3035,6 +3613,39 @@ func (m *ScanGroupFilter) Size() (n int) {
 	}
 	if m.PausedValue {
 		n += 2
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GroupStats) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.OrgID))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.GroupID))
+	}
+	if m.ActiveAddresses != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.ActiveAddresses))
+	}
+	if m.BatchSize != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.BatchSize))
+	}
+	if m.LastUpdated != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.LastUpdated))
+	}
+	if m.BatchStart != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.BatchStart))
+	}
+	if m.BatchEnd != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.BatchEnd))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3319,6 +3930,85 @@ func (m *GroupResumedResponse) Size() (n int) {
 	}
 	if m.GroupID != 0 {
 		n += 1 + sovScangroupservicer(uint64(m.GroupID))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GroupStatsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GroupStatsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.OrgID))
+	}
+	if len(m.Stats) > 0 {
+		for k, v := range m.Stats {
+			_ = k
+			_ = v
+			l = 0
+			if v != nil {
+				l = v.Size()
+				l += 1 + sovScangroupservicer(uint64(l))
+			}
+			mapEntrySize := 1 + sovScangroupservicer(uint64(k)) + l
+			n += mapEntrySize + 1 + sovScangroupservicer(uint64(mapEntrySize))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *UpdateStatsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	if m.Stats != nil {
+		l = m.Stats.Size()
+		n += 1 + l + sovScangroupservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *StatsUpdatedResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovScangroupservicer(uint64(m.OrgID))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -4611,6 +5301,190 @@ func (m *ScanGroupFilter) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.PausedValue = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupStats) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupStats: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupStats: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ActiveAddresses", wireType)
+			}
+			m.ActiveAddresses = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ActiveAddresses |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchSize", wireType)
+			}
+			m.BatchSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BatchSize |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
+			}
+			m.LastUpdated = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LastUpdated |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchStart", wireType)
+			}
+			m.BatchStart = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BatchStart |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BatchEnd", wireType)
+			}
+			m.BatchEnd = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BatchEnd |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
@@ -6160,6 +7034,459 @@ func (m *GroupResumedResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *GroupStatsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupStatsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupStatsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupStatsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupStatsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupStatsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stats", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Stats == nil {
+				m.Stats = make(map[int32]*GroupStats)
+			}
+			var mapkey int32
+			var mapvalue *GroupStats
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowScangroupservicer
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= (uint64(b) & 0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowScangroupservicer
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapkey |= (int32(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+				} else if fieldNum == 2 {
+					var mapmsglen int
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowScangroupservicer
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapmsglen |= (int(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					if mapmsglen < 0 {
+						return ErrInvalidLengthScangroupservicer
+					}
+					postmsgIndex := iNdEx + mapmsglen
+					if mapmsglen < 0 {
+						return ErrInvalidLengthScangroupservicer
+					}
+					if postmsgIndex > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = &GroupStats{}
+					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndex
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthScangroupservicer
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Stats[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateStatsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateStatsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateStatsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stats", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Stats == nil {
+				m.Stats = &GroupStats{}
+			}
+			if err := m.Stats.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *StatsUpdatedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowScangroupservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StatsUpdatedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StatsUpdatedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowScangroupservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipScangroupservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthScangroupservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipScangroupservicer(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -6266,77 +7593,90 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("scangroup/scangroupservicer.proto", fileDescriptor_scangroupservicer_78dbb56e5348e763)
+	proto.RegisterFile("scangroup/scangroupservicer.proto", fileDescriptor_scangroupservicer_86fc461bf4c98bc7)
 }
 
-var fileDescriptor_scangroupservicer_78dbb56e5348e763 = []byte{
-	// 1085 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x57, 0xdd, 0x6e, 0x1b, 0x45,
-	0x14, 0xee, 0xc6, 0xb1, 0x93, 0x3d, 0xce, 0xef, 0xa4, 0x85, 0xc5, 0x04, 0x93, 0xee, 0x45, 0xc9,
-	0x05, 0x38, 0xa9, 0x0b, 0x12, 0x52, 0xa5, 0xa0, 0x3a, 0xce, 0x1f, 0x34, 0x3f, 0x9a, 0x6d, 0xa8,
-	0x84, 0x04, 0xd2, 0xc6, 0x9e, 0x3a, 0xab, 0xac, 0x77, 0xcd, 0xcc, 0x6c, 0x13, 0x3f, 0x00, 0x0f,
-	0xc0, 0x1d, 0xef, 0xc2, 0x0b, 0x70, 0x89, 0x90, 0xb8, 0xe0, 0x0e, 0x85, 0x17, 0x41, 0x7b, 0x76,
-	0xbc, 0x19, 0xef, 0x6e, 0x5b, 0x88, 0xd5, 0x5e, 0x65, 0xce, 0xdf, 0x77, 0xce, 0x9c, 0xf9, 0xce,
-	0x89, 0x17, 0xee, 0x8b, 0x8e, 0x1b, 0xf4, 0x78, 0x18, 0x0d, 0x36, 0xd2, 0x93, 0x60, 0xfc, 0xa5,
-	0xd7, 0x61, 0xbc, 0x31, 0xe0, 0xa1, 0x0c, 0x89, 0x99, 0x1a, 0x6a, 0xf7, 0x50, 0x23, 0x87, 0x03,
-	0x26, 0x36, 0x22, 0x31, 0xf2, 0xb0, 0xb7, 0x60, 0xe1, 0xc8, 0x39, 0x0c, 0xbb, 0x91, 0xcf, 0xb6,
-	0xc3, 0xe0, 0x85, 0xd7, 0x23, 0x9f, 0xc2, 0x32, 0x65, 0x3f, 0x46, 0x4c, 0x48, 0x71, 0xc2, 0xb8,
-	0xc3, 0x3a, 0x61, 0xd0, 0xb5, 0x8c, 0x35, 0x63, 0xbd, 0x4c, 0xf3, 0x06, 0xfb, 0x27, 0x03, 0x96,
-	0x5b, 0x3c, 0x92, 0xec, 0xf6, 0x18, 0xe4, 0x01, 0x2c, 0x6c, 0x47, 0x42, 0x86, 0x7d, 0x27, 0x3a,
-	0x3b, 0x72, 0xfb, 0x4c, 0x58, 0x53, 0x6b, 0xa5, 0x75, 0x93, 0x66, 0xb4, 0xa4, 0x06, 0xb3, 0x87,
-	0xee, 0x55, 0x9b, 0x0d, 0xe4, 0xb9, 0x55, 0x42, 0xb0, 0x54, 0xb6, 0xcf, 0x60, 0xe9, 0x24, 0xe4,
-	0x72, 0x82, 0x2a, 0xd6, 0xa0, 0x9a, 0xe4, 0x8b, 0x71, 0x92, 0x12, 0xca, 0x54, 0x57, 0xd9, 0x7f,
-	0x19, 0xb0, 0xf8, 0x9c, 0x9d, 0x4d, 0x90, 0x63, 0x1d, 0x16, 0x9f, 0xb9, 0x17, 0xcc, 0xe9, 0x70,
-	0xc6, 0x02, 0xe7, 0x3c, 0xc4, 0x3c, 0xc6, 0xfa, 0x2c, 0xcd, 0xaa, 0xd5, 0x5d, 0x9f, 0x7a, 0xc1,
-	0x85, 0xd0, 0xee, 0x8a, 0x32, 0x59, 0x05, 0x73, 0xe7, 0x4a, 0x72, 0xb7, 0x23, 0xbf, 0x76, 0xac,
-	0x69, 0x8c, 0xbf, 0x51, 0x90, 0xcf, 0xe1, 0xde, 0xae, 0x17, 0xf4, 0x18, 0x1f, 0x70, 0x2f, 0x90,
-	0xbb, 0xdc, 0xed, 0xb3, 0xcb, 0x90, 0x5f, 0x08, 0xab, 0x8c, 0x9e, 0xc5, 0x46, 0xfb, 0x21, 0xac,
-	0x7c, 0xc3, 0x86, 0x97, 0x21, 0xef, 0x8e, 0x5d, 0xaf, 0x06, 0xb3, 0x4a, 0x2d, 0x2c, 0x03, 0x1f,
-	0x25, 0x95, 0xed, 0x9f, 0x4b, 0xb0, 0xa2, 0x3b, 0x47, 0xdc, 0x95, 0x5e, 0x18, 0x90, 0x2f, 0x60,
-	0xf6, 0xc8, 0x49, 0x54, 0xd8, 0x89, 0x6a, 0xf3, 0x83, 0x46, 0xca, 0xc3, 0xc6, 0x38, 0xdb, 0x68,
-	0xea, 0x4a, 0xb6, 0xa0, 0x8a, 0x44, 0x52, 0x91, 0x53, 0x18, 0xb9, 0xaa, 0x45, 0xe6, 0x68, 0x46,
-	0xf5, 0x00, 0xf2, 0x18, 0x20, 0x7e, 0x26, 0x15, 0x5e, 0xc2, 0xf0, 0x0f, 0xb5, 0xf0, 0x2c, 0x3d,
-	0xa8, 0xe6, 0x4e, 0xda, 0xb9, 0x97, 0xc5, 0xc6, 0x56, 0x9b, 0x35, 0x0d, 0x21, 0xe3, 0x41, 0x73,
-	0x64, 0x38, 0x29, 0x6c, 0x22, 0x36, 0xbe, 0xda, 0xac, 0x6b, 0x48, 0x05, 0x5e, 0xb4, 0xb0, 0xff,
-	0x0d, 0x20, 0x6d, 0xd7, 0xf3, 0x87, 0x4e, 0xc7, 0x0d, 0x9c, 0xce, 0x39, 0x8b, 0x4d, 0xc2, 0xaa,
-	0xac, 0x95, 0xd6, 0x4b, 0xb4, 0xc0, 0x62, 0xff, 0x59, 0x82, 0xf2, 0x5e, 0x9c, 0x82, 0xdc, 0x85,
-	0xf2, 0x31, 0xef, 0x1d, 0xb4, 0x15, 0x19, 0x13, 0x81, 0x58, 0x30, 0x83, 0xe6, 0x83, 0x36, 0x36,
-	0xb8, 0x4c, 0x47, 0x62, 0x4c, 0x2a, 0x3c, 0xc6, 0xa3, 0x86, 0xdd, 0x33, 0xe9, 0x8d, 0x82, 0xd8,
-	0x30, 0xb7, 0xcd, 0x19, 0xbe, 0xef, 0x33, 0xaf, 0xcf, 0xb0, 0x39, 0x25, 0x3a, 0xa6, 0x8b, 0x11,
-	0x50, 0x66, 0xdd, 0xd6, 0x10, 0xef, 0x6c, 0xd2, 0x1b, 0x45, 0x7c, 0x93, 0x63, 0xee, 0xf5, 0xbc,
-	0xc0, 0xf5, 0x0f, 0x82, 0x41, 0x24, 0x9d, 0x47, 0xa7, 0xf4, 0xa9, 0x55, 0x41, 0xb7, 0x02, 0x4b,
-	0x9c, 0xf1, 0x30, 0xec, 0x7a, 0x2f, 0x3c, 0xd6, 0xc5, 0x8c, 0x33, 0x49, 0x46, 0x5d, 0x47, 0xea,
-	0x00, 0x23, 0xb9, 0x35, 0xb4, 0x66, 0x11, 0x4b, 0xd3, 0xc4, 0xef, 0x51, 0x40, 0x50, 0xcb, 0xcc,
-	0xbd, 0x47, 0x81, 0x17, 0x2d, 0xe4, 0xf6, 0x7b, 0x50, 0x39, 0x71, 0x23, 0xc1, 0xba, 0x16, 0xe0,
-	0x34, 0x29, 0x29, 0xee, 0x6b, 0x9b, 0xf9, 0x4c, 0xb2, 0xae, 0x55, 0x45, 0xc3, 0x48, 0xc4, 0xb5,
-	0x32, 0x6a, 0xc2, 0x41, 0xdb, 0x9a, 0xc3, 0xae, 0xeb, 0x2a, 0xfd, 0xa6, 0xe8, 0x32, 0x8f, 0x2e,
-	0x63, 0x3a, 0xdb, 0x81, 0xc5, 0xf8, 0xa1, 0xf1, 0x41, 0x76, 0x3d, 0x5f, 0x32, 0x1e, 0x5f, 0xfe,
-	0xb9, 0x27, 0xcf, 0x55, 0x39, 0x06, 0x66, 0xd5, 0x34, 0x71, 0xe2, 0xe4, 0xf4, 0xad, 0xeb, 0x47,
-	0x4c, 0xed, 0x19, 0x5d, 0x65, 0x7b, 0xb0, 0x78, 0xc4, 0x2e, 0x11, 0x53, 0xad, 0x2a, 0xd2, 0x80,
-	0xea, 0xa9, 0x60, 0x7c, 0x3b, 0x0c, 0x24, 0xbb, 0x92, 0x6a, 0x7c, 0xe7, 0x1a, 0x9a, 0x8e, 0xea,
-	0x0e, 0xe4, 0x81, 0xa2, 0x9b, 0x1a, 0xd7, 0x25, 0xad, 0xa7, 0x09, 0x6e, 0x62, 0xb6, 0x77, 0xe1,
-	0x2e, 0x1e, 0xd4, 0xbd, 0x29, 0x13, 0x83, 0x30, 0x10, 0xec, 0xff, 0xb2, 0xd4, 0xf6, 0x81, 0x9c,
-	0x0e, 0xba, 0xae, 0x64, 0xef, 0xb4, 0xea, 0x24, 0xe5, 0xed, 0xab, 0xfe, 0x01, 0x48, 0x42, 0x87,
-	0x89, 0xaa, 0x7e, 0x35, 0xfe, 0xa8, 0x4e, 0xc5, 0xb9, 0x5b, 0xd7, 0xf9, 0x87, 0x01, 0x73, 0x13,
-	0x95, 0xf8, 0x10, 0xa6, 0x5a, 0x43, 0x44, 0x5d, 0x68, 0xde, 0xcf, 0x75, 0x35, 0x01, 0x6d, 0xa8,
-	0xbf, 0xad, 0x21, 0x9d, 0x6a, 0x0d, 0xf5, 0x6a, 0x4a, 0xaf, 0xd9, 0x48, 0xd3, 0x99, 0x8d, 0x64,
-	0x7f, 0x02, 0x66, 0x0a, 0x44, 0xe6, 0xc1, 0xdc, 0xa3, 0xc7, 0xa7, 0x27, 0x47, 0x4f, 0x0e, 0x77,
-	0x96, 0xee, 0x90, 0x2a, 0xcc, 0xa0, 0x78, 0xd0, 0x5e, 0x32, 0xec, 0x97, 0xb0, 0xf4, 0xc4, 0xf7,
-	0x31, 0x50, 0xdc, 0xf6, 0x5e, 0x4d, 0xa8, 0x24, 0x53, 0xa7, 0x18, 0xa3, 0xff, 0x57, 0xc8, 0xcc,
-	0x25, 0x55, 0x9e, 0xf6, 0x63, 0x58, 0xd6, 0xf2, 0xaa, 0x17, 0x49, 0x99, 0x67, 0xbc, 0x9e, 0x79,
-	0x5f, 0xc1, 0xfc, 0x44, 0x15, 0xdb, 0x87, 0x0a, 0xe0, 0x0d, 0x5c, 0xf8, 0xaf, 0x93, 0xf0, 0x3d,
-	0x2c, 0xe3, 0xe6, 0x78, 0x4b, 0x04, 0xde, 0x81, 0x15, 0x3c, 0x26, 0xdb, 0x69, 0x92, 0x39, 0xa3,
-	0x4c, 0x44, 0xfd, 0xb7, 0x3d, 0x67, 0x49, 0x92, 0x5b, 0xd7, 0xd9, 0xfc, 0x75, 0x1a, 0xcc, 0x94,
-	0x36, 0xe4, 0x4b, 0x28, 0xed, 0x31, 0x49, 0xde, 0x7f, 0xc5, 0xbc, 0xd4, 0xac, 0xbc, 0x41, 0xe5,
-	0xdd, 0x81, 0x4a, 0xb2, 0x50, 0x89, 0x4e, 0xc8, 0xcc, 0x4e, 0xaf, 0x7d, 0x9c, 0x8d, 0xcf, 0x2e,
-	0xe1, 0x7d, 0xa8, 0x24, 0x1b, 0x8e, 0x7c, 0xa4, 0xb9, 0xe6, 0xf7, 0x6c, 0x1e, 0x29, 0xbb, 0x18,
-	0xf7, 0xa1, 0x92, 0xec, 0xa0, 0x31, 0xa4, 0xfc, 0xee, 0xcb, 0x23, 0x65, 0x57, 0xd7, 0x3e, 0x98,
-	0xe9, 0xf4, 0x10, 0xfd, 0x67, 0x5c, 0x76, 0x96, 0x6b, 0xab, 0xc5, 0xc6, 0x04, 0x67, 0xd3, 0x20,
-	0x5b, 0x50, 0x51, 0x30, 0xb9, 0x46, 0x8a, 0x37, 0xb6, 0x78, 0xd3, 0x20, 0x3b, 0x50, 0x46, 0x5a,
-	0x12, 0x3d, 0x51, 0x6e, 0x18, 0x6a, 0xf5, 0x2c, 0x44, 0x86, 0xcb, 0xfb, 0x50, 0x49, 0x68, 0x33,
-	0xd6, 0x9a, 0x3c, 0x5d, 0xf3, 0xad, 0xc9, 0xb0, 0xad, 0xd5, 0xfa, 0xed, 0xba, 0x6e, 0xfc, 0x7e,
-	0x5d, 0x37, 0xfe, 0xbe, 0xae, 0x1b, 0xbf, 0xfc, 0x53, 0xbf, 0xf3, 0xdd, 0x66, 0xcf, 0x93, 0xe7,
-	0xd1, 0x59, 0xa3, 0x13, 0xf6, 0x37, 0x7c, 0x2f, 0xb8, 0x70, 0xbd, 0xcf, 0xbc, 0x70, 0xc3, 0xed,
-	0x6f, 0xe0, 0x37, 0x5e, 0x47, 0x7d, 0x14, 0x8a, 0x9b, 0xcf, 0xc4, 0xb3, 0x0a, 0x5a, 0x1e, 0xfd,
-	0x1b, 0x00, 0x00, 0xff, 0xff, 0xad, 0x91, 0x62, 0x44, 0x44, 0x0e, 0x00, 0x00,
+var fileDescriptor_scangroupservicer_86fc461bf4c98bc7 = []byte{
+	// 1290 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcd, 0x6e, 0xdb, 0xc6,
+	0x13, 0x0f, 0xcd, 0x48, 0xb1, 0x46, 0x4e, 0x6c, 0x6f, 0x92, 0xff, 0x9f, 0x55, 0x1d, 0xd5, 0xe1,
+	0x21, 0x15, 0xd0, 0x54, 0x4e, 0x94, 0x16, 0x08, 0x1a, 0xc0, 0x85, 0x65, 0xc9, 0xb1, 0xdb, 0xf8,
+	0x03, 0xcb, 0xb8, 0x01, 0x0a, 0xb4, 0x00, 0x2d, 0x6d, 0x6c, 0xc2, 0x12, 0xa9, 0x70, 0x97, 0x4e,
+	0xd4, 0x7b, 0x1f, 0xa0, 0xb7, 0xbe, 0x4b, 0x5f, 0xa0, 0xc7, 0xa2, 0x40, 0x0e, 0xbd, 0x15, 0xee,
+	0x8b, 0x14, 0x9c, 0x5d, 0x51, 0x2b, 0x92, 0x71, 0x12, 0x09, 0xe9, 0xc9, 0x3b, 0xb3, 0xb3, 0xbf,
+	0x99, 0x9d, 0x8f, 0xdf, 0xca, 0x84, 0xdb, 0xbc, 0xe3, 0xfa, 0xc7, 0x61, 0x10, 0x0d, 0xd6, 0x92,
+	0x15, 0x67, 0xe1, 0x99, 0xd7, 0x61, 0x61, 0x7d, 0x10, 0x06, 0x22, 0x20, 0xa5, 0x64, 0xa3, 0x72,
+	0x13, 0x35, 0x62, 0x38, 0x60, 0x7c, 0x2d, 0xe2, 0x23, 0x0b, 0x7b, 0x1d, 0xae, 0xed, 0x39, 0xbb,
+	0x41, 0x37, 0xea, 0xb1, 0xcd, 0xc0, 0x7f, 0xee, 0x1d, 0x93, 0xbb, 0xb0, 0x4c, 0xd9, 0x8b, 0x88,
+	0x71, 0xc1, 0x0f, 0x58, 0xe8, 0xb0, 0x4e, 0xe0, 0x77, 0x2d, 0x63, 0xd5, 0xa8, 0x15, 0x68, 0x76,
+	0xc3, 0xfe, 0xd9, 0x80, 0xe5, 0x66, 0x18, 0x09, 0x36, 0x3d, 0x06, 0xb9, 0x03, 0xd7, 0x36, 0x23,
+	0x2e, 0x82, 0xbe, 0x13, 0x1d, 0xed, 0xb9, 0x7d, 0xc6, 0xad, 0xb9, 0x55, 0xb3, 0x56, 0xa2, 0x29,
+	0x2d, 0xa9, 0xc0, 0xfc, 0xae, 0xfb, 0xaa, 0xc5, 0x06, 0xe2, 0xc4, 0x32, 0x11, 0x2c, 0x91, 0xed,
+	0x23, 0x58, 0x3a, 0x08, 0x42, 0x31, 0x43, 0x14, 0xab, 0x50, 0x96, 0xfe, 0x62, 0x1c, 0x19, 0x42,
+	0x81, 0xea, 0x2a, 0xfb, 0x2f, 0x03, 0x16, 0x9f, 0xb1, 0xa3, 0x19, 0x7c, 0xd4, 0x60, 0xf1, 0xa9,
+	0x7b, 0xca, 0x9c, 0x4e, 0xc8, 0x98, 0xef, 0x9c, 0x04, 0xe8, 0xc7, 0xa8, 0xcd, 0xd3, 0xb4, 0x5a,
+	0xdd, 0xf5, 0x89, 0xe7, 0x9f, 0x72, 0xed, 0xae, 0x28, 0x93, 0x15, 0x28, 0xb5, 0x5f, 0x89, 0xd0,
+	0xed, 0x88, 0x6f, 0x1c, 0xeb, 0x32, 0x9e, 0x1f, 0x2b, 0xc8, 0x17, 0x70, 0x73, 0xcb, 0xf3, 0x8f,
+	0x59, 0x38, 0x08, 0x3d, 0x5f, 0x6c, 0x85, 0x6e, 0x9f, 0xbd, 0x0c, 0xc2, 0x53, 0x6e, 0x15, 0xd0,
+	0x32, 0x7f, 0xd3, 0xbe, 0x0f, 0xd7, 0xbf, 0x65, 0xc3, 0x97, 0x41, 0xd8, 0x9d, 0xb8, 0x5e, 0x05,
+	0xe6, 0x95, 0x9a, 0x5b, 0x06, 0x16, 0x25, 0x91, 0xed, 0x5f, 0x4c, 0xb8, 0xae, 0x1b, 0x47, 0xa1,
+	0x2b, 0xbc, 0xc0, 0x27, 0x5f, 0xc2, 0xfc, 0x9e, 0x23, 0x55, 0x98, 0x89, 0x72, 0xe3, 0xa3, 0x7a,
+	0xd2, 0x87, 0xf5, 0xc9, 0x6e, 0xa3, 0x89, 0x29, 0x59, 0x87, 0x32, 0x36, 0x92, 0x3a, 0x39, 0x87,
+	0x27, 0x57, 0xb4, 0x93, 0x99, 0x36, 0xa3, 0xfa, 0x01, 0xf2, 0x08, 0x20, 0x2e, 0x93, 0x3a, 0x6e,
+	0xe2, 0xf1, 0x8f, 0xb5, 0xe3, 0xe9, 0xf6, 0xa0, 0x9a, 0x39, 0x69, 0x65, 0x2a, 0x8b, 0x89, 0x2d,
+	0x37, 0x2a, 0x1a, 0x42, 0xca, 0x82, 0x66, 0x9a, 0xe1, 0x20, 0x37, 0x89, 0x98, 0xf8, 0x72, 0xa3,
+	0xaa, 0x21, 0xe5, 0x58, 0xd1, 0xdc, 0xfc, 0xd7, 0x81, 0xb4, 0x5c, 0xaf, 0x37, 0x74, 0x3a, 0xae,
+	0xef, 0x74, 0x4e, 0x58, 0xbc, 0xc5, 0xad, 0xe2, 0xaa, 0x59, 0x33, 0x69, 0xce, 0x8e, 0xfd, 0xda,
+	0x84, 0xc2, 0xe3, 0xd8, 0x05, 0xb9, 0x01, 0x85, 0xfd, 0xf0, 0x78, 0xa7, 0xa5, 0x9a, 0x51, 0x0a,
+	0xc4, 0x82, 0x2b, 0xb8, 0xbd, 0xd3, 0xc2, 0x04, 0x17, 0xe8, 0x48, 0x8c, 0x9b, 0x0a, 0x97, 0xf1,
+	0xa8, 0x61, 0xf6, 0x4a, 0x74, 0xac, 0x20, 0x36, 0x2c, 0x6c, 0x86, 0x0c, 0xeb, 0xfb, 0xd4, 0xeb,
+	0x33, 0x4c, 0x8e, 0x49, 0x27, 0x74, 0x31, 0x02, 0xca, 0xac, 0xdb, 0x1c, 0xe2, 0x9d, 0x4b, 0x74,
+	0xac, 0x88, 0x6f, 0xb2, 0x1f, 0x7a, 0xc7, 0x9e, 0xef, 0xf6, 0x76, 0xfc, 0x41, 0x24, 0x9c, 0x07,
+	0x87, 0xf4, 0x89, 0x55, 0x44, 0xb3, 0x9c, 0x9d, 0xd8, 0xe3, 0x6e, 0xd0, 0xf5, 0x9e, 0x7b, 0xac,
+	0x8b, 0x1e, 0xaf, 0x48, 0x8f, 0xba, 0x8e, 0x54, 0x01, 0x46, 0x72, 0x73, 0x68, 0xcd, 0x23, 0x96,
+	0xa6, 0x89, 0xeb, 0x91, 0xd3, 0xa0, 0x56, 0x29, 0x53, 0x8f, 0x1c, 0x2b, 0x9a, 0xdb, 0xdb, 0xff,
+	0x83, 0xe2, 0x81, 0x1b, 0x71, 0xd6, 0xb5, 0x00, 0xa7, 0x49, 0x49, 0x71, 0x5e, 0x5b, 0xac, 0xc7,
+	0x04, 0xeb, 0x5a, 0x65, 0xdc, 0x18, 0x89, 0x48, 0x2b, 0xa3, 0x24, 0xec, 0xb4, 0xac, 0x05, 0xcc,
+	0xba, 0xae, 0xd2, 0x6f, 0x8a, 0x26, 0x57, 0xd1, 0x64, 0x42, 0x67, 0x3b, 0xb0, 0x18, 0x17, 0x1a,
+	0x0b, 0xb2, 0xe5, 0xf5, 0x04, 0x0b, 0xe3, 0xcb, 0x3f, 0xf3, 0xc4, 0x89, 0x0a, 0xc7, 0x40, 0xaf,
+	0x9a, 0x26, 0x76, 0x2c, 0x57, 0xdf, 0xb9, 0xbd, 0x88, 0x29, 0x9e, 0xd1, 0x55, 0xf6, 0xb9, 0x01,
+	0x80, 0x88, 0x8e, 0x70, 0x05, 0x7f, 0xef, 0x8e, 0xa9, 0xc1, 0xe2, 0x46, 0x47, 0x78, 0x67, 0x6c,
+	0xa3, 0xdb, 0x0d, 0x19, 0xe7, 0x6c, 0xc4, 0x54, 0x69, 0x75, 0xdc, 0x19, 0x4d, 0x57, 0x74, 0x4e,
+	0x1c, 0xef, 0x27, 0xd9, 0x3a, 0x05, 0x3a, 0x56, 0xc4, 0x81, 0x3e, 0x71, 0xb9, 0x38, 0x1c, 0x74,
+	0xe3, 0x94, 0x60, 0xe7, 0x98, 0x54, 0x57, 0xc5, 0x57, 0x95, 0xe6, 0xc2, 0x0d, 0x05, 0xf6, 0x8c,
+	0x49, 0x35, 0x4d, 0xcc, 0x52, 0x28, 0xb5, 0xfd, 0xae, 0xea, 0x93, 0x44, 0xb6, 0x3d, 0x58, 0xdc,
+	0x63, 0x2f, 0x31, 0x66, 0xc5, 0xc7, 0xa4, 0x0e, 0xe5, 0x43, 0xce, 0xc2, 0xcd, 0xc0, 0x17, 0xec,
+	0x95, 0x50, 0x1c, 0xb5, 0x50, 0xd7, 0x74, 0x54, 0x37, 0x20, 0x77, 0xd4, 0x4c, 0x29, 0x4e, 0x5a,
+	0xd2, 0x1a, 0x47, 0xe2, 0xca, 0x6d, 0x7b, 0x0b, 0x6e, 0xe0, 0x42, 0x15, 0x97, 0x32, 0x3e, 0x08,
+	0x7c, 0xce, 0xde, 0x37, 0xb1, 0x76, 0x0f, 0x88, 0xbc, 0xf9, 0x7f, 0x1a, 0xb5, 0x4a, 0xf6, 0xd4,
+	0x51, 0xff, 0x08, 0x44, 0xf6, 0xfc, 0x4c, 0x51, 0xbf, 0x19, 0x7f, 0x14, 0xa7, 0x1a, 0xac, 0xa9,
+	0xe3, 0xfc, 0xd3, 0x80, 0x85, 0x99, 0x42, 0xbc, 0x0f, 0x73, 0xcd, 0x21, 0xa2, 0x5e, 0x6b, 0xdc,
+	0xce, 0x64, 0x55, 0x82, 0xd6, 0xd5, 0xdf, 0xe6, 0x90, 0xce, 0x35, 0x87, 0x7a, 0x34, 0xe6, 0x05,
+	0xb4, 0x7b, 0x39, 0x45, 0xbb, 0xf6, 0xa7, 0x50, 0x4a, 0x80, 0xc8, 0x55, 0x28, 0x3d, 0xa6, 0xfb,
+	0x87, 0x07, 0x7b, 0x1b, 0xbb, 0xed, 0xa5, 0x4b, 0xa4, 0x0c, 0x57, 0x50, 0xdc, 0x69, 0x2d, 0x19,
+	0xf6, 0x19, 0x2c, 0x6d, 0xf4, 0x7a, 0x78, 0x90, 0x4f, 0x7b, 0xaf, 0x06, 0x14, 0x25, 0xb5, 0xa8,
+	0x8e, 0xd1, 0x9f, 0xbe, 0x14, 0xf9, 0x50, 0x65, 0x69, 0x3f, 0x82, 0x65, 0xcd, 0xaf, 0xaa, 0x48,
+	0xd2, 0x79, 0xc6, 0xc5, 0x9d, 0xf7, 0x35, 0x5c, 0x9d, 0x29, 0x62, 0x7b, 0x57, 0x01, 0xbc, 0xa5,
+	0x17, 0xde, 0x75, 0x12, 0x7e, 0x80, 0x65, 0xa4, 0xc7, 0x0f, 0xd4, 0xc0, 0x6d, 0xb8, 0x8e, 0x4b,
+	0x49, 0xc1, 0xb3, 0xcc, 0x19, 0x65, 0x3c, 0xea, 0x7f, 0xe8, 0x39, 0x93, 0x4e, 0xa6, 0x8f, 0x73,
+	0x13, 0x96, 0xc7, 0x8f, 0xcb, 0xb4, 0x15, 0xfe, 0xcd, 0x00, 0xa2, 0xa3, 0x5c, 0x18, 0xcb, 0x3a,
+	0x14, 0xd0, 0x0c, 0x7f, 0xbb, 0x97, 0x1b, 0xb5, 0x74, 0x9d, 0x27, 0x30, 0xea, 0x28, 0xb5, 0x7d,
+	0x11, 0x0e, 0xa9, 0x3c, 0x56, 0xd9, 0x07, 0x18, 0x2b, 0xc9, 0x12, 0x98, 0xa7, 0x6c, 0xa8, 0x3c,
+	0xc4, 0x4b, 0xf2, 0x19, 0x14, 0xce, 0x92, 0xb7, 0xb4, 0xdc, 0xb8, 0x99, 0x8f, 0x2f, 0x6d, 0xbe,
+	0x9a, 0x7b, 0x68, 0xd8, 0x2f, 0x46, 0x44, 0x3e, 0x4b, 0x0e, 0x62, 0xb7, 0xa3, 0x6b, 0x5d, 0xe4,
+	0x16, 0xff, 0xd8, 0x77, 0xe1, 0x06, 0x2e, 0xde, 0x89, 0xcd, 0x1b, 0xaf, 0x0b, 0x50, 0x4a, 0x46,
+	0x9b, 0x3c, 0x04, 0xf3, 0x31, 0x13, 0xe4, 0xff, 0x6f, 0xe0, 0xb4, 0x8a, 0x95, 0xdd, 0x50, 0xe8,
+	0x6d, 0x28, 0xca, 0x47, 0x8f, 0xe8, 0xa4, 0x91, 0x7a, 0x77, 0x2b, 0x9f, 0xa4, 0xcf, 0xa7, 0x1f,
+	0xca, 0x6d, 0x28, 0xca, 0xb8, 0xc9, 0x2d, 0xcd, 0x34, 0xfb, 0x16, 0x66, 0x91, 0xd2, 0xd7, 0xdd,
+	0x86, 0xa2, 0x7c, 0x27, 0x26, 0x90, 0xb2, 0xef, 0x53, 0x16, 0x29, 0xfd, 0xbc, 0x6c, 0x43, 0x29,
+	0x61, 0x38, 0xa2, 0xff, 0x3f, 0x91, 0xe6, 0xdb, 0xca, 0x4a, 0xfe, 0xa6, 0xc4, 0xb9, 0x67, 0x90,
+	0x75, 0x28, 0x2a, 0x98, 0x4c, 0x22, 0xf9, 0x5b, 0x53, 0x7c, 0xcf, 0x20, 0x6d, 0x28, 0x20, 0x75,
+	0x10, 0xdd, 0x51, 0x86, 0xb0, 0x2a, 0xd5, 0x34, 0x44, 0x8a, 0x6f, 0xb6, 0xa1, 0x28, 0x47, 0x7b,
+	0x22, 0x35, 0x59, 0x4a, 0xc9, 0xa6, 0x26, 0xcd, 0x08, 0x3b, 0x13, 0x3f, 0x1f, 0x57, 0xde, 0x30,
+	0x6e, 0x12, 0xec, 0xd6, 0x85, 0xc3, 0x48, 0x76, 0xa1, 0xac, 0x4d, 0x4a, 0x4e, 0xf9, 0x27, 0xc0,
+	0xf4, 0xc8, 0xf2, 0xba, 0xbd, 0xd9, 0xfc, 0xfd, 0xbc, 0x6a, 0xfc, 0x71, 0x5e, 0x35, 0xfe, 0x3e,
+	0xaf, 0x1a, 0xbf, 0xfe, 0x53, 0xbd, 0xf4, 0xfd, 0xbd, 0x63, 0x4f, 0x9c, 0x44, 0x47, 0xf5, 0x4e,
+	0xd0, 0x5f, 0xeb, 0x79, 0xfe, 0xa9, 0xeb, 0x7d, 0xee, 0x05, 0x6b, 0x6e, 0x7f, 0x0d, 0x3f, 0x83,
+	0x74, 0xd4, 0x77, 0x13, 0x3e, 0xfe, 0x92, 0x72, 0x54, 0xc4, 0x9d, 0x07, 0xff, 0x06, 0x00, 0x00,
+	0xff, 0xff, 0x54, 0x62, 0x81, 0xbb, 0x67, 0x11, 0x00, 0x00,
 }

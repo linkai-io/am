@@ -368,6 +368,127 @@ func TestPauseResume(t *testing.T) {
 	}
 }
 
+func TestGroupStats(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "sggroupstats"
+	groupName := "sggroupstats"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+
+	userContext := testUserContext(orgID, ownerUserID)
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	_, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	stats := &am.GroupStats{
+		OrgID:           userContext.GetOrgID(),
+		GroupID:         gid,
+		ActiveAddresses: 10,
+		BatchSize:       100,
+		BatchEnd:        time.Now().UnixNano(),
+		BatchStart:      time.Now().Add(-5 * time.Minute).UnixNano(),
+	}
+
+	if _, err := service.UpdateStats(ctx, userContext, stats); err != nil {
+		t.Fatalf("error updating stats for group: %v\n", err)
+	}
+
+	_, returned, err := service.GroupStats(ctx, userContext)
+	if len(returned) != 1 {
+		t.Fatalf("only one group stats should have been returned, got %d\n", len(returned))
+	}
+	t.Logf("%#v : %#v\n", returned, returned[gid])
+	testCompareStats(stats, returned[gid], t)
+
+	oldUpdated := returned[gid].LastUpdated
+
+	newStats := &am.GroupStats{
+		OrgID:           userContext.GetOrgID(),
+		GroupID:         gid,
+		ActiveAddresses: 100,
+		BatchSize:       1000,
+		BatchEnd:        time.Now().UnixNano(),
+		BatchStart:      time.Now().Add(-5 * time.Minute).UnixNano(),
+	}
+
+	if _, err := service.UpdateStats(ctx, userContext, newStats); err != nil {
+		t.Fatalf("error updating stats for group: %v\n", err)
+	}
+
+	_, returned, err = service.GroupStats(ctx, userContext)
+	if len(returned) != 1 {
+		t.Fatalf("only one group stats should have been returned, got %d\n", len(returned))
+	}
+
+	testCompareStats(newStats, returned[gid], t)
+	if returned[gid].LastUpdated == oldUpdated {
+		t.Fatalf("last updated time was not actually updated original: %v: new: %v\n", oldUpdated, returned[gid].LastUpdated)
+	}
+
+	if _, _, err := service.Delete(ctx, userContext, gid); err != nil {
+		t.Fatalf("error deleting scan group in stats test %v\n", err)
+	}
+
+	_, returned, err = service.GroupStats(ctx, userContext)
+	if len(returned) != 0 {
+		t.Fatalf("group stats should have returned 0 after delete, got %d\n", len(returned))
+	}
+}
+
+func testCompareStats(expected, returned *am.GroupStats, t *testing.T) {
+	if expected.OrgID != returned.OrgID {
+		t.Fatalf("OrgID: %v did not match returned %v\n", expected.OrgID, returned.OrgID)
+	}
+
+	if expected.GroupID != returned.GroupID {
+		t.Fatalf("GroupID: %v did not match returned %v\n", expected.GroupID, returned.GroupID)
+	}
+
+	if expected.ActiveAddresses != returned.ActiveAddresses {
+		t.Fatalf("ActiveAddresses: %v did not match returned %v\n", expected.ActiveAddresses, returned.ActiveAddresses)
+	}
+
+	if expected.BatchSize != returned.BatchSize {
+		t.Fatalf("BatchSize: %v did not match returned %v\n", expected.BatchSize, returned.BatchSize)
+	}
+
+	if expected.BatchEnd != returned.BatchEnd {
+		t.Fatalf("BatchEnd: %v did not match returned %v\n", expected.BatchEnd, returned.BatchEnd)
+	}
+
+	if expected.BatchStart != returned.BatchStart {
+		t.Fatalf("BatchStart: %v did not match returned %v\n", expected.BatchStart, returned.BatchStart)
+	}
+
+	if returned.LastUpdated == 0 {
+		t.Fatalf("LastUpdated: did not actually get updated, got %v\n", returned.LastUpdated)
+	}
+}
+
 func testForceCleanUp(db *pgx.ConnPool, orgID int, orgName string, t *testing.T) {
 	db.Exec("delete from am.scan_group_addresses where organization_id=$1", orgID)
 	db.Exec("delete from am.scan_group where organization_id=$1", orgID)

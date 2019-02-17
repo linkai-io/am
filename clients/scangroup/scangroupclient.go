@@ -288,3 +288,52 @@ func (c *Client) Resume(ctx context.Context, userContext am.UserContext, groupID
 
 	return int(resp.GetOrgID()), int(resp.GetGroupID()), nil
 }
+
+func (c *Client) GroupStats(ctx context.Context, userContext am.UserContext) (oid int, stats map[int]*am.GroupStats, err error) {
+	var resp *service.GroupStatsResponse
+
+	in := &service.GroupStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GroupStats(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get scangroup from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.GetOrgID()), convert.GroupsStatsToDomain(resp.GetStats()), nil
+}
+
+func (c *Client) UpdateStats(ctx context.Context, userContext am.UserContext, stats *am.GroupStats) (oid int, err error) {
+	var resp *service.StatsUpdatedResponse
+
+	in := &service.UpdateStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Stats:       convert.DomainToGroupStats(stats),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.UpdateStats(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get scangroup from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, err
+	}
+	return int(resp.GetOrgID()), nil
+}

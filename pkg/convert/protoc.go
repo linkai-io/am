@@ -485,3 +485,44 @@ func CTSubdomainRecordsToDomain(in map[string]*prototypes.CTSubdomain) map[strin
 	}
 	return subRecords
 }
+
+func DomainToGroupStats(in *am.GroupStats) *scangroup.GroupStats {
+	return &scangroup.GroupStats{
+		OrgID:           int32(in.OrgID),
+		GroupID:         int32(in.GroupID),
+		ActiveAddresses: in.ActiveAddresses,
+		BatchSize:       in.BatchSize,
+		LastUpdated:     in.LastUpdated,
+		BatchStart:      in.BatchStart,
+		BatchEnd:        in.BatchEnd,
+	}
+}
+
+func DomainToGroupsStats(in map[int]*am.GroupStats) map[int32]*scangroup.GroupStats {
+	stats := make(map[int32]*scangroup.GroupStats, len(in))
+	for groupID, stat := range in {
+		stats[int32(groupID)] = DomainToGroupStats(stat)
+	}
+	return stats
+}
+
+func GroupStatsToDomain(in *scangroup.GroupStats) *am.GroupStats {
+	return &am.GroupStats{
+		OrgID:           int(in.OrgID),
+		GroupID:         int(in.GroupID),
+		ActiveAddresses: in.ActiveAddresses,
+		BatchSize:       in.BatchSize,
+		LastUpdated:     in.LastUpdated,
+		BatchStart:      in.BatchStart,
+		BatchEnd:        in.BatchEnd,
+	}
+}
+
+func GroupsStatsToDomain(in map[int32]*scangroup.GroupStats) map[int]*am.GroupStats {
+	stats := make(map[int]*am.GroupStats, len(in))
+	for groupID, stat := range in {
+		stats[int(groupID)] = GroupStatsToDomain(stat)
+	}
+
+	return stats
+}

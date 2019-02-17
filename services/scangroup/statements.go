@@ -39,4 +39,15 @@ var queryMap = map[string]string{
 
 	"resumeScanGroup": `update am.scan_group set paused=false, modified_time=$1, modified_by=$2 
 		where organization_id=$3 and scan_group_id=$4 returning organization_id, scan_group_id`,
+
+	"updateGroupActivity": `insert into am.scan_group_activity (organization_id, scan_group_id, active_addresses, batch_size, last_updated, batch_start, batch_end) values 
+		($1, $2, $3, $4, $5, $6, $7) on conflict (organization_id, scan_group_id) do update set
+		active_addresses=EXCLUDED.active_addresses,
+		batch_size=EXCLUDED.batch_size,
+		last_updated=EXCLUDED.last_updated,
+		batch_start=EXCLUDED.batch_start,
+		batch_end=EXCLUDED.batch_end`,
+
+	"getOrgGroupActivity": `select organization_id, scan_group_id, active_addresses, batch_size, last_updated, batch_start, batch_end from am.scan_group_activity 
+		where organization_id=$1 and scan_group_id in (select scan_group_id from am.scan_group where organization_id=$1 and deleted=false)`,
 }

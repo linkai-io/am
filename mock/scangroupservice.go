@@ -39,6 +39,12 @@ type ScanGroupService struct {
 
 	ResumeFn      func(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error)
 	ResumeInvoked bool
+
+	GroupStatsFn      func(ctx context.Context, userContext am.UserContext) (oid int, stats map[int]*am.GroupStats, err error)
+	GroupStatsInvoked bool
+
+	UpdateStatsFn      func(ctx context.Context, userContext am.UserContext, stats *am.GroupStats) (oid int, err error)
+	UpdateStatsInvoked bool
 }
 
 func (s *ScanGroupService) Init(config []byte) error {
@@ -89,4 +95,14 @@ func (s *ScanGroupService) Pause(ctx context.Context, userContext am.UserContext
 func (s *ScanGroupService) Resume(ctx context.Context, userContext am.UserContext, groupID int) (oid int, gid int, err error) {
 	s.ResumeInvoked = true
 	return s.ResumeFn(ctx, userContext, groupID)
+}
+
+func (s *ScanGroupService) GroupStats(ctx context.Context, userContext am.UserContext) (oid int, stats map[int]*am.GroupStats, err error) {
+	s.GroupStatsInvoked = true
+	return s.GroupStatsFn(ctx, userContext)
+}
+
+func (s *ScanGroupService) UpdateStats(ctx context.Context, userContext am.UserContext, stats *am.GroupStats) (oid int, err error) {
+	s.UpdateStatsInvoked = true
+	return s.UpdateStatsFn(ctx, userContext, stats)
 }

@@ -360,5 +360,58 @@ func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupI
 	}
 
 	return oid, gid, err
+}
 
+// Update statics of the scan group (how many are active, size of batching being analyzed etc)
+func (s *Service) UpdateStats(ctx context.Context, userContext am.UserContext, stats *am.GroupStats) (oid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
+		return 0, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int("GroupID", stats.GroupID).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Updating scan group activity")
+	_, err = s.pool.ExecEx(ctx, "updateGroupActivity", &pgx.QueryExOptions{}, userContext.GetOrgID(), stats.GroupID, stats.ActiveAddresses, stats.BatchSize, time.Now().UnixNano(), stats.BatchStart, stats.BatchEnd)
+	if err != nil {
+		return 0, err
+	}
+
+	return userContext.GetOrgID(), err
+}
+
+func (s *Service) GroupStats(ctx context.Context, userContext am.UserContext) (oid int, stats map[int]*am.GroupStats, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Retrieving All Groups Activity")
+
+	rows, err := s.pool.Query("getOrgGroupActivity", userContext.GetOrgID())
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	stats = make(map[int]*am.GroupStats, 0)
+	for rows.Next() {
+		stat := &am.GroupStats{}
+		if err := rows.Scan(&stat.OrgID, &stat.GroupID, &stat.ActiveAddresses, &stat.BatchSize, &stat.LastUpdated, &stat.BatchStart, &stat.BatchEnd); err != nil {
+			return 0, nil, err
+		}
+
+		if stat.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		stats[stat.GroupID] = stat
+	}
+	return userContext.GetOrgID(), stats, err
 }

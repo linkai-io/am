@@ -8,9 +8,6 @@ const (
 	CoordinatorServiceKey = "coordinatorservice"
 )
 
-type ScanGroupStats struct {
-}
-
 type CoordinatorService interface {
 	Init(config []byte) error
 	// externally accessable rpcs

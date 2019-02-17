@@ -127,3 +127,26 @@ func (s *SGProtocService) Resume(ctx context.Context, in *scangroup.ResumeGroupR
 	}
 	return &scangroup.GroupResumedResponse{OrgID: int32(orgID), GroupID: int32(groupID)}, nil
 }
+
+func (s *SGProtocService) GroupStats(ctx context.Context, in *scangroup.GroupStatsRequest) (*scangroup.GroupStatsResponse, error) {
+	var oid int
+	var stats map[int]*am.GroupStats
+	var err error
+	s.reporter.Increment(1)
+	oid, stats, err = s.sgs.GroupStats(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.GroupStatsResponse{OrgID: int32(oid), Stats: convert.DomainToGroupsStats(stats)}, err
+}
+
+func (s *SGProtocService) UpdateStats(ctx context.Context, in *scangroup.UpdateStatsRequest) (*scangroup.StatsUpdatedResponse, error) {
+	s.reporter.Increment(1)
+	orgID, err := s.sgs.UpdateStats(ctx, convert.UserContextToDomain(in.UserContext), convert.GroupStatsToDomain(in.Stats))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &scangroup.StatsUpdatedResponse{OrgID: int32(orgID)}, nil
+}

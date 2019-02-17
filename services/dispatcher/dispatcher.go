@@ -2,7 +2,6 @@ package dispatcher
 
 import (
 	"context"
-	"encoding/json"
 	"runtime"
 	"sync/atomic"
 	"time"
@@ -26,11 +25,6 @@ const (
 	Stopped DispatcherStatus = 2
 )
 
-// Config ...
-type Config struct {
-	DispatcherID string `json:"dispatcher_id"`
-}
-
 type pushDetails struct {
 	userContext am.UserContext
 	scanGroupID int
@@ -49,22 +43,21 @@ type taskDetails struct {
 
 // Service for dispatching and handling responses from worker modules
 type Service struct {
-	status           int32
-	groupCache       *cache.ScanGroupSubscriber
-	defaultDuration  time.Duration
-	config           *Config
-	sgClient         am.ScanGroupService
-	addressClient    am.AddressService
-	moduleClients    map[am.ModuleType]am.ModuleService
-	state            state.Stater
-	pushCh           chan *pushDetails
-	closeCh          chan struct{}
-	completedCh      chan *am.ScanGroupAddress
-	activeGroupCount int32
-	activeAddrCount  int32
+	status           int32                              // service status
+	groupCache       *cache.ScanGroupSubscriber         // listen for scan group updates from cache (deleted/paused)
+	defaultDuration  time.Duration                      // filter used to extract addresses from address service
+	sgClient         am.ScanGroupService                // scangroup service connection
+	addressClient    am.AddressService                  // address service connection
+	moduleClients    map[am.ModuleType]am.ModuleService // map of module service connections
+	state            state.Stater                       // state connection
+	pushCh           chan *pushDetails                  // channel for pushing groups
+	closeCh          chan struct{}                      // channel for closing down service
+	activeGroupCount int32                              // number of concurrent active groups
+	activeAddrCount  int32                              // number of active addresses being analyzed by this dispatcher
+	statGroups       *am.ScanGroupsStats                // updated stats of each group being analyzed by this dispatcher
 }
 
-// New for coordinating the work of workers
+// New for dispatching groups to be analyzed to the modules
 func New(sgClient am.ScanGroupService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
 		defaultDuration: time.Duration(-5) * time.Minute,
@@ -75,31 +68,24 @@ func New(sgClient am.ScanGroupService, addrClient am.AddressService, modClients 
 		moduleClients:   modClients,
 		pushCh:          make(chan *pushDetails),
 		closeCh:         make(chan struct{}),
-		completedCh:     make(chan *am.ScanGroupAddress),
+		statGroups:      am.NewScanGroupsStats(),
 	}
 }
 
 // Init this dispatcher and register it with coordinator
 func (s *Service) Init(config []byte) error {
 	go s.groupListener()
-	go s.debug()
+	go s.groupMonitor()
 	return nil
 }
 
-func (s *Service) parseConfig(data []byte) (*Config, error) {
-	config := &Config{}
-	if err := json.Unmarshal(data, config); err != nil {
-		return nil, err
-	}
-
-	return config, nil
-}
-
-func (s *Service) debug() {
-	t := time.NewTicker(time.Second * 10)
+// groupMonitor monitors status of groups and pushes updated group stats to the scan group service.
+func (s *Service) groupMonitor() {
+	t := time.NewTicker(time.Second * 30)
 	stackTicker := time.NewTicker(time.Minute * 15)
 	defer t.Stop()
 	defer stackTicker.Stop()
+
 	for {
 		select {
 		case <-s.closeCh:
@@ -109,7 +95,17 @@ func (s *Service) debug() {
 			stacklen := runtime.Stack(buf, true)
 			log.Printf("*** goroutine dump...\n%s\n*** end\n", buf[:stacklen])
 		case <-t.C:
-			log.Info().Int32("groups", s.GetActiveGroups()).Int32("addrs", s.GetActiveAddresses()).Msg("stats")
+
+			log.Info().Int32("groups", s.GetActiveGroups()).Int32("addrs", s.GetActiveAddresses()).Msg("updating group stats")
+
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+			for _, stats := range s.statGroups.Groups() {
+				_, err := s.sgClient.UpdateStats(timeoutCtx, stats.UserContext, stats)
+				if err != nil {
+					log.Error().Err(err).Int("GroupID", stats.GroupID).Int("OrgID", stats.OrgID).Msg("failed to update stats for group")
+				}
+			}
+			cancel()
 		}
 	}
 }
@@ -117,22 +113,37 @@ func (s *Service) debug() {
 // PushAddresses to state
 func (s *Service) PushAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 	log.Info().Msgf("pushing details for %d", scanGroupID)
+	if s.GetActiveAddresses() > 2000 {
+		log.Warn().Int("GroupID", scanGroupID).Int32("active_addresses", s.GetActiveAddresses()).Msg("active addresses too high, not handling this group")
+		if err := s.state.Stop(ctx, userContext, scanGroupID); err != nil {
+			log.Error().Err(err).Msg("error stopping group")
+		} else {
+			log.Info().Msg("stopped group due to too many active addresses")
+		}
+		return nil
+	}
 	s.pushCh <- &pushDetails{userContext: userContext, scanGroupID: scanGroupID}
-	log.Info().Msgf("pushed details for %dn", scanGroupID)
+	log.Info().Msgf("pushed details for %d", scanGroupID)
 	return nil
 }
 
+// Stop the service
 func (s *Service) Stop(ctx context.Context) error {
 	close(s.closeCh)
 	return nil
 }
 
+// groupListener listens for new group messages coming in, and ensures after completion that the
+// group is stopped in state, and any relevant counters are stopped.
 func (s *Service) groupListener() {
 	log.Info().Msg("Listening for new scan groups to be pushed...")
 	for {
 		select {
 		case <-s.closeCh:
 			log.Info().Msg("Closing down...")
+			for _, group := range s.statGroups.Groups() {
+				s.stopGroup(context.Background(), group.UserContext, group.GroupID)
+			}
 			return
 		case details := <-s.pushCh:
 			ctx := context.Background()
@@ -145,66 +156,90 @@ func (s *Service) groupListener() {
 
 			log.Ctx(ctx).Info().Msg("Starting Analysis")
 
-			// TODO: do smart calculation on size of scan group addresses
 			start := time.Now()
-			then := start.Add(s.defaultDuration).UnixNano()
-			filter := newFilter(details.userContext, details.scanGroupID, then)
+			s.runGroup(ctx, details, start)
+			log.Ctx(ctx).Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
 
-			// for now, one batcher per scan group id, todo move to own service.
-			batcher := NewBatcher(details.userContext, s.addressClient, 10)
-			batcher.Init()
-
-			s.IncActiveGroups()
-
-			scangroup, err := s.getScanGroup(ctx, details.userContext, details.scanGroupID)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("not starting analysis of group")
-				goto DONE
-			}
-
-			// push addresses to state
-			log.Ctx(ctx).Info().Msg("Pushing addresses to state")
-			for {
-				_, addrs, err := s.addressClient.Get(ctx, details.userContext, filter)
-				if err != nil {
-					log.Ctx(ctx).Error().Err(err).Msg("error getting addresses from client")
-					goto DONE
-				}
-
-				if addrs == nil || len(addrs) == 0 {
-					log.Ctx(ctx).Info().Msg("no addresses matched address service filter")
-					break
-				}
-				numAddrs := len(addrs)
-
-				// get last addressid and update start for filter.
-				filter.Start = addrs[numAddrs-1].AddressID
-				log.Ctx(ctx).Info().Int("addresses", numAddrs).Msg("Putting in state")
-
-				if err := s.state.PutAddresses(ctx, details.userContext, details.scanGroupID, addrs); err != nil {
-					log.Ctx(ctx).Error().Err(err).Int64("filter.Start", filter.Start).Msg("error pushing addresses")
-					goto DONE
-				}
-			}
-
-			log.Ctx(ctx).Info().Msg("Push addresses complete")
-
-			if err := s.analyzeAddresses(ctx, details.userContext, batcher, scangroup); err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("error analyzing addresses")
-			}
-
-		DONE:
-			groupLog.Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
-			batcher.Done()
-
-			if err := s.state.Stop(ctx, details.userContext, details.scanGroupID); err != nil {
-				groupLog.Error().Err(err).Msg("error stopping group")
-			} else {
-				groupLog.Info().Msg("stopped group")
-			}
+			s.stopGroup(ctx, details.userContext, details.scanGroupID)
 			s.DecActiveGroups()
-		} // end switch
-	} // end for
+		}
+	}
+}
+
+func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) {
+	s.statGroups.SetComplete(scanGroupID)
+	stats := s.statGroups.GetGroup(scanGroupID)
+	if stats != nil {
+		_, err := s.sgClient.UpdateStats(ctx, userContext, stats)
+		if err != nil {
+			log.Error().Err(err).Int("GroupID", stats.GroupID).Int("OrgID", stats.OrgID).Msg("failed to update stats for group")
+		}
+	}
+
+	if err := s.state.Stop(ctx, userContext, scanGroupID); err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("error stopping group")
+	} else {
+		log.Ctx(ctx).Info().Msg("stopped group")
+	}
+	s.statGroups.DeleteGroup(scanGroupID)
+}
+
+// runGroup sets up the scan group batcher to push results to the address service, and extracts all
+// addresses that haven't been run for defaultDuration time (5 min). Those addresses are pushed
+// on to the cache state. After all addresses have been pushed, analyzeAddresses begins.
+func (s *Service) runGroup(ctx context.Context, details *pushDetails, start time.Time) {
+
+	s.statGroups.AddGroup(details.userContext, details.userContext.GetOrgID(), details.scanGroupID)
+	// for now, one batcher per scan group id, todo move to own service.
+	batcher := NewBatcher(details.userContext, s.addressClient, 50)
+	batcher.Init()
+	defer batcher.Done()
+
+	// TODO: do smart calculation on size of scan group addresses
+	then := start.Add(s.defaultDuration).UnixNano()
+	filter := newFilter(details.userContext, details.scanGroupID, then)
+
+	s.IncActiveGroups()
+
+	scangroup, err := s.getScanGroup(ctx, details.userContext, details.scanGroupID)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("not starting analysis of group")
+		return
+	}
+
+	// push addresses to state
+	total := 0
+	log.Ctx(ctx).Info().Msg("Pushing addresses to state")
+	for {
+		_, addrs, err := s.addressClient.Get(ctx, details.userContext, filter)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("error getting addresses from client")
+			return
+		}
+
+		if addrs == nil || len(addrs) == 0 {
+			log.Ctx(ctx).Info().Msg("no addresses matched address service filter")
+			break
+		}
+		numAddrs := len(addrs)
+		total += numAddrs
+
+		// get last addressid and update start for filter.
+		filter.Start = addrs[numAddrs-1].AddressID
+		log.Ctx(ctx).Info().Int("addresses", numAddrs).Msg("Putting in state")
+
+		if err := s.state.PutAddresses(ctx, details.userContext, details.scanGroupID, addrs); err != nil {
+			log.Ctx(ctx).Error().Err(err).Int64("filter.Start", filter.Start).Msg("error pushing addresses")
+			return
+		}
+	}
+
+	log.Ctx(ctx).Info().Msg("Push addresses complete")
+	s.statGroups.SetBatchSize(details.scanGroupID, int32(total))
+
+	if err := s.analyzeAddresses(ctx, details.userContext, batcher, scangroup); err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("error analyzing addresses")
+	}
 }
 
 func (s *Service) getScanGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (*am.ScanGroup, error) {
@@ -237,7 +272,6 @@ func (s *Service) shouldStopGroup(orgID, groupID int) bool {
 // analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned. Use a worker pool
 // allowing up to NSModule.RequestsPerSecond worker pool to work concurrently.
 func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, batcher *Batcher, scangroup *am.ScanGroup) error {
-
 	for {
 		if s.shouldStopGroup(scangroup.OrgID, scangroup.GroupID) {
 			return errors.New("group was paused or deleted during analysis")
@@ -277,9 +311,11 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 					} else {
 						log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during process tasks, continuing")
 					}
+					s.statGroups.IncActive(details.scangroup.GroupID, 1)
 					s.IncActiveAddresses()
 					s.processAddress(details)
 					s.DecActiveAddresses()
+					s.statGroups.IncActive(details.scangroup.GroupID, -1)
 				}
 			}
 
