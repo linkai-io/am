@@ -167,6 +167,7 @@ func (s *Service) groupListener() {
 }
 
 func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) {
+
 	s.statGroups.SetComplete(scanGroupID)
 	stats := s.statGroups.GetGroup(scanGroupID)
 	if stats != nil {
@@ -211,6 +212,7 @@ func (s *Service) runGroup(ctx context.Context, details *pushDetails, start time
 	total := 0
 	log.Ctx(ctx).Info().Msg("Pushing addresses to state")
 	for {
+		log.Ctx(ctx).Info().Msgf("Getting addresses that match filter: %#v", filter)
 		_, addrs, err := s.addressClient.Get(ctx, details.userContext, filter)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("error getting addresses from client")

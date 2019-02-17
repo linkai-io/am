@@ -108,6 +108,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	}
 
 	query, args := s.BuildGetFilterQuery(userContext, filter)
+	serviceLog.Info().Msgf("Building Get query with filter: %#v", filter)
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 
