@@ -168,6 +168,84 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+func TestAllGroups(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "sgallgroups"
+	groupName := "sgallgroups"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := scangroup.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing scangroup service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer testForceCleanUp(db, orgID, orgName, t)
+
+	ownerUserID := amtest.GetUserId(db, orgID, orgName, t)
+
+	userContext := testUserContext(orgID, ownerUserID)
+
+	group := testCreateNewGroup(orgID, ownerUserID, groupName)
+
+	oid, gid, err := service.Create(ctx, userContext, group)
+	if err != nil {
+		t.Fatalf("error creating group: %s\n", err)
+	}
+
+	if orgID != oid {
+		t.Fatalf("error orgID did not match expected: %d got: %d\n", orgID, oid)
+	}
+
+	if gid == 0 {
+		t.Fatalf("groupid returned was 0, gid:%d\n", gid)
+	}
+
+	filter := &am.ScanGroupFilter{
+		WithPaused:  false,
+		PausedValue: false,
+	}
+	groups, err := service.AllGroups(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error reading AllGroups: %v\n", err)
+	}
+
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 group, got: %d\n", len(groups))
+	}
+
+	_, _, err = service.Pause(ctx, userContext, gid)
+	if err != nil {
+		t.Fatalf("error pausing group: %v\n", err)
+	}
+
+	filter = &am.ScanGroupFilter{
+		WithPaused:  true,
+		PausedValue: false,
+	}
+	groups, err = service.AllGroups(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error reading AllGroups: %v\n", err)
+	}
+
+	if len(groups) != 0 {
+		t.Fatalf("expected 0 group, got: %d\n", len(groups))
+	}
+
+}
+
 func TestModuleConfigs(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")

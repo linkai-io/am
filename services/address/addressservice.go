@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
-	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/generators"
 )
 
@@ -213,19 +212,19 @@ func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.Sca
 	}
 
 	if filter.WithAfterLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp > $%d)", filter.AfterScannedTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp='1970-01-01 00:00:00+00' OR last_scanned_timestamp > $%d)", time.Unix(0, filter.AfterScannedTime), &args, &i)
 	}
 
 	if filter.WithBeforeLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp=0 OR last_scanned_timestamp < $%d)", filter.BeforeScannedTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp='1970-01-01 00:00:00+00' OR last_scanned_timestamp < $%d)", time.Unix(0, filter.BeforeScannedTime), &args, &i)
 	}
 
 	if filter.WithAfterLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp > $%d)", filter.AfterSeenTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp='1970-01-01 00:00:00+00' OR last_seen_timestamp > $%d)", time.Unix(0, filter.AfterSeenTime), &args, &i)
 	}
 
 	if filter.WithBeforeLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp=0 OR last_seen_timestamp < $%d)", filter.BeforeSeenTime, &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp='1970-01-01 00:00:00+00' OR last_seen_timestamp < $%d)", time.Unix(0, filter.BeforeSeenTime), &args, &i)
 	}
 
 	if filter.WithIsWildcard {
@@ -237,11 +236,11 @@ func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.Sca
 	}
 
 	if filter.MatchesHost != "" {
-		generators.AppendConditionalQuery(&query, &prefix, "reverse(host_address) like '%%$%d'", convert.Reverse(filter.MatchesHost), &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "host_address like '%%$%d%%'", filter.MatchesHost, &args, &i)
 	}
 
 	if filter.MatchesIP != "" {
-		generators.AppendConditionalQuery(&query, &prefix, "reverse(ip_address) like '%%$%d'", convert.Reverse(filter.MatchesIP), &args, &i)
+		generators.AppendConditionalQuery(&query, &prefix, "ip_address like '%%$%d%%'", filter.MatchesIP, &args, &i)
 	}
 
 	if filter.NSRecord != 0 {
