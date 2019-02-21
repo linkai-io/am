@@ -92,9 +92,11 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Retrieving scan group by id")
+	var createTime time.Time
+	var modifyTime time.Time
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
-		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID,
+		&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID,
 		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
 
@@ -108,6 +110,9 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	if group.OrgID != userContext.GetOrgID() {
 		return 0, nil, am.ErrOrgIDMismatch
 	}
+
+	group.CreationTime = createTime.UnixNano()
+	group.ModifiedTime = modifyTime.UnixNano()
 
 	return group.OrgID, group, err
 }
@@ -127,10 +132,15 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 
 	serviceLog.Info().Msg("Retrieving scan group by name")
 
+	var createTime time.Time
+	var modifyTime time.Time
+
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
-		&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID,
+		&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID,
 		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
 	)
+	group.CreationTime = createTime.UnixNano()
+	group.ModifiedTime = modifyTime.UnixNano()
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -174,11 +184,15 @@ func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, gro
 
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
+		var createTime time.Time
+		var modifyTime time.Time
+
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return nil, err
 		}
-
+		group.CreationTime = createTime.UnixNano()
+		group.ModifiedTime = modifyTime.UnixNano()
 		groups = append(groups, group)
 	}
 
@@ -205,14 +219,19 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 
 	groups = make([]*am.ScanGroup, 0)
 	for rows.Next() {
+		var createTime time.Time
+		var modifyTime time.Time
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &group.CreationTime, &group.CreatedBy, &group.CreatedByID, &group.ModifiedTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
 			return 0, nil, err
 		}
 
 		if group.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
+
+		group.CreationTime = createTime.UnixNano()
+		group.ModifiedTime = modifyTime.UnixNano()
 
 		groups = append(groups, group)
 	}
@@ -242,7 +261,9 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 	}
 
 	// creates and sets oid/gid
-	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, newGroup.CreationTime, newGroup.CreatedByID, newGroup.ModifiedTime, newGroup.ModifiedByID, newGroup.OriginalInputS3URL, newGroup.ModuleConfigurations).Scan(&oid, &gid)
+	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, time.Unix(0, newGroup.CreationTime),
+		newGroup.CreatedByID, time.Unix(0, newGroup.ModifiedTime), newGroup.ModifiedByID, newGroup.OriginalInputS3URL,
+		newGroup.ModuleConfigurations).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -264,7 +285,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 
 	serviceLog.Info().Msg("Updating Scan group")
 
-	err = s.pool.QueryRow("updateScanGroup", group.GroupName, group.ModifiedTime, group.ModifiedByID, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
+	err = s.pool.QueryRow("updateScanGroup", group.GroupName, time.Unix(0, group.ModifiedTime), group.ModifiedByID, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -330,7 +351,7 @@ func (s *Service) Pause(ctx context.Context, userContext am.UserContext, groupID
 
 	serviceLog.Info().Msg("Pausing scan group")
 
-	now := time.Now().UnixNano()
+	now := time.Now()
 	err = s.pool.QueryRow("pauseScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
@@ -353,7 +374,7 @@ func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupI
 
 	serviceLog.Info().Msg("Resuming scan group")
 
-	now := time.Now().UnixNano()
+	now := time.Now()
 	err = s.pool.QueryRow("resumeScanGroup", now, userContext.GetUserID(), userContext.GetOrgID(), groupID).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
@@ -375,7 +396,7 @@ func (s *Service) UpdateStats(ctx context.Context, userContext am.UserContext, s
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Updating scan group activity")
-	_, err = s.pool.ExecEx(ctx, "updateGroupActivity", &pgx.QueryExOptions{}, userContext.GetOrgID(), stats.GroupID, stats.ActiveAddresses, stats.BatchSize, time.Now().UnixNano(), stats.BatchStart, stats.BatchEnd)
+	_, err = s.pool.ExecEx(ctx, "updateGroupActivity", &pgx.QueryExOptions{}, userContext.GetOrgID(), stats.GroupID, stats.ActiveAddresses, stats.BatchSize, time.Now(), time.Unix(0, stats.BatchStart), time.Unix(0, stats.BatchEnd))
 	if err != nil {
 		return 0, err
 	}
@@ -402,14 +423,20 @@ func (s *Service) GroupStats(ctx context.Context, userContext am.UserContext) (o
 
 	stats = make(map[int]*am.GroupStats, 0)
 	for rows.Next() {
+		var batchStart time.Time
+		var batchEnd time.Time
+		var lastUpdated time.Time
 		stat := &am.GroupStats{}
-		if err := rows.Scan(&stat.OrgID, &stat.GroupID, &stat.ActiveAddresses, &stat.BatchSize, &stat.LastUpdated, &stat.BatchStart, &stat.BatchEnd); err != nil {
+		if err := rows.Scan(&stat.OrgID, &stat.GroupID, &stat.ActiveAddresses, &stat.BatchSize, &lastUpdated, &batchStart, &batchEnd); err != nil {
 			return 0, nil, err
 		}
 
 		if stat.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
+		stat.BatchStart = batchStart.UnixNano()
+		stat.BatchEnd = batchEnd.UnixNano()
+		stat.LastUpdated = lastUpdated.UnixNano()
 
 		stats[stat.GroupID] = stat
 	}

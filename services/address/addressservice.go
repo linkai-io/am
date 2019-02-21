@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -120,14 +121,23 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	addresses = make([]*am.ScanGroupAddress, 0)
 
 	for i := 0; rows.Next(); i++ {
+		var dTime time.Time
+		var scanTime time.Time
+		var seenTime time.Time
+
 		a := &am.ScanGroupAddress{}
+
 		if err := rows.Scan(&a.OrgID, &a.AddressID, &a.GroupID, &a.HostAddress,
-			&a.IPAddress, &a.DiscoveryTime, &a.DiscoveredBy, &a.LastScannedTime,
-			&a.LastSeenTime, &a.ConfidenceScore, &a.UserConfidenceScore, &a.IsSOA,
+			&a.IPAddress, &dTime, &a.DiscoveredBy, &scanTime,
+			&seenTime, &a.ConfidenceScore, &a.UserConfidenceScore, &a.IsSOA,
 			&a.IsWildcardZone, &a.IsHostedService, &a.Ignored, &a.FoundFrom, &a.NSRecord, &a.AddressHash); err != nil {
 
 			return 0, nil, err
 		}
+
+		a.DiscoveryTime = dTime.UnixNano()
+		a.LastScannedTime = scanTime.UnixNano()
+		a.LastSeenTime = seenTime.UnixNano()
 
 		if a.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
@@ -282,9 +292,10 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 		}
 
 		addressRows[i] = []interface{}{int32(orgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
-			a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore, a.UserConfidenceScore,
+			time.Unix(0, a.DiscoveryTime), a.DiscoveredBy, time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime), a.ConfidenceScore, a.UserConfidenceScore,
 			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
 		}
+
 		i++
 	}
 

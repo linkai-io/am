@@ -148,13 +148,15 @@ func (s *Service) GetByAppClientID(ctx context.Context, userContext am.UserConte
 // get executes the scan against the previously created queryrow
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, org *am.Organization, err error) {
 	org = &am.Organization{}
+	var createTime time.Time
 	err = row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
-		&org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
+		&org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
+	org.CreationTime = createTime.UnixNano()
 	return org.OrgID, org, err
 }
 
@@ -180,14 +182,15 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	defer rows.Close()
 
 	for i := 0; rows.Next(); i++ {
+		var createTime time.Time
 		org := &am.Organization{}
 		if err := rows.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 			&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
-			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &org.CreationTime, &org.StatusID, &org.Deleted,
+			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted,
 			&org.SubscriptionID); err != nil {
 			return nil, err
 		}
-
+		org.CreationTime = createTime.UnixNano()
 		orgs = append(orgs, org)
 	}
 
@@ -226,7 +229,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	}
 	ocid = id.String()
 
-	now := time.Now().UnixNano()
+	now := time.Now()
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.UserPoolAppClientID,
 		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,

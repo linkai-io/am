@@ -142,10 +142,12 @@ func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, user
 // get executes the scan against the previously created queryrow
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, user *am.User, err error) {
 	user = &am.User{}
-	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &user.CreationTime, &user.Deleted)
+	var createTime time.Time
+	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
+	user.CreationTime = createTime.UnixNano()
 	return user.OrgID, user, err
 }
 
@@ -191,16 +193,17 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	defer rows.Close()
 
 	for i := 0; rows.Next(); i++ {
+		var createTime time.Time
 		user := &am.User{}
 
-		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &user.CreationTime, &user.Deleted); err != nil {
+		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted); err != nil {
 			return 0, nil, err
 		}
 
 		if user.OrgID != oid {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
-
+		user.CreationTime = createTime.UnixNano()
 		users = append(users, user)
 	}
 
@@ -237,7 +240,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, user *
 	if user.UserCID == "" {
 		return 0, 0, "", am.ErrUserCIDEmpty
 	}
-	now := time.Now().UnixNano()
+	now := time.Now()
 
 	row := tx.QueryRow("userCreate", oid, user.UserCID, user.UserEmail, user.FirstName, user.LastName, am.UserStatusActive, now)
 	if err := row.Scan(&oid, &uid, &ucid); err != nil {

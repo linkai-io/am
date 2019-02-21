@@ -187,7 +187,7 @@ func TestGetHostList(t *testing.T) {
 
 	ctx := context.Background()
 
-	orgName := "hostlist"
+	orgName := "hostlistt"
 	groupName := "hostlistgroup"
 
 	auth := amtest.MockEmptyAuthorizer()
@@ -219,20 +219,21 @@ func TestGetHostList(t *testing.T) {
 	}
 
 	addresses := make(map[string]*am.ScanGroupAddress, 0)
-	now := time.Now().UnixNano()
+	now := time.Now()
 	for i := 0; i < 100; i++ {
 		host := "www.example.com"
 		ip := fmt.Sprintf("192.168.1.%d", i)
+
 		a := &am.ScanGroupAddress{
 			OrgID:               orgID,
 			GroupID:             groupID,
 			HostAddress:         host,
 			IPAddress:           ip,
 			AddressHash:         convert.HashAddress(ip, host),
-			DiscoveryTime:       now,
+			DiscoveryTime:       now.Add(time.Hour * time.Duration(-i*2)).UnixNano(),
 			DiscoveredBy:        "input_list",
-			LastScannedTime:     0,
-			LastSeenTime:        0,
+			LastScannedTime:     now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			LastSeenTime:        now.Add(time.Hour * time.Duration(-i)).UnixNano(),
 			ConfidenceScore:     0.0,
 			UserConfidenceScore: 0.0,
 			IsSOA:               false,
@@ -637,7 +638,7 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 		t.Fatalf("IPAddress did not match expected: %v got: %v\n", e.IPAddress, r.IPAddress)
 	}
 
-	if e.DiscoveryTime != r.DiscoveryTime {
+	if e.DiscoveryTime/1000 != r.DiscoveryTime/1000 {
 		t.Fatalf("DiscoveryTime did not match expected: %v got: %v\n", e.DiscoveryTime, r.DiscoveryTime)
 	}
 
@@ -645,11 +646,11 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 		t.Fatalf("DiscoveredBy did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
 	}
 
-	if e.LastScannedTime != r.LastScannedTime {
+	if e.LastScannedTime/1000 != r.LastScannedTime/1000 {
 		t.Fatalf("LastScannedTime did not match expected: %v got: %v\n", e.LastScannedTime, r.LastScannedTime)
 	}
 
-	if e.LastSeenTime != r.LastSeenTime {
+	if e.LastSeenTime/1000 != r.LastSeenTime/1000 {
 		t.Fatalf("LastSeenTime did not match expected: %v got: %v\n", e.LastSeenTime, r.LastSeenTime)
 	}
 

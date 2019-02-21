@@ -109,11 +109,11 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 	defer rows.Close()
 
 	records := make(map[string]*am.CTRecord, 0)
-	var ts int64
+	var ts time.Time
 	for rows.Next() {
 		r := &am.CTRecord{}
-
-		err := rows.Scan(&ts, &r.CertificateID, &r.InsertedTime, &r.ServerName, &r.ServerIndex, &r.ETLD, &r.CertHash,
+		var insertTime time.Time
+		err := rows.Scan(&ts, &r.CertificateID, &insertTime, &r.ServerName, &r.ServerIndex, &r.ETLD, &r.CertHash,
 			&r.SerialNumber, &r.NotBefore, &r.NotAfter, &r.Country, &r.Organization,
 			&r.OrganizationalUnit, &r.CommonName, &r.VerifiedDNSNames, &r.UnverifiedDNSNames,
 			&r.IPAddresses, &r.EmailAddresses)
@@ -122,10 +122,11 @@ func (s *Service) GetCT(ctx context.Context, userContext am.UserContext, etld st
 			logger.Warn().Err(err).Msg("failed to extract record")
 			continue
 		}
+		r.InsertedTime = insertTime.UnixNano()
 		records[r.CertHash] = r
 	}
 
-	return time.Unix(0, ts), records, err
+	return ts, records, err
 }
 
 // AddCT adds certificate transparency records
@@ -176,7 +177,7 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 		}
 
 		ctRows[i] = []interface{}{
-			r.InsertedTime, r.ServerName, r.ServerIndex, r.ETLD, r.CertHash, r.SerialNumber, r.NotBefore, r.NotAfter, r.Country,
+			time.Unix(0, r.InsertedTime), r.ServerName, r.ServerIndex, r.ETLD, r.CertHash, r.SerialNumber, r.NotBefore, r.NotAfter, r.Country,
 			r.Organization, r.OrganizationalUnit, r.CommonName, r.VerifiedDNSNames, r.UnverifiedDNSNames,
 			r.IPAddresses, r.EmailAddresses}
 
@@ -195,7 +196,7 @@ func (s *Service) AddCT(ctx context.Context, userContext am.UserContext, etld st
 		return errors.Wrap(err, failedMsg)
 	}
 
-	if _, err := tx.ExecEx(ctx, "insertQuery", &pgx.QueryExOptions{}, etld, queryTime.UnixNano()); err != nil {
+	if _, err := tx.ExecEx(ctx, "insertQuery", &pgx.QueryExOptions{}, etld, queryTime); err != nil {
 		failedMsg := "failed to update query time to am.certificate_queries table"
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, failedMsg)
@@ -266,19 +267,20 @@ func (s *Service) GetCTSubdomains(ctx context.Context, userContext am.UserContex
 	defer rows.Close()
 
 	records := make(map[string]*am.CTSubdomain, 0)
-	var ts int64
+	var ts time.Time
 	for rows.Next() {
 		r := &am.CTSubdomain{}
-
-		err := rows.Scan(&ts, &r.SubdomainID, &r.ETLD, &r.InsertedTime, &r.Subdomain)
+		var insertTime time.Time
+		err := rows.Scan(&ts, &r.SubdomainID, &r.ETLD, &insertTime, &r.Subdomain)
 		if err != nil {
 			logger.Warn().Err(err).Msg("failed to extract record")
 			continue
 		}
+		r.InsertedTime = insertTime.UnixNano()
 		records[r.Subdomain] = r
 	}
 
-	return time.Unix(0, ts), records, err
+	return ts, records, err
 }
 
 // AddCTSubdomains adds cert transparency subdomains to our database for the specified etld. Also creates an entry for the queryTime of this
@@ -321,7 +323,7 @@ func (s *Service) AddCTSubdomains(ctx context.Context, userContext am.UserContex
 		return err
 	}
 	var etldID int
-	if err = tx.QueryRowEx(ctx, "insertSubDomainsQuery", &pgx.QueryExOptions{}, etld, queryTime.UnixNano()).Scan(&etldID); err != nil {
+	if err = tx.QueryRowEx(ctx, "insertSubDomainsQuery", &pgx.QueryExOptions{}, etld, queryTime).Scan(&etldID); err != nil {
 		failedMsg := "failed to update query time to am.certificate_queries table"
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, failedMsg)
@@ -336,7 +338,7 @@ func (s *Service) AddCTSubdomains(ctx context.Context, userContext am.UserContex
 			logger.Warn().Err(ErrEmptyCommonName).Str("etld", etld)
 			continue
 		}
-		ctRows[i] = []interface{}{queryTime.UnixNano(), etldID, r}
+		ctRows[i] = []interface{}{queryTime, etldID, r}
 		i++
 	}
 

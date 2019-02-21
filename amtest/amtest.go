@@ -288,7 +288,7 @@ func TestCompareCTRecords(expected, returned map[string]*am.CTRecord, t *testing
 			t.Fatalf("ETLD: %v did not match returned: %v\n", e.ETLD, r.ETLD)
 		}
 
-		if e.InsertedTime != r.InsertedTime {
+		if e.InsertedTime/1000 != r.InsertedTime/1000 {
 			t.Fatalf("InsertedTime: %v did not match returned: %v\n", e.InsertedTime, r.InsertedTime)
 		}
 
@@ -468,7 +468,7 @@ func CreateOrgInstance(orgName string) *am.Organization {
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 	_, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "userpoolclient.id", "userpoolclient.secret", "identity_pool_id.blah", "user_pool_jwk.blah",
 		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "", "",
-		"sf", "90210", time.Now().UnixNano())
+		"sf", "90210", time.Now())
 
 	if err != nil {
 		t.Fatalf("error creating organization %s: %s\n", name, err)
@@ -476,7 +476,7 @@ func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 
 	orgID := GetOrgID(p, name, t)
 
-	_, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now().UnixNano())
+	_, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now())
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
 	}
@@ -509,7 +509,7 @@ func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) i
 	orgID := GetOrgID(p, orgName, t)
 	userID := GetUserId(p, orgID, orgName, t)
 	//organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration
-	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, 0, userID, 0, userID, "s3://bucket/blah", nil).Scan(&groupID)
+	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, time.Now(), userID, time.Now(), userID, "s3://bucket/blah", nil).Scan(&groupID)
 	if err != nil {
 		t.Fatalf("error creating scan group: %s\n", err)
 	}
@@ -540,7 +540,7 @@ func CreateScanGroupAddress(p *pgx.ConnPool, orgID, groupID int, t *testing.T) *
 func CreateScanGroupAddressWithAddress(p *pgx.ConnPool, a *am.ScanGroupAddress, t *testing.T) int64 {
 	var id int64
 	err := p.QueryRow(CreateAddressStmt, a.OrgID, a.GroupID, a.HostAddress, a.IPAddress,
-		a.DiscoveryTime, a.DiscoveredBy, a.LastScannedTime, a.LastSeenTime, a.ConfidenceScore,
+		time.Unix(0, a.DiscoveryTime), a.DiscoveredBy, time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime), a.ConfidenceScore,
 		a.UserConfidenceScore, a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom,
 		a.NSRecord, a.AddressHash).Scan(&id)
 

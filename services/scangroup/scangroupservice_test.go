@@ -476,11 +476,11 @@ func testCompareStats(expected, returned *am.GroupStats, t *testing.T) {
 		t.Fatalf("BatchSize: %v did not match returned %v\n", expected.BatchSize, returned.BatchSize)
 	}
 
-	if expected.BatchEnd != returned.BatchEnd {
+	if expected.BatchEnd/1000 != returned.BatchEnd/1000 {
 		t.Fatalf("BatchEnd: %v did not match returned %v\n", expected.BatchEnd, returned.BatchEnd)
 	}
 
-	if expected.BatchStart != returned.BatchStart {
+	if expected.BatchStart/1000 != returned.BatchStart/1000 {
 		t.Fatalf("BatchStart: %v did not match returned %v\n", expected.BatchStart, returned.BatchStart)
 	}
 

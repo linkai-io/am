@@ -32,13 +32,13 @@ var (
 	join am.web_status_text as wst on wb.status_text_id = wst.status_text_id
 	join am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id
 		where organization_id=$1 and
-		scan_group_id=$2 and 
+		scan_group_id=$2  
 		`, responseColumns, referencedResponseColumns)
 
 	latestOnlyResponseQueryPrefix = fmt.Sprintf(`select distinct %s,
 		%s from (select web_responses.url, max(web_responses.url_request_timestamp) as url_request_timestamp from am.web_responses 
 			where organization_id=$1 and
-			scan_group_id=$2 and
+			scan_group_id=$2 
 		`, responseColumns, referencedResponseColumns)
 
 	latestOnlyUrlListQueryPrefix = `select wb.organization_id,
@@ -155,8 +155,8 @@ var (
 			organization_id int,
 			scan_group_id int,
 			address_id bigint,
-			url_request_timestamp bigint,
-			response_timestamp bigint,
+			url_request_timestamp timestamptz,
+			response_timestamp timestamptz,
 			is_document boolean,
 			scheme varchar(12),
 			ip_address varchar(256),
@@ -231,7 +231,7 @@ var (
 	AddCertificatesTempTable = `create temporary table cert_add_temp (
 			organization_id int,
 			scan_group_id int,
-			response_timestamp bigint,
+			response_timestamp timestamptz,
 			host_address varchar(512),
 			port int,
 			protocol text,

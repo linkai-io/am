@@ -92,8 +92,8 @@ func TestAddGetSubdomains(t *testing.T) {
 		t.Fatalf("error getting CT subdomain records: %#v\n", err)
 	}
 
-	if addedTime.UnixNano() != now.UnixNano() {
-		t.Fatalf("query time did not match insertion time: %v ~ %v\n", addedTime, now)
+	if addedTime.Unix() != now.Unix() {
+		t.Fatalf("query time did not match insertion time: %d ~ %d\n", addedTime.Unix(), now.Unix())
 	}
 
 	if len(subdomains) != len(returned) {
@@ -118,7 +118,7 @@ func TestAddGetSubdomains(t *testing.T) {
 		t.Fatalf("error getting CT subdomain records: %#v\n", err)
 	}
 
-	if addedTime.UnixNano() != now.UnixNano() {
+	if addedTime.Unix() != now.Unix() {
 		t.Fatalf("query time did not match insertion time: %v ~ %v\n", addedTime, now)
 	}
 
@@ -164,7 +164,7 @@ func TestAddGetCT(t *testing.T) {
 		t.Fatalf("error getting CT records: %#v\n", err)
 	}
 
-	if addedTime.UnixNano() != now.UnixNano() {
+	if addedTime.Unix() != now.Unix() {
 		t.Fatalf("query time did not match insertion time: %v ~ %v\n", addedTime, now)
 	}
 

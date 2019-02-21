@@ -291,8 +291,13 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	if len(responses) != 10 {
 		t.Fatalf("expected 10 responses with latest got: %d\n", len(responses))
 	}
-	if responses[0].URLRequestTimestamp != 10 && responses[9].URLRequestTimestamp != 10 {
-		t.Fatalf("expected latest only, got %d and %d\n", responses[0].URLRequestTimestamp, responses[9].URLRequestTimestamp)
+	responseDay := time.Unix(0, responses[0].URLRequestTimestamp).Day()
+	if responseDay != time.Now().Day()-1 {
+		t.Fatalf("expected day to be now -1, got %d %d\n", responseDay, time.Now().Day()-1)
+	}
+
+	if responseDay != time.Unix(0, responses[9].URLRequestTimestamp).Day() {
+		t.Fatalf("expected latest only, got %v and %v\n", time.Unix(0, responses[0].URLRequestTimestamp), time.Unix(0, responses[9].URLRequestTimestamp))
 	}
 }
 
@@ -334,6 +339,7 @@ func TestGetURLList(t *testing.T) {
 	}
 
 	if len(urlLists) != 10 {
+		t.Logf("%#v\n", urlLists[0])
 		t.Fatalf("expected 10 rows of results, got %d\n", len(urlLists))
 	}
 
@@ -362,11 +368,11 @@ func TestGetURLList(t *testing.T) {
 	}
 
 	if len(urlLists[0].URLs) != 10 {
-		t.Fatalf("expected 100 urls, got %d\n", len(urlLists[0].URLs))
+		t.Fatalf("expected 10 urls, got %d\n", len(urlLists[0].URLs))
 	}
-
-	if urlLists[0].URLRequestTimestamp != 10 {
-		t.Fatalf("last series of URLs should all have timestamp fo 10 got %d", urlLists[0].URLRequestTimestamp)
+	requestDay := time.Unix(0, urlLists[0].URLRequestTimestamp).Day()
+	if requestDay != time.Now().Day()-1 {
+		t.Fatalf("last series of URLs should all have request timestamp of day - 1 got %d %d", requestDay, time.Now().Day()-1)
 	}
 }
 
@@ -426,7 +432,7 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 				SerializedDOMLink:   "s3:/1/2/3/4",
 				Snapshot:            "",
 				SnapshotLink:        "s3://snapshot/1",
-				URLRequestTimestamp: int64(groupIdx),
+				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
 				ResponseTimestamp:   time.Now().UnixNano(),
 			}
 			urlIndex = 0

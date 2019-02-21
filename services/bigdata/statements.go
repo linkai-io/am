@@ -67,7 +67,7 @@ var (
 	AddCTSubDomainTempTableKey     = "cert_subdomain_temp"
 	AddCTSubDomainTempTableColumns = []string{"inserted_timestamp", "etld_id", "common_name"}
 	AddCTSubDomainTempTable        = `create temporary table cert_subdomain_temp (
-		inserted_timestamp bigint,
+		inserted_timestamp timestamptz,
 		etld_id integer not null,
 		common_name text) on commit drop;`
 	AddTempSubDomainToCTSubDomain = `insert into am.certificate_subdomains as cert (
@@ -87,7 +87,7 @@ var (
 		"verified_dns_names", "unverified_dns_names", "ip_addresses", "email_addresses"}
 
 	AddCTTempTable = `create temporary table cert_add_temp (
-			inserted_timestamp bigint,
+			inserted_timestamp timestamptz,
 			server_name varchar(512) not null,
 			server_index bigint not null,
 			etld varchar(512) not null,
