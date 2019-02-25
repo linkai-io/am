@@ -75,6 +75,15 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	return t.WaitReady(ctx, time.Second*3)
 }
 
+// GetURL by looking at the navigation history
+func (t *Tab) GetURL(ctx context.Context) string {
+	_, entries, err := t.t.Page.GetNavigationHistory()
+	if err != nil || len(entries) == 0 {
+		return ""
+	}
+	return entries[0].Url
+}
+
 // WaitReady waits for the page to load, DOM to be stable, and no network traffic in progress
 func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	ticker := time.NewTicker(150 * time.Millisecond)
@@ -123,13 +132,6 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 
 // TakeScreenshot returns a png image, base64 encoded, or error if failed
 func (t *Tab) TakeScreenshot(ctx context.Context) (string, error) {
-	/*
-		_, _, rect, err := t.t.Page.GetLayoutMetrics()
-		if err != nil {
-			return "", err
-		}
-	*/
-
 	params := &gcdapi.PageCaptureScreenshotParams{
 		Format:  "png",
 		Quality: 100,
@@ -161,7 +163,7 @@ func (t *Tab) SerializeDOM() string {
 }
 
 // GetNetworkTraffic returns all responses after page load
-func (t *Tab) GetNetworkTraffic() []*am.HTTPResponse {
+func (t *Tab) GetNetworkTraffic() (*am.HTTPResponse, []*am.HTTPResponse) {
 	return t.container.GetResponses()
 }
 
@@ -254,6 +256,14 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 	})
 
 	t.t.Subscribe("Network.requestWillBeSent", func(target *gcd.ChromeTarget, payload []byte) {
+		message := &gcdapi.NetworkRequestWillBeSentEvent{}
+		if err := json.Unmarshal(payload, message); err != nil {
+			return
+		}
+		if message.Params.Type == "Document" {
+			t.container.SetLoadRequest(message.Params.RequestId)
+			log.Info().Msgf("%#v\n%#v\n%#v\n%#v\n", message.Params, message.Params.Initiator, message.Params.RedirectResponse, message.Params.Request)
+		}
 	})
 
 	t.t.Subscribe("Network.responseReceived", func(target *gcd.ChromeTarget, payload []byte) {
@@ -430,7 +440,6 @@ func (t *Tab) subscribeBrowserEvents() {
 	t.t.Page.Enable()
 	t.t.Security.Enable()
 
-	//t.t.Security.SetIgnoreCertificateErrors(true)
 	t.t.Security.SetOverrideCertificateErrors(true)
 
 	t.t.Subscribe("Security.certificateError", func(target *gcd.ChromeTarget, payload []byte) {

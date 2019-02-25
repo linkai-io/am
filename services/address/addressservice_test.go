@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -33,134 +32,6 @@ func init() {
 	dbstring, err = sec.DBString(serviceKey)
 	if err != nil {
 		panic("error getting dbstring secret")
-	}
-}
-
-func TestBuildGetFilter(t *testing.T) {
-	service := address.New(nil)
-
-	userContext := &am.UserContextData{OrgID: 1}
-	filter := &am.ScanGroupAddressFilter{
-		OrgID:                     1,
-		GroupID:                   1,
-		Start:                     0,
-		Limit:                     1000,
-		WithIgnored:               false,
-		IgnoredValue:              false,
-		WithBeforeLastScannedTime: false,
-		WithAfterLastScannedTime:  false,
-		AfterScannedTime:          0,
-		BeforeScannedTime:         0,
-		WithBeforeLastSeenTime:    false,
-		WithAfterLastSeenTime:     false,
-		AfterSeenTime:             0,
-		BeforeSeenTime:            0,
-		WithIsWildcard:            false,
-		IsWildcardValue:           false,
-		WithIsHostedService:       false,
-		IsHostedServiceValue:      false,
-		MatchesHost:               "",
-		MatchesIP:                 "",
-		NSRecord:                  0,
-	}
-
-	noFilters, noFilterArgs := service.BuildGetFilterQuery(userContext, filter)
-	if len(noFilterArgs) != 4 {
-		t.Fatalf("expected args len of 4, got %v\n", len(noFilterArgs))
-	}
-
-	if !strings.HasSuffix(noFilters, "$4") {
-		t.Fatalf("query should have ended with $4 got %v\n", noFilters)
-	}
-
-	if noFilterArgs[0] != 1 && noFilterArgs[1] != 1 && noFilterArgs[2] != 0 && noFilterArgs[3] != 1000 {
-		t.Fatalf("expected 1, 1, 0, 1000 for args, got %#v\n", noFilterArgs)
-	}
-
-	filter = &am.ScanGroupAddressFilter{
-		OrgID:                     1,
-		GroupID:                   1,
-		Start:                     1000,
-		Limit:                     2000,
-		WithIgnored:               true,
-		IgnoredValue:              false,
-		WithBeforeLastScannedTime: true,
-		WithAfterLastScannedTime:  true,
-		AfterScannedTime:          0,
-		BeforeScannedTime:         0,
-		WithBeforeLastSeenTime:    true,
-		WithAfterLastSeenTime:     true,
-		AfterSeenTime:             0,
-		BeforeSeenTime:            0,
-		WithIsWildcard:            true,
-		IsWildcardValue:           true,
-		WithIsHostedService:       true,
-		IsHostedServiceValue:      true,
-		MatchesHost:               "asdf.com",
-		MatchesIP:                 "192.168.9",
-		NSRecord:                  33,
-	}
-
-	filters, filterArgs := service.BuildGetFilterQuery(userContext, filter)
-	t.Logf("%s %#v\n", filters, filterArgs)
-	if len(filterArgs) != 14 {
-		t.Fatalf("expected args len of 14, got %d %#v\n", len(filterArgs), filterArgs)
-	}
-
-	if filterArgs[0] != filter.OrgID {
-		t.Fatalf("expected OrgID %v got %v", filter.OrgID, filterArgs[0])
-	}
-
-	if filterArgs[1] != filter.GroupID {
-		t.Fatalf("expected GroupID %v got %v", filter.OrgID, filterArgs[1])
-	}
-
-	if filterArgs[2] != filter.IgnoredValue {
-		t.Fatalf("expected IgnoredValue %v got %v", filter.IgnoredValue, filterArgs[2])
-	}
-
-	if filterArgs[3] != filter.AfterScannedTime {
-		t.Fatalf("expected AfterScannedTime %v got %v", filter.AfterScannedTime, filterArgs[3])
-	}
-
-	if filterArgs[4] != filter.BeforeScannedTime {
-		t.Fatalf("expected BeforeScannedTime %v got %v", filter.BeforeScannedTime, filterArgs[4])
-	}
-
-	if filterArgs[5] != filter.AfterSeenTime {
-		t.Fatalf("expected AfterSeenTime %v got %v", filter.AfterSeenTime, filterArgs[3])
-	}
-
-	if filterArgs[6] != filter.BeforeSeenTime {
-		t.Fatalf("expected BeforeSeenTime %v got %v", filter.BeforeSeenTime, filterArgs[4])
-	}
-
-	if filterArgs[7] != filter.IsWildcardValue {
-		t.Fatalf("expected IsWildcardValue %v got %v", filter.IsWildcardValue, filterArgs[5])
-	}
-
-	if filterArgs[8] != filter.IsHostedServiceValue {
-		t.Fatalf("expected IsHostedServiceValue %v got %v", filter.IsHostedServiceValue, filterArgs[6])
-	}
-
-	if filterArgs[9] != convert.Reverse(filter.MatchesHost) {
-		t.Fatalf("expected MatchesHost %v got %v", convert.Reverse(filter.MatchesHost), filterArgs[7])
-	}
-
-	if filterArgs[10] != convert.Reverse(filter.MatchesIP) {
-		t.Fatalf("expected MatchesIP %v got %v", convert.Reverse(filter.MatchesIP), filterArgs[8])
-	}
-
-	if filterArgs[11] != filter.NSRecord {
-		t.Fatalf("expected NSRecord %v got %v", filter.NSRecord, filterArgs[9])
-	}
-
-	if filterArgs[12] != filter.Start {
-		t.Fatalf("expected Start %v got %v", filter.Start, filterArgs[10])
-	}
-
-	if filterArgs[13] != filter.Limit {
-		t.Fatalf("expected Limit %v got %v", filter.Limit, filterArgs[11])
 	}
 }
 
@@ -353,8 +224,9 @@ func TestAdd(t *testing.T) {
 	}
 	// test invalid (missing groupID) filter first
 	filter := &am.ScanGroupAddressFilter{
-		Start: 0,
-		Limit: 10,
+		Start:   0,
+		Limit:   10,
+		Filters: &am.FilterType{},
 	}
 
 	_, _, err = service.Get(ctx, userContext, filter)
@@ -478,6 +350,7 @@ func TestUpdate(t *testing.T) {
 		GroupID: groupID,
 		Start:   0,
 		Limit:   10,
+		Filters: &am.FilterType{},
 	}
 
 	_, returned, err := service.Get(ctx, userContext, filter)
@@ -576,6 +449,7 @@ func TestIgnore(t *testing.T) {
 		GroupID: groupID,
 		Start:   0,
 		Limit:   100,
+		Filters: &am.FilterType{},
 	}
 	_, allAddresses, err := service.Get(ctx, userContext, filter)
 	if err != nil {
@@ -618,6 +492,270 @@ func TestIgnore(t *testing.T) {
 		if addr.Ignored == true {
 			t.Fatalf("error ignoring address: %v\n", addr.AddressID)
 		}
+	}
+}
+
+func TestGetAddressFilters(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "addressfilters"
+	groupName := "addressfilters"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now()
+	for i := 0; i < 100; i++ {
+		host := fmt.Sprintf("%d.example.com", i)
+		ip := fmt.Sprintf("192.168.1.%d", i)
+
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, host),
+			DiscoveryTime:       now.Add(time.Hour * time.Duration(-i*2)).UnixNano(),
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			LastSeenTime:        now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			ConfidenceScore:     float32(i),
+			UserConfidenceScore: float32(i),
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+			NSRecord:            int32(i),
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, _, err := service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %v\n", err)
+	}
+
+	filter := &am.ScanGroupAddressFilter{
+		OrgID:   orgID,
+		GroupID: groupID,
+		Start:   0,
+		Limit:   1000,
+		Filters: &am.FilterType{},
+	}
+
+	_, returned, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != len(addresses) {
+		t.Fatalf("expected %d returned got %d\n", len(addresses), len(returned))
+	}
+
+	filter.Filters.AddBool("wildcard", true)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 0 {
+		t.Fatalf("expected 0 returned got: %d\n", len(returned))
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddBool("hosted", true)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 0 {
+		t.Fatalf("expected 0 returned got: %d\n", len(returned))
+	}
+
+	// test scanned time
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("after_scanned_time", now.Add(time.Hour*time.Duration(-5)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("before_scanned_time", now.Add(time.Hour*time.Duration(-4)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 95 {
+		t.Fatalf("expected 95 returned got: %d\n", len(returned))
+	}
+
+	// test seen time
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("after_seen_time", now.Add(time.Hour*time.Duration(-5)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("before_seen_time", now.Add(time.Hour*time.Duration(-4)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 95 {
+		t.Fatalf("expected 95 returned got: %d\n", len(returned))
+	}
+	// test discovered time
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("after_discovered_time", now.Add(time.Hour*time.Duration(-5*2)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt64("before_discovered_time", now.Add(time.Hour*time.Duration(-4*2)).UnixNano())
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 95 {
+		t.Fatalf("expected 95 returned got: %d\n", len(returned))
+	}
+
+	// test confidence
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddFloat32("above_confidence", 94)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddFloat32("below_confidence", 5)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	// test user confidence
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddFloat32("above_user_confidence", 94)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddFloat32("below_user_confidence", 5)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 5 {
+		t.Fatalf("expected 5 returned got: %d\n", len(returned))
+	}
+
+	// test ns record
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32("ns_record", 1)
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 1 {
+		t.Fatalf("expected 1 returned got: %d\n", len(returned))
+	}
+	// test host address
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString("host_address", "1.example.com")
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 1 {
+		t.Fatalf("expected 1 returned got: %d\n", len(returned))
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString("starts_host_address", "1")
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 11 {
+		t.Fatalf("expected 11 returned got: %d\n", len(returned))
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString("ends_host_address", "example.com")
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 100 {
+		t.Fatalf("expected 100 returned got: %d\n", len(returned))
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString("ip_address", "192.168.1.1")
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 1 {
+		t.Fatalf("expected 1 returned got: %d\n", len(returned))
 	}
 }
 

@@ -1,6 +1,8 @@
 package webdata
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var (
 	responseColumns = `wb.response_id,
@@ -40,31 +42,6 @@ var (
 			where organization_id=$1 and
 			scan_group_id=$2 
 		`, responseColumns, referencedResponseColumns)
-
-	latestOnlyUrlListQueryPrefix = `select wb.organization_id,
-	wb.scan_group_id,
-	latest.url_request_timestamp,
-	(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
-	(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address,
-	array_agg(wb.url),
-	array_agg(wb.raw_body_link) as raw_body_links,
-	array_agg(wb.response_id) as response_ids,
-	array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types 
-	 from (select url, max(url_request_timestamp) as url_request_timestamp from am.web_responses group by url) as latest
-	join am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp
-	where wb.organization_id=$1 and wb.scan_group_id=$2`
-
-	urlListQueryPrefix = `select wb.organization_id,
-		wb.scan_group_id,
-		wb.url_request_timestamp,
-		(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address,
-		(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address,
-		array_agg(wb.url),
-		array_agg(wb.raw_body_link) as raw_body_links,
-		array_agg(wb.response_id) as response_ids,
-		array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types
-		from am.web_responses as wb
-		where wb.organization_id=$1 and scan_group_id=$2 `
 
 	certificateColumns = `certificate_id,
 		organization_id,

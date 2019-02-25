@@ -51,7 +51,7 @@ func (m *AddressData) Reset()         { *m = AddressData{} }
 func (m *AddressData) String() string { return proto.CompactTextString(m) }
 func (*AddressData) ProtoMessage()    {}
 func (*AddressData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_address_e73eb0e5f10e74fc, []int{0}
+	return fileDescriptor_address_98ad44531dff692c, []int{0}
 }
 func (m *AddressData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -229,7 +229,7 @@ func (m *HostListData) Reset()         { *m = HostListData{} }
 func (m *HostListData) String() string { return proto.CompactTextString(m) }
 func (*HostListData) ProtoMessage()    {}
 func (*HostListData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_address_e73eb0e5f10e74fc, []int{1}
+	return fileDescriptor_address_98ad44531dff692c, []int{1}
 }
 func (m *HostListData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -301,37 +301,21 @@ func (m *HostListData) GetAddressIDs() []int64 {
 }
 
 type AddressFilter struct {
-	OrgID                     int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	GroupID                   int32    `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
-	Start                     int64    `protobuf:"varint,3,opt,name=Start,proto3" json:"Start,omitempty"`
-	Limit                     int32    `protobuf:"varint,4,opt,name=Limit,proto3" json:"Limit,omitempty"`
-	WithIgnored               bool     `protobuf:"varint,5,opt,name=WithIgnored,proto3" json:"WithIgnored,omitempty"`
-	IgnoredValue              bool     `protobuf:"varint,6,opt,name=IgnoredValue,proto3" json:"IgnoredValue,omitempty"`
-	WithBeforeLastScannedTime bool     `protobuf:"varint,7,opt,name=WithBeforeLastScannedTime,proto3" json:"WithBeforeLastScannedTime,omitempty"`
-	WithAfterLastScannedTime  bool     `protobuf:"varint,8,opt,name=WithAfterLastScannedTime,proto3" json:"WithAfterLastScannedTime,omitempty"`
-	BeforeScannedTime         int64    `protobuf:"varint,9,opt,name=BeforeScannedTime,proto3" json:"BeforeScannedTime,omitempty"`
-	AfterScannedTime          int64    `protobuf:"varint,10,opt,name=AfterScannedTime,proto3" json:"AfterScannedTime,omitempty"`
-	WithBeforeLastSeenTime    bool     `protobuf:"varint,11,opt,name=WithBeforeLastSeenTime,proto3" json:"WithBeforeLastSeenTime,omitempty"`
-	WithAfterLastSeenTime     bool     `protobuf:"varint,12,opt,name=WithAfterLastSeenTime,proto3" json:"WithAfterLastSeenTime,omitempty"`
-	BeforeSeenTime            int64    `protobuf:"varint,13,opt,name=BeforeSeenTime,proto3" json:"BeforeSeenTime,omitempty"`
-	AfterSeenTime             int64    `protobuf:"varint,14,opt,name=AfterSeenTime,proto3" json:"AfterSeenTime,omitempty"`
-	WithIsWildcard            bool     `protobuf:"varint,15,opt,name=WithIsWildcard,proto3" json:"WithIsWildcard,omitempty"`
-	IsWildcardValue           bool     `protobuf:"varint,16,opt,name=IsWildcardValue,proto3" json:"IsWildcardValue,omitempty"`
-	WithIsHostedService       bool     `protobuf:"varint,17,opt,name=WithIsHostedService,proto3" json:"WithIsHostedService,omitempty"`
-	IsHostedServiceValue      bool     `protobuf:"varint,18,opt,name=IsHostedServiceValue,proto3" json:"IsHostedServiceValue,omitempty"`
-	MatchesHost               string   `protobuf:"bytes,19,opt,name=MatchesHost,proto3" json:"MatchesHost,omitempty"`
-	MatchesIP                 string   `protobuf:"bytes,20,opt,name=MatchesIP,proto3" json:"MatchesIP,omitempty"`
-	NSRecord                  int32    `protobuf:"varint,21,opt,name=NSRecord,proto3" json:"NSRecord,omitempty"`
-	XXX_NoUnkeyedLiteral      struct{} `json:"-"`
-	XXX_unrecognized          []byte   `json:"-"`
-	XXX_sizecache             int32    `json:"-"`
+	OrgID                int32       `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupID              int32       `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	Start                int64       `protobuf:"varint,3,opt,name=Start,proto3" json:"Start,omitempty"`
+	Limit                int32       `protobuf:"varint,4,opt,name=Limit,proto3" json:"Limit,omitempty"`
+	Filters              *FilterType `protobuf:"bytes,5,opt,name=Filters" json:"Filters,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *AddressFilter) Reset()         { *m = AddressFilter{} }
 func (m *AddressFilter) String() string { return proto.CompactTextString(m) }
 func (*AddressFilter) ProtoMessage()    {}
 func (*AddressFilter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_address_e73eb0e5f10e74fc, []int{2}
+	return fileDescriptor_address_98ad44531dff692c, []int{2}
 }
 func (m *AddressFilter) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -388,123 +372,11 @@ func (m *AddressFilter) GetLimit() int32 {
 	return 0
 }
 
-func (m *AddressFilter) GetWithIgnored() bool {
+func (m *AddressFilter) GetFilters() *FilterType {
 	if m != nil {
-		return m.WithIgnored
+		return m.Filters
 	}
-	return false
-}
-
-func (m *AddressFilter) GetIgnoredValue() bool {
-	if m != nil {
-		return m.IgnoredValue
-	}
-	return false
-}
-
-func (m *AddressFilter) GetWithBeforeLastScannedTime() bool {
-	if m != nil {
-		return m.WithBeforeLastScannedTime
-	}
-	return false
-}
-
-func (m *AddressFilter) GetWithAfterLastScannedTime() bool {
-	if m != nil {
-		return m.WithAfterLastScannedTime
-	}
-	return false
-}
-
-func (m *AddressFilter) GetBeforeScannedTime() int64 {
-	if m != nil {
-		return m.BeforeScannedTime
-	}
-	return 0
-}
-
-func (m *AddressFilter) GetAfterScannedTime() int64 {
-	if m != nil {
-		return m.AfterScannedTime
-	}
-	return 0
-}
-
-func (m *AddressFilter) GetWithBeforeLastSeenTime() bool {
-	if m != nil {
-		return m.WithBeforeLastSeenTime
-	}
-	return false
-}
-
-func (m *AddressFilter) GetWithAfterLastSeenTime() bool {
-	if m != nil {
-		return m.WithAfterLastSeenTime
-	}
-	return false
-}
-
-func (m *AddressFilter) GetBeforeSeenTime() int64 {
-	if m != nil {
-		return m.BeforeSeenTime
-	}
-	return 0
-}
-
-func (m *AddressFilter) GetAfterSeenTime() int64 {
-	if m != nil {
-		return m.AfterSeenTime
-	}
-	return 0
-}
-
-func (m *AddressFilter) GetWithIsWildcard() bool {
-	if m != nil {
-		return m.WithIsWildcard
-	}
-	return false
-}
-
-func (m *AddressFilter) GetIsWildcardValue() bool {
-	if m != nil {
-		return m.IsWildcardValue
-	}
-	return false
-}
-
-func (m *AddressFilter) GetWithIsHostedService() bool {
-	if m != nil {
-		return m.WithIsHostedService
-	}
-	return false
-}
-
-func (m *AddressFilter) GetIsHostedServiceValue() bool {
-	if m != nil {
-		return m.IsHostedServiceValue
-	}
-	return false
-}
-
-func (m *AddressFilter) GetMatchesHost() string {
-	if m != nil {
-		return m.MatchesHost
-	}
-	return ""
-}
-
-func (m *AddressFilter) GetMatchesIP() string {
-	if m != nil {
-		return m.MatchesIP
-	}
-	return ""
-}
-
-func (m *AddressFilter) GetNSRecord() int32 {
-	if m != nil {
-		return m.NSRecord
-	}
-	return 0
+	return nil
 }
 
 func init() {
@@ -779,154 +651,15 @@ func (m *AddressFilter) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintAddress(dAtA, i, uint64(m.Limit))
 	}
-	if m.WithIgnored {
-		dAtA[i] = 0x28
+	if m.Filters != nil {
+		dAtA[i] = 0x2a
 		i++
-		if m.WithIgnored {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
+		i = encodeVarintAddress(dAtA, i, uint64(m.Filters.Size()))
+		n3, err := m.Filters.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
 		}
-		i++
-	}
-	if m.IgnoredValue {
-		dAtA[i] = 0x30
-		i++
-		if m.IgnoredValue {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.WithBeforeLastScannedTime {
-		dAtA[i] = 0x38
-		i++
-		if m.WithBeforeLastScannedTime {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.WithAfterLastScannedTime {
-		dAtA[i] = 0x40
-		i++
-		if m.WithAfterLastScannedTime {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.BeforeScannedTime != 0 {
-		dAtA[i] = 0x48
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(m.BeforeScannedTime))
-	}
-	if m.AfterScannedTime != 0 {
-		dAtA[i] = 0x50
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(m.AfterScannedTime))
-	}
-	if m.WithBeforeLastSeenTime {
-		dAtA[i] = 0x58
-		i++
-		if m.WithBeforeLastSeenTime {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.WithAfterLastSeenTime {
-		dAtA[i] = 0x60
-		i++
-		if m.WithAfterLastSeenTime {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.BeforeSeenTime != 0 {
-		dAtA[i] = 0x68
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(m.BeforeSeenTime))
-	}
-	if m.AfterSeenTime != 0 {
-		dAtA[i] = 0x70
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(m.AfterSeenTime))
-	}
-	if m.WithIsWildcard {
-		dAtA[i] = 0x78
-		i++
-		if m.WithIsWildcard {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.IsWildcardValue {
-		dAtA[i] = 0x80
-		i++
-		dAtA[i] = 0x1
-		i++
-		if m.IsWildcardValue {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.WithIsHostedService {
-		dAtA[i] = 0x88
-		i++
-		dAtA[i] = 0x1
-		i++
-		if m.WithIsHostedService {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.IsHostedServiceValue {
-		dAtA[i] = 0x90
-		i++
-		dAtA[i] = 0x1
-		i++
-		if m.IsHostedServiceValue {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if len(m.MatchesHost) > 0 {
-		dAtA[i] = 0x9a
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(len(m.MatchesHost)))
-		i += copy(dAtA[i:], m.MatchesHost)
-	}
-	if len(m.MatchesIP) > 0 {
-		dAtA[i] = 0xa2
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(len(m.MatchesIP)))
-		i += copy(dAtA[i:], m.MatchesIP)
-	}
-	if m.NSRecord != 0 {
-		dAtA[i] = 0xa8
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAddress(dAtA, i, uint64(m.NSRecord))
+		i += n3
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -1074,58 +807,9 @@ func (m *AddressFilter) Size() (n int) {
 	if m.Limit != 0 {
 		n += 1 + sovAddress(uint64(m.Limit))
 	}
-	if m.WithIgnored {
-		n += 2
-	}
-	if m.IgnoredValue {
-		n += 2
-	}
-	if m.WithBeforeLastScannedTime {
-		n += 2
-	}
-	if m.WithAfterLastScannedTime {
-		n += 2
-	}
-	if m.BeforeScannedTime != 0 {
-		n += 1 + sovAddress(uint64(m.BeforeScannedTime))
-	}
-	if m.AfterScannedTime != 0 {
-		n += 1 + sovAddress(uint64(m.AfterScannedTime))
-	}
-	if m.WithBeforeLastSeenTime {
-		n += 2
-	}
-	if m.WithAfterLastSeenTime {
-		n += 2
-	}
-	if m.BeforeSeenTime != 0 {
-		n += 1 + sovAddress(uint64(m.BeforeSeenTime))
-	}
-	if m.AfterSeenTime != 0 {
-		n += 1 + sovAddress(uint64(m.AfterSeenTime))
-	}
-	if m.WithIsWildcard {
-		n += 2
-	}
-	if m.IsWildcardValue {
-		n += 3
-	}
-	if m.WithIsHostedService {
-		n += 3
-	}
-	if m.IsHostedServiceValue {
-		n += 3
-	}
-	l = len(m.MatchesHost)
-	if l > 0 {
-		n += 2 + l + sovAddress(uint64(l))
-	}
-	l = len(m.MatchesIP)
-	if l > 0 {
-		n += 2 + l + sovAddress(uint64(l))
-	}
-	if m.NSRecord != 0 {
-		n += 2 + sovAddress(uint64(m.NSRecord))
+	if m.Filters != nil {
+		l = m.Filters.Size()
+		n += 1 + l + sovAddress(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1952,286 +1636,10 @@ func (m *AddressFilter) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithIgnored", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithIgnored = bool(v != 0)
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IgnoredValue", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IgnoredValue = bool(v != 0)
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithBeforeLastScannedTime", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithBeforeLastScannedTime = bool(v != 0)
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithAfterLastScannedTime", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithAfterLastScannedTime = bool(v != 0)
-		case 9:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BeforeScannedTime", wireType)
-			}
-			m.BeforeScannedTime = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.BeforeScannedTime |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 10:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AfterScannedTime", wireType)
-			}
-			m.AfterScannedTime = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AfterScannedTime |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 11:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithBeforeLastSeenTime", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithBeforeLastSeenTime = bool(v != 0)
-		case 12:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithAfterLastSeenTime", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithAfterLastSeenTime = bool(v != 0)
-		case 13:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BeforeSeenTime", wireType)
-			}
-			m.BeforeSeenTime = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.BeforeSeenTime |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 14:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AfterSeenTime", wireType)
-			}
-			m.AfterSeenTime = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AfterSeenTime |= (int64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 15:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithIsWildcard", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithIsWildcard = bool(v != 0)
-		case 16:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsWildcardValue", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IsWildcardValue = bool(v != 0)
-		case 17:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WithIsHostedService", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.WithIsHostedService = bool(v != 0)
-		case 18:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsHostedServiceValue", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IsHostedServiceValue = bool(v != 0)
-		case 19:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MatchesHost", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Filters", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowAddress
@@ -2241,69 +1649,25 @@ func (m *AddressFilter) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				msglen |= (int(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthAddress
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MatchesHost = string(dAtA[iNdEx:postIndex])
+			if m.Filters == nil {
+				m.Filters = &FilterType{}
+			}
+			if err := m.Filters.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
-		case 20:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MatchesIP", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthAddress
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.MatchesIP = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 21:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NSRecord", wireType)
-			}
-			m.NSRecord = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowAddress
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.NSRecord |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipAddress(dAtA[iNdEx:])
@@ -2431,54 +1795,43 @@ var (
 	ErrIntOverflowAddress   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("prototypes/address.proto", fileDescriptor_address_e73eb0e5f10e74fc) }
+func init() { proto.RegisterFile("prototypes/address.proto", fileDescriptor_address_98ad44531dff692c) }
 
-var fileDescriptor_address_e73eb0e5f10e74fc = []byte{
-	// 728 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0xdd, 0x4e, 0xdb, 0x4a,
-	0x10, 0xc7, 0x8f, 0x09, 0x09, 0xc9, 0x84, 0xf0, 0xb1, 0x84, 0xa3, 0x3d, 0x47, 0x47, 0x91, 0x15,
-	0x1d, 0x55, 0x56, 0xd5, 0x92, 0x7e, 0xa9, 0x17, 0x55, 0x6f, 0x80, 0x94, 0x62, 0x29, 0x2d, 0xc8,
-	0xa1, 0x45, 0xe2, 0xce, 0xd8, 0x0b, 0x59, 0x35, 0xf1, 0xa2, 0xdd, 0x0d, 0x12, 0x4f, 0xd0, 0x57,
-	0xe8, 0x93, 0xf4, 0x19, 0x7a, 0xd9, 0x9b, 0xde, 0x57, 0xf4, 0x45, 0xaa, 0x9d, 0xb5, 0x83, 0x6d,
-	0x42, 0xd5, 0xde, 0xed, 0xfc, 0xe6, 0x3f, 0x93, 0x51, 0xe6, 0xc3, 0x40, 0x2f, 0xa4, 0xd0, 0x42,
-	0x5f, 0x5d, 0x30, 0xd5, 0x0b, 0xe3, 0x58, 0x32, 0xa5, 0xb6, 0x10, 0x75, 0x3f, 0x56, 0xa1, 0xb9,
-	0x6d, 0x49, 0x3f, 0xd4, 0x21, 0x69, 0x43, 0xf5, 0x40, 0x9e, 0xfb, 0x7d, 0xea, 0xb8, 0x8e, 0x57,
-	0x0d, 0xac, 0x41, 0xfe, 0x83, 0x46, 0x2a, 0xf2, 0xfb, 0x74, 0xc1, 0x75, 0xbc, 0x4a, 0x70, 0x03,
-	0x08, 0x85, 0xa5, 0xd7, 0x52, 0x4c, 0x2f, 0xfc, 0x3e, 0xad, 0x60, 0x54, 0x66, 0x12, 0x17, 0x9a,
-	0xfb, 0x42, 0xe9, 0x54, 0x4a, 0x17, 0x5d, 0xc7, 0x6b, 0x04, 0x79, 0x64, 0x32, 0xfb, 0x87, 0x99,
-	0xbf, 0x8a, 0xfe, 0x1b, 0x40, 0xfe, 0x87, 0x56, 0x9f, 0xab, 0x48, 0x5c, 0x32, 0x79, 0x75, 0xc4,
-	0x27, 0x8c, 0xd6, 0xf0, 0xb7, 0x8b, 0x90, 0x74, 0x61, 0x39, 0x03, 0x2c, 0xde, 0xb9, 0xa2, 0x4b,
-	0x98, 0xa6, 0xc0, 0x88, 0x07, 0xab, 0x83, 0x50, 0xe9, 0x61, 0x14, 0x26, 0x09, 0x8b, 0x31, 0x57,
-	0x1d, 0x73, 0x95, 0xb1, 0xc9, 0x86, 0x88, 0xb1, 0x04, 0x65, 0x0d, 0x94, 0x15, 0x98, 0xc9, 0xb6,
-	0x2b, 0x92, 0x33, 0x1e, 0xb3, 0x24, 0x62, 0xc3, 0x48, 0x48, 0x46, 0xc1, 0x75, 0xbc, 0x85, 0xa0,
-	0x8c, 0xc9, 0x23, 0xd8, 0x78, 0xa7, 0x98, 0x2c, 0xab, 0x9b, 0xa8, 0x9e, 0xe7, 0x32, 0x1d, 0xf0,
-	0xd5, 0xf0, 0x60, 0x9b, 0x2e, 0xbb, 0x8e, 0x57, 0x0f, 0xac, 0x41, 0xee, 0xc1, 0x8a, 0xaf, 0x8e,
-	0xf9, 0x38, 0x8e, 0x42, 0x19, 0x9f, 0x88, 0x84, 0xd1, 0x16, 0xba, 0x4b, 0xd4, 0x54, 0xe6, 0x2b,
-	0xf3, 0x07, 0xb3, 0x78, 0xc8, 0xe4, 0x25, 0x8f, 0x18, 0x5d, 0x41, 0x61, 0x19, 0x9b, 0xae, 0xf9,
-	0xe7, 0x89, 0x90, 0x2c, 0xa6, 0xab, 0xa8, 0xc8, 0x4c, 0xe3, 0xe9, 0xb3, 0x31, 0xd3, 0x2c, 0xa6,
-	0x6b, 0xd6, 0x93, 0x9a, 0xa6, 0x5b, 0x7b, 0x62, 0x9a, 0xc4, 0x7b, 0x52, 0x4c, 0xe8, 0xba, 0xed,
-	0xd6, 0x0c, 0x90, 0x7f, 0xa1, 0xfe, 0x76, 0x18, 0xb0, 0x48, 0xc8, 0x98, 0x12, 0x1c, 0x84, 0x99,
-	0x6d, 0x26, 0x21, 0x6d, 0xea, 0x7e, 0xa8, 0x46, 0x74, 0xc3, 0x4e, 0x42, 0x0e, 0x75, 0x3f, 0x3b,
-	0xb0, 0x6c, 0x2a, 0x1c, 0x70, 0xa5, 0x7f, 0x31, 0x8a, 0xb9, 0x61, 0x5b, 0x28, 0x0e, 0x1b, 0x81,
-	0xc5, 0x57, 0x47, 0x03, 0x3b, 0x83, 0x8d, 0x00, 0xdf, 0xbf, 0x31, 0x80, 0x2e, 0x34, 0x67, 0xf3,
-	0xc6, 0xcc, 0x08, 0x56, 0x8c, 0x22, 0x87, 0x48, 0x07, 0x60, 0x36, 0xeb, 0x8a, 0xd6, 0xdc, 0x8a,
-	0x57, 0x09, 0x72, 0xa4, 0xfb, 0xad, 0x06, 0xad, 0xd4, 0xdc, 0xe3, 0x63, 0xcd, 0xe4, 0x1f, 0x57,
-	0xde, 0x86, 0xea, 0x50, 0x87, 0x52, 0x63, 0xe9, 0x95, 0xc0, 0x1a, 0x86, 0x0e, 0xf8, 0x84, 0x6b,
-	0xac, 0xba, 0x1a, 0x58, 0xc3, 0xd4, 0x7b, 0xcc, 0xf5, 0x28, 0x6b, 0x5d, 0x15, 0x1b, 0x94, 0x47,
-	0x66, 0x80, 0xd3, 0xe7, 0xfb, 0x70, 0x3c, 0xb5, 0x3b, 0x53, 0x0f, 0x0a, 0x8c, 0xbc, 0x84, 0x7f,
-	0x4c, 0xc8, 0x0e, 0x3b, 0x13, 0x92, 0x95, 0x17, 0x63, 0x09, 0x03, 0xee, 0x16, 0x90, 0x17, 0x40,
-	0x8d, 0x73, 0xfb, 0x4c, 0x33, 0x39, 0x6f, 0xab, 0xea, 0xc1, 0x9d, 0x7e, 0xf2, 0x00, 0xd6, 0x6d,
-	0xd2, 0x7c, 0x90, 0xdd, 0xb1, 0xdb, 0x0e, 0x72, 0x1f, 0xd6, 0x30, 0x4b, 0x5e, 0x0c, 0x28, 0xbe,
-	0xc5, 0xc9, 0x73, 0xf8, 0xbb, 0x54, 0x72, 0xb6, 0xc2, 0x4d, 0xac, 0xe9, 0x0e, 0x2f, 0x79, 0x06,
-	0x9b, 0xc5, 0x6a, 0xb3, 0x30, 0xbb, 0x80, 0xf3, 0x9d, 0x66, 0x21, 0xd3, 0x72, 0x33, 0x79, 0x0b,
-	0xeb, 0x2a, 0x51, 0x73, 0xc2, 0x6c, 0xa5, 0x99, 0x6c, 0xc5, 0x9e, 0xb0, 0x02, 0x34, 0xd9, 0xb0,
-	0x85, 0xb3, 0x65, 0x4e, 0x77, 0xb2, 0x44, 0xed, 0x7a, 0x67, 0x96, 0x6d, 0xef, 0x5a, 0xb6, 0xde,
-	0x05, 0x6c, 0x0e, 0x8f, 0x8d, 0x2d, 0x1e, 0x83, 0x75, 0x54, 0xcf, 0x73, 0x91, 0x27, 0xd0, 0x2e,
-	0x21, 0xfb, 0x03, 0x04, 0x43, 0xe6, 0xfa, 0xcc, 0x34, 0xbe, 0x09, 0x75, 0x34, 0x62, 0xe8, 0xcc,
-	0xd6, 0x3a, 0x87, 0xcc, 0xc9, 0x48, 0x4d, 0xff, 0x90, 0xb6, 0xed, 0xc9, 0x98, 0x81, 0xc2, 0xc9,
-	0xd8, 0x2c, 0x9e, 0x8c, 0x9d, 0xdd, 0x2f, 0xd7, 0x1d, 0xe7, 0xeb, 0x75, 0xc7, 0xf9, 0x7e, 0xdd,
-	0x71, 0x3e, 0xfd, 0xe8, 0xfc, 0x75, 0xf2, 0xf8, 0x9c, 0xeb, 0xd1, 0xf4, 0x74, 0x2b, 0x12, 0x93,
-	0xde, 0x98, 0x27, 0x1f, 0x42, 0xfe, 0x90, 0x8b, 0x5e, 0x38, 0xe9, 0xe1, 0xb7, 0x2c, 0x52, 0xb6,
-	0x32, 0xd5, 0xbb, 0xf9, 0xda, 0x9d, 0xd6, 0xf0, 0xfd, 0xf4, 0x67, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x9a, 0x59, 0xd3, 0xb1, 0x02, 0x07, 0x00, 0x00,
+var fileDescriptor_address_98ad44531dff692c = []byte{
+	// 554 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xdd, 0x6e, 0xd3, 0x3e,
+	0x18, 0xc6, 0xff, 0x59, 0x96, 0xb5, 0x75, 0xda, 0xed, 0x8f, 0xb7, 0x03, 0x6b, 0xa0, 0x2a, 0xaa,
+	0x00, 0xe5, 0x84, 0x96, 0x8f, 0x2b, 0xd8, 0x16, 0xca, 0x22, 0x55, 0x0c, 0x39, 0x45, 0x48, 0x3b,
+	0xcb, 0xe2, 0x77, 0x9d, 0x45, 0x1b, 0x57, 0xb6, 0x3b, 0xa9, 0x57, 0xc0, 0x39, 0x47, 0x5c, 0x09,
+	0xd7, 0xc0, 0x21, 0x97, 0x80, 0xca, 0x8d, 0x20, 0xdb, 0xfd, 0x48, 0x2b, 0x84, 0xe0, 0xcc, 0xcf,
+	0xef, 0x79, 0xfa, 0xc6, 0xea, 0xfb, 0x24, 0x88, 0x4c, 0xa5, 0xd0, 0x42, 0xcf, 0xa7, 0xa0, 0x7a,
+	0x39, 0x63, 0x12, 0x94, 0xea, 0x5a, 0x74, 0xfa, 0xb0, 0xe2, 0xdc, 0xf2, 0xb1, 0x06, 0x69, 0xce,
+	0xce, 0xec, 0x7c, 0x0a, 0x50, 0x78, 0xe6, 0xe2, 0x49, 0xae, 0x73, 0x7c, 0x82, 0x82, 0x2b, 0x39,
+	0x4a, 0x13, 0xe2, 0x45, 0x5e, 0x1c, 0x50, 0x27, 0xf0, 0x23, 0xd4, 0x58, 0x86, 0xd2, 0x84, 0xec,
+	0x45, 0x5e, 0xec, 0xd3, 0x0d, 0xc0, 0x04, 0xd5, 0xde, 0x48, 0x31, 0x9b, 0xa6, 0x09, 0xf1, 0xed,
+	0xaf, 0x56, 0x12, 0x47, 0x28, 0xbc, 0x14, 0x4a, 0x2f, 0xa3, 0x64, 0x3f, 0xf2, 0xe2, 0x06, 0xad,
+	0x22, 0x33, 0x39, 0x7d, 0xb7, 0xf2, 0x03, 0xeb, 0x6f, 0x00, 0x7e, 0x8c, 0x5a, 0x09, 0x57, 0x85,
+	0xb8, 0x07, 0x39, 0x1f, 0xf2, 0x09, 0x90, 0x03, 0xfb, 0xec, 0x6d, 0x88, 0x3b, 0xa8, 0xb9, 0x02,
+	0xc0, 0xce, 0xe7, 0xa4, 0x66, 0xc7, 0x6c, 0x31, 0x1c, 0xa3, 0xa3, 0x41, 0xae, 0x74, 0x56, 0xe4,
+	0x65, 0x09, 0xcc, 0xce, 0xaa, 0xdb, 0x59, 0xbb, 0xd8, 0x4c, 0xb3, 0x08, 0xa0, 0xb4, 0xb1, 0x86,
+	0x8d, 0x6d, 0x31, 0x33, 0xed, 0x42, 0x94, 0xb7, 0x9c, 0x41, 0x59, 0x40, 0x56, 0x08, 0x09, 0x04,
+	0x45, 0x5e, 0xbc, 0x47, 0x77, 0x31, 0x7e, 0x8e, 0x8e, 0xdf, 0x2b, 0x90, 0xbb, 0xe9, 0xd0, 0xa6,
+	0x7f, 0x67, 0x99, 0x0d, 0xa4, 0x2a, 0xbb, 0x3a, 0x23, 0xcd, 0xc8, 0x8b, 0xeb, 0xd4, 0x09, 0xfc,
+	0x14, 0x1d, 0xa6, 0xea, 0x03, 0x1f, 0xb3, 0x22, 0x97, 0xec, 0x5a, 0x94, 0x40, 0x5a, 0xd6, 0xde,
+	0xa1, 0xe6, 0x66, 0xa9, 0x32, 0x7f, 0x30, 0xb0, 0x0c, 0xe4, 0x3d, 0x2f, 0x80, 0x1c, 0xda, 0xe0,
+	0x2e, 0x36, 0x5b, 0x4b, 0x47, 0xa5, 0x90, 0xc0, 0xc8, 0x91, 0x4d, 0xac, 0xa4, 0x71, 0x12, 0x18,
+	0x83, 0x06, 0x46, 0xfe, 0x77, 0xce, 0x52, 0x9a, 0x6d, 0xf5, 0xc5, 0xac, 0x64, 0x7d, 0x29, 0x26,
+	0xe4, 0x81, 0xdb, 0xd6, 0x1a, 0xe0, 0x53, 0x54, 0x7f, 0x9b, 0x51, 0x28, 0x84, 0x64, 0x04, 0xdb,
+	0x22, 0xac, 0xb5, 0x69, 0xc2, 0x72, 0xa9, 0x97, 0xb9, 0xba, 0x23, 0xc7, 0xae, 0x09, 0x15, 0xd4,
+	0xf9, 0xea, 0xa1, 0xa6, 0xb9, 0xe1, 0x80, 0x2b, 0xfd, 0x87, 0x2a, 0x56, 0xca, 0xb6, 0xb7, 0x5d,
+	0x36, 0x8c, 0xf6, 0x5f, 0x0f, 0x07, 0xae, 0x83, 0x0d, 0x6a, 0xcf, 0x7f, 0x51, 0xc0, 0x08, 0x85,
+	0xeb, 0xbe, 0x81, 0xa9, 0xa0, 0x6f, 0x12, 0x15, 0x84, 0xdb, 0x08, 0xad, 0xbb, 0xae, 0xc8, 0x41,
+	0xe4, 0xc7, 0x3e, 0xad, 0x90, 0xce, 0x67, 0x0f, 0xb5, 0x96, 0xb2, 0x6f, 0x5f, 0xaf, 0x7f, 0xbe,
+	0xf9, 0x09, 0x0a, 0x32, 0x9d, 0x4b, 0x6d, 0xaf, 0xee, 0x53, 0x27, 0x0c, 0x1d, 0xf0, 0x09, 0xd7,
+	0xf6, 0xd6, 0x01, 0x75, 0x02, 0x3f, 0x41, 0x35, 0xf7, 0x14, 0xf7, 0xba, 0x84, 0x2f, 0xc3, 0xae,
+	0xd3, 0xc3, 0xf9, 0x14, 0xe8, 0xca, 0x3b, 0xbf, 0xf8, 0xb6, 0x68, 0x7b, 0xdf, 0x17, 0x6d, 0xef,
+	0xc7, 0xa2, 0xed, 0x7d, 0xf9, 0xd9, 0xfe, 0xef, 0xfa, 0xc5, 0x88, 0xeb, 0xbb, 0xd9, 0x4d, 0xb7,
+	0x10, 0x93, 0xde, 0x98, 0x97, 0x1f, 0x73, 0xfe, 0x8c, 0x8b, 0x5e, 0x3e, 0xe9, 0xd9, 0x0f, 0x41,
+	0xa1, 0x5c, 0x2d, 0x54, 0x6f, 0xf3, 0xb5, 0xb8, 0x39, 0xb0, 0xe7, 0x57, 0xbf, 0x02, 0x00, 0x00,
+	0xff, 0xff, 0x3b, 0xf8, 0xd8, 0xcc, 0x5c, 0x04, 0x00, 0x00,
 }

@@ -2,7 +2,6 @@ package address
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -11,7 +10,6 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/auth"
-	"github.com/linkai-io/am/pkg/generators"
 )
 
 var (
@@ -107,9 +105,14 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	query, args := s.BuildGetFilterQuery(userContext, filter)
-	serviceLog.Info().Msgf("Building Get query with filter: %#v", filter)
+	query, args, err := buildGetFilterQuery(userContext, filter)
+	if err != nil {
+		return 0, nil, err
+	}
 
+	serviceLog.Info().Msgf("Building Get query with filter: %#v %#v", filter, filter.Filters)
+	serviceLog.Info().Msgf("%s", query)
+	serviceLog.Info().Msgf("%#v", args)
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 
@@ -196,61 +199,6 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 	}
 
 	return userContext.GetOrgID(), hosts, err
-}
-
-// BuildGetFilterQuery creates a 'dynamic' (but prepared statement) filter for filtering scan group addresses
-func (s *Service) BuildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddressFilter) (string, []interface{}) {
-	args := make([]interface{}, 0)
-
-	query := fmt.Sprintf(`select %s from am.scan_group_addresses as sga where organization_id=$1 and scan_group_id=$2 and `, sharedColumns)
-	args = append(args, userContext.GetOrgID())
-	args = append(args, filter.GroupID)
-	i := 3
-	prefix := ""
-	if filter.WithIgnored {
-		generators.AppendConditionalQuery(&query, &prefix, "ignored=$%d", filter.IgnoredValue, &args, &i)
-	}
-
-	if filter.WithAfterLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp='1970-01-01 00:00:00+00' OR last_scanned_timestamp > $%d)", time.Unix(0, filter.AfterScannedTime), &args, &i)
-	}
-
-	if filter.WithBeforeLastScannedTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_scanned_timestamp='1970-01-01 00:00:00+00' OR last_scanned_timestamp < $%d)", time.Unix(0, filter.BeforeScannedTime), &args, &i)
-	}
-
-	if filter.WithAfterLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp='1970-01-01 00:00:00+00' OR last_seen_timestamp > $%d)", time.Unix(0, filter.AfterSeenTime), &args, &i)
-	}
-
-	if filter.WithBeforeLastSeenTime {
-		generators.AppendConditionalQuery(&query, &prefix, "(last_seen_timestamp='1970-01-01 00:00:00+00' OR last_seen_timestamp < $%d)", time.Unix(0, filter.BeforeSeenTime), &args, &i)
-	}
-
-	if filter.WithIsWildcard {
-		generators.AppendConditionalQuery(&query, &prefix, "is_wildcard_zone=$%d", filter.IsWildcardValue, &args, &i)
-	}
-
-	if filter.WithIsHostedService {
-		generators.AppendConditionalQuery(&query, &prefix, "is_hosted_service=$%d", filter.IsHostedServiceValue, &args, &i)
-	}
-
-	if filter.MatchesHost != "" {
-		generators.AppendConditionalQuery(&query, &prefix, "host_address like '%%$%d%%'", filter.MatchesHost, &args, &i)
-	}
-
-	if filter.MatchesIP != "" {
-		generators.AppendConditionalQuery(&query, &prefix, "ip_address like '%%$%d%%'", filter.MatchesIP, &args, &i)
-	}
-
-	if filter.NSRecord != 0 {
-		generators.AppendConditionalQuery(&query, &prefix, "ns_record=$%d", filter.NSRecord, &args, &i)
-	}
-
-	query += fmt.Sprintf("%saddress_id > $%d order by address_id limit $%d", prefix, i, i+1)
-	args = append(args, filter.Start)
-	args = append(args, filter.Limit)
-	return query, args
 }
 
 // Update or insert new addresses

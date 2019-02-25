@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -244,14 +245,40 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
 	dom := tab.SerializeDOM()
+
+	loadResponse, allResponses := tab.GetNetworkTraffic()
+	// if for some reason we can't find the load response, just fake it
+	// with current address details :(
+	if loadResponse == nil {
+		log.Warn().Msg("unable to find original load response, using address data")
+		loadResponse = &am.HTTPResponse{
+			HostAddress:  address.HostAddress,
+			IPAddress:    address.IPAddress,
+			ResponsePort: port,
+			URL:          url,
+			Scheme:       scheme,
+		}
+	}
+
+	responsePort, err := strconv.Atoi(loadResponse.ResponsePort)
+	if err != nil {
+		responsePort, _ = strconv.Atoi(port) // safe to assume this won't fail
+	}
+
 	webData := &am.WebData{
 		Address:             address,
+		Responses:           allResponses,
+		Snapshot:            img,
+		URL:                 loadResponse.URL,
+		AddressHash:         convert.HashAddress(loadResponse.IPAddress, loadResponse.HostAddress),
+		HostAddress:         loadResponse.HostAddress,
+		IPAddress:           loadResponse.IPAddress,
+		ResponsePort:        responsePort,
+		Scheme:              loadResponse.Scheme,
 		SerializedDOM:       dom,
 		SerializedDOMHash:   convert.HashData([]byte(dom)),
-		Responses:           tab.GetNetworkTraffic(),
-		Snapshot:            img,
-		URLRequestTimestamp: start,
 		ResponseTimestamp:   time.Now().UnixNano(),
+		URLRequestTimestamp: start,
 	}
 
 	log.Info().Msg("closed browser")

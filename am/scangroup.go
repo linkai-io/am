@@ -51,8 +51,7 @@ type ScanGroup struct {
 
 // ScanGroupFilter for returning only select values from the AllGroups service method
 type ScanGroupFilter struct {
-	WithPaused  bool `json:"with_paused"`
-	PausedValue bool `json:"paused_value"`
+	Filters *FilterType `json:"filters"`
 }
 
 // ScanGroupService manages input lists and configurations for an organization and group. OrgIDs should
@@ -70,5 +69,4 @@ type ScanGroupService interface {
 	Resume(ctx context.Context, userContext UserContext, groupID int) (oid int, gid int, err error)
 	GroupStats(ctx context.Context, userContext UserContext) (oid int, stats map[int]*GroupStats, err error)
 	UpdateStats(ctx context.Context, userContext UserContext, stats *GroupStats) (oid int, err error)
-	
 }

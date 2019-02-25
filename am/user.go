@@ -104,14 +104,10 @@ func (u *UserContextData) GetIPAddress() string {
 
 // UserFilter for limiting results from User List
 type UserFilter struct {
-	Start             int   `json:"start"`
-	Limit             int   `json:"limit"`
-	OrgID             int   `json:"org_id"`
-	SinceCreationTime int64 `json:"since_creation_time"`
-	WithStatus        bool  `json:"with_status"`
-	StatusValue       int   `json:"status_value"`
-	WithDeleted       bool  `json:"with_deleted"`
-	DeletedValue      bool  `json:"deleted_value"`
+	Start   int         `json:"start"`
+	Limit   int         `json:"limit"`
+	OrgID   int         `json:"org_id"`
+	Filters *FilterType `json:"filters"`
 }
 
 // UserService for managing access to users

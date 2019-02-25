@@ -121,12 +121,11 @@ func TestGetSnapshots(t *testing.T) {
 	}
 
 	filter := &am.WebSnapshotFilter{
-		OrgID:             org.OrgID,
-		GroupID:           org.GroupID,
-		WithResponseTime:  false,
-		SinceResponseTime: 0,
-		Start:             0,
-		Limit:             1000,
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
 	}
 	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
 	if err != nil {
@@ -164,12 +163,11 @@ func TestGetCertificates(t *testing.T) {
 	}
 
 	filter := &am.WebCertificateFilter{
-		OrgID:             org.OrgID,
-		GroupID:           org.GroupID,
-		WithResponseTime:  false,
-		SinceResponseTime: 0,
-		Start:             0,
-		Limit:             1000,
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
 	}
 	_, certs, err := service.GetCertificates(ctx, org.UserContext, filter)
 	if err != nil {
@@ -199,12 +197,11 @@ func TestGetResponses(t *testing.T) {
 	}
 
 	filter := &am.WebResponseFilter{
-		OrgID:             org.OrgID,
-		GroupID:           org.GroupID,
-		WithResponseTime:  true,
-		SinceResponseTime: 0,
-		Start:             0,
-		Limit:             1000,
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
 	}
 
 	_, responses, err := service.GetResponses(ctx, org.UserContext, filter)
@@ -249,16 +246,16 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	}
 
 	filter := &am.WebResponseFilter{
-		OrgID:             org.OrgID,
-		GroupID:           org.GroupID,
-		WithResponseTime:  true,
-		SinceResponseTime: 0,
-		WithHeader:        "content-type",
-		WithoutHeader:     "x-content-type",
-		MimeType:          "text/html",
-		Start:             0,
-		Limit:             1000,
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
 	}
+	filter.Filters.AddInt64("after_request_time", 0)
+	filter.Filters.AddString("header_names", "content-type")
+	filter.Filters.AddString("not_header_names", "x-content-type")
+	filter.Filters.AddString("mime_type", "text/html")
 
 	_, responses, err := service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
@@ -281,8 +278,7 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		t.Fatalf("expected URLRequestTimestamp to be set (from webdata) got 0")
 	}
 
-	filter.LatestOnlyValue = true
-
+	filter.Filters.AddBool("latest_only", true)
 	_, responses, err = service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting responses again: %#v\n", err)
@@ -322,12 +318,11 @@ func TestGetURLList(t *testing.T) {
 	}
 
 	filter := &am.WebResponseFilter{
-		OrgID:             org.OrgID,
-		GroupID:           org.GroupID,
-		WithResponseTime:  true,
-		SinceResponseTime: 0,
-		Start:             0,
-		Limit:             1000,
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
 	}
 	oid, urlLists, err := service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
@@ -353,7 +348,7 @@ func TestGetURLList(t *testing.T) {
 		}
 	}
 
-	filter.LatestOnlyValue = true
+	filter.Filters.AddBool("latest_only", true)
 	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)

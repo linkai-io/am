@@ -53,15 +53,9 @@ type Organization struct {
 
 // OrgFilter for filtering organization list results
 type OrgFilter struct {
-	Start             int   `json:"start"`
-	Limit             int   `json:"limit"`
-	WithSubcription   bool  `json:"with_subscription"`
-	SubValue          bool  `json:"sub_value"`
-	SinceCreationTime int64 `json:"since_creation_time"`
-	WithStatus        bool  `json:"with_status"`
-	StatusValue       bool  `json:"status_value"`
-	WithDeleted       bool  `json:"with_deleted"`
-	DeletedValue      bool  `json:"deleted_value"`
+	Start   int         `json:"start"`
+	Limit   int         `json:"limit"`
+	Filters *FilterType `json:"filters"`
 }
 
 // OrganizationService manages access to organizations

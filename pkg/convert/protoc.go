@@ -40,27 +40,19 @@ func UserToDomain(in *prototypes.User) *am.User {
 
 func DomainToUserFilter(in *am.UserFilter) *prototypes.UserFilter {
 	return &prototypes.UserFilter{
-		Start:             int32(in.Start),
-		Limit:             int32(in.Limit),
-		OrgID:             int32(in.OrgID),
-		WithStatus:        in.WithStatus,
-		StatusValue:       int32(in.StatusValue),
-		WithDeleted:       in.WithDeleted,
-		DeletedValue:      in.DeletedValue,
-		SinceCreationTime: in.SinceCreationTime,
+		Start:   int32(in.Start),
+		Limit:   int32(in.Limit),
+		OrgID:   int32(in.OrgID),
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 func UserFilterToDomain(in *prototypes.UserFilter) *am.UserFilter {
 	return &am.UserFilter{
-		Start:             int(in.Start),
-		Limit:             int(in.Limit),
-		OrgID:             int(in.OrgID),
-		WithStatus:        in.WithStatus,
-		StatusValue:       int(in.StatusValue),
-		WithDeleted:       in.WithDeleted,
-		DeletedValue:      in.DeletedValue,
-		SinceCreationTime: in.SinceCreationTime,
+		Start:   int(in.Start),
+		Limit:   int(in.Limit),
+		OrgID:   int(in.OrgID),
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
@@ -150,30 +142,18 @@ func OrganizationToDomain(in *prototypes.Org) *am.Organization {
 
 func DomainToOrgFilter(in *am.OrgFilter) *prototypes.OrgFilter {
 	return &prototypes.OrgFilter{
-		Start:             int32(in.Start),
-		Limit:             int32(in.Limit),
-		WithSubcription:   in.WithSubcription,
-		SubValue:          in.SubValue,
-		SinceCreationTime: in.SinceCreationTime,
-		WithStatus:        in.WithStatus,
-		StatusValue:       in.StatusValue,
-		WithDeleted:       in.WithDeleted,
-		DeletedValue:      in.DeletedValue,
+		Start:   int32(in.Start),
+		Limit:   int32(in.Limit),
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 // OrgFilterToDomain convert org filter protobuf to orgfilter domain
 func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 	return &am.OrgFilter{
-		Start:             int(in.Start),
-		Limit:             int(in.Limit),
-		WithDeleted:       in.WithDeleted,
-		DeletedValue:      in.DeletedValue,
-		WithStatus:        in.WithStatus,
-		StatusValue:       in.StatusValue,
-		WithSubcription:   in.WithSubcription,
-		SubValue:          in.SubValue,
-		SinceCreationTime: in.SinceCreationTime,
+		Start:   int(in.Start),
+		Limit:   int(in.Limit),
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
@@ -247,53 +227,21 @@ func DomainToHostList(in *am.ScanGroupHostList) *prototypes.HostListData {
 
 func AddressFilterToDomain(in *prototypes.AddressFilter) *am.ScanGroupAddressFilter {
 	return &am.ScanGroupAddressFilter{
-		OrgID:                     int(in.OrgID),
-		GroupID:                   int(in.GroupID),
-		Start:                     in.Start,
-		Limit:                     int(in.Limit),
-		WithIgnored:               in.WithIgnored,
-		IgnoredValue:              in.IgnoredValue,
-		WithBeforeLastScannedTime: in.WithBeforeLastScannedTime,
-		WithAfterLastScannedTime:  in.WithAfterLastScannedTime,
-		AfterScannedTime:          in.AfterScannedTime,
-		BeforeScannedTime:         in.BeforeScannedTime,
-		WithBeforeLastSeenTime:    in.WithBeforeLastSeenTime,
-		WithAfterLastSeenTime:     in.WithAfterLastScannedTime,
-		AfterSeenTime:             in.AfterSeenTime,
-		BeforeSeenTime:            in.BeforeSeenTime,
-		WithIsWildcard:            in.WithIsWildcard,
-		IsWildcardValue:           in.IsWildcardValue,
-		WithIsHostedService:       in.WithIsHostedService,
-		IsHostedServiceValue:      in.IsHostedServiceValue,
-		MatchesHost:               in.MatchesHost,
-		MatchesIP:                 in.MatchesIP,
-		NSRecord:                  int(in.NSRecord),
+		OrgID:   int(in.OrgID),
+		GroupID: int(in.GroupID),
+		Start:   in.Start,
+		Limit:   int(in.Limit),
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
 func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *prototypes.AddressFilter {
 	return &prototypes.AddressFilter{
-		OrgID:                     int32(in.OrgID),
-		GroupID:                   int32(in.GroupID),
-		Start:                     in.Start,
-		Limit:                     int32(in.Limit),
-		WithIgnored:               in.WithIgnored,
-		IgnoredValue:              in.IgnoredValue,
-		WithBeforeLastScannedTime: in.WithBeforeLastScannedTime,
-		WithAfterLastScannedTime:  in.WithAfterLastScannedTime,
-		BeforeScannedTime:         in.BeforeScannedTime,
-		AfterScannedTime:          in.AfterScannedTime,
-		WithBeforeLastSeenTime:    in.WithBeforeLastSeenTime,
-		WithAfterLastSeenTime:     in.WithAfterLastScannedTime,
-		BeforeSeenTime:            in.BeforeSeenTime,
-		AfterSeenTime:             in.AfterSeenTime,
-		WithIsWildcard:            in.WithIsWildcard,
-		IsWildcardValue:           in.IsWildcardValue,
-		WithIsHostedService:       in.WithIsHostedService,
-		IsHostedServiceValue:      in.IsHostedServiceValue,
-		MatchesHost:               in.MatchesHost,
-		MatchesIP:                 in.MatchesIP,
-		NSRecord:                  int32(in.NSRecord),
+		OrgID:   int32(in.OrgID),
+		GroupID: int32(in.GroupID),
+		Start:   in.Start,
+		Limit:   int32(in.Limit),
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
@@ -392,15 +340,13 @@ func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
 
 func DomainToScanGroupFilter(in *am.ScanGroupFilter) *scangroup.ScanGroupFilter {
 	return &scangroup.ScanGroupFilter{
-		WithPaused:  in.WithPaused,
-		PausedValue: in.PausedValue,
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 func ScanGroupFilterToDomain(in *scangroup.ScanGroupFilter) *am.ScanGroupFilter {
 	return &am.ScanGroupFilter{
-		WithPaused:  in.WithPaused,
-		PausedValue: in.PausedValue,
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
@@ -533,4 +479,105 @@ func GroupsStatsToDomain(in map[int32]*scangroup.GroupStats) map[int]*am.GroupSt
 	}
 
 	return stats
+}
+
+func DomainToFilterTypes(in *am.FilterType) *prototypes.FilterType {
+	filter := &prototypes.FilterType{}
+	if in.BoolFilters != nil {
+		filter.BoolFilters = make(map[string]*prototypes.BoolFilter)
+		for k, v := range in.BoolFilters {
+			if v == nil {
+				continue
+			}
+			filter.BoolFilters[k] = &prototypes.BoolFilter{Value: v}
+		}
+	}
+	if in.Int32Filters != nil {
+		filter.Int32Filters = make(map[string]*prototypes.Int32Filter)
+		for k, v := range in.Int32Filters {
+			if v == nil {
+				continue
+			}
+			filter.Int32Filters[k] = &prototypes.Int32Filter{Value: v}
+		}
+	}
+	if in.Int64Filters != nil {
+		filter.Int64Filters = make(map[string]*prototypes.Int64Filter)
+		for k, v := range in.Int64Filters {
+			if v == nil {
+				continue
+			}
+			filter.Int64Filters[k] = &prototypes.Int64Filter{Value: v}
+		}
+	}
+	if in.Float32Filters != nil {
+		filter.FloatFilters = make(map[string]*prototypes.FloatFilter)
+		for k, v := range in.Float32Filters {
+			if v == nil {
+				continue
+			}
+			filter.FloatFilters[k] = &prototypes.FloatFilter{Value: v}
+		}
+	}
+
+	if in.StringFilters != nil {
+		filter.StringFilters = make(map[string]*prototypes.StringFilter)
+		for k, v := range in.StringFilters {
+			if v == nil {
+				continue
+			}
+			filter.StringFilters[k] = &prototypes.StringFilter{Value: v}
+		}
+	}
+	return filter
+}
+
+func FilterTypesToDomain(in *prototypes.FilterType) *am.FilterType {
+	filter := &am.FilterType{}
+	if in.BoolFilters != nil {
+		filter.BoolFilters = make(map[string][]bool)
+		for k, v := range in.BoolFilters {
+			if v == nil {
+				continue
+			}
+			filter.BoolFilters[k] = v.Value
+		}
+	}
+	if in.Int32Filters != nil {
+		filter.Int32Filters = make(map[string][]int32)
+		for k, v := range in.Int32Filters {
+			if v == nil {
+				continue
+			}
+			filter.Int32Filters[k] = v.Value
+		}
+	}
+	if in.Int64Filters != nil {
+		filter.Int64Filters = make(map[string][]int64)
+		for k, v := range in.Int64Filters {
+			if v == nil {
+				continue
+			}
+			filter.Int64Filters[k] = v.Value
+		}
+	}
+	if in.FloatFilters != nil {
+		filter.Float32Filters = make(map[string][]float32)
+		for k, v := range in.FloatFilters {
+			if v == nil {
+				continue
+			}
+			filter.Float32Filters[k] = v.Value
+		}
+	}
+	if in.StringFilters != nil {
+		filter.StringFilters = make(map[string][]string)
+		for k, v := range in.StringFilters {
+			if v == nil {
+				continue
+			}
+			filter.StringFilters[k] = v.Value
+		}
+	}
+	return filter
 }

@@ -455,12 +455,13 @@ func (s *Service) GetActiveAddresses() int32 {
 }
 
 func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
+	filter := &am.FilterType{}
+	filter.AddInt64("before_seen_time", then)
 	return &am.ScanGroupAddressFilter{
-		OrgID:                  userContext.GetOrgID(),
-		GroupID:                scanGroupID,
-		Start:                  0,
-		Limit:                  1000,
-		WithBeforeLastSeenTime: true,
-		BeforeSeenTime:         then,
+		OrgID:   userContext.GetOrgID(),
+		GroupID: scanGroupID,
+		Start:   0,
+		Limit:   1000,
+		Filters: filter,
 	}
 }

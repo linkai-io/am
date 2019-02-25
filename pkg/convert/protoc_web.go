@@ -30,6 +30,8 @@ func DomainToWebCertificate(in *am.WebCertificate) *prototypes.WebCertificate {
 		ValidTo:                           in.ValidTo,
 		CertificateTransparencyCompliance: in.CertificateTransparencyCompliance,
 		IsDeleted:                         in.IsDeleted,
+		AddressHash:                       in.AddressHash,
+		IPAddress:                         in.IPAddress,
 	}
 }
 
@@ -44,6 +46,8 @@ func WebCertificateToDomain(in *prototypes.WebCertificate) *am.WebCertificate {
 		CertificateID:                     in.CertificateID,
 		ResponseTimestamp:                 in.ResponseTimestamp,
 		HostAddress:                       in.HostAddress,
+		IPAddress:                         in.IPAddress,
+		AddressHash:                       in.AddressHash,
 		Port:                              in.Port,
 		Protocol:                          in.Protocol,
 		KeyExchange:                       in.KeyExchange,
@@ -95,29 +99,27 @@ func DomainToHTTPResponse(in *am.HTTPResponse) *prototypes.HTTPResponse {
 	}
 
 	return &prototypes.HTTPResponse{
-		ResponseID:           in.ResponseID,
-		OrgID:                int32(in.OrgID),
-		GroupID:              int32(in.GroupID),
-		AddressID:            in.AddressID,
-		Scheme:               in.Scheme,
-		HostAddress:          in.HostAddress,
-		IPAddress:            in.IPAddress,
-		ResponsePort:         in.ResponsePort,
-		RequestedPort:        in.RequestedPort,
-		Status:               int32(in.Status),
-		StatusText:           in.StatusText,
-		URL:                  in.URL,
-		Headers:              in.Headers,
-		MimeType:             in.MimeType,
-		RawBodyLink:          in.RawBodyLink,
-		RawBodyHash:          in.RawBodyHash,
-		ResponseTimestamp:    in.ResponseTimestamp,
-		IsDocument:           in.IsDocument,
-		WebCertificate:       DomainToWebCertificate(in.WebCertificate),
-		IsDeleted:            in.IsDeleted,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
-		URLRequestTimestamp:  in.URLRequestTimestamp,
+		ResponseID:          in.ResponseID,
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		Scheme:              in.Scheme,
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		AddressHash:         in.AddressHash,
+		ResponsePort:        in.ResponsePort,
+		RequestedPort:       in.RequestedPort,
+		Status:              int32(in.Status),
+		StatusText:          in.StatusText,
+		URL:                 in.URL,
+		Headers:             in.Headers,
+		MimeType:            in.MimeType,
+		RawBodyLink:         in.RawBodyLink,
+		RawBodyHash:         in.RawBodyHash,
+		ResponseTimestamp:   in.ResponseTimestamp,
+		IsDocument:          in.IsDocument,
+		WebCertificate:      DomainToWebCertificate(in.WebCertificate),
+		IsDeleted:           in.IsDeleted,
+		URLRequestTimestamp: in.URLRequestTimestamp,
 	}
 }
 
@@ -127,29 +129,27 @@ func HTTPResponseToDomain(in *prototypes.HTTPResponse) *am.HTTPResponse {
 	}
 
 	return &am.HTTPResponse{
-		ResponseID:           in.ResponseID,
-		OrgID:                int(in.OrgID),
-		GroupID:              int(in.GroupID),
-		AddressID:            in.AddressID,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
-		Scheme:               in.Scheme,
-		HostAddress:          in.HostAddress,
-		IPAddress:            in.IPAddress,
-		ResponsePort:         in.ResponsePort,
-		RequestedPort:        in.RequestedPort,
-		Status:               int(in.Status),
-		StatusText:           in.StatusText,
-		URL:                  in.URL,
-		Headers:              in.Headers,
-		MimeType:             in.MimeType,
-		RawBodyLink:          in.RawBodyLink,
-		RawBodyHash:          in.RawBodyHash,
-		ResponseTimestamp:    in.ResponseTimestamp,
-		URLRequestTimestamp:  in.URLRequestTimestamp,
-		IsDocument:           in.IsDocument,
-		WebCertificate:       WebCertificateToDomain(in.WebCertificate),
-		IsDeleted:            in.IsDeleted,
+		ResponseID:          in.ResponseID,
+		OrgID:               int(in.OrgID),
+		GroupID:             int(in.GroupID),
+		Scheme:              in.Scheme,
+		AddressHash:         in.AddressHash,
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		ResponsePort:        in.ResponsePort,
+		RequestedPort:       in.RequestedPort,
+		Status:              int(in.Status),
+		StatusText:          in.StatusText,
+		URL:                 in.URL,
+		Headers:             in.Headers,
+		MimeType:            in.MimeType,
+		RawBodyLink:         in.RawBodyLink,
+		RawBodyHash:         in.RawBodyHash,
+		ResponseTimestamp:   in.ResponseTimestamp,
+		URLRequestTimestamp: in.URLRequestTimestamp,
+		IsDocument:          in.IsDocument,
+		WebCertificate:      WebCertificateToDomain(in.WebCertificate),
+		IsDeleted:           in.IsDeleted,
 	}
 }
 
@@ -196,6 +196,12 @@ func DomainToWebData(in *am.WebData) *prototypes.WebData {
 		SerializedDOMLink:   in.SerializedDOMLink,
 		ResponseTimestamp:   in.ResponseTimestamp,
 		URLRequestTimestamp: in.URLRequestTimestamp,
+		URL:                 in.URL,
+		AddressHash:         in.AddressHash,
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		Scheme:              in.Scheme,
+		ResponsePort:        int32(in.ResponsePort),
 	}
 }
 
@@ -210,6 +216,12 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 		Address:             AddressToDomain(in.Address),
 		Responses:           responses,
 		SnapshotLink:        in.SnapshotLink,
+		URL:                 in.URL,
+		Scheme:              in.Scheme,
+		AddressHash:         in.AddressHash,
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		ResponsePort:        int(in.ResponsePort),
 		SerializedDOMHash:   in.SerializedDOMHash,
 		SerializedDOMLink:   in.SerializedDOMLink,
 		ResponseTimestamp:   in.ResponseTimestamp,
@@ -219,33 +231,39 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 
 func DomainToWebSnapshot(in *am.WebSnapshot) *prototypes.WebSnapshot {
 	return &prototypes.WebSnapshot{
-		OrgID:                int32(in.OrgID),
-		GroupID:              int32(in.GroupID),
-		AddressID:            in.AddressID,
-		SnapshotID:           in.SnapshotID,
-		SnapshotLink:         in.SnapshotLink,
-		SerializedDOMLink:    in.SerializedDOMLink,
-		ResponseTimestamp:    in.ResponseTimestamp,
-		IsDeleted:            in.IsDeleted,
-		SerializedDOMHash:    in.SerializedDOMHash,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
+		OrgID:             int32(in.OrgID),
+		GroupID:           int32(in.GroupID),
+		SnapshotID:        in.SnapshotID,
+		SnapshotLink:      in.SnapshotLink,
+		SerializedDOMLink: in.SerializedDOMLink,
+		ResponseTimestamp: in.ResponseTimestamp,
+		IsDeleted:         in.IsDeleted,
+		SerializedDOMHash: in.SerializedDOMHash,
+		URL:               in.URL,
+		AddressHash:       in.AddressHash,
+		HostAddress:       in.HostAddress,
+		IPAddress:         in.IPAddress,
+		ResponsePort:      int32(in.ResponsePort),
+		Scheme:            in.Scheme,
 	}
 }
 
 func WebSnapshotToDomain(in *prototypes.WebSnapshot) *am.WebSnapshot {
 	return &am.WebSnapshot{
-		SnapshotID:           in.SnapshotID,
-		OrgID:                int(in.OrgID),
-		GroupID:              int(in.GroupID),
-		AddressID:            in.AddressID,
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
-		SnapshotLink:         in.SnapshotLink,
-		SerializedDOMHash:    in.SerializedDOMHash,
-		SerializedDOMLink:    in.SerializedDOMLink,
-		ResponseTimestamp:    in.ResponseTimestamp,
-		IsDeleted:            in.IsDeleted,
+		SnapshotID:        in.SnapshotID,
+		OrgID:             int(in.OrgID),
+		GroupID:           int(in.GroupID),
+		SnapshotLink:      in.SnapshotLink,
+		SerializedDOMHash: in.SerializedDOMHash,
+		SerializedDOMLink: in.SerializedDOMLink,
+		ResponseTimestamp: in.ResponseTimestamp,
+		IsDeleted:         in.IsDeleted,
+		URL:               in.URL,
+		AddressHash:       in.AddressHash,
+		HostAddress:       in.HostAddress,
+		IPAddress:         in.IPAddress,
+		ResponsePort:      int(in.ResponsePort),
+		Scheme:            in.Scheme,
 	}
 }
 
@@ -279,89 +297,61 @@ func WebSnapshotsToDomain(in []*prototypes.WebSnapshot) []*am.WebSnapshot {
 
 func DomainToWebSnapshotFilter(in *am.WebSnapshotFilter) *prototypes.WebSnapshotFilter {
 	return &prototypes.WebSnapshotFilter{
-		OrgID:             int32(in.OrgID),
-		GroupID:           int32(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		Start:             in.Start,
-		Limit:             int32(in.Limit),
-		LatestOnlyValue:   in.LatestOnlyValue,
-		MatchesHost:       in.MatchesHost,
-		MatchesIP:         in.MatchesIP,
+		OrgID:   int32(in.OrgID),
+		GroupID: int32(in.GroupID),
+		Start:   in.Start,
+		Limit:   int32(in.Limit),
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 func WebSnapshotFilterToDomain(in *prototypes.WebSnapshotFilter) *am.WebSnapshotFilter {
 	return &am.WebSnapshotFilter{
-		OrgID:             int(in.OrgID),
-		GroupID:           int(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		LatestOnlyValue:   in.LatestOnlyValue,
-		MatchesHost:       in.MatchesHost,
-		MatchesIP:         in.MatchesIP,
-		Start:             in.Start,
-		Limit:             int(in.Limit),
+		OrgID:   int(in.OrgID),
+		GroupID: int(in.GroupID),
+		Start:   in.Start,
+		Limit:   int(in.Limit),
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
 func DomainToWebResponseFilter(in *am.WebResponseFilter) *prototypes.WebResponseFilter {
 	return &prototypes.WebResponseFilter{
-		OrgID:             int32(in.OrgID),
-		GroupID:           int32(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		Start:             in.Start,
-		Limit:             int32(in.Limit),
-		MimeType:          in.MimeType,
-		WithHeader:        in.WithHeader,
-		WithoutHeader:     in.WithoutHeader,
-		LatestOnlyValue:   in.LatestOnlyValue,
+		OrgID:   int32(in.OrgID),
+		GroupID: int32(in.GroupID),
+		Start:   in.Start,
+		Limit:   int32(in.Limit),
+		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 func WebResponseFilterToDomain(in *prototypes.WebResponseFilter) *am.WebResponseFilter {
 	return &am.WebResponseFilter{
-		OrgID:             int(in.OrgID),
-		GroupID:           int(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		MimeType:          in.MimeType,
-		WithHeader:        in.WithHeader,
-		WithoutHeader:     in.WithoutHeader,
-		LatestOnlyValue:   in.LatestOnlyValue,
-		Start:             in.Start,
-		Limit:             int(in.Limit),
+		OrgID:   int(in.OrgID),
+		GroupID: int(in.GroupID),
+		Start:   in.Start,
+		Limit:   int(in.Limit),
+		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
 func DomainToWebCertificateFilter(in *am.WebCertificateFilter) *prototypes.WebCertificateFilter {
 	return &prototypes.WebCertificateFilter{
-		OrgID:             int32(in.OrgID),
-		GroupID:           int32(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		WithValidTo:       in.WithValidTo,
-		ValidToValue:      in.ValidToValue,
-		Start:             in.Start,
-		Limit:             int32(in.Limit),
-		WithValidFrom:     in.WithValidFrom,
-		ValidFromValue:    in.ValidFromValue,
+		OrgID:   int32(in.OrgID),
+		GroupID: int32(in.GroupID),
+		Filters: DomainToFilterTypes(in.Filters),
+		Start:   in.Start,
+		Limit:   int32(in.Limit),
 	}
 }
 
 func WebCertificateFilterToDomain(in *prototypes.WebCertificateFilter) *am.WebCertificateFilter {
 	return &am.WebCertificateFilter{
-		OrgID:             int(in.OrgID),
-		GroupID:           int(in.GroupID),
-		WithResponseTime:  in.WithResponseTime,
-		SinceResponseTime: in.SinceResponseTime,
-		WithValidTo:       in.WithValidTo,
-		ValidToValue:      in.ValidToValue,
-		WithValidFrom:     in.WithValidFrom,
-		ValidFromValue:    in.ValidFromValue,
-		Start:             in.Start,
-		Limit:             int(in.Limit),
+		OrgID:   int(in.OrgID),
+		GroupID: int(in.GroupID),
+		Filters: FilterTypesToDomain(in.Filters),
+		Start:   in.Start,
+		Limit:   int(in.Limit),
 	}
 }
 
@@ -383,12 +373,12 @@ func DomainToURLData(in []*am.URLData) []*prototypes.URLData {
 
 func DomainToURLListResponse(in *am.URLListResponse) *prototypes.URLListResponse {
 	return &prototypes.URLListResponse{
-		OrgID:                int32(in.OrgID),
-		GroupID:              int32(in.GroupID),
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
-		URLRequestTimestamp:  in.URLRequestTimestamp,
-		URLs:                 DomainToURLData(in.URLs),
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		URLRequestTimestamp: in.URLRequestTimestamp,
+		URLs:                DomainToURLData(in.URLs),
 	}
 }
 
@@ -410,12 +400,12 @@ func URLDataToDomain(in []*prototypes.URLData) []*am.URLData {
 
 func URLListResponseToDomain(in *prototypes.URLListResponse) *am.URLListResponse {
 	return &am.URLListResponse{
-		OrgID:                int(in.OrgID),
-		GroupID:              int(in.GroupID),
-		AddressIDHostAddress: in.AddressIDHostAddress,
-		AddressIDIPAddress:   in.AddressIDIPAddress,
-		URLRequestTimestamp:  in.URLRequestTimestamp,
-		URLs:                 URLDataToDomain(in.URLs),
+		OrgID:               int(in.OrgID),
+		GroupID:             int(in.GroupID),
+		HostAddress:         in.HostAddress,
+		IPAddress:           in.IPAddress,
+		URLRequestTimestamp: in.URLRequestTimestamp,
+		URLs:                URLDataToDomain(in.URLs),
 	}
 }
 

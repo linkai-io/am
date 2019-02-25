@@ -92,7 +92,7 @@ func (s *Service) startGroups() {
 	ctx := context.Background()
 	systemContext := &am.UserContextData{OrgID: s.systemOrgID, UserID: s.systemUserID, TraceID: createID()}
 
-	groups, err := s.scanGroupClient.AllGroups(ctx, systemContext, &am.ScanGroupFilter{})
+	groups, err := s.scanGroupClient.AllGroups(ctx, systemContext, &am.ScanGroupFilter{Filters: &am.FilterType{}})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get groups")
 		return
@@ -220,7 +220,12 @@ func (s *Service) StopGroup(ctx context.Context, userContext am.UserContext, sca
 		return "group already stopped", nil
 	}
 
-	groups, err := s.scanGroupClient.AllGroups(ctx, userContext, &am.ScanGroupFilter{WithPaused: true, PausedValue: true})
+	filter := &am.ScanGroupFilter{
+		Filters: &am.FilterType{},
+	}
+	filter.Filters.AddBool("paused", true)
+
+	groups, err := s.scanGroupClient.AllGroups(ctx, userContext, filter)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get groups")
 		return "", err

@@ -214,8 +214,7 @@ func TestAllGroups(t *testing.T) {
 	}
 
 	filter := &am.ScanGroupFilter{
-		WithPaused:  false,
-		PausedValue: false,
+		Filters: &am.FilterType{},
 	}
 	groups, err := service.AllGroups(ctx, userContext, filter)
 	if err != nil {
@@ -225,15 +224,30 @@ func TestAllGroups(t *testing.T) {
 	if len(groups) != 1 {
 		t.Fatalf("expected 1 group, got: %d\n", len(groups))
 	}
-
+	t.Logf("%#v\n", groups[0])
 	_, _, err = service.Pause(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error pausing group: %v\n", err)
 	}
 
+	f := &am.FilterType{}
+	f.AddBool("paused", true)
 	filter = &am.ScanGroupFilter{
-		WithPaused:  true,
-		PausedValue: false,
+		Filters: f,
+	}
+	groups, err = service.AllGroups(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error reading AllGroups: %v\n", err)
+	}
+
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 group, got: %d\n", len(groups))
+	}
+
+	f = &am.FilterType{}
+	f.AddBool("paused", false)
+	filter = &am.ScanGroupFilter{
+		Filters: f,
 	}
 	groups, err = service.AllGroups(ctx, userContext, filter)
 	if err != nil {
@@ -243,7 +257,6 @@ func TestAllGroups(t *testing.T) {
 	if len(groups) != 0 {
 		t.Fatalf("expected 0 group, got: %d\n", len(groups))
 	}
-
 }
 
 func TestModuleConfigs(t *testing.T) {

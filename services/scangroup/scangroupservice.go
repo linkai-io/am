@@ -171,8 +171,8 @@ func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, gro
 
 	serviceLog.Info().Msg("Retrieving All Groups")
 
-	if groupFilter.WithPaused {
-		rows, err = s.pool.Query("allScanGroupsWithPaused", groupFilter.PausedValue)
+	if val, ok := groupFilter.Filters.Bool("paused"); ok {
+		rows, err = s.pool.Query("allScanGroupsWithPaused", val)
 	} else {
 		rows, err = s.pool.Query("allScanGroups")
 	}

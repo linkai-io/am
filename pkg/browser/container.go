@@ -10,6 +10,7 @@ import (
 
 type ResponseContainer struct {
 	responsesLock sync.RWMutex
+	loadRequest   string
 	responses     map[string]*am.HTTPResponse
 
 	readyLock sync.RWMutex
@@ -25,19 +26,35 @@ func NewResponseContainer() *ResponseContainer {
 	}
 }
 
-// GetResponses returns all responses and clears the container
-func (c *ResponseContainer) GetResponses() []*am.HTTPResponse {
+// SetLoadRequest uses the requestID of the *first* request as
+// our key to return the httpresponse in GetResponses.
+func (c *ResponseContainer) SetLoadRequest(requestID string) {
 	c.responsesLock.Lock()
 	defer c.responsesLock.Unlock()
+	if c.loadRequest != "" {
+		return
+	}
+	c.loadRequest = requestID
 
+}
+
+// GetResponses returns the main load reseponse and all responses then clears the container
+func (c *ResponseContainer) GetResponses() (*am.HTTPResponse, []*am.HTTPResponse) {
+	var loadResponse *am.HTTPResponse
+	c.responsesLock.Lock()
+	defer c.responsesLock.Unlock()
 	r := make([]*am.HTTPResponse, len(c.responses))
 	i := 0
 	for _, v := range c.responses {
 		r[i] = v
+		if v.RequestID == c.loadRequest {
+			loadResponse = v
+		}
 		i++
 	}
 	c.responses = make(map[string]*am.HTTPResponse, 0)
-	return r
+	c.loadRequest = ""
+	return loadResponse, r
 }
 
 // Add a response to our map

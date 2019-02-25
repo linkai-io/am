@@ -178,8 +178,8 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 	users = make([]*am.User, 0)
 
-	if filter.WithDeleted {
-		rows, err = s.pool.Query("userListWithDelete", oid, filter.DeletedValue, filter.Start, filter.Limit)
+	if val, ok := filter.Filters.Bool("deleted"); ok {
+		rows, err = s.pool.Query("userListWithDelete", oid, val, filter.Start, filter.Limit)
 	} else {
 		rows, err = s.pool.Query("userList", oid, filter.Start, filter.Limit)
 	}

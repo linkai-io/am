@@ -133,7 +133,7 @@ func TestCreate(t *testing.T) {
 		}
 	}
 
-	filter := &am.UserFilter{Start: 0, OrgID: userContext.GetOrgID(), Limit: 10}
+	filter := &am.UserFilter{Start: 0, OrgID: userContext.GetOrgID(), Limit: 10, Filters: &am.FilterType{}}
 	_, userList, err := service.List(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("got error listing users: %s\n", err)
@@ -147,8 +147,7 @@ func TestCreate(t *testing.T) {
 			t.Fatalf("error deleting user (%d): %s\n", userList[i].UserID, err)
 		}
 	}
-	filter.WithDeleted = true
-	filter.DeletedValue = true
+	filter.Filters.AddBool("deleted", true)
 	_, userList, err = service.List(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("got error listing users: %s\n", err)
