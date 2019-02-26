@@ -167,81 +167,6 @@ func (t *Tab) GetNetworkTraffic() (*am.HTTPResponse, []*am.HTTPResponse) {
 	return t.container.GetResponses()
 }
 
-// InjectIP replaces the address.HostAddress with the IP address so we can catalogue all variants
-// of the host/ip pairs.
-// TODO: Replacing hostnames with ip addresses for HTTPS does *not* work
-func (t *Tab) InjectIP(scheme, port string) {
-
-	httpPattern := &gcdapi.NetworkRequestPattern{
-		UrlPattern: "http://" + t.address.HostAddress + "*",
-	}
-	/*
-		httpsPattern := &gcdapi.NetworkRequestPattern{
-			UrlPattern: "https://" + t.address.HostAddress + "*",
-		}
-	*/
-	patterns := make([]*gcdapi.NetworkRequestPattern, 2)
-	patterns[0] = httpPattern
-	//patterns[1] = httpsPattern
-
-	interceptParams := &gcdapi.NetworkSetRequestInterceptionParams{
-		Patterns: patterns,
-	}
-
-	t.t.Network.SetRequestInterceptionWithParams(interceptParams)
-
-	t.t.Subscribe("Network.requestIntercepted", func(target *gcd.ChromeTarget, payload []byte) {
-		r := &gcdapi.NetworkRequestInterceptedEvent{}
-		if err := json.Unmarshal(payload, r); err != nil {
-			log.Warn().Err(err).Msg("failed to unmarshal network request intercepted")
-			return
-		}
-		log.Info().Msgf("INTERCEPTED DATA: %#v", string(payload))
-
-		if !r.Params.IsNavigationRequest {
-			p := &gcdapi.NetworkContinueInterceptedRequestParams{
-				InterceptionId: r.Params.InterceptionId,
-			}
-			target.Network.ContinueInterceptedRequestWithParams(p)
-			return
-		}
-
-		log.Info().Msgf("REDIRECT?: %s", r.Params.RedirectUrl)
-
-		headers := r.Params.Request.Headers
-
-		parsedURL, err := url.Parse(r.Params.Request.Url)
-
-		if err != nil {
-			headers["Host"] = t.address.HostAddress + ":" + port
-			headers["host"] = t.address.HostAddress + ":" + port
-		} else {
-			headers["Host"] = parsedURL.Host
-			headers["host"] = parsedURL.Host // will return host:port
-		}
-
-		ipURL := strings.Replace(r.Params.Request.Url, t.address.HostAddress, t.address.IPAddress, 1)
-		log.Info().Str("host_address", t.address.HostAddress).
-			Str("ip_address", t.address.IPAddress).
-			Str("url", ipURL).
-			Msgf("intercepted and replacing IP: %#v\n", headers)
-
-		p := &gcdapi.NetworkContinueInterceptedRequestParams{
-			InterceptionId: r.Params.InterceptionId,
-			Url:            ipURL, // r.Params.Request.Url, // ipURL,
-			Headers:        headers,
-		}
-		if r, err := target.Network.ContinueInterceptedRequestWithParams(p); err == nil {
-			data, _ := json.Marshal(r.Result)
-			log.Info().Msgf("===============================ContinueInterceptedRequestWithParams RESPONSE: %#v", string(data))
-		}
-
-		log.Info().Str("host_address", t.address.HostAddress).
-			Str("ip_address", t.address.IPAddress).
-			Msg("continue called")
-	})
-}
-
 // CaptureNetworkTraffic ensures we capture all traffic (only saving text bodies) during navigation.
 func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAddress, port string) {
 
@@ -344,6 +269,7 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 
 	response := &am.HTTPResponse{
 		Scheme:            scheme,
+		AddressHash:       convert.HashAddress(p.Response.RemoteIPAddress, host),
 		IPAddress:         p.Response.RemoteIPAddress,
 		HostAddress:       host,
 		RequestedPort:     requestedPort,
@@ -355,9 +281,11 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 		Status:            p.Response.Status,
 		StatusText:        p.Response.StatusText,
 		RawBody:           t.encodeResponseBody(message),
-		WebCertificate:    t.extractCertificate(message),
+		WebCertificate:    t.extractCertificate(p.Response.RemoteIPAddress, host, responsePort, message),
 		ResponseTimestamp: time.Now().UnixNano(),
 	}
+
+	// set additional properties of web certificate
 
 	if p.Type == "Document" {
 		response.IsDocument = true
@@ -385,7 +313,7 @@ func (t *Tab) encodeHeaders(gcdHeaders map[string]interface{}) map[string]string
 	return headers
 }
 
-func (t *Tab) extractCertificate(message *gcdapi.NetworkResponseReceivedEvent) *am.WebCertificate {
+func (t *Tab) extractCertificate(ipAddress, host, port string, message *gcdapi.NetworkResponseReceivedEvent) *am.WebCertificate {
 	p := message.Params
 
 	u, err := url.Parse(p.Response.Url)
@@ -396,7 +324,11 @@ func (t *Tab) extractCertificate(message *gcdapi.NetworkResponseReceivedEvent) *
 	if u.Hostname() == t.address.HostAddress && u.Scheme == "https" &&
 		strings.HasPrefix(p.Response.Url, "https") && p.Response.SecurityDetails != nil {
 
-		return convert.NetworkCertificateToWebCertificate(p.Response.SecurityDetails)
+		cert := convert.NetworkCertificateToWebCertificate(p.Response.SecurityDetails)
+		cert.AddressHash = convert.HashAddress(ipAddress, host)
+		cert.IPAddress = ipAddress
+		cert.Port = port
+		return cert
 	}
 
 	return nil

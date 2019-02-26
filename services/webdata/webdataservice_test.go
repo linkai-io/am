@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/linkai-io/am/pkg/convert"
+
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
@@ -136,12 +138,16 @@ func TestGetSnapshots(t *testing.T) {
 		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
 	}
 
-	if snapshots[0].AddressIDHostAddress != "example.com" {
+	if snapshots[0].HostAddress != "example.com" {
 		t.Fatalf("expected address id host address to be set")
 	}
 
-	if snapshots[0].AddressIDIPAddress != "93.184.216.34" {
+	if snapshots[0].IPAddress != "93.184.216.34" {
 		t.Fatalf("expected address id ip address to be set")
+	}
+
+	if snapshots[0].URL != "http://example.com/" {
+		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
 	}
 }
 
@@ -213,11 +219,11 @@ func TestGetResponses(t *testing.T) {
 		t.Fatalf("expected 1 response got: %d\n", len(responses))
 	}
 
-	if responses[0].AddressIDHostAddress != "example.com" {
+	if responses[0].HostAddress != "example.com" {
 		t.Fatalf("expected address id host address to be set")
 	}
 
-	if responses[0].AddressIDIPAddress != "93.184.216.34" {
+	if responses[0].IPAddress != "93.184.216.34" {
 		t.Fatalf("expected address id ip address to be set")
 	}
 
@@ -266,11 +272,11 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		t.Fatalf("expected 100 response got: %d\n", len(responses))
 	}
 
-	if responses[0].AddressIDHostAddress != "example.com" {
+	if responses[0].HostAddress != "example.com" {
 		t.Fatalf("expected address id host address to be set")
 	}
 
-	if responses[0].AddressIDIPAddress != "93.184.216.34" {
+	if responses[0].IPAddress != "93.184.216.34" {
 		t.Fatalf("expected address id ip address to be set")
 	}
 
@@ -385,34 +391,49 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 		headers["content-type"] = "text/html"
 
 		response := &am.HTTPResponse{
-			Scheme:            "http",
-			HostAddress:       host,
-			IPAddress:         ip,
-			ResponsePort:      "80",
-			RequestedPort:     "80",
-			Status:            200,
-			StatusText:        "HTTP 200 OK",
-			URL:               fmt.Sprintf("http://%s/%d", host, urlIndex),
-			Headers:           headers,
-			MimeType:          "text/html",
-			RawBody:           "",
-			RawBodyLink:       "s3://data/1/1/1/1",
-			RawBodyHash:       "1111",
-			ResponseTimestamp: time.Now().UnixNano(),
-			IsDocument:        true,
+			OrgID:               address.OrgID,
+			GroupID:             address.GroupID,
+			Scheme:              "http",
+			AddressHash:         convert.HashAddress(ip, host),
+			HostAddress:         host,
+			IPAddress:           ip,
+			ResponsePort:        "80",
+			RequestedPort:       "80",
+			Status:              200,
+			StatusText:          "HTTP 200 OK",
+			URL:                 fmt.Sprintf("http://%s/%d", host, urlIndex),
+			Headers:             headers,
+			MimeType:            "text/html",
+			RawBody:             "",
+			RawBodyLink:         "s3://data/1/1/1/1",
+			RawBodyHash:         "1111",
+			ResponseTimestamp:   time.Now().UnixNano(),
+			URLRequestTimestamp: 0,
+			IsDocument:          true,
 			WebCertificate: &am.WebCertificate{
-				Protocol:                          "h2",
-				KeyExchange:                       "kex",
-				KeyExchangeGroup:                  "keg",
-				Cipher:                            "aes",
-				Mac:                               "1234",
-				CertificateValue:                  0,
-				SubjectName:                       host,
-				SanList:                           []string{"www." + insertHost, insertHost},
+				ResponseTimestamp: time.Now().UnixNano(),
+				HostAddress:       host,
+				IPAddress:         ip,
+				AddressHash:       convert.HashAddress(ip, host),
+				Port:              "443",
+				Protocol:          "h2",
+				KeyExchange:       "kex",
+				KeyExchangeGroup:  "keg",
+				Cipher:            "aes",
+				Mac:               "1234",
+				CertificateValue:  0,
+				SubjectName:       host,
+				SanList: []string{
+					"www." + insertHost,
+					insertHost,
+				},
+				Issuer:                            "",
 				ValidFrom:                         time.Now().UnixNano(),
 				ValidTo:                           time.Now().UnixNano(),
 				CertificateTransparencyCompliance: "unknown",
+				IsDeleted:                         false,
 			},
+			IsDeleted: false,
 		}
 		responses = append(responses, response)
 		urlIndex++
@@ -422,13 +443,17 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 			data := &am.WebData{
 				Address:             address,
 				Responses:           responses,
-				SerializedDOM:       "",
+				SnapshotLink:        "s3://snapshot/1",
+				URL:                 fmt.Sprintf("http://%s/%d", host, urlIndex),
+				Scheme:              "http",
+				AddressHash:         convert.HashAddress(ip, host),
+				HostAddress:         host,
+				IPAddress:           ip,
+				ResponsePort:        80,
 				SerializedDOMHash:   "1234",
 				SerializedDOMLink:   "s3:/1/2/3/4",
-				Snapshot:            "",
-				SnapshotLink:        "s3://snapshot/1",
-				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
 				ResponseTimestamp:   time.Now().UnixNano(),
+				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
 			}
 			urlIndex = 0
 			webData = append(webData, data)
@@ -447,34 +472,47 @@ func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip stri
 	headers["content-type"] = "text/html"
 
 	response := &am.HTTPResponse{
-		Scheme:            "http",
-		HostAddress:       host,
-		IPAddress:         ip,
-		ResponsePort:      "80",
-		RequestedPort:     "80",
-		Status:            200,
-		StatusText:        "HTTP 200 OK",
-		URL:               fmt.Sprintf("http://%s/", host),
-		Headers:           headers,
-		MimeType:          "text/html",
-		RawBody:           "",
-		RawBodyLink:       "s3://data/1/1/1/1",
-		RawBodyHash:       "1111",
-		ResponseTimestamp: time.Now().UnixNano(),
-		IsDocument:        true,
+		Scheme:              "http",
+		AddressHash:         convert.HashAddress(ip, host),
+		HostAddress:         host,
+		IPAddress:           ip,
+		ResponsePort:        "80",
+		RequestedPort:       "80",
+		Status:              200,
+		StatusText:          "HTTP 200 OK",
+		URL:                 fmt.Sprintf("http://%s/", host),
+		Headers:             headers,
+		MimeType:            "text/html",
+		RawBody:             "",
+		RawBodyLink:         "s3://data/1/1/1/1",
+		RawBodyHash:         "1111",
+		ResponseTimestamp:   time.Now().UnixNano(),
+		URLRequestTimestamp: 0,
+		IsDocument:          true,
 		WebCertificate: &am.WebCertificate{
-			Protocol:                          "h2",
-			KeyExchange:                       "kex",
-			KeyExchangeGroup:                  "keg",
-			Cipher:                            "aes",
-			Mac:                               "1234",
-			CertificateValue:                  0,
-			SubjectName:                       host,
-			SanList:                           []string{"www." + host, host},
+			ResponseTimestamp: time.Now().UnixNano(),
+			HostAddress:       host,
+			IPAddress:         ip,
+			AddressHash:       convert.HashAddress(ip, host),
+			Port:              "443",
+			Protocol:          "h2",
+			KeyExchange:       "kex",
+			KeyExchangeGroup:  "keg",
+			Cipher:            "aes",
+			Mac:               "1234",
+			CertificateValue:  0,
+			SubjectName:       host,
+			SanList: []string{
+				"www." + host,
+				host,
+			},
+			Issuer:                            "",
 			ValidFrom:                         time.Now().UnixNano(),
 			ValidTo:                           time.Now().UnixNano(),
 			CertificateTransparencyCompliance: "unknown",
+			IsDeleted:                         false,
 		},
+		IsDeleted: false,
 	}
 	responses := make([]*am.HTTPResponse, 1)
 	responses[0] = response
@@ -482,13 +520,18 @@ func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip stri
 	webData := &am.WebData{
 		Address:             address,
 		Responses:           responses,
-		SerializedDOM:       "",
-		SerializedDOMHash:   "1234",
-		SerializedDOMLink:   "s3:/1/2/3/4",
 		Snapshot:            "",
 		SnapshotLink:        "s3://snapshot/1",
-		URLRequestTimestamp: time.Now().UnixNano(),
+		URL:                 fmt.Sprintf("http://%s/", host),
+		Scheme:              "http",
+		AddressHash:         convert.HashAddress(ip, host),
+		HostAddress:         host,
+		IPAddress:           ip,
+		ResponsePort:        80,
+		SerializedDOMHash:   "1234",
+		SerializedDOMLink:   "s3:/1/2/3/4",
 		ResponseTimestamp:   time.Now().UnixNano(),
+		URLRequestTimestamp: time.Now().UnixNano(),
 	}
 
 	return webData

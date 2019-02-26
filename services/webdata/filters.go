@@ -9,11 +9,29 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter) (string, []interface{}, error) {
+	columns := strings.Replace(snapshotColumns, "\n\t\t", "", -1)
+	p := sq.Select().Columns(strings.Split(columns, ",")...).From("am.web_snapshots").
+		Where(sq.Eq{"organization_id": filter.OrgID}).
+		Where(sq.Eq{"scan_group_id": filter.GroupID}).
+		Where(sq.Gt{"snapshot_id": filter.Start})
+
+	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
+		p = p.Where(sq.Gt{"response_timestamp": time.Unix(0, val)})
+	}
+
+	if val, ok := filter.Filters.String("host_address_equals"); ok && val != "" {
+		p = p.Where(sq.Eq{"host_address": val})
+	}
+
+	p = p.Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
+
+	return p.ToSql()
+}
+
 func buildWebFilterQuery(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
 	columns := strings.Replace(responseColumns, "\n\t\t", "", -1)
-	p := sq.Select().Columns(strings.Split(columns, ",")...).
-		Column("(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address").
-		Column("(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address")
+	p := sq.Select().Columns(strings.Split(columns, ",")...)
 
 	if latestOnly, _ := filter.Filters.Bool("latest_only"); latestOnly {
 		return latestWebResponseFilter(p, userContext, filter)
@@ -119,7 +137,7 @@ func buildCertificateFilter(userContext am.UserContext, filter *am.WebCertificat
 	}
 
 	if val, ok := filter.Filters.String("host_address_equals"); ok && val != "" {
-		p = p.Where(sq.Eq{"host_address_equals": val})
+		p = p.Where(sq.Eq{"host_address": val})
 	}
 
 	p = p.Where(sq.Gt{"certificate_id": filter.Start}).OrderBy("certificate_id").Limit(uint64(filter.Limit))
@@ -131,9 +149,7 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	var latestOnly bool
 	latestOnly, _ = filter.Filters.Bool("latest_only")
 
-	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp").
-		Column("(select host_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_host_address").
-		Column("(select ip_address from am.scan_group_addresses as sga where sga.address_id=wb.address_id) as address_id_ip_address").
+	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "host_address", "ip_address").
 		Column("array_agg(wb.url) as urls").
 		Column("array_agg(wb.raw_body_link) as raw_body_links").
 		Column("array_agg(wb.response_id) as response_ids").
@@ -157,9 +173,9 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	p = p.Where(sq.Gt{"wb.response_id": filter.Start})
 
 	if latestOnly {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "address_id_host_address", "address_id_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "host_address", "ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
 	} else {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "address_id_host_address", "address_id_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "host_address", "ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
 	}
 
 	p = p.Limit(uint64(filter.Limit))

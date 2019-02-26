@@ -113,29 +113,6 @@ func TestGCDBrowserPoolNavFailure(t *testing.T) {
 	}
 }
 
-func TestGCDBrowserPoolGetURL(t *testing.T) {
-
-	ctx := context.Background()
-	b := NewGCDBrowserPool(2)
-	b.SetAPITimeout(time.Second * 3)
-	defer b.Close(ctx)
-
-	if err := b.Init(); err != nil {
-		t.Fatalf("error initializing browser: %v\n", err)
-	}
-
-	address := &am.ScanGroupAddress{
-		HostAddress: "google.com",
-		IPAddress:   "",
-	}
-
-	webData, err := b.Load(ctx, address, "http", "80")
-	if err == nil {
-		t.Fatalf("did not get error when it was expected\n")
-	}
-	t.Logf("%#v\n", webData)
-}
-
 func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 	ctx := context.Background()
 	b := NewGCDBrowserPool(2)

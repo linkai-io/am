@@ -134,7 +134,7 @@ func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, fi
 		var urlRequestTime time.Time
 
 		if err := rows.Scan(&urlList.OrgID, &urlList.GroupID,
-			&urlRequestTime, &urlList.AddressIDHostAddress, &urlList.AddressIDIPAddress,
+			&urlRequestTime, &urlList.HostAddress, &urlList.IPAddress,
 			&urls, &links, &responseIDs, &mimeTypes); err != nil {
 
 			return 0, nil, err
@@ -209,10 +209,10 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 		var requestedPort int
 		var url []byte
 
-		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressID, &urlRequestTime,
+		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressHash, &urlRequestTime,
 			&responseTime, &r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort,
 			&requestedPort, &url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash,
-			&r.RawBodyLink, &r.IsDeleted, &r.AddressIDHostAddress, &r.AddressIDIPAddress); err != nil {
+			&r.RawBodyLink, &r.IsDeleted); err != nil {
 
 			return 0, nil, err
 		}
@@ -269,8 +269,8 @@ func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContex
 		w := &am.WebCertificate{}
 		var port int
 		var responseTime time.Time
-		if err := rows.Scan(&w.CertificateID, &w.OrgID, &w.GroupID, &responseTime,
-			&w.HostAddress, &port, &w.Protocol, &w.KeyExchange, &w.KeyExchangeGroup,
+		if err := rows.Scan(&w.CertificateID, &w.OrgID, &w.GroupID, &responseTime, &w.AddressHash,
+			&w.HostAddress, &w.IPAddress, &port, &w.Protocol, &w.KeyExchange, &w.KeyExchangeGroup,
 			&w.Cipher, &w.Mac, &w.CertificateValue, &w.SubjectName, &w.SanList, &w.Issuer,
 			&w.ValidFrom, &w.ValidTo, &w.CertificateTransparencyCompliance, &w.IsDeleted); err != nil {
 
@@ -305,24 +305,25 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
-		rows, err = s.pool.Query("snapshotsSinceResponseTime", userContext.GetOrgID(), filter.GroupID, val, filter.Start, filter.Limit)
-	} else {
-		rows, err = s.pool.Query("snapshotsAll", userContext.GetOrgID(), filter.GroupID, filter.Start, filter.Limit)
+	query, args, err := buildSnapshotQuery(userContext, filter)
+	if err != nil {
+		return 0, nil, err
 	}
-	defer rows.Close()
 
+	rows, err = s.pool.Query(query, args...)
+	defer rows.Close()
 	if err != nil {
 		return 0, nil, err
 	}
 
 	snapshots := make([]*am.WebSnapshot, 0)
-
+	log.Info().Msgf("%s", query)
 	for i := 0; rows.Next(); i++ {
 		w := &am.WebSnapshot{}
 		var responseTime time.Time
-		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressID, &responseTime,
-			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted, &w.AddressIDHostAddress, &w.AddressIDIPAddress); err != nil {
+		var url []byte
+		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &url, &responseTime,
+			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted); err != nil {
 
 			return 0, nil, err
 		}
@@ -330,6 +331,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		if w.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
+		w.URL = string(url)
 		w.ResponseTimestamp = responseTime.UnixNano()
 		snapshots = append(snapshots, w)
 	}
@@ -371,8 +373,7 @@ func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, 
 
 	oid := webData.Address.OrgID
 	gid := webData.Address.GroupID
-	aid := webData.Address.AddressID
-	_, err = s.pool.ExecEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, aid, time.Unix(0, webData.ResponseTimestamp), webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink)
+	_, err = s.pool.ExecEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, webData.AddressHash, webData.HostAddress, webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.URL, time.Unix(0, webData.ResponseTimestamp), webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return v
@@ -484,7 +485,6 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 
 	oid := webData.Address.OrgID
 	gid := webData.Address.GroupID
-	aid := webData.Address.AddressID
 
 	for _, r := range webData.Responses {
 		if r == nil {
@@ -500,13 +500,13 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 			requestedPort = 0
 		}
 
-		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), aid, time.Unix(0, webData.URLRequestTimestamp), time.Unix(0, r.ResponseTimestamp), r.IsDocument, r.Scheme, r.IPAddress,
+		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), r.AddressHash, time.Unix(0, webData.URLRequestTimestamp), time.Unix(0, r.ResponseTimestamp), r.IsDocument, r.Scheme, r.IPAddress,
 			r.HostAddress, responsePort, requestedPort, r.URL, r.Headers, r.Status, r.StatusText, r.MimeType, r.RawBodyHash, r.RawBodyLink,
 		})
 
 		if r.WebCertificate != nil {
 			c := r.WebCertificate
-			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), time.Unix(0, r.ResponseTimestamp), r.HostAddress, responsePort,
+			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), time.Unix(0, r.ResponseTimestamp), r.AddressHash, r.HostAddress, r.IPAddress, responsePort,
 				c.Protocol, c.KeyExchange, c.KeyExchangeGroup, c.Cipher, c.Mac, c.CertificateValue, c.SubjectName, c.SanList, c.Issuer, c.ValidFrom, c.ValidTo, c.CertificateTransparencyCompliance})
 		}
 	}
