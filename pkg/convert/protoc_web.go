@@ -120,6 +120,8 @@ func DomainToHTTPResponse(in *am.HTTPResponse) *prototypes.HTTPResponse {
 		WebCertificate:      DomainToWebCertificate(in.WebCertificate),
 		IsDeleted:           in.IsDeleted,
 		URLRequestTimestamp: in.URLRequestTimestamp,
+		LoadHostAddress:     in.LoadHostAddress,
+		LoadIPAddress:       in.LoadIPAddress,
 	}
 }
 
@@ -150,6 +152,8 @@ func HTTPResponseToDomain(in *prototypes.HTTPResponse) *am.HTTPResponse {
 		IsDocument:          in.IsDocument,
 		WebCertificate:      WebCertificateToDomain(in.WebCertificate),
 		IsDeleted:           in.IsDeleted,
+		LoadHostAddress:     in.LoadHostAddress,
+		LoadIPAddress:       in.LoadIPAddress,
 	}
 }
 

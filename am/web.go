@@ -73,6 +73,8 @@ type HTTPResponse struct {
 	IsDocument          bool              `json:"is_document"`
 	WebCertificate      *WebCertificate   `json:"web_certificate,omitempty"`
 	IsDeleted           bool              `json:"deleted"`
+	LoadHostAddress     string            `json:"load_host_address"`
+	LoadIPAddress       string            `json:"load_ip_address"`
 }
 
 // WebCertificate contains extracted certificate data from an HTTPResponse

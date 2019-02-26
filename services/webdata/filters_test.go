@@ -28,7 +28,7 @@ func TestBuildURLListFilterQuery(t *testing.T) {
 	if len(args) != 3 {
 		t.Fatalf("expected 3 args, got %d\n", len(args))
 	}
-	expected := "SELECT wb.organization_id, wb.scan_group_id, wb.url_request_timestamp, host_address, ip_address, array_agg(wb.url) as urls, array_agg(wb.raw_body_link) as raw_body_links, array_agg(wb.response_id) as response_ids, array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types FROM am.web_responses as wb WHERE wb.organization_id = $1 AND wb.scan_group_id = $2 AND wb.response_id > $3 GROUP BY wb.organization_id, wb.scan_group_id, host_address, ip_address, wb.url_request_timestamp ORDER BY wb.url_request_timestamp LIMIT 1000"
+	expected := "SELECT wb.organization_id, wb.scan_group_id, wb.url_request_timestamp, load_host_address, load_ip_address, array_agg(wb.url) as urls, array_agg(wb.raw_body_link) as raw_body_links, array_agg(wb.response_id) as response_ids, array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types FROM am.web_responses as wb WHERE wb.organization_id = $1 AND wb.scan_group_id = $2 AND wb.response_id > $3 GROUP BY wb.organization_id, wb.scan_group_id, load_host_address, load_ip_address, wb.url_request_timestamp ORDER BY wb.url_request_timestamp LIMIT 1000"
 	if expected != query {
 		t.Fatalf("Expected:\n%v\nGot:\n%v\n", expected, query)
 	}
@@ -66,7 +66,7 @@ func TestBuildURLListFilterQueryLatestOnly(t *testing.T) {
 	if len(args) != 3 {
 		t.Fatalf("expected 3 args, got %d\n", len(args))
 	}
-	expected := "SELECT wb.organization_id, wb.scan_group_id, wb.url_request_timestamp, host_address, ip_address, array_agg(wb.url) as urls, array_agg(wb.raw_body_link) as raw_body_links, array_agg(wb.response_id) as response_ids, array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types FROM (SELECT url, (max(url_request_timestamp)) AS url_request_timestamp FROM am.web_responses GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp WHERE wb.organization_id = $1 AND wb.scan_group_id = $2 AND wb.response_id > $3 GROUP BY wb.organization_id, wb.scan_group_id, host_address, ip_address, wb.url_request_timestamp ORDER BY wb.url_request_timestamp LIMIT 1000"
+	expected := "SELECT wb.organization_id, wb.scan_group_id, wb.url_request_timestamp, load_host_address, load_ip_address, array_agg(wb.url) as urls, array_agg(wb.raw_body_link) as raw_body_links, array_agg(wb.response_id) as response_ids, array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types FROM (SELECT url, (max(url_request_timestamp)) AS url_request_timestamp FROM am.web_responses GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp WHERE wb.organization_id = $1 AND wb.scan_group_id = $2 AND wb.response_id > $3 GROUP BY wb.organization_id, wb.scan_group_id, load_host_address, load_ip_address, wb.url_request_timestamp ORDER BY wb.url_request_timestamp LIMIT 1000"
 	if expected != query {
 		t.Fatalf("Expected:\n%v\nGot:\n%v\n", expected, query)
 	}
@@ -102,7 +102,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 3 args, got %d\n", len(args))
 	}
 
-	expected := "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 LIMIT 1000"
+	expected := "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 LIMIT 1000"
 	if query != expected {
 		t.Fatalf("Expected:\n%v\nGot:\n:%v", expected, query)
 	}
@@ -117,7 +117,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND mime_type IN ($4,$5) LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND mime_type IN ($4,$5) LIMIT 1000"
 	if query != expected {
 		t.Fatalf("Expected:\n%v\nGot:\n:%v", expected, query)
 	}
@@ -134,7 +134,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND wb.url_request_timestamp > $4 AND wb.url_request_timestamp < $5 LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND wb.url_request_timestamp > $4 AND wb.url_request_timestamp < $5 LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -150,7 +150,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 4 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers ? $4 LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers ? $4 LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -165,7 +165,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers ? $4 AND headers ? $5 LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers ? $4 AND headers ? $5 LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -182,7 +182,7 @@ func TestBuildWebFilterQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers->>$4=$5 LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND headers->>$4=$5 LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -207,7 +207,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 3 args, got %d\n", len(args))
 	}
 
-	expected := "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id ORDER BY response_id LIMIT 1000"
+	expected := "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id ORDER BY response_id LIMIT 1000"
 	if query != expected {
 		t.Fatalf("Expected:\n%v\nGot:\n%v", expected, query)
 	}
@@ -222,7 +222,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE mime_type IN ($4,$5) ORDER BY response_id LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE mime_type IN ($4,$5) ORDER BY response_id LIMIT 1000"
 	if query != expected {
 		t.Fatalf("Expected:\n%v\nGot:\n%v", expected, query)
 	}
@@ -240,7 +240,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE wb.url_request_timestamp > $4 AND wb.url_request_timestamp < $5 ORDER BY response_id LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE wb.url_request_timestamp > $4 AND wb.url_request_timestamp < $5 ORDER BY response_id LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -257,7 +257,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 4 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers ? $4 ORDER BY response_id LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers ? $4 ORDER BY response_id LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -272,7 +272,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers ? $4 AND headers ? $5 ORDER BY response_id LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers ? $4 AND headers ? $5 ORDER BY response_id LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -291,7 +291,7 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 		t.Fatalf("expected 5 args, got %d\n", len(args))
 	}
 
-	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers->>$4=$5 ORDER BY response_id LIMIT 1000"
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers->>$4=$5 ORDER BY response_id LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}

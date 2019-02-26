@@ -116,8 +116,16 @@ func buildCertificateFilter(userContext am.UserContext, filter *am.WebCertificat
 		Where(sq.Eq{"organization_id": userContext.GetOrgID()}).
 		Where(sq.Eq{"scan_group_id": filter.GroupID})
 
-	if val, ok := filter.Filters.Bool("is_deleted"); ok {
-		p = p.Where(sq.Eq{"is_deleted": val})
+	if val, ok := filter.Filters.Bool("deleted"); ok {
+		p = p.Where(sq.Eq{"deleted": val})
+	}
+
+	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
+		p = p.Where(sq.Gt{"after_response_time": time.Unix(0, val)})
+	}
+
+	if val, ok := filter.Filters.Int64("before_response_time"); ok && val != 0 {
+		p = p.Where(sq.Lt{"before_response_time": time.Unix(0, val)})
 	}
 
 	if val, ok := filter.Filters.Int64("after_valid_to"); ok && val != 0 {
@@ -149,7 +157,7 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	var latestOnly bool
 	latestOnly, _ = filter.Filters.Bool("latest_only")
 
-	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "host_address", "ip_address").
+	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "load_host_address", "load_ip_address").
 		Column("array_agg(wb.url) as urls").
 		Column("array_agg(wb.raw_body_link) as raw_body_links").
 		Column("array_agg(wb.response_id) as response_ids").
@@ -173,9 +181,9 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	p = p.Where(sq.Gt{"wb.response_id": filter.Start})
 
 	if latestOnly {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "host_address", "ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
 	} else {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "host_address", "ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
 	}
 
 	p = p.Limit(uint64(filter.Limit))

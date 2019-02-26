@@ -11,6 +11,8 @@ var (
 		scheme,
 		ip_address,
 		host_address,
+		load_ip_address,
+		load_host_address,
 		response_port,
 		requested_port,
 		wb.url,
@@ -81,7 +83,7 @@ var queryMap = map[string]string{
 var (
 	AddResponsesTempTableKey     = "resp_add_temp"
 	AddResponsesTempTableColumns = []string{"organization_id", "scan_group_id", "address_hash", "url_request_timestamp", "response_timestamp",
-		"is_document", "scheme", "ip_address", "host_address", "response_port", "requested_port",
+		"is_document", "scheme", "ip_address", "host_address", "load_ip_address", "load_host_address", "response_port", "requested_port",
 		"url", "headers", "status", "status_text", "mime_type", "raw_body_hash", "raw_body_link"}
 
 	AddResponsesTempTable = `create temporary table resp_add_temp (
@@ -94,6 +96,8 @@ var (
 			scheme varchar(12),
 			ip_address varchar(256),
 			host_address varchar(512),
+			load_ip_address varchar(256),
+			load_host_address varchar(512),
 			response_port int,
 			requested_port int,
 			url bytea not null,
@@ -121,6 +125,8 @@ var (
 			scheme,
 			ip_address,
 			host_address,
+			load_ip_address,
+			load_host_address,
 			response_port,
 			requested_port,
 			url,
@@ -142,6 +148,8 @@ var (
 			temp.scheme,
 			temp.ip_address,
 			temp.host_address,
+			temp.load_ip_address,
+			temp.load_host_address,
 			temp.response_port,
 			temp.requested_port,
 			temp.url,

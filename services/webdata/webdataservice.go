@@ -210,7 +210,7 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 		var url []byte
 
 		if err := rows.Scan(&r.ResponseID, &r.OrgID, &r.GroupID, &r.AddressHash, &urlRequestTime,
-			&responseTime, &r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &responsePort,
+			&responseTime, &r.IsDocument, &r.Scheme, &r.IPAddress, &r.HostAddress, &r.LoadIPAddress, &r.LoadHostAddress, &responsePort,
 			&requestedPort, &url, &r.Headers, &r.Status, &r.StatusText, &r.MimeType, &r.RawBodyHash,
 			&r.RawBodyLink, &r.IsDeleted); err != nil {
 
@@ -501,12 +501,12 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 		}
 
 		responseRows = append(responseRows, []interface{}{int32(oid), int32(gid), r.AddressHash, time.Unix(0, webData.URLRequestTimestamp), time.Unix(0, r.ResponseTimestamp), r.IsDocument, r.Scheme, r.IPAddress,
-			r.HostAddress, responsePort, requestedPort, r.URL, r.Headers, r.Status, r.StatusText, r.MimeType, r.RawBodyHash, r.RawBodyLink,
+			r.HostAddress, webData.IPAddress, webData.HostAddress, responsePort, requestedPort, r.URL, r.Headers, r.Status, r.StatusText, r.MimeType, r.RawBodyHash, r.RawBodyLink,
 		})
 
 		if r.WebCertificate != nil {
 			c := r.WebCertificate
-			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), time.Unix(0, r.ResponseTimestamp), r.AddressHash, r.HostAddress, r.IPAddress, responsePort,
+			certificateRows = append(certificateRows, []interface{}{int32(oid), int32(gid), time.Unix(0, r.ResponseTimestamp), webData.AddressHash, r.HostAddress, r.IPAddress, responsePort,
 				c.Protocol, c.KeyExchange, c.KeyExchangeGroup, c.Cipher, c.Mac, c.CertificateValue, c.SubjectName, c.SanList, c.Issuer, c.ValidFrom, c.ValidTo, c.CertificateTransparencyCompliance})
 		}
 	}
