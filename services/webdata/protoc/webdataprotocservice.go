@@ -73,3 +73,23 @@ func (s *WebDataProtocService) GetURLList(ctx context.Context, in *webdata.GetUR
 
 	return &webdata.GetURLListResponse{OrgID: int32(oid), URLList: convert.DomainToURLLists(urls)}, nil
 }
+
+func (s *WebDataProtocService) OrgStats(ctx context.Context, in *webdata.OrgStatsRequest) (*webdata.OrgStatsResponse, error) {
+	s.reporter.Increment(1)
+	oid, orgStats, err := s.wds.OrgStats(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &webdata.OrgStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupsWebDataStats(orgStats)}, nil
+}
+
+func (s *WebDataProtocService) GroupStats(ctx context.Context, in *webdata.GroupStatsRequest) (*webdata.GroupStatsResponse, error) {
+	s.reporter.Increment(1)
+	oid, groupStats, err := s.wds.GroupStats(ctx, convert.UserContextToDomain(in.UserContext), int(in.GetGroupID()))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &webdata.GroupStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupWebDataStats(groupStats)}, nil
+}

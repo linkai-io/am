@@ -169,3 +169,51 @@ func (c *Client) GetURLList(ctx context.Context, userContext am.UserContext, fil
 	}
 	return int(resp.OrgID), convert.URLListsToDomain(resp.GetURLList()), nil
 }
+
+func (c *Client) OrgStats(ctx context.Context, userContext am.UserContext) (oid int, orgStats []*am.ScanGroupWebDataStats, err error) {
+	var resp *service.OrgStatsResponse
+	oid = userContext.GetOrgID()
+
+	in := &service.OrgStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.OrgStats(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get webdata org stats from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.GetOrgID()), convert.ScanGroupsWebDataStatsToDomain(resp.GetGroupStats()), nil
+}
+
+func (c *Client) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (oid int, groupStats *am.ScanGroupWebDataStats, err error) {
+	var resp *service.GroupStatsResponse
+	oid = userContext.GetOrgID()
+
+	in := &service.GroupStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GroupStats(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get webdata group stats from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.GetOrgID()), convert.ScanGroupWebDataStatsToDomain(resp.GetGroupStats()), nil
+}

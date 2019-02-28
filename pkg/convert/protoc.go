@@ -581,3 +581,63 @@ func FilterTypesToDomain(in *prototypes.FilterType) *am.FilterType {
 	}
 	return filter
 }
+
+func DomainToScanGroupAggregates(in map[string]*am.ScanGroupAggregates) map[string]*prototypes.ScanGroupAggregates {
+	if in == nil {
+		return nil
+	}
+	agg := make(map[string]*prototypes.ScanGroupAggregates, len(in))
+	for k, v := range in {
+		agg[k] = &prototypes.ScanGroupAggregates{Time: v.Time, Count: v.Count}
+	}
+	return agg
+}
+
+func DomainToScanGroupAddressStats(in *am.ScanGroupAddressStats) *prototypes.ScanGroupAddressStats {
+	return &prototypes.ScanGroupAddressStats{
+		OrgID:          int32(in.OrgID),
+		GroupID:        int32(in.GroupID),
+		DiscoveredBy:   in.DiscoveredBy,
+		Aggregates:     DomainToScanGroupAggregates(in.Aggregates),
+		Total:          in.Total,
+		ConfidentTotal: in.ConfidentTotal,
+	}
+}
+
+func DomainToScanGroupsAddressStats(in []*am.ScanGroupAddressStats) []*prototypes.ScanGroupAddressStats {
+	stats := make([]*prototypes.ScanGroupAddressStats, 0)
+	for _, v := range in {
+		stats = append(stats, DomainToScanGroupAddressStats(v))
+	}
+	return stats
+}
+
+func ScanGroupAggregatesToDomain(in map[string]*prototypes.ScanGroupAggregates) map[string]*am.ScanGroupAggregates {
+	if in == nil {
+		return nil
+	}
+	agg := make(map[string]*am.ScanGroupAggregates, len(in))
+	for k, v := range in {
+		agg[k] = &am.ScanGroupAggregates{Time: v.Time, Count: v.Count}
+	}
+	return agg
+}
+
+func ScanGroupAddressStatsToDomain(in *prototypes.ScanGroupAddressStats) *am.ScanGroupAddressStats {
+	return &am.ScanGroupAddressStats{
+		OrgID:          int(in.OrgID),
+		GroupID:        int(in.GroupID),
+		DiscoveredBy:   in.DiscoveredBy,
+		Aggregates:     ScanGroupAggregatesToDomain(in.Aggregates),
+		Total:          in.Total,
+		ConfidentTotal: in.ConfidentTotal,
+	}
+}
+
+func ScanGroupsAddressStatsToDomain(in []*prototypes.ScanGroupAddressStats) []*am.ScanGroupAddressStats {
+	stats := make([]*am.ScanGroupAddressStats, 0)
+	for _, v := range in {
+		stats = append(stats, ScanGroupAddressStatsToDomain(v))
+	}
+	return stats
+}

@@ -12,6 +12,10 @@ import (
 	"github.com/linkai-io/am/pkg/auth"
 )
 
+const (
+	sevenDays = time.Hour * time.Duration(-168)
+)
+
 var (
 	ErrFilterMissingGroupID = errors.New("address filter missing GroupID")
 	ErrAddressMissing       = errors.New("address did not have IPAddress or HostAddress set")
@@ -386,4 +390,108 @@ func (s *Service) Count(ctx context.Context, userContext am.UserContext, groupID
 	}
 
 	return userContext.GetOrgID(), count, err
+}
+
+func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid int, orgStats []*am.ScanGroupAddressStats, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+	orgStats = make([]*am.ScanGroupAddressStats, 0)
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	rows, err := s.pool.QueryEx(ctx, "discoveredOrgAgg", &pgx.QueryExOptions{}, userContext.GetOrgID(), time.Now().Add(sevenDays))
+	defer rows.Close()
+	if err != nil {
+		return 0, nil, err
+	}
+	stats := make(map[int]*am.ScanGroupAddressStats, 0)
+
+	for rows.Next() {
+		var ok bool
+		stat := &am.ScanGroupAddressStats{}
+		agg := &am.ScanGroupAggregates{}
+		var aggType string
+		var groupID int
+		var periodStart time.Time
+		var count int32
+		if err := rows.Scan(&aggType, &groupID, &periodStart, &count); err != nil {
+			return 0, nil, err
+		}
+
+		if stat, ok = stats[groupID]; !ok {
+			stat = &am.ScanGroupAddressStats{}
+			stat.Aggregates = make(map[string]*am.ScanGroupAggregates)
+			stat.GroupID = groupID
+			stat.OrgID = userContext.GetOrgID()
+			stats[groupID] = stat
+		}
+
+		if agg, ok = stat.Aggregates[aggType]; !ok {
+			agg = &am.ScanGroupAggregates{}
+			stat.Aggregates[aggType] = agg
+		}
+
+		stat.Aggregates[aggType].Count = append(stat.Aggregates[aggType].Count, count)
+		stat.Aggregates[aggType].Time = append(stat.Aggregates[aggType].Time, periodStart.UnixNano())
+	}
+	rows, err = s.pool.QueryEx(ctx, "discoveredByOrg", &pgx.QueryExOptions{}, userContext.GetOrgID())
+	defer rows.Close()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for rows.Next() {
+		stat := &am.ScanGroupAddressStats{}
+		var groupID int
+		var by string
+		var count int32
+		var ok bool
+
+		if err := rows.Scan(&groupID, &by, &count); err != nil {
+			return 0, nil, err
+		}
+		if stat, ok = stats[groupID]; !ok {
+			stat = &am.ScanGroupAddressStats{}
+			stat.Aggregates = make(map[string]*am.ScanGroupAggregates)
+			stat.GroupID = groupID
+			stat.OrgID = userContext.GetOrgID()
+			stats[groupID] = stat
+		}
+
+		if stats[groupID].DiscoveredBy == nil {
+			stats[groupID].DiscoveredBy = make(map[string]int32, 0)
+		}
+
+		stats[groupID].DiscoveredBy[by] = count
+		stats[groupID].ConfidentTotal += count // since our query already counts only confident hosts, just add to the total
+	}
+
+	for _, stat := range stats {
+		orgStats = append(orgStats, stat)
+	}
+	return userContext.GetOrgID(), orgStats, err
+}
+
+// GroupStats is lazy and just does the whole org and returns the groupID if it exists... TODO: do it properly.
+func (s *Service) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (oid int, groupStats *am.ScanGroupAddressStats, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	oid, orgStats, err := s.OrgStats(ctx, userContext)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for _, groupStats = range orgStats {
+		if groupStats.GroupID == groupID {
+			return oid, groupStats, nil
+		}
+	}
+	return userContext.GetOrgID(), nil, am.ErrScanGroupNotExists
 }

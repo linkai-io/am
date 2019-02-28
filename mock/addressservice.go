@@ -27,6 +27,12 @@ type AddressService struct {
 
 	IgnoreFn      func(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error)
 	IgnoreInvoked bool
+
+	OrgStatsFn      func(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupAddressStats, error)
+	OrgStatsInvoked bool
+
+	GroupStatsFn      func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupAddressStats, error)
+	GroupStatsInvoked bool
 }
 
 func (c *AddressService) Init(config []byte) error {
@@ -61,4 +67,14 @@ func (c *AddressService) Delete(ctx context.Context, userContext am.UserContext,
 func (c *AddressService) Ignore(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error) {
 	c.IgnoreInvoked = true
 	return c.IgnoreFn(ctx, userContext, groupID, addressIDs, ignoreValue)
+}
+
+func (c *AddressService) OrgStats(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupAddressStats, error) {
+	c.OrgStatsInvoked = true
+	return c.OrgStatsFn(ctx, userContext)
+}
+
+func (c *AddressService) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupAddressStats, error) {
+	c.GroupStatsInvoked = true
+	return c.GroupStatsFn(ctx, userContext, groupID)
 }

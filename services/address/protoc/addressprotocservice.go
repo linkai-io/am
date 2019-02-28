@@ -118,3 +118,23 @@ func (s *AddressProtocService) Ignore(ctx context.Context, in *address.IgnoreAdd
 	}
 	return &address.IgnoreAddressesResponse{OrgID: int32(oid)}, nil
 }
+
+func (s *AddressProtocService) OrgStats(ctx context.Context, in *address.OrgStatsRequest) (*address.OrgStatsResponse, error) {
+	s.reporter.Increment(1)
+	oid, orgStats, err := s.as.OrgStats(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.OrgStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupsAddressStats(orgStats)}, nil
+}
+
+func (s *AddressProtocService) GroupStats(ctx context.Context, in *address.GroupStatsRequest) (*address.GroupStatsResponse, error) {
+	s.reporter.Increment(1)
+	oid, groupStats, err := s.as.GroupStats(ctx, convert.UserContextToDomain(in.UserContext), int(in.GetGroupID()))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.GroupStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupAddressStats(groupStats)}, nil
+}

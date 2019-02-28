@@ -759,6 +759,132 @@ func TestGetAddressFilters(t *testing.T) {
 	}
 }
 
+func TestOrgStats(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "addressorgstats"
+	groupName := "addressorgstats"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now()
+	for i := 0; i < 100; i++ {
+		discovered := am.DiscoveryNSInputList
+		host := fmt.Sprintf("%d.example.com", i)
+		ip := fmt.Sprintf("192.168.1.%d", i)
+		if i%10 == 0 {
+			discovered = am.DiscoveryBruteSubDomain
+		}
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, host),
+			DiscoveryTime:       now.Add(time.Hour * time.Duration(-i*2)).UnixNano(),
+			DiscoveredBy:        discovered,
+			LastScannedTime:     now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			LastSeenTime:        now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			ConfidenceScore:     100,
+			UserConfidenceScore: 100,
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+			NSRecord:            int32(i),
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, _, err := service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %v\n", err)
+	}
+
+	// need to run aggregate functions first
+	amtest.RunAggregates(db, t)
+	oid, orgStats, err := service.OrgStats(ctx, userContext)
+	if err != nil {
+		t.Fatalf("error getting stats %v", err)
+	}
+
+	if len(orgStats) != 1 {
+		t.Fatalf("error getting one scan group worth of stats, got %d\n", len(orgStats))
+	}
+
+	if oid != userContext.GetOrgID() {
+		t.Fatalf("error org id mismatch")
+	}
+
+	brute := orgStats[0].DiscoveredBy[am.DiscoveryBruteSubDomain]
+	input := orgStats[0].DiscoveredBy[am.DiscoveryNSInputList]
+	if brute != 10 || input != 90 {
+		t.Fatalf("expected 10 brute findings, and 90 input list got: %d %d", brute, input)
+	}
+
+	if orgStats[0].ConfidentTotal != 100 {
+		t.Fatalf("expected 100 confident hosts got %d\n", orgStats[0].ConfidentTotal)
+	}
+
+	for k, v := range orgStats[0].Aggregates {
+		t.Logf("%#v %#v\n", k, v)
+		switch k {
+		case "discovery_day":
+		case "scanned_day":
+		case "seen_day":
+		case "discovery_trihourly":
+		case "scanned_trihourly":
+		case "seen_trihourly":
+			if len(v.Time) == 0 {
+				t.Fatalf("%s expected more than 0 results", k)
+			}
+			if len(v.Time) != len(v.Count) {
+				t.Fatalf("%s expected count and time to match got %d != %d\n", k, len(v.Time), len(v.Count))
+			}
+		}
+	}
+
+	if orgStats[0].GroupID != groupID && orgStats[0].OrgID != orgID {
+		t.Fatalf("org/group not set")
+	}
+
+	_, gstats, err := service.GroupStats(ctx, userContext, orgStats[0].GroupID)
+	if err != nil {
+		t.Fatalf("error getting group stats: %v\n", err)
+	}
+
+	if gstats.ConfidentTotal != orgStats[0].ConfidentTotal {
+		t.Fatalf("same group returned different confident total")
+	}
+
+	if len(orgStats[0].Aggregates) != len(gstats.Aggregates) {
+		t.Fatalf("same group should return same len of aggregates %d %d", len(orgStats[0].Aggregates), len(gstats.Aggregates))
+	}
+
+}
+
 func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 	if e.OrgID != r.OrgID {
 		t.Fatalf("OrgID did not match expected: %v got: %v\n", e.OrgID, r.OrgID)
@@ -814,5 +940,68 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 
 	if e.Ignored != r.Ignored {
 		t.Fatalf("Ignored did not match expected: %v got: %v\n", e.Ignored, r.Ignored)
+	}
+}
+
+func TestPopulateData(t *testing.T) {
+	t.Skip("uncomment to populate db")
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "testpopulatedata3"
+	groupName := "testpopulatedata3"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	//defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now()
+	for i := 0; i < 100000; i++ {
+		host := fmt.Sprintf("%d.example.com", i)
+		ip := fmt.Sprintf("192.168.1.%d", i)
+
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, host),
+			DiscoveryTime:       now.Add(time.Minute * time.Duration(-i*2)).UnixNano(),
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     now.Add(time.Minute * time.Duration(-i)).UnixNano(),
+			LastSeenTime:        now.Add(time.Minute * time.Duration(-i)).UnixNano(),
+			ConfidenceScore:     100,
+			UserConfidenceScore: 0,
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+			NSRecord:            1,
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, _, err := service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %v\n", err)
 	}
 }

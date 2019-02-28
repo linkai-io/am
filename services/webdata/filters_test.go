@@ -186,6 +186,25 @@ func TestBuildWebFilterQuery(t *testing.T) {
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString("host_address", "dev.example.com")
+	filter.Filters.AddString("ends_host_address", "example.com")
+	filter.Filters.AddString("starts_host_address", "dev")
+	query, args, err = buildWebFilterQuery(userContext, filter)
+	if err != nil {
+		t.Fatalf("error building web filter: %v\n", err)
+	}
+
+	if len(args) != 6 {
+		t.Fatalf("expected 6 args, got %d\n", len(args))
+	}
+
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM am.web_responses as wb JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 AND wb.host_address = $4 AND wb.host_address LIKE $5 AND wb.host_address LIKE $6 LIMIT 1000"
+	if expected != query {
+		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
+	}
+
 }
 
 func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
@@ -292,6 +311,25 @@ func TestBuildWebFilterLatestOnlyQuery(t *testing.T) {
 	}
 
 	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE headers->>$4=$5 ORDER BY response_id LIMIT 1000"
+	if expected != query {
+		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddBool("latest_only", true)
+	filter.Filters.AddString("host_address", "dev.example.com")
+	filter.Filters.AddString("ends_host_address", "example.com")
+	filter.Filters.AddString("starts_host_address", "dev")
+	query, args, err = buildWebFilterQuery(userContext, filter)
+	if err != nil {
+		t.Fatalf("error building web filter: %v\n", err)
+	}
+
+	if len(args) != 6 {
+		t.Fatalf("expected 6 args, got %d\n", len(args))
+	}
+
+	expected = "SELECT wb.response_id, organization_id, scan_group_id, address_hash, wb.url_request_timestamp, response_timestamp, is_document, scheme, ip_address, host_address, load_ip_address, load_host_address, response_port, requested_port, wb.url, headers, status,  wst.status_text, wmt.mime_type, raw_body_hash, raw_body_link, deleted FROM (SELECT web_responses.url, (max(web_responses.url_request_timestamp)) AS url_request_timestamp FROM am.web_responses WHERE organization_id = $1 AND scan_group_id = $2 AND response_id > $3 GROUP BY url) AS latest JOIN am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url JOIN am.web_status_text as wst on wb.status_text_id = wst.status_text_id JOIN am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id WHERE wb.host_address = $4 AND wb.host_address LIKE $5 AND wb.host_address LIKE $6 ORDER BY response_id LIMIT 1000"
 	if expected != query {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}

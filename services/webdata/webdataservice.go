@@ -85,6 +85,92 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
+func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid int, orgStats []*am.ScanGroupWebDataStats, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	rows, err := s.pool.QueryEx(ctx, "serverCounts", &pgx.QueryExOptions{}, userContext.GetOrgID())
+	if err != nil {
+		return 0, nil, err
+	}
+	stats := make(map[int]*am.ScanGroupWebDataStats)
+
+	defer rows.Close()
+	for rows.Next() {
+		stat := &am.ScanGroupWebDataStats{}
+		var server string
+		var count int32
+		var groupID int
+		var ok bool
+
+		if err := rows.Scan(&groupID, &server, &count); err != nil {
+			return 0, nil, err
+		}
+		if stat, ok = stats[groupID]; !ok {
+			stat = &am.ScanGroupWebDataStats{}
+			stat.ServerTypes = make(map[string]int32, 0)
+			stats[groupID] = stat
+		}
+		stat.GroupID = groupID
+		stat.OrgID = userContext.GetOrgID()
+		stat.ServerTypes[server] += count
+		stat.UniqueWebServers += count // add the total of server types (since they are unique host/port)
+	}
+	log.Info().Msgf("%#v\n", stats)
+
+	rows, err = s.pool.QueryEx(ctx, "expiringCerts", &pgx.QueryExOptions{}, userContext.GetOrgID())
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		stat := &am.ScanGroupWebDataStats{}
+
+		var ok bool
+		var expiresTime string
+		var groupID int
+		var count int32
+
+		if err := rows.Scan(&groupID, &expiresTime, &count); err != nil {
+			return 0, nil, err
+		}
+
+		if stat, ok = stats[groupID]; !ok {
+			stat = &am.ScanGroupWebDataStats{}
+			stat.ServerTypes = make(map[string]int32, 0)
+			stats[groupID] = stat
+		}
+		switch expiresTime {
+		case "thirty":
+			stats[groupID].ExpiringCerts30Days += count
+		case "fifteen":
+			stats[groupID].ExpiringCerts15Days += count
+		}
+	}
+	log.Info().Msgf("%#v\n", stats)
+	for _, v := range stats {
+		orgStats = append(orgStats, v)
+	}
+
+	return userContext.GetOrgID(), orgStats, nil
+}
+
+func (s *Service) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (oid int, groupStats *am.ScanGroupWebDataStats, err error) {
+	oid, orgStats, err := s.OrgStats(ctx, userContext)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	for _, groupStats = range orgStats {
+		if groupStats.GroupID == groupID {
+			return oid, groupStats, nil
+		}
+	}
+	return userContext.GetOrgID(), nil, am.ErrScanGroupNotExists
+}
+
 // GetURLList returns a list of urls for a series of responses (key'd off of urlrequesttimestamp)
 func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {

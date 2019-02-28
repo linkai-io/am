@@ -147,10 +147,22 @@ type WebCertificateFilter struct {
 	Filters *FilterType `json:"filters"`
 }
 
+// ScanGroupWebDataStats returns general statistics for web related asset data
+type ScanGroupWebDataStats struct {
+	OrgID               int              `json:"org_id"`
+	GroupID             int              `json:"group_id"`
+	ExpiringCerts15Days int32            `json:"expiring_certs_15"`
+	ExpiringCerts30Days int32            `json:"expiring_certs_30"`
+	UniqueWebServers    int32            `json:"unique_web_servers"`
+	ServerTypes         map[string]int32 `json:"server_types"`
+}
+
 // WebDataService adds and returns all web responses
 type WebDataService interface {
 	Init(config []byte) error
 	Add(ctx context.Context, userContext UserContext, webData *WebData) (int, error)
+	OrgStats(ctx context.Context, userContext UserContext) (oid int, orgStats []*ScanGroupWebDataStats, err error)
+	GroupStats(ctx context.Context, userContext UserContext, groupID int) (oid int, groupStats *ScanGroupWebDataStats, err error)
 	GetURLList(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*URLListResponse, error)
 	GetResponses(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*HTTPResponse, error)
 	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)

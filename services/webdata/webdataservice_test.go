@@ -105,6 +105,64 @@ func TestAdd(t *testing.T) {
 	}
 }
 
+func TestOrgStats(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetresponsesadvfilter", "webdatagetresponsesadvfilter", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+
+	for _, web := range webData {
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+	oid, stats, err := service.OrgStats(ctx, org.UserContext)
+	if err != nil {
+		t.Fatalf("error getting stats: %v\n", err)
+	}
+	if oid != org.UserContext.GetOrgID() {
+		t.Fatalf("mismatched org id")
+	}
+
+	if len(stats) != 1 {
+		t.Logf("%#v\n", stats)
+		t.Fatalf("expected one groups response, got %d\n", len(stats))
+	}
+	t.Logf("%#v\n", stats[0])
+	if stats[0].ExpiringCerts15Days != 15 && stats[0].ExpiringCerts30Days != 30 {
+		t.Fatalf("expected 15 expiring in 15, and 30 expiring in 30, got %d %d\n", stats[0].ExpiringCerts15Days, stats[0].ExpiringCerts30Days)
+	}
+
+	if stats[0].GroupID != org.GroupID && stats[0].OrgID != org.OrgID {
+		t.Fatalf("org/group not set")
+	}
+
+	if stats[0].UniqueWebServers != 100 {
+		t.Fatalf("expected 100 unique servers")
+	}
+
+	if stats[0].ServerTypes["Apache 1.0.55"] != 1 {
+		t.Fatalf("expected only 1 for Apache 1.0.55, got %d\n", stats[0].ServerTypes["Apache 1.0.55"])
+	}
+
+	_, groupStats, err := service.GroupStats(ctx, org.UserContext, stats[0].GroupID)
+	if err != nil {
+		t.Fatalf("error getting group stats: %v\n", err)
+	}
+
+	if groupStats.UniqueWebServers != stats[0].UniqueWebServers {
+		t.Fatalf("unique server did not match")
+	}
+
+}
+
 func TestGetSnapshots(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -301,6 +359,24 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	if responseDay != time.Unix(0, responses[9].URLRequestTimestamp).Day() {
 		t.Fatalf("expected latest only, got %v and %v\n", time.Unix(0, responses[0].URLRequestTimestamp), time.Unix(0, responses[9].URLRequestTimestamp))
 	}
+
+	// test sql injection
+	filter = &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddString("header_names", "' or 1=1--")
+	filter.Filters.AddString("not_header_names", "' or 1=1--")
+	filter.Filters.AddString("mime_type", "' or 1=1--")
+	filter.Filters.AddString("starts_host_address", "' or 1=1--")
+
+	_, _, err = service.GetResponses(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
 }
 
 func TestGetURLList(t *testing.T) {
@@ -388,6 +464,7 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 	for i := 1; i < 101; i++ {
 		headers := make(map[string]string, 0)
 		headers["host"] = host
+		headers["server"] = fmt.Sprintf("Apache 1.0.%d", i)
 		headers["content-type"] = "text/html"
 
 		response := &am.HTTPResponse{
@@ -428,8 +505,8 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 					insertHost,
 				},
 				Issuer:                            "",
-				ValidFrom:                         time.Now().UnixNano(),
-				ValidTo:                           time.Now().UnixNano(),
+				ValidFrom:                         time.Now().Unix(),
+				ValidTo:                           time.Now().Add(time.Hour * time.Duration(24*i)).Unix(),
 				CertificateTransparencyCompliance: "unknown",
 				IsDeleted:                         false,
 			},
@@ -507,8 +584,8 @@ func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip stri
 				host,
 			},
 			Issuer:                            "",
-			ValidFrom:                         time.Now().UnixNano(),
-			ValidTo:                           time.Now().UnixNano(),
+			ValidFrom:                         time.Now().Unix(),
+			ValidTo:                           time.Now().Add(time.Hour * time.Duration(24)).Unix(),
 			CertificateTransparencyCompliance: "unknown",
 			IsDeleted:                         false,
 		},

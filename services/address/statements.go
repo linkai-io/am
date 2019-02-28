@@ -22,6 +22,39 @@ const (
 )
 
 var queryMap = map[string]string{
+	// aggregates
+	"discoveredOrgAgg": `select 'discovery_day' as agg,scan_group_id, period_start, sum(discovered_count) as cnt FROM am.discoveries_1day
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, discovered_count
+union select 'seen_day' as agg,scan_group_id, period_start, sum(seen_count) as cnt FROM am.seen_1day
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, seen_count
+union select 'scanned_day' as agg,scan_group_id, period_start, sum(scanned_count) as cnt FROM am.scanned_1day
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, scanned_count 
+union select 'discovery_trihourly' as agg,scan_group_id, period_start, sum(discovered_count) as cnt FROM am.discoveries_3hour
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, discovered_count
+union select 'seen_trihourly' as agg,scan_group_id, period_start, sum(seen_count) as cnt FROM am.seen_3hour
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, seen_count
+union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned_count) as cnt FROM am.scanned_3hour
+	WHERE organization_id=$1 and period_start > $2 GROUP BY scan_group_id, period_start, scanned_count 
+	order by period_start desc;`,
+
+	"discoveredByOrg": `select 
+		scan_group_id, 
+		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id) as discovered_by, 
+		count(1) as total from am.scan_group_addresses as sga 
+			where organization_id=$1 
+			and confidence_score=100 or user_confidence_score=100 
+			and ignored=false 
+			group by scan_group_id,discovered_by`,
+
+	"discoveredByGroup": `select 
+		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id) as discovered_by, 
+		count(1) as total from am.scan_group_addresses as sga 
+			where organization_id=$1 
+			and scan_group_id=$2
+			and confidence_score=100 or user_confidence_score=100 
+			and ignored=false 
+			group by scan_group_id,discovered_by`,
+
 	// am.scan_group_addresses related
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
 		and scan_group_id=$2`,

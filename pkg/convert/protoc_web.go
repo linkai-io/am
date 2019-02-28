@@ -5,6 +5,44 @@ import (
 	"github.com/linkai-io/am/protocservices/prototypes"
 )
 
+func DomainToScanGroupWebDataStats(in *am.ScanGroupWebDataStats) *prototypes.ScanGroupWebDataStats {
+	return &prototypes.ScanGroupWebDataStats{
+		OrgID:               int32(in.OrgID),
+		GroupID:             int32(in.GroupID),
+		ExpiringCerts15Days: in.ExpiringCerts15Days,
+		ExpiringCerts30Days: in.ExpiringCerts30Days,
+		UniqueWebServers:    in.UniqueWebServers,
+		ServerTypes:         in.ServerTypes,
+	}
+}
+
+func DomainToScanGroupsWebDataStats(in []*am.ScanGroupWebDataStats) []*prototypes.ScanGroupWebDataStats {
+	stats := make([]*prototypes.ScanGroupWebDataStats, 0)
+	for _, v := range in {
+		stats = append(stats, DomainToScanGroupWebDataStats(v))
+	}
+	return stats
+}
+
+func ScanGroupWebDataStatsToDomain(in *prototypes.ScanGroupWebDataStats) *am.ScanGroupWebDataStats {
+	return &am.ScanGroupWebDataStats{
+		OrgID:               int(in.OrgID),
+		GroupID:             int(in.GroupID),
+		ExpiringCerts15Days: in.ExpiringCerts15Days,
+		ExpiringCerts30Days: in.ExpiringCerts30Days,
+		UniqueWebServers:    in.UniqueWebServers,
+		ServerTypes:         in.ServerTypes,
+	}
+}
+
+func ScanGroupsWebDataStatsToDomain(in []*prototypes.ScanGroupWebDataStats) []*am.ScanGroupWebDataStats {
+	stats := make([]*am.ScanGroupWebDataStats, 0)
+	for _, v := range in {
+		stats = append(stats, ScanGroupWebDataStatsToDomain(v))
+	}
+	return stats
+}
+
 func DomainToWebCertificate(in *am.WebCertificate) *prototypes.WebCertificate {
 	if in == nil {
 		return nil

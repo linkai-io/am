@@ -98,7 +98,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		}
 	}
 
-	p = p.Where(sq.Gt{"sga.address_id": filter.Start})
+	p = p.Where(sq.Gt{"sga.address_id": filter.Start}).OrderBy("sga.address_id")
 	p = p.Limit(uint64(filter.Limit))
 	return p.PlaceholderFormat(sq.Dollar).ToSql()
 }

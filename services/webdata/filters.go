@@ -1,6 +1,7 @@
 package webdata
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter
 		p = p.Where(sq.Gt{"response_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.String("host_address_equals"); ok && val != "" {
+	if val, ok := filter.Filters.String("host_address"); ok && val != "" {
 		p = p.Where(sq.Eq{"host_address": val})
 	}
 
@@ -106,6 +107,54 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 
 	if val, ok := filter.Filters.Int64("before_request_time"); ok && val != 0 {
 		p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, val)})
+	}
+
+	if vals, ok := filter.Filters.Strings("ip_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Eq{"ip_address": val})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Eq{"wb.host_address": val})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("ends_host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Like{"wb.host_address": fmt.Sprintf("%%%s", val)})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("starts_host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Like{"wb.host_address": fmt.Sprintf("%s%%", val)})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("load_ip_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Eq{"load_ip_address": val})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("load_host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Eq{"wb.load_host_address": val})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("ends_load_host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Like{"wb.load_host_address": fmt.Sprintf("%%%s", val)})
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings("starts_load_host_address"); ok && len(vals) > 0 {
+		for _, val := range vals {
+			p = p.Where(sq.Like{"wb.load_host_address": fmt.Sprintf("%s%%", val)})
+		}
 	}
 	return p
 }

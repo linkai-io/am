@@ -82,9 +82,27 @@ type ScanGroupAddressFilter struct {
 	Filters *FilterType `json:"filters"`
 }
 
+type ScanGroupAggregates struct {
+	Time  []int64 `json:"time"`
+	Count []int32 `json:"count"`
+}
+
+// ScanGroupAddressStats general statistics for scan group addresses
+type ScanGroupAddressStats struct {
+	OrgID          int                             `json:"org_id"`
+	GroupID        int                             `json:"group_id"`
+	DiscoveredBy   map[string]int32                `json:"discovered_by"`
+	Aggregates     map[string]*ScanGroupAggregates `json:"aggregates"`
+	Total          int32                           `json:"total"`
+	ConfidentTotal int32                           `json:"confident_total"`
+}
+
+// AddressService manages all asset data
 type AddressService interface {
 	Init(config []byte) error
 	Get(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, addresses []*ScanGroupAddress, err error)
+	OrgStats(ctx context.Context, userContext UserContext) (oid int, orgStats []*ScanGroupAddressStats, err error)
+	GroupStats(ctx context.Context, userContext UserContext, groupID int) (oid int, groupStats *ScanGroupAddressStats, err error)
 	GetHostList(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, hostList []*ScanGroupHostList, err error)
 	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
 	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)

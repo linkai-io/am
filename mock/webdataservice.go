@@ -24,6 +24,12 @@ type WebDataService struct {
 
 	GetURLListFn      func(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error)
 	GetURLListInvoked bool
+
+	OrgStatsFn      func(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupWebDataStats, error)
+	OrgStatsInvoked bool
+
+	GroupStatsFn      func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupWebDataStats, error)
+	GroupStatsInvoked bool
 }
 
 func (s *WebDataService) Init(config []byte) error {
@@ -53,4 +59,14 @@ func (s *WebDataService) GetSnapshots(ctx context.Context, userContext am.UserCo
 func (s *WebDataService) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
 	s.GetURLListInvoked = true
 	return s.GetURLListFn(ctx, userContext, filter)
+}
+
+func (c *WebDataService) OrgStats(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupWebDataStats, error) {
+	c.OrgStatsInvoked = true
+	return c.OrgStatsFn(ctx, userContext)
+}
+
+func (c *WebDataService) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupWebDataStats, error) {
+	c.GroupStatsInvoked = true
+	return c.GroupStatsFn(ctx, userContext, groupID)
 }

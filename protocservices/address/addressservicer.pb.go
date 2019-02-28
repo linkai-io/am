@@ -38,7 +38,7 @@ func (m *AddressesRequest) Reset()         { *m = AddressesRequest{} }
 func (m *AddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*AddressesRequest) ProtoMessage()    {}
 func (*AddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{0}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{0}
 }
 func (m *AddressesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -93,7 +93,7 @@ func (m *AddressesResponse) Reset()         { *m = AddressesResponse{} }
 func (m *AddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*AddressesResponse) ProtoMessage()    {}
 func (*AddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{1}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{1}
 }
 func (m *AddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -148,7 +148,7 @@ func (m *HostListRequest) Reset()         { *m = HostListRequest{} }
 func (m *HostListRequest) String() string { return proto.CompactTextString(m) }
 func (*HostListRequest) ProtoMessage()    {}
 func (*HostListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{2}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{2}
 }
 func (m *HostListRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -203,7 +203,7 @@ func (m *HostListResponse) Reset()         { *m = HostListResponse{} }
 func (m *HostListResponse) String() string { return proto.CompactTextString(m) }
 func (*HostListResponse) ProtoMessage()    {}
 func (*HostListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{3}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{3}
 }
 func (m *HostListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -246,6 +246,218 @@ func (m *HostListResponse) GetHostList() *prototypes.HostListData {
 	return nil
 }
 
+type OrgStatsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *OrgStatsRequest) Reset()         { *m = OrgStatsRequest{} }
+func (m *OrgStatsRequest) String() string { return proto.CompactTextString(m) }
+func (*OrgStatsRequest) ProtoMessage()    {}
+func (*OrgStatsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{4}
+}
+func (m *OrgStatsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *OrgStatsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_OrgStatsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *OrgStatsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrgStatsRequest.Merge(dst, src)
+}
+func (m *OrgStatsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *OrgStatsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrgStatsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrgStatsRequest proto.InternalMessageInfo
+
+func (m *OrgStatsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type OrgStatsResponse struct {
+	OrgID                int32                               `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupStats           []*prototypes.ScanGroupAddressStats `protobuf:"bytes,2,rep,name=GroupStats" json:"GroupStats,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                            `json:"-"`
+	XXX_unrecognized     []byte                              `json:"-"`
+	XXX_sizecache        int32                               `json:"-"`
+}
+
+func (m *OrgStatsResponse) Reset()         { *m = OrgStatsResponse{} }
+func (m *OrgStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*OrgStatsResponse) ProtoMessage()    {}
+func (*OrgStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{5}
+}
+func (m *OrgStatsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *OrgStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_OrgStatsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *OrgStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OrgStatsResponse.Merge(dst, src)
+}
+func (m *OrgStatsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *OrgStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_OrgStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OrgStatsResponse proto.InternalMessageInfo
+
+func (m *OrgStatsResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *OrgStatsResponse) GetGroupStats() []*prototypes.ScanGroupAddressStats {
+	if m != nil {
+		return m.GroupStats
+	}
+	return nil
+}
+
+type GroupStatsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	GroupID              int32                   `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GroupStatsRequest) Reset()         { *m = GroupStatsRequest{} }
+func (m *GroupStatsRequest) String() string { return proto.CompactTextString(m) }
+func (*GroupStatsRequest) ProtoMessage()    {}
+func (*GroupStatsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{6}
+}
+func (m *GroupStatsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupStatsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupStatsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GroupStatsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupStatsRequest.Merge(dst, src)
+}
+func (m *GroupStatsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupStatsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupStatsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupStatsRequest proto.InternalMessageInfo
+
+func (m *GroupStatsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *GroupStatsRequest) GetGroupID() int32 {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+type GroupStatsResponse struct {
+	OrgID                int32                             `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	GroupStats           *prototypes.ScanGroupAddressStats `protobuf:"bytes,2,opt,name=GroupStats" json:"GroupStats,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *GroupStatsResponse) Reset()         { *m = GroupStatsResponse{} }
+func (m *GroupStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*GroupStatsResponse) ProtoMessage()    {}
+func (*GroupStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{7}
+}
+func (m *GroupStatsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupStatsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GroupStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupStatsResponse.Merge(dst, src)
+}
+func (m *GroupStatsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupStatsResponse proto.InternalMessageInfo
+
+func (m *GroupStatsResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GroupStatsResponse) GetGroupStats() *prototypes.ScanGroupAddressStats {
+	if m != nil {
+		return m.GroupStats
+	}
+	return nil
+}
+
 type CountAddressesRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	GroupID              int32                   `protobuf:"varint,2,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
@@ -258,7 +470,7 @@ func (m *CountAddressesRequest) Reset()         { *m = CountAddressesRequest{} }
 func (m *CountAddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*CountAddressesRequest) ProtoMessage()    {}
 func (*CountAddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{4}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{8}
 }
 func (m *CountAddressesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -314,7 +526,7 @@ func (m *CountAddressesResponse) Reset()         { *m = CountAddressesResponse{}
 func (m *CountAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*CountAddressesResponse) ProtoMessage()    {}
 func (*CountAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{5}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{9}
 }
 func (m *CountAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -376,7 +588,7 @@ func (m *UpdateAddressRequest) Reset()         { *m = UpdateAddressRequest{} }
 func (m *UpdateAddressRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateAddressRequest) ProtoMessage()    {}
 func (*UpdateAddressRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{6}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{10}
 }
 func (m *UpdateAddressRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -431,7 +643,7 @@ func (m *UpdateAddressesResponse) Reset()         { *m = UpdateAddressesResponse
 func (m *UpdateAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateAddressesResponse) ProtoMessage()    {}
 func (*UpdateAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{7}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{11}
 }
 func (m *UpdateAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -487,7 +699,7 @@ func (m *DeleteAddressesRequest) Reset()         { *m = DeleteAddressesRequest{}
 func (m *DeleteAddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteAddressesRequest) ProtoMessage()    {}
 func (*DeleteAddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{8}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{12}
 }
 func (m *DeleteAddressesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -548,7 +760,7 @@ func (m *DeleteAddressesResponse) Reset()         { *m = DeleteAddressesResponse
 func (m *DeleteAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteAddressesResponse) ProtoMessage()    {}
 func (*DeleteAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{9}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{13}
 }
 func (m *DeleteAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -598,7 +810,7 @@ func (m *IgnoreAddressesRequest) Reset()         { *m = IgnoreAddressesRequest{}
 func (m *IgnoreAddressesRequest) String() string { return proto.CompactTextString(m) }
 func (*IgnoreAddressesRequest) ProtoMessage()    {}
 func (*IgnoreAddressesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{10}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{14}
 }
 func (m *IgnoreAddressesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -666,7 +878,7 @@ func (m *IgnoreAddressesResponse) Reset()         { *m = IgnoreAddressesResponse
 func (m *IgnoreAddressesResponse) String() string { return proto.CompactTextString(m) }
 func (*IgnoreAddressesResponse) ProtoMessage()    {}
 func (*IgnoreAddressesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_addressservicer_678642a498bf4869, []int{11}
+	return fileDescriptor_addressservicer_a021f99066ddcb88, []int{15}
 }
 func (m *IgnoreAddressesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -707,6 +919,10 @@ func init() {
 	proto.RegisterType((*AddressesResponse)(nil), "address.AddressesResponse")
 	proto.RegisterType((*HostListRequest)(nil), "address.HostListRequest")
 	proto.RegisterType((*HostListResponse)(nil), "address.HostListResponse")
+	proto.RegisterType((*OrgStatsRequest)(nil), "address.OrgStatsRequest")
+	proto.RegisterType((*OrgStatsResponse)(nil), "address.OrgStatsResponse")
+	proto.RegisterType((*GroupStatsRequest)(nil), "address.GroupStatsRequest")
+	proto.RegisterType((*GroupStatsResponse)(nil), "address.GroupStatsResponse")
 	proto.RegisterType((*CountAddressesRequest)(nil), "address.CountAddressesRequest")
 	proto.RegisterType((*CountAddressesResponse)(nil), "address.CountAddressesResponse")
 	proto.RegisterType((*UpdateAddressRequest)(nil), "address.UpdateAddressRequest")
@@ -732,6 +948,8 @@ const _ = grpc.SupportPackageIsVersion4
 type AddressClient interface {
 	Get(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (Address_GetClient, error)
 	GetHostList(ctx context.Context, in *HostListRequest, opts ...grpc.CallOption) (Address_GetHostListClient, error)
+	OrgStats(ctx context.Context, in *OrgStatsRequest, opts ...grpc.CallOption) (*OrgStatsResponse, error)
+	GroupStats(ctx context.Context, in *GroupStatsRequest, opts ...grpc.CallOption) (*GroupStatsResponse, error)
 	Update(ctx context.Context, in *UpdateAddressRequest, opts ...grpc.CallOption) (*UpdateAddressesResponse, error)
 	Delete(ctx context.Context, in *DeleteAddressesRequest, opts ...grpc.CallOption) (*DeleteAddressesResponse, error)
 	Ignore(ctx context.Context, in *IgnoreAddressesRequest, opts ...grpc.CallOption) (*IgnoreAddressesResponse, error)
@@ -810,6 +1028,24 @@ func (x *addressGetHostListClient) Recv() (*HostListResponse, error) {
 	return m, nil
 }
 
+func (c *addressClient) OrgStats(ctx context.Context, in *OrgStatsRequest, opts ...grpc.CallOption) (*OrgStatsResponse, error) {
+	out := new(OrgStatsResponse)
+	err := c.cc.Invoke(ctx, "/address.Address/OrgStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *addressClient) GroupStats(ctx context.Context, in *GroupStatsRequest, opts ...grpc.CallOption) (*GroupStatsResponse, error) {
+	out := new(GroupStatsResponse)
+	err := c.cc.Invoke(ctx, "/address.Address/GroupStats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *addressClient) Update(ctx context.Context, in *UpdateAddressRequest, opts ...grpc.CallOption) (*UpdateAddressesResponse, error) {
 	out := new(UpdateAddressesResponse)
 	err := c.cc.Invoke(ctx, "/address.Address/Update", in, out, opts...)
@@ -850,6 +1086,8 @@ func (c *addressClient) Count(ctx context.Context, in *CountAddressesRequest, op
 type AddressServer interface {
 	Get(*AddressesRequest, Address_GetServer) error
 	GetHostList(*HostListRequest, Address_GetHostListServer) error
+	OrgStats(context.Context, *OrgStatsRequest) (*OrgStatsResponse, error)
+	GroupStats(context.Context, *GroupStatsRequest) (*GroupStatsResponse, error)
 	Update(context.Context, *UpdateAddressRequest) (*UpdateAddressesResponse, error)
 	Delete(context.Context, *DeleteAddressesRequest) (*DeleteAddressesResponse, error)
 	Ignore(context.Context, *IgnoreAddressesRequest) (*IgnoreAddressesResponse, error)
@@ -900,6 +1138,42 @@ type addressGetHostListServer struct {
 
 func (x *addressGetHostListServer) Send(m *HostListResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _Address_OrgStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrgStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AddressServer).OrgStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/address.Address/OrgStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AddressServer).OrgStats(ctx, req.(*OrgStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Address_GroupStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GroupStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AddressServer).GroupStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/address.Address/GroupStats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AddressServer).GroupStats(ctx, req.(*GroupStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Address_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -978,6 +1252,14 @@ var _Address_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "address.Address",
 	HandlerType: (*AddressServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "OrgStats",
+			Handler:    _Address_OrgStats_Handler,
+		},
+		{
+			MethodName: "GroupStats",
+			Handler:    _Address_GroupStats_Handler,
+		},
 		{
 			MethodName: "Update",
 			Handler:    _Address_Update_Handler,
@@ -1164,6 +1446,147 @@ func (m *HostListResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *OrgStatsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *OrgStatsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n7, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *OrgStatsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *OrgStatsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if len(m.GroupStats) > 0 {
+		for _, msg := range m.GroupStats {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintAddressservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GroupStatsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupStatsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n8, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n8
+	}
+	if m.GroupID != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.GroupID))
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GroupStatsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupStatsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.GroupStats != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintAddressservicer(dAtA, i, uint64(m.GroupStats.Size()))
+		n9, err := m.GroupStats.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n9
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
 func (m *CountAddressesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1183,11 +1606,11 @@ func (m *CountAddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n7, err := m.UserContext.MarshalTo(dAtA[i:])
+		n10, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n7
+		i += n10
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -1255,11 +1678,11 @@ func (m *UpdateAddressRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n8, err := m.UserContext.MarshalTo(dAtA[i:])
+		n11, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n8
+		i += n11
 	}
 	if len(m.Address) > 0 {
 		for k, _ := range m.Address {
@@ -1281,11 +1704,11 @@ func (m *UpdateAddressRequest) MarshalTo(dAtA []byte) (int, error) {
 				dAtA[i] = 0x12
 				i++
 				i = encodeVarintAddressservicer(dAtA, i, uint64(v.Size()))
-				n9, err := v.MarshalTo(dAtA[i:])
+				n12, err := v.MarshalTo(dAtA[i:])
 				if err != nil {
 					return 0, err
 				}
-				i += n9
+				i += n12
 			}
 		}
 	}
@@ -1345,11 +1768,11 @@ func (m *DeleteAddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n10, err := m.UserContext.MarshalTo(dAtA[i:])
+		n13, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n10
+		i += n13
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -1357,22 +1780,22 @@ func (m *DeleteAddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.GroupID))
 	}
 	if len(m.AddressIDs) > 0 {
-		dAtA12 := make([]byte, len(m.AddressIDs)*10)
-		var j11 int
+		dAtA15 := make([]byte, len(m.AddressIDs)*10)
+		var j14 int
 		for _, num1 := range m.AddressIDs {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA12[j11] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA15[j14] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j11++
+				j14++
 			}
-			dAtA12[j11] = uint8(num)
-			j11++
+			dAtA15[j14] = uint8(num)
+			j14++
 		}
 		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintAddressservicer(dAtA, i, uint64(j11))
-		i += copy(dAtA[i:], dAtA12[:j11])
+		i = encodeVarintAddressservicer(dAtA, i, uint64(j14))
+		i += copy(dAtA[i:], dAtA15[:j14])
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -1425,11 +1848,11 @@ func (m *IgnoreAddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n13, err := m.UserContext.MarshalTo(dAtA[i:])
+		n16, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n13
+		i += n16
 	}
 	if m.GroupID != 0 {
 		dAtA[i] = 0x10
@@ -1437,22 +1860,22 @@ func (m *IgnoreAddressesRequest) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintAddressservicer(dAtA, i, uint64(m.GroupID))
 	}
 	if len(m.AddressIDs) > 0 {
-		dAtA15 := make([]byte, len(m.AddressIDs)*10)
-		var j14 int
+		dAtA18 := make([]byte, len(m.AddressIDs)*10)
+		var j17 int
 		for _, num1 := range m.AddressIDs {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA15[j14] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA18[j17] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j14++
+				j17++
 			}
-			dAtA15[j14] = uint8(num)
-			j14++
+			dAtA18[j17] = uint8(num)
+			j17++
 		}
 		dAtA[i] = 0x1a
 		i++
-		i = encodeVarintAddressservicer(dAtA, i, uint64(j14))
-		i += copy(dAtA[i:], dAtA15[:j14])
+		i = encodeVarintAddressservicer(dAtA, i, uint64(j17))
+		i += copy(dAtA[i:], dAtA18[:j17])
 	}
 	if m.IgnoreValue {
 		dAtA[i] = 0x20
@@ -1575,6 +1998,81 @@ func (m *HostListResponse) Size() (n int) {
 	}
 	if m.HostList != nil {
 		l = m.HostList.Size()
+		n += 1 + l + sovAddressservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *OrgStatsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovAddressservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *OrgStatsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovAddressservicer(uint64(m.OrgID))
+	}
+	if len(m.GroupStats) > 0 {
+		for _, e := range m.GroupStats {
+			l = e.Size()
+			n += 1 + l + sovAddressservicer(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GroupStatsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovAddressservicer(uint64(l))
+	}
+	if m.GroupID != 0 {
+		n += 1 + sovAddressservicer(uint64(m.GroupID))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GroupStatsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovAddressservicer(uint64(m.OrgID))
+	}
+	if m.GroupStats != nil {
+		l = m.GroupStats.Size()
 		n += 1 + l + sovAddressservicer(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -2183,6 +2681,397 @@ func (m *HostListResponse) Unmarshal(dAtA []byte) error {
 				m.HostList = &prototypes.HostListData{}
 			}
 			if err := m.HostList.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAddressservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *OrgStatsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAddressservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: OrgStatsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: OrgStatsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAddressservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *OrgStatsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAddressservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: OrgStatsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: OrgStatsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupStats", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GroupStats = append(m.GroupStats, &prototypes.ScanGroupAddressStats{})
+			if err := m.GroupStats[len(m.GroupStats)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAddressservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupStatsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAddressservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupStatsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupStatsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			}
+			m.GroupID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GroupID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAddressservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupStatsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAddressservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupStatsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupStatsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupStats", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAddressservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAddressservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.GroupStats == nil {
+				m.GroupStats = &prototypes.ScanGroupAddressStats{}
+			}
+			if err := m.GroupStats.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3333,47 +4222,52 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("address/addressservicer.proto", fileDescriptor_addressservicer_678642a498bf4869)
+	proto.RegisterFile("address/addressservicer.proto", fileDescriptor_addressservicer_a021f99066ddcb88)
 }
 
-var fileDescriptor_addressservicer_678642a498bf4869 = []byte{
-	// 596 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x55, 0xcd, 0x6e, 0xd3, 0x40,
-	0x18, 0x64, 0x63, 0x92, 0xb6, 0x5f, 0x02, 0x84, 0x55, 0x9b, 0xba, 0x96, 0xea, 0x5a, 0x3e, 0xa0,
-	0x50, 0x09, 0x1b, 0x85, 0x0b, 0xe2, 0x80, 0x80, 0xba, 0x24, 0x51, 0x91, 0x90, 0x8c, 0xc2, 0x81,
-	0x03, 0x92, 0x9b, 0xac, 0x82, 0x69, 0x6a, 0x07, 0xef, 0xba, 0x22, 0x57, 0x9e, 0x82, 0x07, 0xe0,
-	0x39, 0x38, 0x73, 0xe4, 0xc4, 0x19, 0x85, 0x17, 0x41, 0xd9, 0x5d, 0xbb, 0xdb, 0xd4, 0x31, 0x12,
-	0x3f, 0xe2, 0x94, 0xec, 0x37, 0xe3, 0xf9, 0x76, 0xf6, 0x1b, 0x7b, 0x61, 0x37, 0x18, 0x8d, 0x12,
-	0x42, 0xa9, 0x2b, 0x7f, 0x29, 0x49, 0xce, 0xc2, 0x21, 0x49, 0x9c, 0x69, 0x12, 0xb3, 0x18, 0xaf,
-	0xc9, 0xb2, 0xb1, 0xc5, 0xd7, 0x6c, 0x36, 0x25, 0xd4, 0x4d, 0x69, 0x86, 0x1b, 0xba, 0x52, 0x96,
-	0x54, 0x81, 0xd8, 0x6f, 0xa1, 0xf9, 0x58, 0x14, 0x08, 0xf5, 0xc9, 0xbb, 0x94, 0x50, 0x86, 0x1d,
-	0xa8, 0x0f, 0x28, 0x49, 0x0e, 0xe2, 0x88, 0x91, 0xf7, 0x4c, 0x47, 0x16, 0x6a, 0xd7, 0x3b, 0x0d,
-	0x47, 0xa9, 0xf9, 0x2a, 0x01, 0xdf, 0x82, 0xda, 0xd3, 0x70, 0xc2, 0x48, 0xa2, 0x57, 0x38, 0xf5,
-	0xba, 0x23, 0x25, 0x45, 0xd5, 0x97, 0xa8, 0x3d, 0x80, 0x9b, 0x4a, 0x2f, 0x3a, 0x8d, 0x23, 0x4a,
-	0xf0, 0x26, 0x54, 0x9f, 0x27, 0xe3, 0xbe, 0xc7, 0xdb, 0x54, 0x7d, 0xb1, 0xc0, 0xfb, 0xb0, 0x91,
-	0x53, 0xa5, 0x6a, 0x23, 0x53, 0xf5, 0x02, 0x16, 0xf8, 0xe7, 0xb0, 0x1d, 0xc2, 0x8d, 0x5e, 0x4c,
-	0xd9, 0xb3, 0x90, 0xb2, 0x7f, 0xed, 0xe0, 0x05, 0x34, 0xcf, 0x5b, 0x95, 0x1a, 0xb8, 0x0d, 0xeb,
-	0x19, 0x53, 0x6a, 0x5e, 0x73, 0xb2, 0x02, 0x37, 0x90, 0xc3, 0x76, 0x00, 0x5b, 0x07, 0x71, 0x1a,
-	0xb1, 0x3f, 0x9e, 0x83, 0x0e, 0x6b, 0xdd, 0x24, 0x4e, 0xa7, 0x7d, 0x8f, 0xb7, 0xac, 0xfa, 0xd9,
-	0xd2, 0x7e, 0x0d, 0xad, 0xe5, 0x16, 0xa5, 0xbb, 0x5f, 0xa9, 0xb4, 0xe0, 0x73, 0x25, 0x5d, 0x13,
-	0x7c, 0xbe, 0xb0, 0xbf, 0x21, 0xd8, 0x1c, 0x4c, 0x47, 0x01, 0x23, 0xb2, 0xc3, 0xef, 0x5a, 0xf0,
-	0x60, 0x4d, 0x2a, 0xe8, 0x15, 0x4b, 0x6b, 0xd7, 0x3b, 0xfb, 0x4e, 0x96, 0xd7, 0x22, 0xfd, 0x6c,
-	0x4c, 0x87, 0x11, 0x4b, 0x66, 0x7e, 0xf6, 0xa8, 0xd1, 0x83, 0x86, 0x0a, 0xe0, 0x26, 0x68, 0x27,
-	0x64, 0xc6, 0xbb, 0x6f, 0xf8, 0x8b, 0xbf, 0xd8, 0x86, 0xea, 0x59, 0x30, 0x49, 0x49, 0x61, 0xb6,
-	0x04, 0xf4, 0xa0, 0x72, 0x1f, 0xd9, 0x87, 0xb0, 0x7d, 0xa1, 0xef, 0x2f, 0x4f, 0x2e, 0x3f, 0x9f,
-	0x8a, 0x7a, 0x3e, 0x1f, 0x10, 0xb4, 0x3c, 0x32, 0x21, 0x17, 0x74, 0xfe, 0xf2, 0x90, 0xb1, 0x09,
-	0x20, 0xd5, 0xfb, 0x1e, 0xd5, 0x35, 0x4b, 0x6b, 0x6b, 0xbe, 0x52, 0xb1, 0x5d, 0xd8, 0xbe, 0xb4,
-	0x87, 0x32, 0x2f, 0xf6, 0x27, 0x04, 0xad, 0xfe, 0x38, 0x8a, 0x93, 0xff, 0xb8, 0x6b, 0x6c, 0x41,
-	0x5d, 0xec, 0xe1, 0x25, 0x9f, 0xd7, 0x55, 0x0b, 0xb5, 0xd7, 0x7d, 0xb5, 0xb4, 0xf0, 0x75, 0x69,
-	0x97, 0x65, 0xbe, 0x3a, 0x9f, 0xb5, 0x3c, 0x65, 0xf8, 0x21, 0x68, 0x5d, 0xc2, 0xf0, 0x4e, 0x1e,
-	0xb3, 0x65, 0xab, 0x86, 0x51, 0x04, 0x09, 0xfd, 0xbb, 0x08, 0x7b, 0x50, 0xef, 0x12, 0x96, 0xbd,
-	0xcb, 0x58, 0xcf, 0xc9, 0x4b, 0x9f, 0x24, 0x63, 0xa7, 0x00, 0xc9, 0x55, 0xfa, 0x50, 0x13, 0x31,
-	0xc3, 0xbb, 0xa5, 0x79, 0x37, 0xac, 0x62, 0x58, 0xb1, 0x7c, 0x04, 0x35, 0x31, 0x65, 0xbc, 0x97,
-	0x73, 0x8b, 0xa3, 0xa7, 0x88, 0xad, 0xca, 0xc5, 0x11, 0xd4, 0xc4, 0xd1, 0x2a, 0x62, 0xc5, 0x89,
-	0x50, 0xc4, 0x56, 0x0d, 0xa3, 0x27, 0x5f, 0x0d, 0x6c, 0xe6, 0xd4, 0xc2, 0xef, 0x9e, 0xb1, 0xb7,
-	0x12, 0x17, 0x4a, 0x4f, 0x1e, 0x7d, 0x99, 0x9b, 0xe8, 0xeb, 0xdc, 0x44, 0xdf, 0xe7, 0x26, 0xfa,
-	0xf8, 0xc3, 0xbc, 0xf2, 0xca, 0x19, 0x87, 0xec, 0x4d, 0x7a, 0xec, 0x0c, 0xe3, 0x53, 0x77, 0x12,
-	0x46, 0x27, 0x41, 0x78, 0x27, 0x8c, 0xdd, 0xe0, 0xd4, 0xe5, 0xb7, 0xdc, 0x50, 0x5e, 0x97, 0xf9,
-	0xe5, 0x77, 0x5c, 0xe3, 0xf5, 0x7b, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xe4, 0xc0, 0x59, 0xbf,
-	0x58, 0x07, 0x00, 0x00,
+var fileDescriptor_addressservicer_a021f99066ddcb88 = []byte{
+	// 685 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0x41, 0x4f, 0x13, 0x41,
+	0x14, 0x76, 0xba, 0xb4, 0xc0, 0x2b, 0x4a, 0x99, 0x40, 0x59, 0xd6, 0x50, 0x9a, 0x39, 0x98, 0x4a,
+	0xe2, 0xae, 0xc1, 0xc4, 0x18, 0x0f, 0x2a, 0xb2, 0x08, 0x0d, 0x26, 0x24, 0x4b, 0xf0, 0x60, 0xa2,
+	0x71, 0x29, 0x93, 0xba, 0x52, 0x76, 0xeb, 0xce, 0x2c, 0x91, 0xab, 0xbf, 0xc2, 0x1f, 0xe0, 0x6f,
+	0x31, 0x1e, 0x3d, 0x79, 0x36, 0xf8, 0x47, 0x0c, 0x33, 0xb3, 0xdb, 0xa1, 0xdd, 0xae, 0x8a, 0x1a,
+	0x4f, 0x30, 0xef, 0xfb, 0xfa, 0xbd, 0xf7, 0xbd, 0x79, 0xf3, 0xb2, 0xb0, 0xec, 0x1f, 0x1e, 0xc6,
+	0x94, 0x31, 0x47, 0xfd, 0x65, 0x34, 0x3e, 0x09, 0x3a, 0x34, 0xb6, 0xfb, 0x71, 0xc4, 0x23, 0x3c,
+	0xa9, 0xc2, 0xd6, 0x82, 0x38, 0xf3, 0xd3, 0x3e, 0x65, 0x4e, 0xc2, 0x52, 0xdc, 0x32, 0xb5, 0xb0,
+	0xa2, 0x4a, 0x84, 0xbc, 0x81, 0xda, 0xba, 0x0c, 0x50, 0xe6, 0xd1, 0xb7, 0x09, 0x65, 0x1c, 0xdb,
+	0x50, 0xdd, 0x67, 0x34, 0xde, 0x88, 0x42, 0x4e, 0xdf, 0x71, 0x13, 0x35, 0x51, 0xab, 0xba, 0x36,
+	0x63, 0x6b, 0x31, 0x4f, 0x27, 0xe0, 0x1b, 0x50, 0x79, 0x12, 0xf4, 0x38, 0x8d, 0xcd, 0x92, 0xa0,
+	0x5e, 0xb3, 0x95, 0xa4, 0x8c, 0x7a, 0x0a, 0x25, 0xfb, 0x30, 0xa7, 0xe5, 0x62, 0xfd, 0x28, 0x64,
+	0x14, 0xcf, 0x43, 0x79, 0x37, 0xee, 0xb6, 0x5d, 0x91, 0xa6, 0xec, 0xc9, 0x03, 0x5e, 0x85, 0xe9,
+	0x8c, 0xaa, 0x54, 0x67, 0x52, 0x55, 0xd7, 0xe7, 0xbe, 0x37, 0x80, 0x49, 0x00, 0xb3, 0xdb, 0x11,
+	0xe3, 0x4f, 0x03, 0xc6, 0xff, 0xb5, 0x83, 0x3d, 0xa8, 0x0d, 0x52, 0x15, 0x1a, 0xb8, 0x09, 0x53,
+	0x29, 0x53, 0x69, 0x5e, 0xb5, 0xd3, 0x80, 0x30, 0x90, 0xc1, 0x64, 0x1d, 0x66, 0x77, 0xe3, 0xee,
+	0x1e, 0xf7, 0xf9, 0x65, 0x6f, 0x80, 0xbc, 0x82, 0xda, 0x40, 0xa2, 0xb0, 0xae, 0xbb, 0x00, 0x5b,
+	0x71, 0x94, 0xf4, 0x05, 0xd7, 0x2c, 0x35, 0x8d, 0x56, 0x75, 0xad, 0x6e, 0xef, 0x75, 0xfc, 0x50,
+	0x84, 0x95, 0x6d, 0xa9, 0xa4, 0x31, 0xc9, 0x0b, 0x98, 0x1b, 0x9c, 0x2e, 0xdb, 0x66, 0x13, 0x26,
+	0x85, 0x48, 0xdb, 0x15, 0x3d, 0x29, 0x7b, 0xe9, 0x91, 0x1c, 0x00, 0xd6, 0xe5, 0x7f, 0xcb, 0x02,
+	0xfa, 0x45, 0x0b, 0x3e, 0x2c, 0x6c, 0x44, 0x49, 0xc8, 0xff, 0x78, 0xde, 0xc7, 0xdb, 0x78, 0x09,
+	0xf5, 0xe1, 0x14, 0x85, 0x56, 0xc6, 0x2a, 0x9d, 0xf3, 0x85, 0x92, 0x69, 0x48, 0xbe, 0x38, 0x90,
+	0xaf, 0x08, 0xe6, 0xf7, 0xfb, 0x87, 0x3e, 0xa7, 0x2a, 0xc3, 0x65, 0x2d, 0xb8, 0x30, 0xa9, 0x14,
+	0xd4, 0x0c, 0xac, 0xda, 0xe9, 0x5e, 0xc8, 0xd3, 0x4f, 0x9f, 0xc3, 0x66, 0xc8, 0xe3, 0x53, 0x2f,
+	0xfd, 0xa9, 0xb5, 0x0d, 0x33, 0x3a, 0x80, 0x6b, 0x60, 0x1c, 0xd1, 0x53, 0x91, 0x7d, 0xda, 0x3b,
+	0xff, 0x17, 0x13, 0x28, 0x9f, 0xf8, 0xbd, 0x84, 0xe6, 0xbe, 0x61, 0x09, 0xdd, 0x2f, 0xdd, 0x43,
+	0x64, 0x13, 0x16, 0x2f, 0xe4, 0xfd, 0x69, 0xe7, 0xb2, 0xfe, 0x94, 0xf4, 0xfe, 0xbc, 0x47, 0x50,
+	0x77, 0x69, 0x8f, 0x5e, 0xd0, 0xf9, 0xcb, 0x97, 0x8c, 0x1b, 0x00, 0x4a, 0xbd, 0xed, 0x32, 0xd3,
+	0x68, 0x1a, 0x2d, 0xc3, 0xd3, 0x22, 0xc4, 0x81, 0xc5, 0x91, 0x1a, 0x8a, 0xbc, 0x90, 0x8f, 0x08,
+	0xea, 0xed, 0x6e, 0x18, 0xc5, 0xff, 0xb1, 0x6a, 0xdc, 0x84, 0xaa, 0xac, 0xe1, 0x99, 0xb8, 0xaf,
+	0x89, 0x26, 0x6a, 0x4d, 0x79, 0x7a, 0xe8, 0xdc, 0xd7, 0x48, 0x95, 0x45, 0xbe, 0xd6, 0x3e, 0x4d,
+	0x64, 0x53, 0x86, 0x1f, 0x80, 0xb1, 0x45, 0x39, 0x5e, 0xca, 0xc6, 0x6c, 0xd8, 0xaa, 0x65, 0xe5,
+	0x41, 0x52, 0xff, 0x36, 0xc2, 0x2e, 0x54, 0xb7, 0x28, 0x4f, 0x77, 0x26, 0x36, 0x33, 0xf2, 0xd0,
+	0xea, 0xb7, 0x96, 0x72, 0x90, 0x4c, 0xe5, 0x21, 0x4c, 0xa5, 0x7b, 0x52, 0x93, 0x18, 0xda, 0xbe,
+	0x9a, 0xc4, 0xc8, 0x52, 0xdd, 0xd4, 0x77, 0x0f, 0x1e, 0x94, 0x3c, 0xb2, 0x1b, 0xad, 0xeb, 0xb9,
+	0x98, 0x92, 0x69, 0x43, 0x45, 0x8e, 0x3b, 0x5e, 0x2e, 0x7c, 0x77, 0x56, 0x33, 0x1f, 0xd6, 0x5a,
+	0xbf, 0x03, 0x15, 0x39, 0x6d, 0x78, 0x25, 0xe3, 0xe6, 0x3f, 0x01, 0x4d, 0x6c, 0xdc, 0x7c, 0xee,
+	0x40, 0x45, 0x5e, 0xb1, 0x26, 0x96, 0x3f, 0x99, 0x9a, 0xd8, 0xb8, 0xa1, 0xd8, 0x56, 0x4f, 0x14,
+	0x37, 0x32, 0x6a, 0xee, 0xfe, 0xb5, 0x56, 0xc6, 0xe2, 0x52, 0xe9, 0xf1, 0xa3, 0xcf, 0x67, 0x0d,
+	0xf4, 0xe5, 0xac, 0x81, 0xbe, 0x9d, 0x35, 0xd0, 0x87, 0xef, 0x8d, 0x2b, 0xcf, 0xed, 0x6e, 0xc0,
+	0x5f, 0x27, 0x07, 0x76, 0x27, 0x3a, 0x76, 0x7a, 0x41, 0x78, 0xe4, 0x07, 0xb7, 0x82, 0xc8, 0xf1,
+	0x8f, 0x1d, 0xf1, 0x55, 0xd3, 0x51, 0x9f, 0x47, 0xd9, 0xc7, 0xce, 0x41, 0x45, 0xc4, 0xef, 0xfc,
+	0x08, 0x00, 0x00, 0xff, 0xff, 0x91, 0xba, 0x9a, 0xb2, 0x48, 0x09, 0x00, 0x00,
 }

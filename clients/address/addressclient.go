@@ -130,6 +130,54 @@ func (c *Client) GetHostList(ctx context.Context, userContext am.UserContext, fi
 	return oid, hosts, nil
 }
 
+func (c *Client) OrgStats(ctx context.Context, userContext am.UserContext) (oid int, orgStats []*am.ScanGroupAddressStats, err error) {
+	var resp *service.OrgStatsResponse
+	oid = userContext.GetOrgID()
+
+	in := &service.OrgStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.OrgStats(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get address org stats from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.GetOrgID()), convert.ScanGroupsAddressStatsToDomain(resp.GetGroupStats()), nil
+}
+
+func (c *Client) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (oid int, groupStats *am.ScanGroupAddressStats, err error) {
+	var resp *service.GroupStatsResponse
+	oid = userContext.GetOrgID()
+
+	in := &service.GroupStatsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GroupStats(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get address group stats from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(resp.GetOrgID()), convert.ScanGroupAddressStatsToDomain(resp.GetGroupStats()), nil
+}
+
 func (c *Client) Update(ctx context.Context, userContext am.UserContext, addresses map[string]*am.ScanGroupAddress) (oid int, count int, err error) {
 	var resp *service.UpdateAddressesResponse
 
