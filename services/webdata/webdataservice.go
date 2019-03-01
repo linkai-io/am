@@ -99,7 +99,7 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 	defer rows.Close()
 	for rows.Next() {
 		stat := &am.ScanGroupWebDataStats{}
-		var server string
+		var server *string
 		var count int32
 		var groupID int
 		var ok bool
@@ -114,7 +114,10 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		}
 		stat.GroupID = groupID
 		stat.OrgID = userContext.GetOrgID()
-		stat.ServerTypes[server] += count
+		if server == nil {
+			continue
+		}
+		stat.ServerTypes[*server] += count
 		stat.UniqueWebServers += count // add the total of server types (since they are unique host/port)
 	}
 	log.Info().Msgf("%#v\n", stats)

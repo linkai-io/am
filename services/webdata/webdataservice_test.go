@@ -161,6 +161,17 @@ func TestOrgStats(t *testing.T) {
 		t.Fatalf("unique server did not match")
 	}
 
+	// add with nil server header
+	web := testCreateWebData(org, address, "test.com", "1.1.1.1")
+	if _, err := service.Add(ctx, org.UserContext, web); err != nil {
+		t.Fatalf("error adding web data")
+	}
+
+	_, stats, err = service.OrgStats(ctx, org.UserContext)
+	if err != nil {
+		t.Fatalf("error getting stats with nil server header %v\n", err)
+	}
+
 }
 
 func TestGetSnapshots(t *testing.T) {
