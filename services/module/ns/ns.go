@@ -87,12 +87,23 @@ func (ns *NS) debug() {
 // TODO: add error if shutting down so dispatcher can retry
 func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	ctx = module.DefaultLogger(ctx, userContext, address)
+	nsCfg := module.DefaultNSConfig()
 
 	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
 	if !ns.shouldAnalyze(address) {
 		log.Ctx(ctx).Info().Msg("will not analyze")
 		return address, nsRecords, nil
+	}
+
+	if group, err := ns.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to find group id in cache, using default settings")
+	} else {
+		if group.Paused || group.Deleted {
+			log.Ctx(ctx).Info().Msg("not analyzing since group was paused/deleted")
+			return address, nsRecords, nil
+		}
+		nsCfg = group.ModuleConfigurations.NSModule
 	}
 
 	log.Ctx(ctx).Info().Msg("will analyze host")
@@ -121,7 +132,7 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	if ok {
 		log.Ctx(ctx).Info().Msg("will analyze zone")
-		zoneRecords := ns.analyzeZone(ctx, etld, address)
+		zoneRecords := ns.analyzeZone(ctx, nsCfg, etld, address)
 		log.Ctx(ctx).Info().Int("zone_records", len(zoneRecords)).Str("etld", etld).Msg("got records")
 		module.AddAddressToMap(nsRecords, zoneRecords)
 	}
@@ -145,7 +156,7 @@ func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
 }
 
 // analyzeZone looks up various supporting records for a zone (mx/ns/axfr)
-func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
+func (ns *NS) analyzeZone(ctx context.Context, nsCfg *am.NSModuleConfig, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
 
 	log.Ctx(ctx).Info().Msg("will analyze mx")
@@ -164,6 +175,28 @@ func (ns *NS) analyzeZone(ctx context.Context, zone string, address *am.ScanGrou
 			nsData = append(nsData, newAddress)
 		}
 	}
+
+	log.Ctx(ctx).Info().Msg("will analyze nsec")
+	// allow up to 5 minutes for walking
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Minute*5)
+	defer cancel()
+
+	if nsecNames, err := ns.dc.DoNSECWalk(timeoutCtx, zone); err == nil && len(nsecNames) > 0 {
+		newAddresses := module.ResolveNewAddresses(ctx, ns.dc, &module.ResolverData{
+			Address:           address,
+			RequestsPerSecond: int(nsCfg.RequestsPerSecond),
+			NewAddresses:      nsecNames,
+			DiscoveryMethod:   am.DiscoveryNSSECWalk,
+			Cache:             ns.groupCache,
+		})
+
+		for _, newAddr := range newAddresses {
+			nsData = append(nsData, newAddr)
+		}
+	} else if err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to complete nsec walk")
+	}
+
 	log.Ctx(ctx).Info().Msg("will analyze axfr")
 	axfr, err := ns.dc.DoAXFR(ctx, zone)
 	if err != nil {

@@ -44,9 +44,55 @@ func New(servers []string, retry int) *Client {
 	return c
 }
 
-// DoNSECWalk TODO implement
-func (c *Client) DoNSECWalk(ctx context.Context, domain string) {
+// DoNSECWalk walks NSEC records, following NextDomain until it's empty, or points back to the original
+// starting address.
+func (c *Client) DoNSECWalk(ctx context.Context, domain string) (map[string]struct{}, error) {
+	next := domain
+	//original := domain
+	nsecRecords := make(map[string]struct{}, 0)
+	for {
+		resp, err := c.resolveDomainNSEC(ctx, next)
+		if err != nil || resp == nil {
+			log.Info().Err(err).Msg("nsec")
+			break
+		}
 
+		next = parsers.FQDNTrim(resp.NextDomain)
+		if resp.NextDomain == "" || next == domain {
+			log.Info().Msgf("walk completed")
+			break
+		}
+		nsecRecords[next] = struct{}{}
+		log.Info().Str("next", next).Msg("nsec next found")
+	}
+	return nsecRecords, nil
+}
+
+func (c *Client) resolveDomainNSEC(ctx context.Context, domain string) (*dns.NSEC, error) {
+	var answer *dns.NSEC
+	var in *dns.Msg
+	var err error
+	msg := new(dns.Msg)
+	msg.SetQuestion(dns.Fqdn(domain), dns.TypeNSEC)
+	msg.MsgHdr.RecursionDesired = true
+	msg.SetEdns0(4096, true)
+
+	server := c.servers[rand.Intn(len(c.servers))]
+	err = retrier.RetryAttempts(func() error {
+		in, _, err = c.client.ExchangeContext(ctx, msg, server)
+		return err
+	}, c.retry)
+
+	if err != nil {
+		return nil, err
+	}
+	for _, ain := range in.Answer {
+		if a, ok := ain.(*dns.NSEC); ok {
+			answer = a
+			return answer, nil
+		}
+	}
+	return nil, nil
 }
 
 // IsWildcard tests if a domain is a wildcard domain, attempt 10 A and 10 AAAA queries

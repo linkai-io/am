@@ -49,9 +49,17 @@ func TestNS_Analyze(t *testing.T) {
 			IPAddress:    "",
 			DiscoveredBy: "input_list",
 		},
+		&am.ScanGroupAddress{
+			AddressID:    5,
+			OrgID:        1,
+			GroupID:      1,
+			HostAddress:  "example.com",
+			IPAddress:    "",
+			DiscoveredBy: "input_list",
+		},
 	}
 	state := amtest.MockNSState()
-	dc := dnsclient.New([]string{localServer}, 3)
+	dc := dnsclient.New([]string{dnsServer}, 3)
 	ns := ns.New(dc, state)
 	ns.Init(nil)
 	userContext := amtest.CreateUserContext(1, 1)
@@ -74,7 +82,7 @@ func TestNetflixInput(t *testing.T) {
 	addrs := amtest.AddrsFromInputFile(orgID, groupID, addrFile, t)
 
 	state := amtest.MockNSState()
-	dc := dnsclient.New([]string{"1.1.1.1:53"}, 3)
+	dc := dnsclient.New([]string{dnsServer}, 3)
 	ns := ns.New(dc, state)
 	ns.Init(nil)
 

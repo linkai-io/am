@@ -147,6 +147,34 @@ func TestResolveIPv6(t *testing.T) {
 	}
 }
 
+func TestNSECWalk(t *testing.T) {
+	c := New([]string{dnsServer}, 3)
+
+	tests := []struct {
+		in      string
+		isError bool
+		outlen  int
+	}{
+		{"zonetransfer.me", false, 0},
+		{"linkai.io", false, 0},
+		{"example.com", false, 2},
+		{"dnssec.se", false, 4},
+	}
+
+	for _, test := range tests {
+		ctx := context.Background()
+		results, err := c.DoNSECWalk(ctx, test.in)
+		if test.isError && err == nil {
+			t.Fatalf("expected error but got err == nil")
+		} else {
+			continue
+		}
+
+		if len(results) != test.outlen {
+			t.Fatalf("expected %d results, got %d\n", len(results), test.outlen)
+		}
+	}
+}
 func TestLookupNS(t *testing.T) {
 	tests := []struct {
 		in      string

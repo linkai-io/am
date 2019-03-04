@@ -33,6 +33,7 @@ const (
 	DiscoveryNSQueryIPToName = "ns_query_ip_to_name"
 	DiscoveryNSQueryNameToIP = "ns_query_name_to_ip"
 	DiscoveryNSAXFR          = "ns_query_axfr"
+	DiscoveryNSSECWalk       = "ns_query_nsec_walk"
 	DiscoveryBruteSubDomain  = "dns_brute_forcer"
 	DiscoveryBruteMutator    = "dns_mutator"
 	DiscoveryWebCrawler      = "web_crawler"
