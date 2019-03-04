@@ -1,0 +1,962 @@
+<!DOCTYPE html><html class="js no-touch webp gumby-no-touch"><head profile="http://www.w3.org/1999/xhtml/vocab"><script type="text/javascript" async="" src="//caveracode.netmng.com/?aid=5711&amp;siclientid="></script><script type="text/javascript" async="" src="//munchkin.marketo.net/154/munchkin.js"></script>
+  <!--[if IE]><![endif]-->
+<link rel="preconnect" href="//ajax.googleapis.com">
+<link rel="dns-prefetch" href="//ajax.googleapis.com">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta class="swiftype" name="site-priority" data-type="integer" content="3">
+	<meta class="swiftype" name="title" data-type="string" content="Use Veracode to secure the applications you build, buy, &amp; manage">
+	<meta class="swiftype" name="url" data-type="enum" content="https://www.veracode.com/home">
+	<meta class="swiftype" name="published_at" data-type="date" content="2016-11-14 11:29:18">
+	<meta class="swiftype" name="swift-description" data-type="text" content="A simpler and more scalable way to increase the resiliency of your global application infrastructure, without slowing innovation. Get a free demo today.">
+	<meta class="swiftype" name="content-type" data-type="string" content="page_story_landing">
+	<meta class="swiftype" name="site-domain" data-type="string" content="veracode">
+	<meta class="swiftype" name="tags" data-type="string" content="application security">
+		<meta class="swiftype" name="tags" data-type="string" content="open source security">
+		<meta class="swiftype" name="tags" data-type="string" content="mobile">
+		<meta class="swiftype" name="tags" data-type="string" content="static">
+		<meta class="swiftype" name="tags" data-type="string" content="dynamic">
+		<meta class="swiftype" name="tags" data-type="string" content="sdlc">
+		<meta class="swiftype" name="tags" data-type="string" content="veracode">
+		<meta class="swiftype" name="asset-type" data-type="string" content="page"> <meta name="theme-color" content="#fff">
+<link rel="manifest" href="/sites/default/files/pwa/manifest.json">
+<div class="fit-vids-style" id="fit-vids-style" style="display: none;">­<style>.fluid-width-video-wrapper{width:100%;position:relative;padding:0;}.fluid-width-video-wrapper iframe,.fluid-width-video-wrapper object,.fluid-width-video-wrapper embed {position:absolute;top:0;left:0;width:100%;height:100%;}</style></div><script async="" id="demandbase_js_lib" src="https://scripts.demandbase.com/TcBM5dSb.min.js"></script><script type="text/javascript" async="" src="https://www.google-analytics.com/analytics.js"></script><script src="https://connect.facebook.net/signals/config/2188618868127556?v=2.8.42&amp;r=stable" async=""></script><script async="" src="https://connect.facebook.net/en_US/fbevents.js"></script><script async="" src="//s.swiftypecdn.com/install/v2/st.js"></script><script type="text/javascript" async="" src="//storage.googleapis.com/code.snapengage.com/js/e1163bdd-6ca9-46d6-8b53-8e0f47c15360.js"></script><script async="" src="//www.google-analytics.com/analytics.js"></script><script type="text/javascript" async="" src="//bat.bing.com/bat.js"></script><script type="text/javascript" async="" src="//static.ads-twitter.com/uwt.js"></script><script type="text/javascript" async="" src="https://sjs.bizographics.com/insight.min.js"></script><script type="text/javascript" async="" src="//script.crazyegg.com/pages/scripts/0050/0148.js?430997"></script><script type="text/javascript" async="" src="//www.googleadservices.com/pagead/conversion_async.js"></script><script async="" src="//www.googletagmanager.com/gtm.js?id=GTM-T9ZN4Z"></script><script async="" type="text/javascript" src="//sjrtp6.marketo.com/rtp-api/v1/rtp.js?aid=veracode"></script><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@graph": [
+        {
+            "@type": "Organization",
+            "@id": "https://Veracode.com#organization",
+            "name": "Veracode",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "65 Network Drive, Burlington, MA 01803",
+                "addressRegion": "Massachusetts",
+                "postalCode": "01803",
+                "addressCountry": "United States"
+            },
+            "url": "https://Veracode.com",
+            "sameAs": [
+                "https://www.veracode.com/facebook.com/VeracodeInc/",
+                "https://www.veracode.com/plus.google.com/%2BVERACODEBurlington",
+                "https://www.veracode.com/twitter.com/veracode"
+            ],
+            "brand": {
+                "@type": "Brand",
+                "description": "Reliable Secure Devops and application security tools for enterprise level companies."
+            },
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://www.veracode.com/sites/all/themes/veracode/img/logo/logo-veracode.svg"
+            }
+        }
+    ]
+}</script>
+<meta name="site-priority" content="3"><meta name="description" content="A simpler and more scalable way to increase the resiliency of your global application infrastructure, without slowing innovation. Get a free demo today.">
+<meta name="robots" content="follow, index">
+<meta name="keywords" content="application security, open source security, mobile, static, dynamic, sdlc, veracode">
+<meta name="news_keywords" content="application security, software security, data breach, hacking,">
+<link rel="canonical" href="https://www.veracode.com/">
+<link rel="shortlink" href="https://www.veracode.com/">
+<meta property="og:site_name" content="Veracode">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.veracode.com">
+<meta property="og:title" content="The Most Powerful Application Security Platform on the Planet">
+<meta property="og:description" content="Reduce risk in third-party, mobile, legacy, and in-house applications with Veracode. Leveraging multiple testing techniques, Veracode is the most powerful application security platform on the planet.">
+<meta property="og:image" content="https://www.veracode.com/sites/default/files/01-og.png">
+<meta property="og:image:url" content="https://www.veracode.com/sites/default/files/01-og.png">
+<meta property="og:image:secure_url" content="https://www.veracode.com/sites/default/files/01-og.png">
+<meta property="og:image:type" content="image/png">
+  <title>Use Veracode to secure the applications you build, buy, &amp; manage</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="google-site-verification" content="vdY1gGSUnNNM8rMmxflaT4fikv7hQhoRG7Wjkzp_JrQ">
+  <meta name="google-site-verification" content="LOHTEdSL1FzdoqSO1zry1DruOwJfqJK6HehXZpdhsbM">
+  <meta name="msvalidate.01" content="6789285D99377BE11E4D55B94F79D59A">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/favicon.ico?v=2">
+  <link href="/sites/all/themes/veracode/fonts/webfonts/montserrat.min.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" type="text/css" href="//cloud.typography.com/7267672/805964/css/fonts.css">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <!-- bxSlider CSS file -->
+
+  <link type="text/css" rel="stylesheet" href="/sites/default/files/advagg_css/css__36R3qkV6kbMCKNCM7lkvx0P3589vcevXJla0U7KQYtA__KfqPM-_luEkGS2wZ1BsUFk05bx-5rT_ytMWJ30xtTiY__-A10P-1JhD5-2Ua1R8ZybZxDd4RxSpKnsxbTckhZwvM.css" media="all">
+<style type="text/css" media="print">
+/* <![CDATA[ */
+#sb-container{position:relative;}#sb-overlay{display:none;}#sb-wrapper{position:relative;top:0;left:0;}#sb-loading{display:none;}
+
+/* ]]> */
+</style>
+  <!--[if IE 8]>
+    <link rel="stylesheet" type="text/css" media="all" href="/sites/all/themes/veracode/css/ie8.css">
+    <script src="/sites/all/themes/veracode/js/lib/respond.js"></script>
+  <![endif]-->
+
+  <!--[if IE 9]><link rel="stylesheet" type="text/css" media="all" href="/sites/all/themes/veracode/css/ie9.css"><![endif]-->
+  <script async="" src="/sites/all/themes/veracode/js/lib/modernizr-2.6.2.min.js"></script>
+<script src="https://googleads.g.doubleclick.net/pagead/viewthroughconversion/1060394375/?random=1551592069373&amp;cv=9&amp;fst=1551592069373&amp;num=1&amp;guid=ON&amp;resp=GooglemKTybQhCsO&amp;u_h=768&amp;u_w=1024&amp;u_ah=768&amp;u_aw=1024&amp;u_cd=24&amp;u_his=2&amp;u_tz=540&amp;u_java=false&amp;u_nplug=0&amp;u_nmime=0&amp;gtm=2wg241&amp;sendb=1&amp;frm=0&amp;url=https%3A%2F%2Fwww.veracode.com%2F&amp;tiba=Use%20Veracode%20to%20secure%20the%20applications%20you%20build%2C%20buy%2C%20%26%20manage&amp;async=1&amp;rfmt=3&amp;fmt=4"></script><script type="text/javascript" async="" src="//munchkin.marketo.net/munchkin.js"></script><link type="text/css" href="https://rtp-static.marketo.com/rtp/libs/jquery-ui-insightera-custom-1.9.6.css" rel="stylesheet"><link rel="stylesheet" type="text/css" href="//s.swiftypecdn.com/assets/new_embed-cd3047fefd1fd729caf985679eac93c0.css"><style type="text/css">.st-install-A_rVfvAdLTrcjQeu6puC .st-ui-result .st-ui-type-heading { color:#0089d7 !important }
+.st-install-A_rVfvAdLTrcjQeu6puC .st-ui-result em {font-style:normal; font-weight:bold; background-color:#f6fcfe !important}</style><script id="yui__dyn_0" type="text/javascript" src="https://www.snapengage.com/chatjs/ServiceGetConfig?w=e1163bdd-6ca9-46d6-8b53-8e0f47c15360"></script></head>
+<body class="html front not-logged-in no-sidebars page-node page-node- page-node-23081 node-type-page-story-landing">
+ <!-- RTP Marketo Web personalization START -->
+  <!-- RTP tag -->
+	<script type="text/javascript">
+	(function(c,h,a,f,i,e){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+	 c[a].a=i;c[a].e=e;var g=h.createElement("script");g.async=true;g.type="text/javascript";
+	 g.src=f+'?aid='+i;var b=h.getElementsByTagName("script")[0];b.parentNode.insertBefore(g,b);
+	 })(window,document,"rtp","//sjrtp6.marketo.com/rtp-api/v1/rtp.js","veracode");
+
+	rtp('send','view');
+	rtp('get', 'campaign',true);
+	</script>
+	<!-- End of RTP tag -->
+  <!-- RTP Marketo Web personalization END -->
+  <!-- Google Tag Manager -->
+  <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-T9ZN4Z"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9ZN4Z');</script>
+  <!-- End Google Tag Manager -->
+
+<div id="bounds">
+    <header>
+		  <div class="region region-utility-bar">
+    <div id="block-block-11" class="block block-block">
+
+    
+  <div class="content">
+    <ul class="header-upper-nav">
+<li><img src="//www.veracode.com/sites/default/files/CommunityIcon.png"><a class="head-link" href="https://community.veracode.com/s/" target="_blank" rel="noopener">Community</a></li>
+<li><img src="//www.veracode.com/sites/default/files/BlogIcon.png"><a class="head-link" href="//www.veracode.com/blog" target="_blank" rel="noopener">Blog</a></li>
+<li><img src="//www.veracode.com/sites/default/files/ContactIcon.png"><a class="head-link  contactUsTrack" href="https://info.veracode.com/web-contact-us.html?utm_source=main_navigation&amp;utm_medium=website" target="_blank" rel="noopener">Contact Us</a></li>
+<li><a class="head-link platformLoginTrack" href="https://analysiscenter.veracode.com/" target="_blank" rel="noopener">Login</a></li>
+</ul>
+  </div>
+</div>
+  </div>
+	<div class="logo-menu">
+		<div id="main-logo"><a itemprop="url" class="" href="/"><img itemprop="logo" src="https://www.veracode.com/sites/default/files/logo-veracode.svg" alt="Veracode Logo"></a></div>
+		  <div class="region region-main-menu">
+    <div id="block-search-form" class="block block-search">
+
+    
+  <div class="content">
+    <form action="/" method="post" id="search-block-form" accept-charset="UTF-8"><div><div class="input-container">
+	<img src="/sites/default/files/SearchIcon-Close.png" class="close-btn icon-search" style="display:none;">
+	<img src="/sites/default/files/SearchIcon_0.png" class="search-btn icon-search searchTrack">
+</div>
+<div class="search-field" style="display:none;">
+	<input title="Enter the terms you wish to search for." placeholder="Your search" type="text" id="edit-search-block-form--2" name="search_block_form" value="" size="15" maxlength="128" class="form-text st-default-search-input" autocomplete="off" autocorrect="off" autocapitalize="off">
+	<input type="hidden" name="form_build_id" value="form-7cTxPOkMsyLY7PdBwntWlQTHR-GBeNHe9cbTjRQUdb8">
+<input type="hidden" name="form_id" value="search_block_form">
+</div>
+</div></form>  </div>
+</div>
+<div id="block-superfish-1" class="block block-superfish superfish-main-menu">
+
+    <h2>Header Navigation</h2>
+  
+  <div class="content">
+    <ul id="superfish-1" class="menu sf-menu sf-menu-header-navigation sf-horizontal sf-style-simple sf-total-items-5 sf-parent-items-5 sf-single-items-0 superfish-processed sf-js-enabled sf-shadow sf-automatic-width" style="width: 100%;"><li id="menu-29641-1" class="first odd sf-item-1 sf-depth-1 submenu-list sf-total-children-3 sf-parent-children-3 sf-single-children-0 menuparent"><a href="/products" title="" class="sf-depth-1 menuparent sf-with-ul">Products<span class="sf-sub-indicator"> »</span></a><ul class="sf-megamenu sf-hidden" style="width: 432px; display: none;"><li class="sf-megamenu-wrapper first odd sf-item-1 sf-depth-1 submenu-list sf-total-children-3 sf-parent-children-3 sf-single-children-0 menuparent" style="width: 432px;"><ol style="width: 432px;"><li id="menu-29646-1" class="first odd sf-item-1 sf-depth-2 submenu-list sf-total-children-6 sf-parent-children-0 sf-single-children-6 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><a href="/products" title="" class="sf-depth-2 menuparent">Explore Products</a><ol style="float: none; width: 144px;"><li id="menu-29651-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/greenlight" title="" class="sf-depth-3" style="">Greenlight</a></li><li id="menu-29656-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/binary-static-analysis-sast" title="" class="sf-depth-3" style="">Static Analysis (SAST)</a></li><li id="menu-29661-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/software-composition-analysis" title="" class="sf-depth-3" style="">Software Composition Analysis (SCA)</a></li><li id="menu-29666-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/dynamic-analysis-dast" title="" class="sf-depth-3" style="">Dynamic Analysis (DAST)</a></li><li id="menu-29681-1" class="middle odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/developer-training" title="" class="sf-depth-3" style="">Developer Training</a></li><li id="menu-29686-1" class="last even sf-item-6 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/vendor-application-security-testing" title="" class="sf-depth-3" style="">Vendor Application Security Testing</a></li></ol></div></li><li id="menu-29691-1" class="middle even sf-item-2 sf-depth-2 submenu-list sf-total-children-5 sf-parent-children-0 sf-single-children-5 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><span title="" class="sf-depth-2 menuparent nolink">Key Topics</span><ol style="width: 144px; float: none;"><li id="menu-29701-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/devsecops" title="" class="sf-depth-3" style="">DevSecOps</a></li><li id="menu-29706-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/about/certifications" title="" class="sf-depth-3" style="">Security Certifications</a></li><li id="menu-29711-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/integrations%20" title="" class="sf-depth-3" style="">Veracode Integrations</a></li><li id="menu-29716-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="/products/web-application-scanning-was" title="" class="sf-depth-3" style="">Web Application Scanning</a></li><li id="menu-29721-1" class="last odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-need/mobile-application-security-testing" title="" class="sf-depth-3" style="">Mobile Application Security Testing</a></li></ol></div></li><li id="menu-29696-1" class="last odd sf-item-3 sf-depth-2 submenu-list sf-total-children-4 sf-parent-children-0 sf-single-children-4 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><span title="" class="sf-depth-2 menuparent nolink">Get Started </span><ol style="width: 144px; float: none;"><li id="menu-29726-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://info.veracode.com/veracode-greenlight-self-service-free-trial.html" title="" class="sf-depth-3" style="">Greenlight Free Trial</a></li><li id="menu-29731-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://app.sourceclear.io/signup" title="" class="sf-depth-3" style="">Sourceclear Free Trial</a></li><li id="menu-29736-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://info.veracode.com/request-quote.html" title="" class="sf-depth-3" style="">Request a Quote</a></li><li id="menu-29741-1" class="last even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://info.veracode.com/web-contact-us.html" title="" class="sf-depth-3" style="">Contact Sales</a></li></ol></div></li></ol></li></ul></li><li id="menu-5851-1" class="middle even sf-item-2 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent"><a href="/services" title="" class="sf-depth-1 menuparent sf-with-ul">Services<span class="sf-sub-indicator"> »</span></a><ul class="sf-megamenu sf-hidden" style="width: 272px; display: none;"><li class="sf-megamenu-wrapper middle even sf-item-2 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent" style="width: 272px;"><ol style="width: 272px;"><li id="menu-6041-1" class="first odd sf-item-1 sf-depth-2 submenu-list sf-total-children-6 sf-parent-children-0 sf-single-children-6 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><a href="/services" title="" class="sf-depth-2 menuparent">Services &amp; Support</a><ol style="float: none; width: 136px;"><li id="menu-28576-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/application-security-consulting" title="" class="sf-depth-3" style="">Application Security Consulting </a></li><li id="menu-28591-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/technical-support" title="" class="sf-depth-3" style="">Technical Support</a></li><li id="menu-30216-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/penetration-testing" title="" class="sf-depth-3" style="">Manual Penetration Testing</a></li><li id="menu-6061-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/developer-training" title="" class="sf-depth-3" style="">Developer Training</a></li><li id="menu-29261-1" class="middle odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/program-management" title="" class="sf-depth-3" style="">Security Program Management</a></li><li id="menu-17751-1" class="last even sf-item-6 sf-depth-3 submenu-list sf-no-children" style=""><a href="/services/customer-success-packages" title="" class="sf-depth-3" style="">Customer Success Packages</a></li></ol></div></li><li id="menu-6051-1" class="last even sf-item-2 sf-depth-2 submenu-list sf-total-children-3 sf-parent-children-0 sf-single-children-3 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><span title="" class="sf-depth-2 menuparent nolink">Veracode Verified</span><ol style="width: 136px; float: none;"><li id="menu-20331-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/verified" title="" class="sf-depth-3" style="">Verified</a></li><li id="menu-6136-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://community.veracode.com/s/get-verified" title="" class="sf-depth-3" style="">Get Verified</a></li><li id="menu-29091-1" class="last odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/verified/directory" title="" class="sf-depth-3" style="">Verified Directory</a></li></ol></div></li></ol></li></ul></li><li id="menu-5841-1" class="middle odd sf-item-3 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent"><a href="/solutions" title="" class="sf-depth-1 menuparent sf-with-ul">Solutions<span class="sf-sub-indicator"> »</span></a><ul class="sf-megamenu sf-hidden" style="width: 272px; display: none;"><li class="sf-megamenu-wrapper middle odd sf-item-3 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent" style="width: 272px;"><ol style="width: 272px;"><li id="menu-5876-1" class="first odd sf-item-1 sf-depth-2 submenu-list sf-total-children-3 sf-parent-children-0 sf-single-children-3 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><a href="/solutions" title="" class="sf-depth-2 menuparent">By Business Need</a><ol style="float: none; width: 136px;"><li id="menu-5911-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-need/streamlining-compliance" title="" class="sf-depth-3" style="">Compliance</a></li><li id="menu-16601-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/integrations%20" title="" class="sf-depth-3" style="">Veracode Integrations</a></li><li id="menu-5906-1" class="last odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-need/third-party-security" title="" class="sf-depth-3" style="">Third-Party Security</a></li></ol></div></li><li id="menu-5881-1" class="last even sf-item-2 sf-depth-2 submenu-list sf-total-children-3 sf-parent-children-0 sf-single-children-3 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><span title="" class="sf-depth-2 menuparent nolink">By Organization Type</span><ol style="width: 136px; float: none;"><li id="menu-5941-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-company/global-enterprise" title="" class="sf-depth-3" style="">Global Enterprise</a></li><li id="menu-5951-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-company/midsize-enterprise" title="" class="sf-depth-3" style="">Midsize Enterprise</a></li><li id="menu-5946-1" class="last odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/solutions/by-company/independent-software-vendor" title="" class="sf-depth-3" style="">Independent Software Vendor</a></li></ol></div></li></ol></li></ul></li><li id="menu-5856-1" class="middle even sf-item-4 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent"><a href="/resources" title="" class="sf-depth-1 menuparent sf-with-ul">Resources<span class="sf-sub-indicator"> »</span></a><ul class="sf-megamenu sf-hidden" style="width: 272px; display: none;"><li class="sf-megamenu-wrapper middle even sf-item-4 sf-depth-1 submenu-list sf-total-children-2 sf-parent-children-2 sf-single-children-0 menuparent" style="width: 272px;"><ol style="width: 272px;"><li id="menu-6086-1" class="first odd sf-item-1 sf-depth-2 submenu-list sf-total-children-7 sf-parent-children-0 sf-single-children-7 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><a href="/resources" title="" class="sf-depth-2 menuparent">Resource Center</a><ol style="float: none; width: 136px;"><li id="menu-29186-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://veracode.com/resources?topic=intro-to-appsec#resources-results" title="" class="sf-depth-3" style="">Intro to AppSec</a></li><li id="menu-29181-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://veracode.com/resources?topic=managing-appsec#resources-results" title="" class="sf-depth-3" style="">Managing AppSec</a></li><li id="menu-29191-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://veracode.com/resources?topic=secure-development#resources-results" title="" class="sf-depth-3" style="">Secure Development</a></li><li id="menu-29251-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://www.veracode.com/resources?topic=regulation#resources-results" title="" class="sf-depth-3" style="">Regulation</a></li><li id="menu-29196-1" class="middle odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://veracode.com/resources?topic=getting-internal-buy-in#resources-results" title="" class="sf-depth-3" style="">Getting Internal Buy In</a></li><li id="menu-29201-1" class="middle even sf-item-6 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://veracode.com/resources?topic=third-party-software#resources-results" title="" class="sf-depth-3" style="">Third Party Software</a></li><li id="menu-16016-1" class="last odd sf-item-7 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://help.veracode.com/" title="" class="sf-depth-3" style="">Product Documentation</a></li></ol></div></li><li id="menu-6046-1" class="last even sf-item-2 sf-depth-2 submenu-list sf-total-children-4 sf-parent-children-0 sf-single-children-4 sf-megamenu-column menuparent" style="width: 136px;"><div class="sf-megamenu-column" style="width: 136px;"><span title="" class="sf-depth-2 menuparent nolink">Explore More</span><ol style="width: 136px; float: none;"><li id="menu-29101-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://www.veracode.com/resources?assettype=demo" title="" class="sf-depth-3" style="">Get a Demo</a></li><li id="menu-6146-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/security/web-application-vulnerabilities" title="" class="sf-depth-3" style="">Common Vulnerabilities</a></li><li id="menu-11441-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/state-of-software-security-report" title="" class="sf-depth-3" style="">State Of Software Security</a></li><li id="menu-16611-1" class="last even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="/integrations%20" title="" class="sf-depth-3" style="">Veracode Integrations</a></li></ol></div></li></ol></li></ul></li><li id="menu-5861-1" class="last odd sf-item-5 sf-depth-1 submenu-list sf-total-children-3 sf-parent-children-3 sf-single-children-0 menuparent"><a href="/about" title="" class="sf-depth-1 menuparent sf-with-ul">About<span class="sf-sub-indicator"> »</span></a><ul class="sf-megamenu sf-hidden" style="width: 432px; display: none;"><li class="sf-megamenu-wrapper last odd sf-item-5 sf-depth-1 submenu-list sf-total-children-3 sf-parent-children-3 sf-single-children-0 menuparent" style="width: 432px;"><ol style="width: 432px;"><li id="menu-6151-1" class="first odd sf-item-1 sf-depth-2 submenu-list sf-total-children-5 sf-parent-children-0 sf-single-children-5 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><a href="/about" title="" class="sf-depth-2 menuparent">Our Company</a><ol style="float: none; width: 144px;"><li id="menu-29086-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="/workforus" title="" class="sf-depth-3" style="">Work For Us</a></li><li id="menu-6166-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/about/careers" title="" class="sf-depth-3" style="">Careers</a></li><li id="menu-6171-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="/about/leadership" title="" class="sf-depth-3" style="">Leadership</a></li><li id="menu-6191-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="/news-events" title="" class="sf-depth-3" style="">News &amp; Events</a></li><li id="menu-26226-1" class="last odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="/resources/faqs" title="" class="sf-depth-3" style="">FAQs</a></li></ol></div></li><li id="menu-6656-1" class="middle even sf-item-2 sf-depth-2 submenu-list sf-total-children-3 sf-parent-children-0 sf-single-children-3 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><a href="/about/partners" title="" class="sf-depth-2 menuparent">Partners</a><ol style="width: 144px; float: none;"><li id="menu-6676-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://info.veracode.com/apply-to-become-a-partner.html" title="" class="sf-depth-3" style="">Apply to Become a Partner</a></li><li id="menu-6681-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/partners/find-a-partner" title="" class="sf-depth-3" style="">Find a Partner</a></li><li id="menu-6686-1" class="last odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://partner.veracode.com" title="" class="sf-depth-3" style="">Partner Community Login</a></li></ol></div></li><li id="menu-12151-1" class="last odd sf-item-3 sf-depth-2 submenu-list sf-total-children-6 sf-parent-children-0 sf-single-children-6 sf-megamenu-column menuparent" style="width: 144px;"><div class="sf-megamenu-column" style="width: 144px;"><span title="" class="sf-depth-2 menuparent nolink">Connect With Us</span><ol style="width: 144px; float: none;"><li id="menu-6201-1" class="first odd sf-item-1 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://info.veracode.com/web-contact-us.html?utm_source=main_navigation&amp;utm_medium=website" title="" class="sf-depth-3" style="">Contact Us</a></li><li id="menu-6206-1" class="middle even sf-item-2 sf-depth-3 submenu-list sf-no-children" style=""><a href="/blog" title="" class="sf-depth-3" style="">Blog</a></li><li id="menu-29231-1" class="middle odd sf-item-3 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://www.facebook.com/VeracodeInc" title="" class="sf-depth-3" style="">Facebook</a></li><li id="menu-29236-1" class="middle even sf-item-4 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://twitter.com/Veracode" title="" class="sf-depth-3" style="">Twitter</a></li><li id="menu-29241-1" class="middle odd sf-item-5 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://www.linkedin.com/company/veracode" title="" class="sf-depth-3" style="">LinkedIn</a></li><li id="menu-29246-1" class="last even sf-item-6 sf-depth-3 submenu-list sf-no-children" style=""><a href="https://www.youtube.com/user/VeracodeInc" title="" class="sf-depth-3" style="">YouTube</a></li></ol></div></li></ol></li></ul></li></ul>  </div>
+</div>
+<div id="block-block-76" class="block block-block search-mobile">
+
+    
+  <div class="content">
+    <div class="search-field-mobile"><img src="//www.veracode.com/sites/default/files/search.png"><input class="form-text st-default-search-input" id="edit-search-block-form--2" maxlength="128" name="search_block_form" placeholder="Your search" size="15" title="Enter the terms you wish to search for." type="text" value="" autocomplete="off" autocorrect="off" autocapitalize="off"></div>
+  </div>
+</div>
+<div id="block-block-81" class="block block-block getademo-btn">
+
+    
+  <div class="content">
+    <div class="get-a-demo"><a href="//www.veracode.com/resources?assettype=demo#resources-results">GET A DEMO</a></div>
+  </div>
+</div>
+<div id="block-block-86" class="block block-block uppernavformobile">
+
+    
+  <div class="content">
+    <div class="top-bar-mobile">
+<div class="get-a-demo" id="mobile-get-a-demo"><a href="https://info.veracode.com/veracode-platform-demo-registration.html">GET A DEMO</a></div>
+<ul class="header-upper-nav">
+<li><img src="//www.veracode.com/sites/default/files/BlogIcon.png"><a class="head-link" href="//www.veracode.com/blog">Blog</a></li>
+<li><img src="//www.veracode.com/sites/default/files/ContactIcon.png"><a class="head-link  contactUsTrack" href="https://info.veracode.com/web-contact-us.html?utm_source=main_navigation&amp;utm_medium=website">Contact Us</a></li>
+<li><img src="//www.veracode.com/sites/default/files/CommunityIcon.png"><a class="head-link" href="https://community.veracode.com/s/">Community</a></li>
+<li><img src="//www.veracode.com/sites/default/files/lock.png"><a class="head-link platformLoginTrack" href="https://analysiscenter.veracode.com/">Login</a></li>
+</ul>
+</div>
+  </div>
+</div>
+  </div>
+	</div>
+</header>
+
+<section>
+	<div data-swiftype-index="true">
+	  <div class="region region-content">
+    <div id="block-system-main" class="block block-system">
+
+    
+  <div class="content">
+    <div class="page-story-landing">
+  <div id="node-23081" class="node node-page-story-landing clearfix" about="/home" typeof="sioc:Item foaf:Document">
+     
+    <div class="content-widgets">
+      <div id="node-23076" class="node node-widget-set clearfix" about="/node/23076" typeof="sioc:Item foaf:Document">
+
+  
+        <h2><a href="/node/23076"></a></h2>
+    <span property="dc:title" content="Homepage Story Widgets" class="rdf-meta element-hidden"></span><span property="sioc:num_replies" content="0" datatype="xsd:integer" class="rdf-meta element-hidden"></span>
+  
+  <div class="content">
+    
+<a id="snap__subnav_24136"></a><div id="widget_24136">
+	<div class="snap__subnav_anchor_24136_widget powerfull-code news-text btn-learn-more newsWidgetCTATrack " style="background:#1a1a1a  none repeat scroll 0 0;" data-gtm-vis-recent-on-screen-754820_168="390" data-gtm-vis-first-on-screen-754820_168="390" data-gtm-vis-total-visible-time-754820_168="100" data-gtm-vis-has-fired-754820_168="1"><div class="row newsWidgetCTATrack" data-gtm-vis-recent-on-screen-754820_168="392" data-gtm-vis-first-on-screen-754820_168="392" data-gtm-vis-total-visible-time-754820_168="100" data-gtm-vis-has-fired-754820_168="1"><h3>
+	<span class="txtcolor-ffffff widget-news-title"><p>Thoma Bravo completes acquisition of Veracode Software, creating independent AppSec company</p>
+</span>
+		<span class="medium btn story news-btn ghost bgcolor-ffffff pull-right">
+	<a href="https://www.veracode.com/thoma-bravo-completes-acquisition-veracode-software" alt="Learn More" target="_blank" class="txtcolor-ffffff newsWidgetCTATrack">Learn More</a></span>	</h3></div></div>
+</div>
+<a id="snap__subnav_38901"></a>
+<div id="widget_38901">
+<div id="hero" class="medium  snap__subnav_anchor_38901_widget story-wrapper bgcolor-000000" data-id="/sites/default/files/homepage_hero_bold.png;https://www.veracode.com/sites/default/files/styles/resize_600/public/homepage_hero_bold.png?itok=A43kVPsu;https://www.veracode.com/sites/default/files/styles/resize_360/public/homepage_hero_bold.png?itok=1Voamz-W" style="position: relative; z-index: 0;">
+	  <div class="story-hero-cta" data-gtm-vis-recent-on-screen-754820_168="392" data-gtm-vis-first-on-screen-754820_168="392" data-gtm-vis-total-visible-time-754820_168="100" data-gtm-vis-has-fired-754820_168="1">
+		  	<div class="row">
+			  	<div class="centered twelve columns">
+			  		<h1 class="txtcolor-ffffff">YOU CHANGE THE WORLD, <br>WE’LL SECURE IT</h1>                    			  	</div>
+										<div class="centered alpha twelve columns">
+			  		<div class="large story btn bgcolor-ffffff">
+			  								  <a href="https://www.veracode.com/rsac19" class="heroWidgetCTATrack txtcolor-000000">Come see us at RSA</a>
+												</div>
+			  	</div>
+					      	</div>
+		  </div>
+    <div class="backstretch" style="left: 0px; top: 0px; overflow: hidden; margin: 0px; padding: 0px; height: 400px; width: 1009px; z-index: -999998; position: absolute;"><div class="backstretch-item" style="position: absolute; margin: 0px; padding: 0px; border: none; width: 100%; height: 100%; z-index: -999999;"><img alt="" src="/sites/default/files/homepage_hero_bold.png" style="position: absolute; margin: 0px; padding: 0px; border: none; width: 1379px; height: 400px; max-width: none; left: -185px; top: 0px; right: auto; bottom: auto;"></div></div></div>
+</div>
+</div>
+<a id="snap__subnav_35131"></a><div id="widget_35131" class="story-wrapper none  snap__subnav_anchor_35131_widget " title=""><div class=" story-wrapper__full"><style type="text/css">
+#widget_35131{
+padding: 0;
+}
+
+@media (max-width:600px){
+
+#rotating-customer-logos .quote-toggle-slide-img-grp .quote-toggle-slide-bxslider .quote-toggle-slide-bxslider{
+padding-top: 40px;
+}
+#rotating-customer-logos .quote-toggle-slide-img-grp .quote-toggle-slide-bxslider li{
+max-width: 150px;
+}
+}
+#rotating-customer-logos .quote-toggle-slide-img-grp .bx-wrapper {
+ overflow: visible;
+}
+#rotating-customer-logos .quote-toggle-slide-img-grp .bx-wrapper .bx-pager.bx-default-pager a.active {
+ background: #b8b8b8;
+}
+#rotating-customer-logos .quote-toggle-slide-img-grp .bx-wrapper .bx-pager.bx-default-pager a {
+    background: none; 
+    cursor: pointer;
+    width: 10px;
+    border: 1px solid #b8b8b8;
+    height: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    }
+
+#rotating-customer-logos .quote-toggle-slide-img-grp .bx-wrapper img{
+display: inline-block;
+}</style>
+<div id="rotating-customer-logos">
+	<p style="color: #b8b8b8;font-weight: 800;padding: 40px 0 0 0">TRUSTED BY</p>
+	<div class="quote-toggle-slide-img-grp">
+		<ul class="quote-toggle-slide-bxslider">
+			<li><b><b><img alt="Unum" src="/sites/default/files/unum.png" title="Unum"></b></b></li>
+			<li><b><b><img alt="Alfresco" src="/sites/default/files/Alfresco.png" title="Alfresco"></b></b></li>
+			<li><b><b><img alt="Boeing " src="sites/default/files/Boeing.png" title="Boeing"></b></b></li>
+			<li><b><b><img alt="Mckesson" src="/sites/default/files/McKesson.png" title="McKesson"></b></b></li>
+			<li><b><b><img alt="Thomson-Reuters" src="/sites/default/files/ThomsonReuters.png" title="ThomsonReuters"></b></b></li>
+		</ul>
+	</div>
+</div>
+</div></div><a id="snap__subnav_34536"></a><div id="widget_34536">
+	<div class="snap__subnav_anchor_34536_widget powerfull-code news-text btn-learn-more newsWidgetCTATrack " style="background:#303130  none repeat scroll 0 0;"><div class="row newsWidgetCTATrack"><h3>
+	<span class="txtcolor-ffffff widget-news-title"><p><strong>Get the State of Software Security Report V9</strong></p>
+</span>
+		<span class="medium btn story news-btn ghost bgcolor-ffffff pull-right">
+	<a href="https://www.veracode.com/state-of-software-security-report" alt="Learn More" target="_blank" class="txtcolor-ffffff newsWidgetCTATrack">Learn More</a></span>	</h3></div></div>
+</div>
+<div id="node-23116" class="node node-widget-stat-card-set clearfix" about="/node/23116" typeof="sioc:Item foaf:Document">
+
+  
+        <h2><a href="/node/23116">Homepage Stat Card Set</a></h2>
+    <span property="dc:title" content="Homepage Stat Card Set" class="rdf-meta element-hidden"></span><span property="sioc:num_replies" content="0" datatype="xsd:integer" class="rdf-meta element-hidden"></span>
+  
+  <div class="content">
+    <a id="snap__subnav_23116"></a><div id="widget_23116"><div id="stats" class="story-wrapper tiles four_up snap__subnav_anchor_23116_widget">
+<article class="tile">
+<header>
+	<a href="/veracode-helps-web-and-mobile-programmers-go-faster-more-securely-and-passes-two-trillion-mark-code" target="_self">	<span class="sprite icon-circle-app-76x76">&nbsp;</span>
+	<h2 class="statWidgetLinkTrack txtcolor-0092d4">8 Trillion+</h2></a></header>
+<p>lines of code scanned.</p>
+</article>
+<article class="tile">
+<header>
+	<a href="https://www.veracode.com/sites/default/files/Resources/Whitepapers/combating-the-top-4-sources-of-software-vulnerabilities.pdf" target="_blank">	<span class="sprite icon-circle-chart-76x76">&nbsp;</span>
+	<h2 class="statWidgetLinkTrack txtcolor-8fbc48">32 Million+</h2></a></header>
+<p>flaws fixed.</p>
+</article>
+<article class="tile">
+<header>
+	<a href="https://info.veracode.com/analyst-report-gartner-mq-appsec-testing-2018.html" target="_self">	<span class="sprite icon-circle-award-76x76">&nbsp;</span>
+	<h2 class="statWidgetLinkTrack txtcolor-d73185">5X Leader</h2></a></header>
+<p>in Gartner MQ for AST</p>
+</article>
+<article class="tile">
+<header>
+	<a href="/resources/case-studies" target="_self">	<span class="sprite icon-circle-globe-76x76">&nbsp;</span>
+	<h2 class="statWidgetLinkTrack txtcolor-a248bc">2000+</h2></a></header>
+<p>customers globally.</p>
+</article></div></div>  </div>
+
+  
+  
+</div>
+<a id="snap__subnav_23121"></a><div id="widget_23121" class="story-wrapper bgcolor-16a3dd  snap__subnav_anchor_23121_widget " title=""><div class=" txtcolor-ffffff story-wrapper__full"><style type="text/css">
+#widget_23121{
+    background-image: url('/sites/default/files/01-bluesection.png');
+    background-repeat: no-repeat;
+    background-position: right; 
+    background-size: contain;  
+    background-blend-mode: color-dodge;
+
+}</style>
+<h2 class="txtcolor-ffffff"><b>Why Veracode</b></h2>
+<hr><br>
+<div class="row">
+	<div>
+		<p>Veracode helps you secure the software you build, buy and download, so that you can boldly innovate, explore, pioneer, discover, entertain, and change the world.</p>
+	</div>
+</div>
+<p>&nbsp;</p>
+</div></div><a id="snap__subnav_23156"></a><div id="widget_23156" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_23156_widget"><img class="widget-video-image" src="/sites/default/files/widget-story-images/video_bg-optimized-min.jpg" alt="Homepage Intro Video" title="Homepage Intro Video"><a rel="shadowbox;player=iframe;" href="//play.vidyard.com/vBpwfKx8wT59cLutmMNL6M.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack txtcolor-ffffff" aria-hidden="true"></i><span class="txtcolor-ffffff">Watch Video</span></div></a></div><a id="snap__subnav_23126"></a><div id="widget_23126" class="story-wrapper bgcolor-ffffff  snap__subnav_anchor_23126_widget " title=""><div class=" story-wrapper__full"><div id="homepage-donut-23126">
+	<div class="column-donut-3">
+		<p class="donut" data-donut="70;36a2e3" id="donutOne">&nbsp;</p>
+		<p>Veracode customers close more than <strong>70%</strong> of security defects</p>
+	</div>
+	<div class="column-donut-3"><a href="/soss"><img src="/sites/default/files/stat-middle-11x.png"></a>
+		<p>Developers programming in DevSecOps environments fix <strong>11x</strong>&nbsp;faster than other developers</p>
+	</div>
+	<div class="column-donut-3">
+		<p class="donut" data-donut="85;d63086" id="donutThree">&nbsp;</p>
+		<p><strong>85%</strong> of Applications have at least 1 vulnerability(Source: soss v9)</p>
+	</div>
+</div>
+<p>&nbsp;</p>
+</div></div><a id="snap__subnav_23141"></a><div id="widget_23141" class="story-wrapper story-image-wrapper clearfix bgcolor-000000 snap__subnav_anchor_23141_widget " title="" style=""><div class="story-wrapper__left pad widget-image-position-right" style="background:url(https://www.veracode.com/sites/default/files/styles/media_responsive_widest/public/widget-story-images/veracode-platform-min-optimize.png?itok=dGziPB0a) center center; background-size:100%; background-size: contain; background-repeat: no-repeat;" title="veracode-platform-min-optimize"></div><div class="story-wrapper__right   txtcolor-ffffff widget-text-position-left "><h2 class="txtcolor-ffffff">Manage Your Entire Application Security Program in a Single Platform</h2>
+<hr><br>
+<p>The Veracode Platform offers a holistic, scalable way to manage security risk across your entire application portfolio. We are the only solution that can provide visibility into application status across all testing types, including SAST, DAST, SCA, and manual penetration testing, in one centralized view.</p>
+<br>
+<span class="large btn story  ghost bgcolor-0092d4 pull-left">
+<a href="/products" alt="See Our Products" target="_self" class="storyStyleWidgetCTATrack txtcolor-0092d4">See Our Products</a></span></div></div><div id="node-23171" class="node node-widget-persona-set clearfix" about="/node/23171" typeof="sioc:Item foaf:Document">
+
+  
+        <h2><a href="/node/23171">Homepage Persona Set</a></h2>
+    <span property="dc:title" content="Homepage Persona Set" class="rdf-meta element-hidden"></span><span property="sioc:num_replies" content="0" datatype="xsd:integer" class="rdf-meta element-hidden"></span>
+  
+  <div class="content">
+    <a id="snap__subnav_23171"></a>
+<div id="widget_23171" class="widget-story-style persona snap__subnav_anchor_23171_widget">
+<div class="vertical-tabs-container">
+
+
+<div class="vertical-tabs">
+<a href="javascript:void(0)" class="js-vertical-tab vertical-tab personaTabClickTrack is-active" rel="tab1"><span class="pull-left icon icon-developer-31x31">&nbsp;</span>For Developers</a><a href="javascript:void(0)" class="js-vertical-tab vertical-tab personaTabClickTrack" rel="tab2"><span class="pull-left icon icon-security-31x31">&nbsp;</span>For Security Professionals</a><a href="javascript:void(0)" class="js-vertical-tab vertical-tab personaTabClickTrack" rel="tab3"><span class="pull-left icon icon-executives-31x31">&nbsp;</span>For Executives</a><a href="javascript:void(0)" class="js-vertical-tab vertical-tab personaTabClickTrack" rel="tab4"><span class="pull-left icon icon-operations-31x31">&nbsp;</span>For Operations</a></div>
+
+<div class="vertical-tab-content-container">
+
+<a href="" class="js-vertical-tab-accordion-heading vertical-tab-accordion-heading  is-active" rel="tab1"><span class="pull-left icon icon-developer-31x31">&nbsp;</span>For Developers</a><div class="js-vertical-tab-content vertical-tab-content tab1" style="display: block;">
+<h3>VERACODE&nbsp;<strong>FOR DEVELOPERS</strong></h3>
+<p><img alt="Developers" class="pull-left" height="auto" src="/sites/default/files/developers.png" title="Developers" typeof="foaf:Image" width="250">Veracode makes writing secure code just one more aspect of writing great code. With our designed-for-developer tools, API and workflow integrations, and tips for fixing vulnerabilities when they are found, you can make security a seamless part of your development lifecycle without sacrificing speed or innovation.</p>
+  <div class="large story btn ghost bgcolor-0092d4 ">
+    <a href="https://www.veracode.com/devsecops" class="personaCTATrack txtcolor-0092d4">Securing DevOps</a>
+    </div>
+
+</div>
+<a href="" class="js-vertical-tab-accordion-heading vertical-tab-accordion-heading " rel="tab2"><span class="pull-left icon icon-security-31x31">&nbsp;</span>For Security Professionals</a><div class="js-vertical-tab-content vertical-tab-content tab2" style="display: none;">
+<h3>VERACODE&nbsp;<strong>FOR SECURITY PROFESSIONALS</strong></h3>
+<p style="margin-bottom:-2px;"><img alt="security-professionals" class="pull-left" height="auto" src="/sites/default/files/security-professionals.png" title="security-professionals" typeof="foaf:Image" width="250">With Veracode, application security can meet the needs of developers while still satisfying reporting and assurance requirements for the business. Veracode’s ability to provide the right solutions for each stage of the software lifecycle ensures the applications that companies build and buy – and the third party components they use – are secure.</p>
+  <div class="large story btn ghost bgcolor-0092d4 ">
+    <a href="https://www.veracode.com/sites/default/files/pdf/resources/ipapers/everything-you-need-to-know-guide-maturing-an-application-security-program/index.html" class="personaCTATrack txtcolor-0092d4"> Everything You Need to Know About Maturing Your AppSec Program</a>
+    </div>
+
+</div>
+<a href="" class="js-vertical-tab-accordion-heading vertical-tab-accordion-heading " rel="tab3"><span class="pull-left icon icon-executives-31x31">&nbsp;</span>For Executives</a><div class="js-vertical-tab-content vertical-tab-content tab3" style="display: none;">
+<h3>VERACODE <strong>FOR EXECUTIVES</strong></h3>
+<p><img alt="executives" class="pull-left" height="auto" src="/sites/default/files/executives.png" title="executives" typeof="foaf:Image" width="250">Veracode delivers the application security solutions and services today’s software-driven world requires so that innovation and security can go hand-in-hand. Veracode customers ramp up quickly, see value on day one, demonstrate compliance with regulations, and easily scale over time.</p>
+  <div class="large story btn ghost bgcolor-0092d4 ">
+    <a href="https://info.veracode.com/ciso-kit-for-application-security.html" class="personaCTATrack txtcolor-0092d4">Download Our CISO Kit</a>
+    </div>
+
+</div>
+<a href="" class="js-vertical-tab-accordion-heading vertical-tab-accordion-heading " rel="tab4"><span class="pull-left icon icon-operations-31x31">&nbsp;</span>For Operations</a><div class="js-vertical-tab-content vertical-tab-content tab4" style="display: none;">
+<h3>VERACODE <strong>FOR OPERATIONS</strong></h3>
+<p style="margin-bottom:-26px;"><img alt="operations" class="pull-left" height="auto" src="/sites/default/files/operations.png" title="operations" typeof="foaf:Image" width="250">Veracode provides solutions that ensure the security of an application all the way through deployment. Operations teams can get better insight about attacks on production applications – and protect against compromise – without impacting performance. And when new vulnerabilities are discovered in open source components already in use they can quickly find and remediate those risks.</p>
+  <div class="large story btn ghost bgcolor-16a3dd ">
+    <a href="http://www.veracode.com/products/dynamic-analysis-dast" class="personaCTATrack txtcolor-16a3dd">Learn More</a>
+    </div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+  </div>
+
+  
+  
+</div>
+<a id="snap__subnav_35656"></a><div id="widget_35656">
+	<div class="snap__subnav_anchor_35656_widget powerfull-code news-text btn-learn-more newsWidgetCTATrack " style="background:#0092d4  none repeat scroll 0 0;"><div class="row newsWidgetCTATrack"><h3>
+	<span class="txtcolor-ffffff widget-news-title"><p><strong>Have questions? Contact us today! </strong></p>
+</span>
+		<span class="medium btn story news-btn ghost bgcolor-ffffff pull-right">
+	<a href="https://info.veracode.com/web-contact-us.html?utm_source=main_navigation&amp;utm_medium=website" alt="Contact Us" target="_self" class="txtcolor-ffffff newsWidgetCTATrack">Contact Us</a></span>	</h3></div></div>
+</div>
+<div id="node-38171" class="node node-widget-story-slideshow clearfix" about="/38171" typeof="sioc:Item foaf:Document">
+
+  
+        <h2><a href="/38171">Homepage Video Slider - Customer Testimonials</a></h2>
+    <span property="dc:title" content="Homepage Video Slider - Customer Testimonials" class="rdf-meta element-hidden"></span><span property="sioc:num_replies" content="0" datatype="xsd:integer" class="rdf-meta element-hidden"></span>
+  
+  <div class="content">
+    <a id="snap__subnav_38171"></a><div id="widget_38171" class="Widget-video-SlideItems  snap__subnav_anchor_38171_widget multipleslide" style="overflow: hidden;"><div class="owl-carousel owl-theme owl-loaded owl-drag">  <div class="owl-stage-outer"><div class="owl-stage" style="transform: translate3d(-2238px, 0px, 0px); transition: all 0s ease 0s; width: 8992px; padding-left: 20px; padding-right: 20px;"><div class="owl-item cloned" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38201"></a><div id="widget_38201" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38201_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_5_0.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“They are very quick to respond, very quick to answer questions in a really knowledgeable way.”</h4>
+<p class="video-auther">Israel Varela | Vice President of Sales</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/38KmyLWRx9rgZD8F1kf5ne.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item cloned" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38186"></a><div id="widget_38186" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38186_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_2.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“It has allowed us to scale and find vulnerabilities much faster than previous manual tools.”</h4>
+<p class="video-auther">Suzan Nascimento | SVP of Application Security</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/YxFP6vX9UuLmNvXdQLYGqf.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item active" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38196"></a><div id="widget_38196" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38196_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_4.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“Veracode enables me to provide better code, faster, so my time to market is less.”</h4>
+<p class="video-auther">Jim Nelms | Chief Information Security Officer</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/R9pmv7eqUfrifrLwypFVgs.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38181"></a><div id="widget_38181" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38181_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“They actually help you every single step of the way and they want to show you how to do it.”</h4>
+<p class="video-auther">Tim Jee | Sr. Cybersecurity Engineer</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/iFkjHX2h9cx8asWbu45fWb.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38201"></a><div id="widget_38201" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38201_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_5_0.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“They are very quick to respond, very quick to answer questions in a really knowledgeable way.”</h4>
+<p class="video-auther">Israel Varela | Vice President of Sales</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/38KmyLWRx9rgZD8F1kf5ne.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38186"></a><div id="widget_38186" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38186_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_2.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“It has allowed us to scale and find vulnerabilities much faster than previous manual tools.”</h4>
+<p class="video-auther">Suzan Nascimento | SVP of Application Security</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/YxFP6vX9UuLmNvXdQLYGqf.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item cloned" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38196"></a><div id="widget_38196" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38196_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_4.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“Veracode enables me to provide better code, faster, so my time to market is less.”</h4>
+<p class="video-auther">Jim Nelms | Chief Information Security Officer</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/R9pmv7eqUfrifrLwypFVgs.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div><div class="owl-item cloned" style="width: 969px; margin-right: 150px;"><div class="owl-items"><div class="video-wrapper-slider"><a id="snap__subnav_38181"></a><div id="widget_38181" class="widget-video videoWidgetPlayTrack snap__subnav_anchor_38181_widget video-slideshow-wrapper"><div class="widget-video-image" style="background: url(/sites/default/files/widget-story-images/Slider_Images_New_.png) no-repeat center center / cover;height: 450px;"></div><div class="video-body-content"><div class="body-content-inner"><!-- <p><img src="/sites/default/files/v-logo.png" style="width:auto;"></p> -->
+<h4>“They actually help you every single step of the way and they want to show you how to do it.”</h4>
+<p class="video-auther">Tim Jee | Sr. Cybersecurity Engineer</p>
+<a rel="shadowbox;player=iframe;" href="//play.vidyard.com/iFkjHX2h9cx8asWbu45fWb.html?v=3.1.1&amp;type=modal&amp;autoplay=1" target="_self" class="widget-video__play_new"><div class="video-icon-effect"><i class="fa fa-play-circle videoWidgetPlayTrack none" aria-hidden="true"></i><span class="none">Watch Testimony</span></div></a></div></div></div></div></div></div></div></div><div class="owl-nav disabled"><div class="owl-prev">prev</div><div class="owl-next">next</div></div><div class="owl-dots"><div class="owl-dot active"><span></span></div><div class="owl-dot"><span></span></div><div class="owl-dot"><span></span></div><div class="owl-dot"><span></span></div></div></div>
+
+  
+  
+</div>
+<a id="snap__subnav_23186"></a><div id="widget_23186" class="story-wrapper  snap__subnav_anchor_23186_widget"><div class="grid-module-wrapper"><style type="text/css">
+div#widget_23186.story-wrapper {padding: 0 0px 80px 0;}</style>
+<h2 style="font-weight: 300">This Week At Veracode</h2>
+<hr><ul id="resource-set"><li style="height: 284.632px;"><div class="grid-module" id="widget-nid-23186"><a href="https://info.veracode.com/analyst-report-gartner-mq-appsec-testing-2018.html" target="_self"><figure><div class="module-label bgcolor-8fbc48 "><span class="sprite icon-analyst-report"></span>Analyst Report</div><img src="https://www.veracode.com/sites/default/files/styles/resource_set_image_style/public/gartner-mq-2017-resource.png?itok=4x0A7DZg" alt="Analyst Report" title="Analyst Report" class="resourceClickTrack"></figure></a><p><a href="https://info.veracode.com/analyst-report-gartner-mq-appsec-testing-2018.html" target="_self">Gartner Application Security Testing Magic Quadrant 2018</a></p></div></li><li style="height: 284.632px;"><div class="grid-module" id="widget-nid-23186"><a href="https://www.veracode.com/sites/default/files/pdf/resources/ipapers/everything-you-need-to-know-guide-maturing-an-application-security-program/index.html" target="_blank"><figure><div class="module-label  "><span class="sprite icon-guide"></span>Guide</div><img src="https://www.veracode.com/sites/default/files/styles/resource_set_image_style/public/Veracode-MaturingApsecPolicy-Resource.png?itok=bM1weHiL" alt="Guide" title="Guide" class="resourceClickTrack"></figure></a><p><a href="https://www.veracode.com/sites/default/files/pdf/resources/ipapers/everything-you-need-to-know-guide-maturing-an-application-security-program/index.html" target="_blank">Everything You Need to Know About Maturing AppSec</a></p></div></li><li style="height: 284.632px;"><div class="grid-module" id="widget-nid-23186"><a href="https://info.veracode.com/peerpaper-2018-report-resource.html" target="_self"><figure><div class="module-label  "><span class="sprite icon-guide"></span>Guide</div><img src="https://www.veracode.com/sites/default/files/styles/resource_set_image_style/public/CMKT-1109392-PeerPaper-Resource.png?itok=HIhRc4ur" alt="Guide" title="Guide" class="resourceClickTrack"></figure></a><p><a href="https://info.veracode.com/peerpaper-2018-report-resource.html" target="_self">PeerPaper Report 2018</a></p></div></li></ul></div></div>  </div>
+
+  
+  
+</div>
+	</div>
+
+  </div>  </div>
+</div>
+<div id="block-block-51" class="block block-block">
+
+    
+  <div class="content">
+    <div class="livechat"><span class="close fa angle-down">&nbsp;</span><p></p>
+<div class="contact-menu"><span class="fa fa-angle-down close">&nbsp;</span><p></p>
+<ul class="options">
+<li>
+<div class="badge"><span class="icon icon-monitor-100x100">&nbsp;</span></div>
+<p>				<a class="chatOptionClickTrack" href="https://info.veracode.com/veracode-platform-demo-registration.html">Get a Demo</a></p></li>
+<li>
+<div class="badge"><span class="icon icon-quote-100x100">&nbsp;</span></div>
+<p>				<a class="chatOptionClickTrack" href="https://info.veracode.com/request-quote.html">Get a Quote</a></p></li>
+<li id="chat-cu">
+<div class="badge"><span class="icon icon-envelope-100x100">&nbsp;</span></div>
+<p>				<a class="chatOptionClickTrack" href="https://info.veracode.com/web-contact-us.html?utm_source=Click2Chat&amp;utm_medium=Website">Contact Us</a></p></li>
+<li id="chat-se">
+<div class="badge"><span class="icon icon-comment-100x100">&nbsp;</span></div>
+<p>				<a class="chatOptionClickTrack" href="//www.veracode.com/" onclick="return SnapEngage.startLink();">Chat Now</a></p></li>
+</ul>
+<ul class="phone-email">
+<li><span class="icon icon-white-phone-16x16">&nbsp;</span><em>US:</em> 1-888-937-0329</li>
+<li><span class="icon icon-white-phone-16x16">&nbsp;</span><em>EMEA:</em> +44-(0)20-3761-5501</li>
+<li><span class="icon icon-email-sent-16x16">&nbsp;</span><a href="mailto:contact@veracode.com">contact@veracode.com</a></li>
+<li><span class="icon icon-community-16x16">&nbsp;</span><a href="https://community.veracode.com">Visit the community &gt;</a></li>
+</ul>
+</div>
+<p>	<img alt="contact menu" class="chat-badge chatBadgeClickTrack" height="104" src="//www.veracode.com/sites/default/files/chat/circle.png" style="cursor: pointer; overflow: hidden;position: fixed;display: block;bottom: 2%;right: 2%;z-index:2;margin: 0;padding: 0;border-collapse: collapse;border-spacing: 0;border: none;outline: none;font-size: 0px;line-height: 0px;width:104px; height:104px;" width="104"></p></div>
+  </div>
+</div>
+<div id="block-block-66" class="block block-block cookie-popup-block">
+
+    
+  <div class="content">
+    <!-- start popup code --><div class="cookie-popup-bottom" id="cookie-popup" style="height: auto; width: 100%; bottom: 0px; position: fixed; transform: translate(0px, 0px); transition: all 1s ease 0s;">
+<div>
+<div class="cookie-popup-content">
+<div id="cookie-popup-text">
+<h2>Cookie Use</h2>
+<p>We use cookies to collect information to help us personalise your experience and improve the functionality and performance of our site. By continuing to use our site [without first changing your browser setting], you consent to our use of cookies. For more information see our <a href="//www.veracode.com/legal-notices#cookies">cookies policy</a>.</p>
+</div>
+<div id="cookie-popup-buttons"><button class="cookie-popup-agree-button" type="button">OK</button></div>
+</div>
+</div>
+</div>
+<!-- end popup code-->  </div>
+</div>
+  </div>
+    </div>
+</div></div></section>
+
+<footer>
+	  <div class="region region-social-links">
+    <div id="block-menu-block-3" class="block block-menu-block">
+
+    
+  <div class="content">
+    <div class="menu-block-wrapper menu-block-3 menu-name-menu-menu-main-footer-menu parent-mlid-0 menu-level-1">
+  <ul class="menu"><li class="first expanded menu-mlid-4841"><a href="/products" title="" class="footerMenuTrack">Products</a><ul class="menu"><li class="first leaf menu-mlid-11431"><a href="/products/greenlight" title="" class="footerMenuTrack">Greenlight</a></li>
+<li class="leaf menu-mlid-4856"><a href="/products/binary-static-analysis-sast" title="" class="footerMenuTrack">Static Analysis (SAST)</a></li>
+<li class="leaf menu-mlid-26231"><a href="/products/software-composition-analysis" title="" class="footerMenuTrack">Software Composition Analysis (SCA)</a></li>
+<li class="leaf menu-mlid-26641"><a href="/products/dynamic-analysis-dast" title="" class="footerMenuTrack">Dynamic Analysis (DAST)</a></li>
+<li class="leaf menu-mlid-29136"><a href="/services/developer-training" title="" class="footerMenuTrack">Developer Training</a></li>
+<li class="last leaf menu-mlid-29141"><a href="/products/vendor-application-security-testing" title="" class="footerMenuTrack">Vendor Application Security Testing</a></li>
+</ul></li>
+<li class="expanded menu-mlid-4881"><a href="/services" title="" class="footerMenuTrack">Services</a><ul class="menu"><li class="first leaf menu-mlid-28581"><a href="/services/application-security-consulting" title="" class="footerMenuTrack">Application Security Consulting</a></li>
+<li class="leaf menu-mlid-28596"><a href="/services/technical-support" title="" class="footerMenuTrack">Technical Support</a></li>
+<li class="leaf menu-mlid-30221"><a href="/services/penetration-testing" title="" class="footerMenuTrack">Penetration Testing</a></li>
+<li class="leaf menu-mlid-4906"><a href="/services/developer-training" title="" class="footerMenuTrack">Developer Training</a></li>
+<li class="last leaf menu-mlid-29151"><a href="/services/customer-success-packages" title="" class="footerMenuTrack">Customer Success Packages</a></li>
+</ul></li>
+<li class="expanded menu-mlid-4746"><a href="/solutions" title="" class="footerMenuTrack">Solutions</a><ul class="menu"><li class="first leaf menu-mlid-29066"><span title="" class="footerMenuTrack nolink">By Business Need:</span></li>
+<li class="leaf menu-mlid-4766"><a href="/solutions/by-need/streamlining-compliance" title="" class="footerMenuTrack">Compliance</a></li>
+<li class="leaf menu-mlid-29171"><a href="/integrations%20" title="" class="footerMenuTrack">Veracode Integrations</a></li>
+<li class="leaf menu-mlid-4771"><a href="/solutions/by-need/third-party-security" title="" class="footerMenuTrack">Third-Party Security </a></li>
+<li class="leaf menu-mlid-29076"><span title="" class="footerMenuTrack separator"><hr></span></li>
+<li class="leaf menu-mlid-29071"><span title="" class="footerMenuTrack nolink">By Organization Type:</span></li>
+<li class="leaf menu-mlid-4826"><a href="/solutions/by-company/global-enterprise" title="" class="footerMenuTrack">Global Enterprise</a></li>
+<li class="leaf menu-mlid-4831"><a href="/solutions/by-company/midsize-enterprise" title="" class="footerMenuTrack">Midsize Enterprise</a></li>
+<li class="last leaf menu-mlid-4836"><a href="/solutions/by-company/independent-software-vendor" title="" class="footerMenuTrack">Independent Software Vendor</a></li>
+</ul></li>
+<li class="expanded menu-mlid-4911"><a href="/resources" title="" class="footerMenuTrack">Resources</a><ul class="menu"><li class="first leaf menu-mlid-4941"><a href="/security" title="" class="footerMenuTrack">AppSec Knowledge Base</a></li>
+<li class="leaf menu-mlid-29206"><a href="https://veracode.com/resources?topic=intro-to-appsec#resources-results" title="" class="footerMenuTrack">Intro to AppSec</a></li>
+<li class="leaf menu-mlid-29211"><a href="https://veracode.com/resources?topic=managing-appsec#resources-results" title="" class="footerMenuTrack">Managing AppSec</a></li>
+<li class="leaf menu-mlid-29216"><a href="https://veracode.com/resources?topic=secure-development#resources-results" title="" class="footerMenuTrack">Secure Development</a></li>
+<li class="leaf menu-mlid-29256"><a href="https://www.veracode.com/resources?topic=regulation#resources-results" title="" class="footerMenuTrack">Regulation</a></li>
+<li class="leaf menu-mlid-29221"><a href="https://veracode.com/resources?topic=getting-internal-buy-in#resources-results" title="" class="footerMenuTrack">Getting Internal Buy In</a></li>
+<li class="leaf menu-mlid-29226"><a href="https://veracode.com/resources?topic=third-party-software#resources-results" title="" class="footerMenuTrack">Third Party Software</a></li>
+<li class="last leaf menu-mlid-16011"><a href="https://help.veracode.com/ " title="" class="footerMenuTrack">Product Documentation</a></li>
+</ul></li>
+<li class="last expanded menu-mlid-4946"><a href="/about-us" title="" class="footerMenuTrack">About</a><ul class="menu"><li class="first leaf menu-mlid-29146"><a href="/workforus" title="" class="footerMenuTrack">Work For Us</a></li>
+<li class="leaf menu-mlid-6651"><a href="/about/careers" title="" class="footerMenuTrack">Careers</a></li>
+<li class="leaf menu-mlid-4971"><a href="/about/leadership" title="" class="footerMenuTrack">Leadership</a></li>
+<li class="leaf menu-mlid-4961"><a href="/news-events" title="" class="footerMenuTrack">News &amp; Events</a></li>
+<li class="leaf menu-mlid-29176"><a href="/resources/faqs" title="" class="footerMenuTrack">FAQs</a></li>
+<li class="last leaf menu-mlid-4981"><a href="https://info.veracode.com/web-contact-us.html" title="" class="footerMenuTrack">Contact Us</a></li>
+</ul></li>
+</ul></div>
+  </div>
+</div>
+  </div>
+	  <div class="region region-footer-menu">
+    <div id="block-block-96" class="block block-block mobile-footer-follow">
+
+    <h2>Follow us</h2>
+  
+  <div class="content">
+    <ul class="footer-social-link">
+<li><a href="https://www.facebook.com/VeracodeInc" rel="noopener" target="_blank"><img src="//www.veracode.com/sites/default/files/facebook_0.png"></a></li>
+<li><a href="https://twitter.com/Veracode" rel="noopener" target="_blank"><img src="//www.veracode.com/sites/default/files/twitter-white_0.png"></a></li>
+<li><a href="https://www.linkedin.com/company/veracode" rel="noopener" target="_blank"><img src="//www.veracode.com/sites/default/files/linkedin-white_0.png"></a></li>
+<li><a href="https://www.youtube.com/user/VeracodeInc" rel="noopener" target="_blank"><img src="//www.veracode.com/sites/default/files/play_0.png"></a></li>
+</ul>
+  </div>
+</div>
+<div id="block-menu-menu-quick-links" class="block block-menu menu-mobile-footer-menu">
+
+    <h2>Quick links</h2>
+  
+  <div class="content">
+    <ul class="menu"><li class="first leaf"><a href="/services" title="" class="footerMenuTrack">Services</a></li>
+<li class="leaf"><a href="/solutions" title="" class="footerMenuTrack">Solutions</a></li>
+<li class="leaf"><a href="/solutions/by-company/global-enterprise" title="" class="footerMenuTrack">Our company</a></li>
+<li class="leaf"><a href="/resources" title="" class="footerMenuTrack">Resources</a></li>
+<li class="leaf"><a href="/about/partners" title="" class="footerMenuTrack">Partners</a></li>
+<li class="leaf"><a href="/about/careers" title="" class="footerMenuTrack">Careers</a></li>
+<li class="leaf"><a href="https://info.veracode.com/blog-subscribe.html" title="" class="footerMenuTrack">Get a demo</a></li>
+<li class="last leaf"><a href="/blog" title="" class="footerMenuTrack">Blog</a></li>
+</ul>  </div>
+</div>
+<div id="block-block-101" class="block block-block footer-follow-us">
+
+    
+  <div class="content">
+    <p>Sales : <a href="tel:+1-888-937-0329">+1-888-937-0329</a></p>
+<p>Support: <a href="tel:+1-877-837-2203">+1-877-837-2203</a></p>
+<p>UK: <a href="tel:+44 (0)20 3761 5501">+44-(0)-20-3761-5501</a></p>
+  </div>
+</div>
+<div id="block-block-106" class="block block-block new-copyright">
+
+    
+  <div class="content">
+    <p><span class="legal"><a href="//www.veracode.com/site-map" title="">Site Map</a>&nbsp;|&nbsp;<a href="//www.veracode.com/privacy-policy" title="">Privacy Policy</a>&nbsp;|&nbsp;<a href="//www.veracode.com/about/terms-of-use" title="">Terms of Use</a>&nbsp;|&nbsp;<a href="//www.veracode.com/about/certifications" title="">Cloud Certifications</a></span></p>
+<div class="copy-right">© 2019 VERACODE, All Rights Reserved 65 Network Drive, Burlington MA 01803</div>
+  </div>
+</div>
+  </div>
+	
+</footer>
+  <div class="region region-footer footerMapTrack">
+    <div id="block-block-91" class="block block-block footer-mobile-text">
+
+    
+  <div class="content">
+    <p>Veracode is a leading provider of enterprise-class application security, seamlessly integrating agile security solutions for organizations around the globe. In addition to application security services and secure devops services, Veracode provides a full security assessment to ensure your website and applications are secure, and ensures full enterprise data protection. Application protection services from Veracode include white box testing, and mobile application security testing, with customized solutions that eliminate vulnerabilities at all points along the development life cycle.</p>
+  </div>
+</div>
+  </div>
+      <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+;function advagg_mod_1(){advagg_mod_1.count=++advagg_mod_1.count||1;try{if(advagg_mod_1.count<=40){window.jQuery||document.write("<script src='/sites/all/modules/jquery_update/replace/jquery/2.2/jquery.min.js'>\x3C/script>");advagg_mod_1.count=100}}catch(d){if(advagg_mod_1.count>=40){throw d}
+else{window.setTimeout(advagg_mod_1,250)}}};function advagg_mod_1_check(){if(window.jQuery&&window.Drupal&&window.Drupal.settings){advagg_mod_1()}
+else{window.setTimeout(advagg_mod_1_check,250)}};advagg_mod_1_check();
+//--><!]]>
+</script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+;function advagg_mod_2(){advagg_mod_2.count=++advagg_mod_2.count||1;try{if(advagg_mod_2.count<=40){window.jQuery.ui||document.write("<script src='/sites/all/modules/jquery_update/replace/ui/ui/minified/jquery-ui.min.js'>\x3C/script>");advagg_mod_2.count=100}}catch(d){if(advagg_mod_2.count>=40){throw d}
+else{window.setTimeout(advagg_mod_2,250)}}};function advagg_mod_2_check(){if(window.jQuery&&window.Drupal&&window.Drupal.settings){advagg_mod_2()}
+else{window.setTimeout(advagg_mod_2_check,250)}};advagg_mod_2_check();
+//--><!]]>
+</script>
+<script type="text/javascript" src="/sites/default/files/advagg_js/js__yNXesSatD3lUfblMzrWedNrRBOXsVAAX0uQoMCZ_jfw__SXWA9Tgv4hXjfoSy5gMz9q5zTS8uvOXBcSumHDzcq28__-A10P-1JhD5-2Ua1R8ZybZxDd4RxSpKnsxbTckhZwvM.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+;function advagg_mod_defer_1(){Shadowbox.path='/sites/all/libraries/shadowbox-3.0.3/'};window.setTimeout(advagg_mod_defer_1,0);
+//--><!]]>
+</script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+;jQuery(function(){var e=[],i=jQuery('.appsec-left-block .ui-accordion .ui-accordion-content-active ul li a');function c(){e=[];i=jQuery('.appsec-left-block .ui-accordion .ui-accordion-content-active ul li a');i.each(function(c,i){if(jQuery(i).height()<0){return!0};if(jQuery.inArray(jQuery(i).height(),e)==-1){e.push(jQuery(i).height())}});i.each(function(c,i){if(jQuery(i).height()<0){return!0};jQuery(i).addClass('liAchorHeight-'+Math.round(jQuery(i).height()/Math.min.apply(Math,e)))})};jQuery('.accordion-menu-1').accordion({animated:'slide',autoHeight:!1,clearStyle:!1,fillSpace:!1,event:'mousedown',header:'h3',collapsible:!0,navigation:!1,icons:{'header':'ui-icon-plus','activeHeader':'ui-icon-minus'},heightStyle:'content',cookie:{path:'/'},active:!1,create:function(e,i){setTimeout(function(){c()},500);jQuery('.accordion-menu-wrapper').show(510)},activate:function(e,i){c()},beforeActivate:function(e,i){jQuery('.appsec-left-block .ui-accordion .ui-accordion-content-active ul li a').removeClass('liAchorHeight-1 liAchorHeight-2 liAchorHeight-3 liAchorHeight-4')}});jQuery('.accordion-menu-1 .accordion-header.no-children').each(function(e,i){jQuery(this).unbind().children('.ui-icon').removeClass('ui-icon-plus').addClass('ui-icon-black')})});
+//--><!]]>
+</script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"","ajaxPageState":{"theme":"veracode","theme_token":"2FuCImIxLJ1n92V6c3hjzXQghHxkmKYYA3UTdGE82v0","css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"sites\/all\/libraries\/shadowbox-3.0.3\/shadowbox.css":1,"misc\/ui\/jquery.ui.core.css":1,"misc\/ui\/jquery.ui.theme.css":1,"misc\/ui\/jquery.ui.accordion.css":1,"modules\/comment\/comment.css":1,"sites\/all\/modules\/date\/date_api\/date.css":1,"sites\/all\/modules\/date\/date_popup\/themes\/datepicker.1.7.css":1,"modules\/field\/theme\/field.css":1,"sites\/all\/modules\/fitvids\/fitvids.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"sites\/all\/modules\/views\/css\/views.css":1,"sites\/all\/modules\/accordion_menu\/accordion_menu.css":1,"sites\/all\/modules\/media\/modules\/media_wysiwyg\/css\/media_wysiwyg.base.css":1,"sites\/all\/libraries\/colorbox\/example2\/colorbox.css":1,"profiles\/acquia\/modules\/ctools\/css\/ctools.css":1,"sites\/all\/modules\/panels\/css\/panels.css":1,"sites\/all\/libraries\/superfish\/css\/superfish.css":1,"sites\/all\/libraries\/superfish\/css\/superfish-smallscreen.css":1,"sites\/all\/libraries\/superfish\/style\/simple\/simple.css":1,"sites\/all\/themes\/veracode\/css\/main_animate.css":1,"sites\/all\/themes\/veracode\/css\/screen.css":1,"sites\/all\/themes\/veracode\/css\/sm-spritesheet.css":1,"sites\/all\/themes\/veracode\/css\/icon-spritesheet.css":1,"sites\/all\/themes\/veracode\/css\/livechat.css":1,"sites\/all\/themes\/veracode\/css\/prism.css":1,"sites\/all\/themes\/veracode\/css\/print.css":1,"sites\/all\/libraries\/bxslider\/jquery.bxslider.css":1,"sites\/all\/themes\/veracode\/css\/story.css":1,"sites\/all\/themes\/veracode\/css\/owl.carousel.min.css":1,"sites\/default\/files\/soss-data-explorer\/build\/css\/index-generated.css":1,"0":1},"js":{"\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/2.2.4\/jquery.min.js":1,"\/\/ajax.googleapis.com\/ajax\/libs\/jqueryui\/1.10.2\/jquery-ui.min.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"sites\/all\/libraries\/fitvids\/jquery.fitvids.js":1,"sites\/all\/libraries\/shadowbox-3.0.3\/shadowbox.js":1,"sites\/all\/modules\/shadowbox\/shadowbox_auto.js":1,"misc\/form.js":1,"sites\/all\/modules\/ajax_error_behavior\/ajax_error_behavior.js":1,"sites\/all\/modules\/fitvids\/fitvids.js":1,"sites\/all\/libraries\/colorbox\/jquery.colorbox-min.js":1,"sites\/all\/modules\/colorbox\/js\/colorbox.js":1,"sites\/all\/modules\/colorbox\/js\/colorbox_load.js":1,"sites\/all\/modules\/colorbox\/js\/colorbox_inline.js":1,"misc\/collapse.js":1,"sites\/all\/libraries\/superfish\/sfautomaticwidth.js":1,"sites\/all\/libraries\/superfish\/sftouchscreen.js":1,"sites\/all\/libraries\/superfish\/sfsmallscreen.js":1,"sites\/all\/libraries\/superfish\/supposition.js":1,"sites\/all\/libraries\/superfish\/superfish.js":1,"sites\/all\/libraries\/easing\/jquery.easing.js":1,"sites\/all\/libraries\/superfish\/supersubs.js":1,"sites\/all\/modules\/superfish\/superfish.js":1,"sites\/all\/themes\/veracode\/js\/lib\/console.js":1,"sites\/all\/themes\/veracode\/js\/lib\/gumby\/js\/gumby.min.js":1,"sites\/all\/themes\/veracode\/js\/lib\/gumby\/bower_components\/gumby-parallax\/gumby.parallax.js":1,"sites\/all\/themes\/veracode\/js\/lib\/jquery.easing.js":1,"sites\/all\/themes\/veracode\/js\/lib\/jquery.cycle.js":1,"sites\/all\/themes\/veracode\/js\/lib\/jquery.cycle.swipe.js":1,"sites\/all\/themes\/veracode\/js\/lib\/jquery.cycle.ios6.js":1,"sites\/all\/themes\/veracode\/js\/lib\/jquery.backstretch.js":1,"sites\/all\/themes\/veracode\/js\/lib\/breakpoints.js":1,"sites\/all\/themes\/veracode\/js\/app.js":1,"sites\/all\/themes\/veracode\/js\/init.js":1,"sites\/all\/themes\/veracode\/js\/header-search.js":1,"sites\/all\/themes\/veracode\/js\/prism.js":1,"sites\/all\/themes\/veracode\/js\/lib\/d3.v3.min.js":1,"sites\/all\/themes\/veracode\/js\/svg-tooltip.js":1,"sites\/all\/themes\/veracode\/js\/picturefill.js":1,"sites\/all\/themes\/veracode\/js\/TweenMax.min.js":1,"sites\/all\/themes\/veracode\/js\/scrollmagic.min.js":1,"sites\/all\/themes\/veracode\/js\/ScrollToPlugin.min.js":1,"sites\/all\/themes\/veracode\/js\/owl.carousel.js":1,"sites\/all\/themes\/veracode\/js\/story.js":1,"sites\/all\/themes\/veracode\/js\/jquery-ui.min.js":1,"sites\/all\/modules\/pwa\/js\/serviceworker-load.js":1,"sites\/all\/libraries\/bxslider\/jquery.bxslider.min.js":1}},"ajaxErrorBehavior":{"behavior":"console","error":"There was some error in the user interface, please contact the site administrator.","watchdog_url":"https:\/\/www.veracode.com\/ajax_error_behavior\/watchdog"},"colorbox":{"opacity":"0.85","current":"{current} of {total}","previous":"\u00ab Prev","next":"Next \u00bb","close":"Close","maxWidth":"98%","maxHeight":"98%","fixed":true,"mobiledetect":true,"mobiledevicewidth":"480px"},"shadowbox":{"animate":1,"animateFade":1,"animSequence":"wh","auto_enable_all_images":1,"auto_gallery":1,"autoplayMovies":true,"continuous":0,"counterLimit":"10","counterType":"default","displayCounter":1,"displayNav":1,"enableKeys":1,"fadeDuration":"0.35","handleOversize":"resize","handleUnsupported":"link","initialHeight":160,"initialWidth":320,"language":"en","modal":false,"overlayColor":"#000","overlayOpacity":"0.85","resizeDuration":"0.35","showMovieControls":1,"slideshowDelay":"0","viewportPadding":20,"useSizzle":0},"fitvids":{"custom_domains":[],"selectors":["body"],"simplifymarkup":1},"urlIsAjaxTrusted":{"\/":true},"superfish":{"1":{"id":"1","sf":{"animation":{"opacity":"show","height":["show","easeInQuint"]},"speed":"slow"},"plugins":{"automaticwidth":true,"touchscreen":{"behaviour":"1","disableHover":true,"mode":"always_active"},"smallscreen":{"mode":"window_width","breakpointUnit":"px","title":"Header Navigation"},"supposition":true,"supersubs":true}}},"pwa":{"path":"\/pwa\/serviceworker\/js","registrationEvent":"windowonload"}});
+//--><!]]>
+</script>
+<script type="text/javascript" src="/sites/default/files/advagg_js/js__9BTpVXQE4YE8r7ZeJxG5e4Iup7G8q0A5-h9eXdCSolI__gu3qWpqb9OY7V2njvDsq-TVp_dLMeDvGbGdLekEGwPY__-A10P-1JhD5-2Ua1R8ZybZxDd4RxSpKnsxbTckhZwvM.js"></script>
+
+</div><meta name="google-site-verification" content="SLgu_RGmXuEMFYRUZU2Gwt4XsL_rZlJXY8E5fGwP4dc"><script type="text/javascript" id="">(function(a,e,f,g,b,c,d){a.GoogleAnalyticsObject=b;a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)};a[b].l=1*new Date;c=e.createElement(f);d=e.getElementsByTagName(f)[0];c.async=1;c.src=g;d.parentNode.insertBefore(c,d)})(window,document,"script","//www.google-analytics.com/analytics.js","ga");ga("create","UA-2206791-1",{cookieDomain:"auto",siteSpeedSampleRate:100,allowLinker:!0});ga("require","linker");ga("linker:autoLink",["www.veracode.com"]);ga("send","pageview");</script>
+
+<script type="text/javascript" id="">(function(){var a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src="//storage.googleapis.com/code.snapengage.com/js/e1163bdd-6ca9-46d6-8b53-8e0f47c15360.js";var c=!1;a.onload=a.onreadystatechange=function(){c||this.readyState&&"loaded"!==this.readyState&&"complete"!==this.readyState||(c=!0,SnapEngage.getAgentStatusAsync(function(a){a&&(a=document.getElementById("chat-cu"),a.style.display="none",a=document.getElementById("chat-se"),a.style.display="block")}),SnapEngage.setCallback("StartChat",
+function(a,c,b){_gaq.push(["_trackEvent","SnapEngage","chatStarted",b])}))};var b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b)})();</script>
+<script type="application/ld+json">
+{
+"@context": "http://www.schema.org",
+"@type": "Organization",
+"name": "Veracode",
+"url": "https://www.veracode.com/",
+"sameAs" : ["https://www.facebook.com/veracode/",
+"https://www.twitter.com/veracode",
+"https://www.linkedin.com/company/veracode"],
+"logo": "http://www.veracode.com/sites/all/themes/veracode/img/logo/logo-ca-veracode.svg",
+"description": "Veracode delivers the application security solutions and services today’s software-driven world requires.",
+"address": { "@type": "PostalAddress", "streetAddress": "65 Network Drive", "addressLocality": "Burlington", "addressRegion": "MA", "postalCode": " 01803", "addressCountry": "USA" }
+
+,
+"contactPoint":
+{ "@type": "ContactPoint", "telephone": "+1(339) 674-2500", "contactType": "Sales" }
+
+}
+</script>
+<script type="text/javascript" id="">(function(a,e,f,g,b,c,d){a.SwiftypeObject=b;a[b]=a[b]||function(){(a[b].q=a[b].q||[]).push(arguments)};c=e.createElement(f);d=e.getElementsByTagName(f)[0];c.async=1;c.src=g;d.parentNode.insertBefore(c,d)})(window,document,"script","//s.swiftypecdn.com/install/v2/st.js","_st");_st("install","A_rVfvAdLTrcjQeu6puC","2.0.0");</script>
+<script type="text/javascript" id="">!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","2188618868127556");fbq("track","PageView");</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2188618868127556&amp;ev=PageView&amp;noscript=1"></noscript>
+
+<img src="https://secure.adnxs.com/seg?add=16272378&amp;t=2" width="1" height="1" style="display:none;">
+
+<img src="https://secure.adnxs.com/px?id=1063438&amp;t=2" width="1" height="1" style="display:none">
+
+<script language="javascript">
+/*function setSlideHeight(){
+	var half = parseInt($("#large-detailed-image .slider-content").height()) / 2;
+	$('#large-detailed-image .slider-content').css('margin-top',-half);
+	$('.bxslider-reason li .slider-content').each(function(){
+		var half = parseInt($(this).height()) / 2;
+		$(this).css('margin-top',-half);
+	});
+}*/
+$(document).ready(function(){
+	if($('.bxslider').length){
+		$('.bxslider').bxSlider({
+			auto: true,
+			autoControls: true,
+			pager: false,
+			controls: false,
+			adaptiveHeight: true
+		});
+	}
+	if($('.bxslider-reason').length){
+		$('.bxslider-reason').bxSlider({
+			minSlides: 4,
+			maxSlides: 5,
+			slideWidth: 300,
+			slideMargin: 0,
+			pager:false,
+			onSliderLoad:function(currentIndex){
+				setTimeout(function(){
+					$(".bx-prev").not('.disabled').wrap('<span class="previous"></span>');
+					$(".bx-next").not('.disabled').wrap('<span class="next"></span>');
+				}, 2000);
+				$('.'+$('.bxslider-reason>li:not(.bx-clone)').eq(0).attr('class').split(' ')[0]).addClass('active');
+				var liObj;
+				var n;
+				var largeImageObj = $('#large-detailed-image img');
+				setTimeout(function(){
+					$('.cache-large-image').remove();
+				}, 5000);
+				$('.bxslider-reason li').click(function(){
+					liObj = $(this);
+					if((largeImageObj.attr('src') != liObj.attr('data-large-image'))){
+						largeImageObj.fadeTo( 400, 0.33, function(){
+							largeImageObj.clearQueue().stop();
+							liObj.clearQueue().stop();
+							$('.bxslider-reason li').removeClass('active');
+							$('.'+liObj.attr('class').split(' ')[0]).addClass('active');
+							$('#large-detailed-image h2').html(liObj.attr('data-heading'));
+							$('#large-detailed-image span').html(liObj.attr('data-span'));
+							largeImageObj.attr('src', liObj.attr('data-large-image')).fadeTo(400,1);
+						});
+					}
+				});
+			}
+		});
+		/*setSlideHeight();
+		$(window).resize(function(){setSlideHeight();});*/
+	}
+
+
+		
+/*$(window).on( 'resize', function () {
+
+	$( ".story-wrapper__image" ).each(function( index ) {
+	height_img=$(this).height();
+	//alert(height_img);
+	$(this).parent().next('div').css('height',height_img+'px');
+	$(this).parent().prev('div').css('height',height_img+'px');
+	})
+}).resize();*/
+
+/*Call Owlcarousel-event*/
+	if($('.dragon').length){
+	$('.owl-carousel').owlCarousel({
+    //rtl:true,
+    loop:true,
+    margin:0,
+    nav:true,
+	navText: ["<i class='fa fa-chevron-left'></i>","<i class='fa fa-chevron-right'></i>"],
+	dots:false,
+    responsive:{
+        0:{
+            items:1
+
+        },
+        600:{
+            items:2
+
+        },
+        1000:{
+            items:3
+
+        }
+    }
+}) }
+/*End*/
+/* carousel for Widget-Story style*/
+if($('.Widget-Story-SlideItems').length){
+	$('.owl-carousel').owlCarousel({
+    //rtl:true,
+    loop:true,
+    margin:0,
+    nav:true,
+	navText: ["<i class='fa fa-chevron-left'></i>","<i class='fa fa-chevron-right'></i>"],
+	dots:false,
+    responsive:{
+        0:{
+            items:1
+
+        },
+        600:{
+            items:1
+
+        },
+        1000:{
+            items:1
+
+        }
+    }
+}) }
+//for video slider
+if($('.Widget-video-SlideItems').length){ 
+	$('.owl-carousel').owlCarousel({
+	 margin:150,
+	loop:!0,
+	items:1,
+	autoplay:!0,
+	autoplayTimeout:5000,
+	dots:!0,
+	  responsive:{
+        0:{
+            items:1,
+			 stagePadding: 20,
+        },
+        600:{
+            items:1,
+			stagePadding: 20,
+        },
+        1200:{
+            stagePadding: 200,
+			
+        },
+		1600:{
+		stagePadding:300
+		},
+	1920:{
+		stagePadding:400
+	}
+    }
+}) }
+/*end*/
+/*Code for Resources Filters page*/
+if($('.story-wrapper.resource-filter-results').length){
+	$(".views-exposed-widget fieldset").hover(
+		function() {
+			$(this).removeClass('collapsed');
+			$(this).find('.fieldset-wrapper').show();
+		}, function() {
+			$(this).addClass('collapsed');
+			$(this).find('.fieldset-wrapper').hide();
+		}
+	);
+
+	$('.story-wrapper.resource-filter-results').find('input[type="checkbox"]').on('change', function() {
+			$('.story-wrapper.resource-filter-results').find('input[type="checkbox"]:not(:checked)').not($(this)).attr('disabled', true);
+	});
+
+	if(jQuery(".grid-module-wrapper-outer .mutiselect-output.grid-module-wrapper").length == 0){
+		jQuery(".views-exposed-widget fieldset").addClass('collapsed').find('.fieldset-wrapper').hide();
+		jQuery('input[type="checkbox"]:checked').attr('checked', false);
+		jQuery('input[type="checkbox"]').parent().removeClass('highlight');
+			}
+
+
+	$(document.createElement('div')).addClass('mutiselect-output grid-module-wrapper').appendTo($(".grid-module-wrapper-outer"));
+	if(jQuery(".page-story-landing.resources-set.news-event").length > 0){
+	/*Some changes part of News-Events filtering*/
+	jQuery(".mutiselect-output.grid-module-wrapper").append('<div class="gridView"><a href="javascript:void(this);" title="Show as list" id="listView" class="active"  onClick="return changeViewMode(this);"><i class="fa fa-list"></i></a> <a href="javascript:void(this);"  id="gridView" title="Show as grid" onClick="return changeViewMode(this);" ><i class="fa fa-th"></i></a></div>');
+	}
+	//jQuery(".mutiselect-output.grid-module-wrapper").append('<a href="javascript:void(this);" title="Show as list" id="listView" ><i class="fa fa-list"></i></a> <a href="javascript:void(this);"  id="gridView" title="Show as grid"><i class="fa fa-th"></i></a>');
+	
+}
+/*End*/
+
+});
+$(window).on("load", function(){	/*loadResizeImage();*/	});
+function loadResizeImage(){
+
+	$(".story-wrapper__image").each(function( index ) {
+	height_img=$(this).height();
+	if(height_img > 560){
+	if($(this).parent('a').length > 0){
+
+		$(this).closest('div').next('div').css('height',height_img+'px');
+		$(this).closest('div').prev('div').css('height',height_img+'px');
+
+		}else{
+	$(this).parent().next('div').css('height',height_img+'px');
+	$(this).parent().prev('div').css('height',height_img+'px');
+
+	}
+	}
+
+	});
+
+}
+
+</script>
+
+
+
+<div id="cboxOverlay" style="display: none;"></div><div id="colorbox" class="" role="dialog" tabindex="-1" style="display: none;"><div id="cboxWrapper"><div><div id="cboxTopLeft" style="float: left;"></div><div id="cboxTopCenter" style="float: left;"></div><div id="cboxTopRight" style="float: left;"></div></div><div style="clear: left;"><div id="cboxMiddleLeft" style="float: left;"></div><div id="cboxContent" style="float: left;"><div id="cboxTitle" style="float: left;"></div><div id="cboxCurrent" style="float: left;"></div><button type="button" id="cboxPrevious"></button><button type="button" id="cboxNext"></button><button type="button" id="cboxSlideshow"></button><div id="cboxLoadingOverlay" style="float: left;"></div><div id="cboxLoadingGraphic" style="float: left;"></div></div><div id="cboxMiddleRight" style="float: left;"></div></div><div style="clear: left;"><div id="cboxBottomLeft" style="float: left;"></div><div id="cboxBottomCenter" style="float: left;"></div><div id="cboxBottomRight" style="float: left;"></div></div></div><div style="position: absolute; width: 9999px; visibility: hidden; display: none; max-width: none;"></div></div><script src="https://analytics.twitter.com/i/adsct?p_id=Twitter&amp;p_user_id=0&amp;txn_id=nv97e&amp;events=%5B%5B%22pageview%22%2Cnull%5D%5D&amp;tw_sale_amount=0&amp;tw_order_quantity=0&amp;tw_iframe_status=0&amp;tpx_cb=twttr.conversion.loadPixels&amp;tw_document_href=https%3A%2F%2Fwww.veracode.com%2F" type="text/javascript"></script><script src="https://px.ads.linkedin.com/collect/?time=1551592069363&amp;pid=23233&amp;url=https%3A%2F%2Fwww.veracode.com%2F&amp;fmt=js&amp;s=1" type="text/javascript"></script><div style="display: none; visibility: hidden;">
+<script>(function(a,b,c,d,e){a=b.createElement(c);b=b.getElementsByTagName(c)[0];a.async=1;a.id=e;a.src=("https:"==document.location.protocol?"https://":"http://")+d;b.parentNode.insertBefore(a,b)})(window,document,"script","scripts.demandbase.com/TcBM5dSb.min.js","demandbase_js_lib");</script>
+</div><div style="display: none; visibility: hidden;">
+
+<script type="text/javascript">(function(){function b(){!1===c&&(c=!0,Munchkin.init("790-ZKW-291"))}var c=!1,a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src="//munchkin.marketo.net/munchkin.js";a.onreadystatechange=function(){"complete"!=this.readyState&&"loaded"!=this.readyState||b()};a.onload=b;document.getElementsByTagName("head")[0].appendChild(a)})();</script>
+</div><div style="display: none; visibility: hidden;">
+<script id="term-e7e5d07437489" src="https://vidassets.terminus.services/ab4e8b62-4d0a-427b-bae2-bb8c9cf73717/t.js"></script></div><div style="display: none; visibility: hidden;"><script type="text/javascript">(function(){var c={},a=document,g=encodeURIComponent,e=z="",b=a.createElement("script"),d=a.referrer,f=a.getElementsByTagName("script")[0];b.type="text/javascript";b.async=!0;d&&d.split(/[/:?]/)[3]!=a.location.hostname&&(c.ref=d);for(y in c)e+="\x26"+y+"\x3d"+g(c[y]);b.src="//caveracode.netmng.com/?aid\x3d5711\x26siclientid\x3d"+e;f.parentNode.insertBefore(b,f)})();</script>
+</div><div style="width:0px; height:0px; display:none; visibility:hidden;" id="batBeacon0.7960944409398638"><img style="width:0px; height:0px; display:none; visibility:hidden;" id="batBeacon0.1235901555020189" width="0" height="0" alt="" src="https://bat.bing.com/action/0?ti=26009070&amp;Ver=2&amp;mid=075b78fe-78e7-c3cb-68fb-51d070738991&amp;pi=0&amp;lg=en-US&amp;sw=1024&amp;sh=768&amp;sc=24&amp;tl=Use%20Veracode%20to%20secure%20the%20applications%20you%20build,%20buy,%20%26%20manage&amp;kw=application%20security,%20open%20source%20security,%20mobile,%20static,%20dynamic,%20sdlc,%20veracode&amp;p=https%3A%2F%2Fwww.veracode.com%2F&amp;r=&amp;lt=4023&amp;evt=pageLoad&amp;msclkid=N&amp;rn=2227"></div><img style="display:none" alt="" aria-hidden="true" id="db_pixel_ad" src="https://d.company-target.com/pixel?type=js&amp;id=1396633289&amp;page=https%3A%2F%2Fwww.veracode.com%2F"><img style="display:none" alt="" aria-hidden="true" id="db_pixel_rt" src="https://d.company-target.com/pixel?type=js&amp;id=1396633346&amp;page=https%3A%2F%2Fwww.veracode.com%2F"><img style="display:none" alt="" aria-hidden="true" id="db_bw_pixel_ad" src="https://match.prod.bidr.io/cookie-sync/demandbase"><img style="display:none" alt="" aria-hidden="true" id="db_lr_pixel_ad" src="https://id.rlcdn.com/464526.gif"><div id="designstudio" style="font-size:16px;-webkit-transform:translateZ(0);-moz-transform:translateZ(0);-ms-transform:translateZ(0);transform:translateZ(0);display:none;z-index:100003;position:fixed;height:32.75em;width:25.25em;right:0;float:right;bottom:0;"><div id="draggable" style="width:calc(100% - 5.9375em);left:0;top:0;position:absolute;height:3em;z-index:13000;margin-top:12px;margin-left:12px;cursor:move;"></div><iframe id="designstudio-iframe" style="-webkit-transform:translateZ(0);-moz-transform:translateZ(0);-ms-transform:translateZ(0);transform:translateZ(0);display:block;position:absolute;border:none;width:100%;height:100%;" name="designstudio-frame" title="Live Chat Box"></iframe></div><div id="designstudio-minimize" style="position:fixed;z-index:999998;display:none;right:0;float:right;bottom:0;"><iframe id="iframe-minimize" style="border:none;display:block;font-size:14px;" name="designstudio-minimize-frame" title="Live Chat Button" scrolling="no"><div id="minimize-content"><div id="minimize-notify" class=" minimize-notify-right-avatar minimize-notify-bottom"><span id="minimize-notify-counter"></span></div><div id="minimize-avatar-container" class=" right bottom"><img id="minimize-avatar"></div><div id="minimize-svg" class=" right bottom"><div id="svg-container"><svg viewBox="0 0 600 600"><defs><filter id="dropshadow" height="140%"><fegaussianblur in="SourceAlpha" stddeviation="15"></fegaussianblur><feoffset result="offsetblur" dx="10" dy="10"></feoffset><fecomponenttransfer><fefunca type="linear" slope="0.8"></fefunca></fecomponenttransfer><femerge><femergenode></femergenode><femergenode in="SourceGraphic"></femergenode></femerge></filter></defs><g id="comments-o" class="designstudio-container"><circle class="designstudio-circle" cx="50%" cy="50%" r="260" fill="#ff9900" linejoin="round" stroke="#ffffff" stroke-width="0" fill-opacity="1" position="absolute"></circle><path class="designstudio-icon" fill="#ffffff" d="M704 1152q-153 0 -286 -52t-211.5 -141t-78.5 -191q0 -82 53 -158t149 -132l97 -56l-35 -84q34 20 62 39l44 31l53 -10q78 -14 153 -14q153 0 286 52t211.5 141t78.5 191t-78.5 191t-211.5 141t-286 52zM704 1280q191 0 353.5 -68.5t256.5 -186.5t94 -257t-94 -257 t-256.5 -186.5t-353.5 -68.5q-86 0 -176 16q-124 -88 -278 -128q-36 -9 -86 -16h-3q-11 0 -20.5 8t-11.5 21q-1 3 -1 6.5t0.5 6.5t2 6l2.5 5t3.5 5.5t4 5t4.5 5t4 4.5q5 6 23 25t26 29.5t22.5 29t25 38.5t20.5 44q-124 72 -195 177t-71 224q0 139 94 257t256.5 186.5 t353.5 68.5zM1526 111q10 -24 20.5 -44t25 -38.5t22.5 -29t26 -29.5t23 -25q1 -1 4 -4.5t4.5 -5t4 -5t3.5 -5.5l2.5 -5t2 -6t0.5 -6.5t-1 -6.5q-3 -14 -13 -22t-22 -7q-50 7 -86 16q-154 40 -278 128q-90 -16 -176 -16q-271 0 -472 132q58 -4 88 -4q161 0 309 45t264 129 q125 92 192 212t67 254q0 77 -23 152q129 -71 204 -178t75 -230q0 -120 -71 -224.5t-195 -176.5z" transform="scale(.195, -.195) translate(600, -2000)"></path></g></svg></div></div><div id="minimize-messages" class=" message-left bottom"></div></div></iframe></div><style>.designstudio-animated {-webkit-animation-duration: .5s;animation-duration: .5s;-webkit-animation-fill-mode: both;animation-fill-mode: both;}@keyframes designstudio-fadeOut {from {opacity: 1;}to {opacity: 0;}}.designstudio-fadeOut {animation-name: designstudio-fadeOut;}@-webkit-keyframes designstudio-fadeInUp {from {opacity: 0;-webkit-transform: translate3d(0, 100%, 0);transform: translate3d(0, 100%, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}@keyframes designstudio-fadeInUp {from {opacity: 0;-webkit-transform: translate3d(0, 100%, 0);transform: translate3d(0, 100%, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}.designstudio-fadeInUp {-webkit-animation-name: designstudio-fadeInUp;animation-name: designstudio-fadeInUp;}@-webkit-keyframes designstudio-fadeInDown {from {opacity: 0;-webkit-transform: translate3d(0, -100%, 0);transform: translate3d(0, -100%, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}@keyframes designstudio-fadeInDown {from {opacity: 0;-webkit-transform: translate3d(0, -100%, 0);transform: translate3d(0, -100%, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}.designstudio-fadeInDown {-webkit-animation-name: designstudio-fadeInDown;animation-name: designstudio-fadeInDown;}@-webkit-keyframes designstudio-fadeInLeft {from {opacity: 0;-webkit-transform: translate3d(-100%, 0, 0);transform: translate3d(-100%, 0, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}@keyframes designstudio-fadeInLeft {from {opacity: 0;-webkit-transform: translate3d(-100%, 0, 0);transform: translate3d(-100%, 0, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}.designstudio-fadeInLeft {-webkit-animation-name: designstudio-fadeInLeft;animation-name: designstudio-fadeInLeft;}@-webkit-keyframes designstudio-fadeInRight {from {opacity: 0;-webkit-transform: translate3d(100%, 0, 0);transform: translate3d(100%, 0, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}@keyframes designstudio-fadeInRight {from {opacity: 0;-webkit-transform: translate3d(100%, 0, 0);transform: translate3d(100%, 0, 0);}to {opacity: 1;-webkit-transform: none;transform: none;}}.designstudio-fadeInRight {-webkit-animation-name: designstudio-fadeInRight;animation-name: designstudio-fadeInRight;}@-webkit-keyframes designstudio-fadeOutUp {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(0, -100%, 0);transform: translate3d(0, -100%, 0);}}@keyframes designstudio-fadeOutUp {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(0, -100%, 0);transform: translate3d(0, -100%, 0);}}.designstudio-fadeOutUp {-webkit-animation-name: designstudio-fadeOutUp;animation-name: designstudio-fadeOutUp;}@-webkit-keyframes designstudio-fadeOutDown {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(0, 100%, 0);transform: translate3d(0, 100%, 0);}}@keyframes designstudio-fadeOutDown {from {opacity: 1; }to {opacity: 0;-webkit-transform: translate3d(0, 100%, 0);transform: translate3d(0, 100%, 0);}}.designstudio-fadeOutDown {-webkit-animation-name: designstudio-fadeOutDown;animation-name: designstudio-fadeOutDown;}@-webkit-keyframes designstudio-fadeOutLeft {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(-100%, 0, 0);transform: translate3d(-100%, 0, 0);}}@keyframes designstudio-fadeOutLeft {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(-100%, 0, 0);transform: translate3d(-100%, 0, 0);}}.designstudio-fadeOutLeft {-webkit-animation-name: designstudio-fadeOutLeft;animation-name: designstudio-fadeOutLeft;}@-webkit-keyframes designstudio-fadeOutRight {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(100%, 0, 0);transform: translate3d(100%, 0, 0);}}@keyframes designstudio-fadeOutRight {from {opacity: 1;}to {opacity: 0;-webkit-transform: translate3d(100%, 0, 0);transform: translate3d(100%, 0, 0);}}.designstudio-fadeOutRight {-webkit-animation-name: designstudio-fadeOutRight;animation-name: designstudio-fadeOutRight;}@-webkit-keyframes designstudio-slideInDown {from {-webkit-transform: translate3d(0, -100% , 0);transform: translate3d(0, -100% , 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}@keyframes designstudio-slideInDown {from {-webkit-transform: translate3d(0, -100% , 0);transform: translate3d(0, -100% , 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}.designstudio-slideInDown {-webkit-animation-name: designstudio-slideInDown;animation-name: designstudio-slideInDown;}@-webkit-keyframes designstudio-slideInLeft {from {-webkit-transform: translate3d(-100% , 0, 0);transform: translate3d(-100% , 0, 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}@keyframes designstudio-slideInLeft {from {-webkit-transform: translate3d(-100% , 0, 0);transform: translate3d(-100% , 0, 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}.designstudio-slideInLeft {-webkit-animation-name: designstudio-slideInLeft;animation-name: designstudio-slideInLeft;}@-webkit-keyframes designstudio-slideInRight {from {-webkit-transform: translate3d(100% , 0, 0);transform: translate3d(100% , 0, 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}@keyframes designstudio-slideInRight {from {-webkit-transform: translate3d(100% , 0, 0);transform: translate3d(100% , 0, 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}.designstudio-slideInRight {-webkit-animation-name: designstudio-slideInRight;animation-name: designstudio-slideInRight;}@-webkit-keyframes designstudio-slideInUp {from {-webkit-transform: translate3d(0, 100% , 0);transform: translate3d(0, 100% , 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}@keyframes designstudio-slideInUp {from {-webkit-transform: translate3d(0, 100% , 0);transform: translate3d(0, 100% , 0);visibility: visible;}to {-webkit-transform: translate3d(0, 0, 0);transform: translate3d(0, 0, 0);}}.designstudio-slideInUp {-webkit-animation-name: designstudio-slideInUp;animation-name: designstudio-slideInUp;}</style><img src="https://vidassets.terminus.services/ab4e8b62-4d0a-427b-bae2-bb8c9cf73717/t.gif?d=bf4a8366-6e18-403a-9daf-55ee2a673fcb&amp;s=772119fa-d9a8-4caa-b5fa-342fd42b70bf&amp;cb=1551592070149"><div id="designstudio-button" style="position:fixed;z-index:999998;left:-9999px;font-size:14px;"><iframe id="iframe-designstudio-button" style="border:none;display:block;" name="designstudio-button-frame" title="Live Chat Button" scrolling="no" class="designstudio-animated designstudio-slideInUp"></iframe></div><script src="https://caveracode.netmng.com/?aid=5711&amp;siclientid=&amp;cch"></script><img src="//cm.g.doubleclick.net/pixel?google_nid=netmng&amp;google_cm&amp;google_sc&amp;google_hm=ZzgweG01ZWpjZjNzcw==&amp;vid=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="https://dpm.demdex.net/ibs:dpid=640&amp;dpuuid=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="https://image2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTIxMTQmdGw9NDMyMDA=&amp;piggybackCookie=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="https://secure.adnxs.com/pxj?bidder=72&amp;seg=188087&amp;action=setuid('g80xm5ejcf3ss')" width="1" height="1" style="display: none;"><img src="https://secure.adnxs.com/mapuid?member=6928&amp;user=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="https://secure.adnxs.com/mapuid?member=9373&amp;user=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="//pixel.rubiconproject.com/tap.php?v=10107|1|15&amp;nid=2365&amp;put=g80xm5ejcf3ss&amp;expires=15" width="1" height="1" style="display: none;"><img src="//loadm.exelator.com/load/?p=204&amp;g=330&amp;buid=g80xm5ejcf3ss&amp;j=0" width="1" height="1" style="display: none;"><img src="//tags.bluekai.com/site/13209?id=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="//cs.gssprt.jp/yie/ld/cs?dspid=ignition&amp;uid=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="https://ce.lijit.com/merge?pid=15&amp;3pid=g80xm5ejcf3ss&amp;cb=1551592070" width="1" height="1" style="display: none;"><img src="//pixel.advertising.com/ups/55948/sync?uid=g80xm5ejcf3ss&amp;_origin=1" width="1" height="1" style="display: none;"><img src="//x.bidswitch.net/sync?dsp_id=14&amp;user_id=g80xm5ejcf3ss&amp;expires=30" width="1" height="1" style="display: none;"><img src="//us-u.openx.net/w/1.0/sd?id=537072967&amp;val=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="//jp-u.openx.net/w/1.0/sd?id=537079812&amp;val=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><img src="//p.adsymptotic.com/d/px?_pid=14832&amp;_psign=8a206ffa0982dea1dde37bc49f0d3508&amp;_pu=&amp;_puuid=g80xm5ejcf3ss&amp;_rand=7073567650521022464&amp;_redirect=" width="1" height="1" style="display: none;"><img src="//beacon.krxd.net/usermatch.gif?partner=ignitionone&amp;partner_uid=g80xm5ejcf3ss" width="1" height="1" style="display: none;"><div id="sb-container"><div id="sb-overlay"></div><div id="sb-wrapper"><div id="sb-title"><div id="sb-title-inner"></div></div><div id="sb-wrapper-inner"><div id="sb-body"><div id="sb-body-inner"></div><div id="sb-loading"><div id="sb-loading-inner"><span>loading</span></div></div></div></div><div id="sb-info"><div id="sb-info-inner"><div id="sb-counter"></div><div id="sb-nav"><a id="sb-nav-close" title="Close" onclick="Shadowbox.close()"></a><a id="sb-nav-next" title="Next" onclick="Shadowbox.next()"></a><a id="sb-nav-play" title="Play" onclick="Shadowbox.play()"></a><a id="sb-nav-pause" title="Pause" onclick="Shadowbox.pause()"></a><a id="sb-nav-previous" title="Previous" onclick="Shadowbox.previous()"></a></div></div></div></div></div><div class="st-injected-content-generated st-install-A_rVfvAdLTrcjQeu6puC" data-st-install-key="A_rVfvAdLTrcjQeu6puC" id="st-injected-content"><div class="st-default-autocomplete" data-st-target-element=".st-default-search-input" style="display: none;">
+  <div class="st-autocomplete-results st-ui-autocomplete"><div class="st-query-present" style="display: none;"></div></div>
+</div>
+</div><div class="st-injected-content-generated st-install-A_rVfvAdLTrcjQeu6puC __st-search-container" data-st-install-key="A_rVfvAdLTrcjQeu6puC">
+<div class="st-ui-embed " style="">
+  <!-- Swiftype input and results overlay -->
+  <div class="st-ui-container st-ui-injected-container   st-ui-injected-on-page-container">
+    <!-- HEADER -->
+    <div class="st-ui-container-header_bar st-position-container">
+    </div>
+
+    <!-- LEFT SIDEBAR -->
+    <div class="st-ui-container-left_sidebar st-position-container">
+      <div class="st-ui-injected-search-controls">
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="st-ui-container-right_sidebar st-position-container">
+      <div class="st-ui-injected-container-right_sidebar">
+        <div class="st-ui-injected-search-controls">
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIMARY CONTENT -->
+    <div class="st-ui-container-primary_content st-position-container">
+        <div class="st-ui-injected-search-summary st-search-summary"></div>
+        <div class="st-ui-injected-content st-search-results"><div class="st-query-present" style="display: none;"></div></div>
+
+      <section class="st-ui-no-results st-search-suggestions"><div class="st-query-not-present">
+      </div></section>
+    </div>
+
+
+
+    <!-- FOOTER -->
+    <div class="st-ui-container-footer_bar st-position-container">
+      <section class="st-ui-footer">
+        <span class="st-ui-pagination st-search-pagination"></span>
+      </section>
+    </div>
+  </div>
+</div>
+</div></body></html>

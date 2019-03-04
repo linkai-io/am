@@ -348,7 +348,7 @@ func (s *Service) processAddress(details *taskDetails) {
 		return
 	}
 
-	updatedAddress.LastSeenTime = time.Now().UnixNano()
+	updatedAddress.LastScannedTime = time.Now().UnixNano()
 	details.batcher.Add(updatedAddress)
 
 	// this happens iff input_list/manual hosts only have one of ip or host
@@ -456,7 +456,7 @@ func (s *Service) GetActiveAddresses() int32 {
 
 func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
 	filter := &am.FilterType{}
-	filter.AddInt64("before_seen_time", then)
+	filter.AddInt64("before_scanned_time", then)
 	return &am.ScanGroupAddressFilter{
 		OrgID:   userContext.GetOrgID(),
 		GroupID: scanGroupID,

@@ -44,6 +44,11 @@ func New(servers []string, retry int) *Client {
 	return c
 }
 
+// DoNSECWalk TODO implement
+func (c *Client) DoNSECWalk(ctx context.Context, domain string) {
+
+}
+
 // IsWildcard tests if a domain is a wildcard domain, attempt 10 A and 10 AAAA queries
 // of randomly generated names, if we get even a single response it's probably a wildcard
 func (c *Client) IsWildcard(ctx context.Context, domain string) bool {

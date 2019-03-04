@@ -108,6 +108,9 @@ deploybackend:
 deploymodules:
 	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
 
+deploynsmoduleservice:
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service nsmoduleservice
+
 deploybrutemoduleservice:
 	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service brutemoduleservice
 

@@ -90,7 +90,6 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	nsRecords := make(map[string]*am.ScanGroupAddress, 0)
 
-	address.LastScannedTime = time.Now().UnixNano()
 	if !ns.shouldAnalyze(address) {
 		log.Ctx(ctx).Info().Msg("will not analyze")
 		return address, nsRecords, nil
@@ -257,8 +256,15 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 				if !address.IsHostedService && address.HostAddress != "" {
 					address.IsHostedService = module.IsHostedDomain(address.HostAddress)
 				}
-				address.IPAddress = ip
-				address.LastSeenTime = time.Now().UnixNano()
+				// if we got the same ip address back and it's not empty, update last seen time
+				// or this record does not have an ip address, and now we have one, update seen time and
+				// set ip address
+				if address.IPAddress != "" && ip == address.IPAddress {
+					address.LastSeenTime = time.Now().UnixNano()
+				} else if address.IPAddress == "" {
+					address.IPAddress = ip
+					address.LastSeenTime = time.Now().UnixNano()
+				}
 				address.NSRecord = int32(rr.RecordType)
 				address.AddressHash = convert.HashAddress(ip, address.HostAddress)
 				log.Ctx(ctx).Info().Str("IPAddress", address.IPAddress).Msg("address analysis complete")
