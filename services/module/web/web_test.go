@@ -76,7 +76,7 @@ func TestWebInfraAnalyze(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	browserPool := browser.NewGCDBrowserPool(2)
+	browserPool := browser.NewGCDBrowserPool(2, amtest.MockWebDetector())
 	if err := browserPool.Init(); err != nil {
 		t.Fatalf("failed initializing browsers: %v\n", err)
 	}
@@ -172,7 +172,7 @@ func TestWebInfraAnalyze(t *testing.T) {
 func TestWebAnalyze(t *testing.T) {
 	ctx := context.Background()
 
-	browserPool := browser.NewGCDBrowserPool(5)
+	browserPool := browser.NewGCDBrowserPool(5, amtest.MockWebDetector())
 	if err := browserPool.Init(); err != nil {
 		t.Fatalf("failed initializing browsers: %v\n", err)
 	}
@@ -215,7 +215,7 @@ func TestWebAnalyze(t *testing.T) {
 func TestCoTAnalyze(t *testing.T) {
 	ctx := context.Background()
 
-	browserPool := browser.NewGCDBrowserPool(2)
+	browserPool := browser.NewGCDBrowserPool(2, amtest.MockWebDetector())
 	if err := browserPool.Init(); err != nil {
 		t.Fatalf("failed initializing browsers: %v\n", err)
 	}

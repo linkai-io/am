@@ -1,4 +1,4 @@
-package parsers
+package parsers_test
 
 import (
 	"io/ioutil"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/parsers"
 )
 
 func TestExtractHostsFromResponse(t *testing.T) {
@@ -16,7 +17,7 @@ func TestExtractHostsFromResponse(t *testing.T) {
 		t.Fatalf("error opening test file")
 	}
 
-	hosts := ExtractHostsFromResponse(needles, string(data))
+	hosts := parsers.ExtractHostsFromResponse(needles, string(data))
 	for k, _ := range hosts {
 		t.Logf("found: %s\n", k)
 	}
@@ -24,17 +25,17 @@ func TestExtractHostsFromResponse(t *testing.T) {
 		t.Fatalf("expected 12 hosts, got: %d\n", len(hosts))
 	}
 
-	hosts = ExtractHostsFromResponse(needles, string("http://www.independent.co.uk"))
+	hosts = parsers.ExtractHostsFromResponse(needles, string("http://www.independent.co.uk"))
 	if len(hosts) != 1 {
 		t.Fatalf("expected 1 host got: %d\n", len(hosts))
 	}
 
-	hosts = ExtractHostsFromResponse(needles, string("w.independent.co.uk"))
+	hosts = parsers.ExtractHostsFromResponse(needles, string("w.independent.co.uk"))
 	if len(hosts) != 1 {
 		t.Fatalf("expected 1 host got: %d\n", len(hosts))
 	}
 
-	hosts = ExtractHostsFromResponse(needles, string("%w.independent.co.uk"))
+	hosts = parsers.ExtractHostsFromResponse(needles, string("%w.independent.co.uk"))
 	if len(hosts) != 1 {
 		t.Fatalf("expected 1 host got: %d\n", len(hosts))
 	}
@@ -42,7 +43,7 @@ func TestExtractHostsFromResponse(t *testing.T) {
 		t.Logf("%s\n", k)
 	}
 
-	hosts = ExtractHostsFromResponse(needles, string("%windependent.co.uk"))
+	hosts = parsers.ExtractHostsFromResponse(needles, string("%windependent.co.uk"))
 	if len(hosts) != 0 {
 		t.Fatalf("expected 1 host got: %d\n", len(hosts))
 	}
@@ -69,7 +70,7 @@ func TestGetDepth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetDepth(tt.args)
+			got, err := parsers.GetDepth(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetDepth() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -100,7 +101,7 @@ func TestGetSubDomain(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetSubDomain(tt.args)
+			got, err := parsers.GetSubDomain(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSubDomain() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -134,7 +135,7 @@ func TestGetSubDomainAndDomain(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotSub, gotDomain, err := GetSubDomainAndDomain(tt.args)
+			gotSub, gotDomain, err := parsers.GetSubDomainAndDomain(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSubDomain() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -169,7 +170,7 @@ func TestSplitAddresses(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := SplitAddresses(tt.args)
+			got, err := parsers.SplitAddresses(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SplitAddresses() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -183,19 +184,19 @@ func TestSplitAddresses(t *testing.T) {
 
 func TestSpecialTLD(t *testing.T) {
 	host := "test.amazonaws.com"
-	etld := SpecialETLD(host)
+	etld := parsers.SpecialETLD(host)
 	if etld != "amazonaws.com" {
 		t.Fatalf("error should have returned amazonaws.com for %s\n", host)
 	}
 
 	host = "test.com"
-	etld = SpecialETLD(host)
+	etld = parsers.SpecialETLD(host)
 	if etld != "test.com" {
 		t.Fatalf("error should have returned test.com for %s\n", host)
 	}
 
 	host = "test.com."
-	etld = SpecialETLD(host)
+	etld = parsers.SpecialETLD(host)
 	if etld != "test.com" {
 		t.Fatalf("error should have returned test.com for %s\n", host)
 	}

@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/webtech"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/browser"
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -59,8 +61,22 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to get dns server addresses")
 	}
 
+	store := filestorage.NewStorage(appConfig.Env, appConfig.Region)
+	if err := store.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize storage")
+	}
+
+	appJSON, err := store.GetInfraFile(context.Background(), "linkai-infra", appConfig.Region+"/web/apps.json")
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get apps.json file for detectors from storage")
+	}
+	wapp := webtech.NewWappalyzer()
+	if err := wapp.Init(appJSON); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize webtech detector")
+	}
+
 	ctx := context.Background()
-	browsers := browser.NewGCDBrowserPool(5)
+	browsers := browser.NewGCDBrowserPool(5, wapp)
 	if err := browsers.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing browsers")
 	}
@@ -79,11 +95,6 @@ func main() {
 	dc := dnsclient.New(dnsAddrs, 3)
 
 	webDataClient := initializers.WebDataClient()
-
-	store := filestorage.NewStorage(appConfig.Env, appConfig.Region)
-	if err := store.Init(); err != nil {
-		log.Fatal().Err(err).Msg("failed to initialize storage")
-	}
 
 	service := web.New(browsers, webDataClient, dc, state, store)
 	err = retrier.Retry(func() error {
