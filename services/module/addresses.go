@@ -91,26 +91,27 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 
 	out := make(chan *results, numHosts)
 
-	// submit all hosts to our worker pool
-	for newHost := range data.NewAddresses {
-		task := func(ctx context.Context, host string, out chan<- *results) func() {
-			return func() {
-				if ctx.Err() != nil {
+	task := func(ctx context.Context, host string, out chan<- *results) func() {
+		return func() {
+			if ctx.Err() != nil {
+				return
+			}
+			// check if our group has been paused/deleted prior to continuing.
+			group, err := data.Cache.GetGroupByIDs(data.Address.OrgID, data.Address.GroupID)
+			if err == nil {
+				if group.Paused || group.Deleted {
 					return
 				}
-				// check if our group has been paused/deleted prior to continuing.
-				group, err := data.Cache.GetGroupByIDs(data.Address.OrgID, data.Address.GroupID)
-				if err == nil {
-					if group.Paused || group.Deleted {
-						return
-					}
-				} else {
-					log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during resolve, continuing")
-				}
-				r, err := dns.ResolveName(ctx, host)
-				out <- &results{Hostname: host, R: r, Err: err}
+			} else {
+				log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during resolve, continuing")
 			}
+			r, err := dns.ResolveName(ctx, host)
+			out <- &results{Hostname: host, R: r, Err: err}
 		}
+	}
+
+	// submit all hosts to our worker pool
+	for newHost := range data.NewAddresses {
 		h := newHost
 		pool.Submit(task(ctx, h, out))
 	}

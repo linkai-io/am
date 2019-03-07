@@ -40,3 +40,11 @@ func (s *LocalStorage) Write(ctx context.Context, userContext am.UserContext, ad
 	err := ioutil.WriteFile(userContext.GetOrgCID()+fileName, data, 0766)
 	return hashName, userContext.GetOrgCID() + fileName, err
 }
+
+func (s *LocalStorage) GetInfraFile(ctx context.Context, pathName, objectName string) ([]byte, error) {
+	return nil, nil
+}
+
+func (s *LocalStorage) PutInfraFile(ctx context.Context, pathName, objectName string, data []byte) error {
+	return nil
+}

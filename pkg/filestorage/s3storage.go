@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/rs/zerolog/log"
@@ -37,6 +38,37 @@ func (s *S3Storage) Init() error {
 	}
 	s.s3session = s3.New(s.session)
 	return err
+}
+
+func (s *S3Storage) GetInfraFile(ctx context.Context, bucketName, objectName string) ([]byte, error) {
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectName),
+	}
+	out, err := s.s3session.GetObjectWithContext(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	defer out.Body.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, out.Body); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (s *S3Storage) PutInfraFile(ctx context.Context, bucketName, objectName string, data []byte) error {
+	input := &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectName),
+		Body:   bytes.NewReader(data),
+	}
+
+	if _, err := s.s3session.PutObjectWithContext(ctx, input); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {

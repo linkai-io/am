@@ -75,6 +75,32 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	return t.WaitReady(ctx, time.Second*3)
 }
 
+// InjectJS only caller knows what the response type will be so return an interface{}
+// caller must type check to whatever they expect
+func (t *Tab) InjectJS(inject string) (interface{}, error) {
+	params := &gcdapi.RuntimeEvaluateParams{
+		Expression:            inject,
+		ObjectGroup:           "linkai",
+		IncludeCommandLineAPI: false,
+		Silent:                true,
+		ReturnByValue:         true,
+		GeneratePreview:       false,
+		UserGesture:           false,
+		AwaitPromise:          false,
+		ThrowOnSideEffect:     false,
+		Timeout:               1000,
+	}
+	r, exp, err := t.t.Runtime.EvaluateWithParams(params)
+	if err != nil {
+		return nil, err
+	}
+	if exp != nil {
+		log.Warn().Err(err).Msg("failed to inject script")
+	}
+
+	return r.Value, nil
+}
+
 // GetURL by looking at the navigation history
 func (t *Tab) GetURL(ctx context.Context) string {
 	_, entries, err := t.t.Page.GetNavigationHistory()

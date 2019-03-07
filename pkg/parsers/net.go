@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -19,6 +20,11 @@ const (
 	ipv4arpafmt = "%d.%d.%d.%d.in-addr.arpa"
 	ipv6arpafmt = "%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.ip6.arpa"
 )
+
+// Parse cookies by creating a fake response
+func ParseCookies(s string) []*http.Cookie {
+	return (&http.Response{Header: http.Header{"Set-Cookie": {s}}}).Cookies()
+}
 
 // ParseArpa parses an in-addr.arpa or ip6.arpa name to IP address.
 func ParseArpa(arpa string) (string, bool) {

@@ -15,6 +15,8 @@ var (
 type Storage interface {
 	Init() error
 	Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error)
+	GetInfraFile(ctx context.Context, pathName, objectName string) ([]byte, error)
+	PutInfraFile(ctx context.Context, pathName, objectName string, data []byte) error
 }
 
 func NewStorage(env, region string) Storage {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/webtech"
 
 	"github.com/wirepair/gcd/gcdmessage"
 
@@ -74,11 +75,12 @@ type GCDBrowserPool struct {
 	browserTimeout   time.Duration
 	closing          int32
 	display          string
+	detector         webtech.Detector
 }
 
-func NewGCDBrowserPool(maxBrowsers int) *GCDBrowserPool {
+func NewGCDBrowserPool(maxBrowsers int, techDetect webtech.Detector) *GCDBrowserPool {
 	b := &GCDBrowserPool{}
-
+	b.detector = techDetect
 	b.maxBrowsers = maxBrowsers
 	b.browserTimeout = time.Second * 30
 	b.browsers = make(chan *gcd.Gcd, b.maxBrowsers)
@@ -252,6 +254,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	if loadResponse == nil {
 		log.Warn().Msg("unable to find original load response, using address data")
 		loadResponse = &am.HTTPResponse{
+			Headers:      make(map[string]string, 0),
 			HostAddress:  address.HostAddress,
 			IPAddress:    address.IPAddress,
 			ResponsePort: port,
@@ -264,6 +267,17 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	if err != nil {
 		responsePort, _ = strconv.Atoi(port) // safe to assume this won't fail
 	}
+
+	domMatches := b.detector.DOM(dom)
+	headerMatches := b.detector.Headers(loadResponse.Headers)
+	jsResults, err := tab.InjectJS(b.detector.JSToInject())
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to inject web tech detection js")
+	}
+	jsObjects := b.detector.JSResultsToObjects(jsResults)
+	jsMatches := b.detector.JS(jsObjects)
+
+	webTech := b.detector.MergeMatches([]map[string][]*webtech.Match{domMatches, headerMatches, jsMatches})
 
 	webData := &am.WebData{
 		Address:             address,
@@ -278,6 +292,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		SerializedDOM:       dom,
 		SerializedDOMHash:   convert.HashData([]byte(dom)),
 		ResponseTimestamp:   time.Now().UnixNano(),
+		DetectedTech:        webTech,
 		URLRequestTimestamp: start,
 	}
 

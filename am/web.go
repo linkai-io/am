@@ -12,23 +12,30 @@ const (
 	WebDataServiceKey     = "webdataservice"
 )
 
+type WebTech struct {
+	Matched  string `json:"matched"`
+	Version  string `json:"version"`
+	Location string `json:"location"`
+}
+
 // WebData is the primary container of a scangroup address's http response data.
 type WebData struct {
-	Address             *ScanGroupAddress `json:"address"`
-	Responses           []*HTTPResponse   `json:"responses"`
-	Snapshot            string            `json:"snapshot,omitempty"` // only used internally by browser package
-	SnapshotLink        string            `json:"snapshot_link"`
-	URL                 string            `json:"url"`
-	Scheme              string            `json:"scheme"`
-	AddressHash         string            `json:"address_hash"`
-	HostAddress         string            `json:"host_address"`
-	IPAddress           string            `json:"ip_address"`
-	ResponsePort        int               `json:"response_port"`
-	SerializedDOM       string            `json:"serialized_dom,omitempty"` // only used internally by browser package
-	SerializedDOMHash   string            `json:"serialized_dom_hash"`
-	SerializedDOMLink   string            `json:"serialized_dom_link"`
-	ResponseTimestamp   int64             `json:"response_timestamp"`
-	URLRequestTimestamp int64             `json:"url_request_timestamp"`
+	Address             *ScanGroupAddress   `json:"address"`
+	Responses           []*HTTPResponse     `json:"responses"`
+	Snapshot            string              `json:"snapshot,omitempty"` // only used internally by browser package
+	SnapshotLink        string              `json:"snapshot_link"`
+	URL                 string              `json:"url"`
+	Scheme              string              `json:"scheme"`
+	AddressHash         string              `json:"address_hash"`
+	HostAddress         string              `json:"host_address"`
+	IPAddress           string              `json:"ip_address"`
+	ResponsePort        int                 `json:"response_port"`
+	SerializedDOM       string              `json:"serialized_dom,omitempty"` // only used internally by browser package
+	SerializedDOMHash   string              `json:"serialized_dom_hash"`
+	SerializedDOMLink   string              `json:"serialized_dom_link"`
+	ResponseTimestamp   int64               `json:"response_timestamp"`
+	URLRequestTimestamp int64               `json:"url_request_timestamp"`
+	DetectedTech        map[string]*WebTech `json:"detected_tech"`
 }
 
 type URLData struct {

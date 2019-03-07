@@ -223,6 +223,21 @@ func HTTPResponsesToDomain(in []*prototypes.HTTPResponse) []*am.HTTPResponse {
 	return responses
 }
 
+func DomainToDetectedTech(in map[string]*am.WebTech) map[string]*prototypes.WebTech {
+	out := make(map[string]*prototypes.WebTech)
+	if in == nil {
+		return out
+	}
+	for k, v := range in {
+		out[k] = &prototypes.WebTech{
+			Matched:  v.Matched,
+			Version:  v.Version,
+			Location: v.Location,
+		}
+	}
+	return out
+}
+
 func DomainToWebData(in *am.WebData) *prototypes.WebData {
 	if in == nil {
 		return nil
@@ -244,7 +259,23 @@ func DomainToWebData(in *am.WebData) *prototypes.WebData {
 		IPAddress:           in.IPAddress,
 		Scheme:              in.Scheme,
 		ResponsePort:        int32(in.ResponsePort),
+		DetectedTech:        DomainToDetectedTech(in.DetectedTech),
 	}
+}
+
+func DetectedTechToDomain(in map[string]*prototypes.WebTech) map[string]*am.WebTech {
+	out := make(map[string]*am.WebTech)
+	if in == nil {
+		return out
+	}
+	for k, v := range in {
+		out[k] = &am.WebTech{
+			Matched:  v.Matched,
+			Version:  v.Version,
+			Location: v.Location,
+		}
+	}
+	return out
 }
 
 func WebDataToDomain(in *prototypes.WebData) *am.WebData {
@@ -268,6 +299,7 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 		SerializedDOMLink:   in.SerializedDOMLink,
 		ResponseTimestamp:   in.ResponseTimestamp,
 		URLRequestTimestamp: in.URLRequestTimestamp,
+		DetectedTech:        DetectedTechToDomain(in.DetectedTech),
 	}
 }
 

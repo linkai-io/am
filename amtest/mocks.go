@@ -9,6 +9,7 @@ import (
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/filestorage"
 	"github.com/linkai-io/am/pkg/state"
+	"github.com/linkai-io/am/pkg/webtech"
 )
 
 func MockAuthorizer() *mock.Authorizer {
@@ -161,4 +162,37 @@ func MockBigDataState() *mock.BigDataState {
 		return false, nil
 	}
 	return mockState
+}
+
+func MockWebDetector() *mock.Detector {
+	mockDetector := &mock.Detector{}
+	mockDetector.InitFn = func(config []byte) error {
+		return nil
+	}
+
+	mockDetector.JSFn = func(jsObjects []*webtech.JSObject) map[string][]*webtech.Match {
+		return make(map[string][]*webtech.Match, 0)
+	}
+
+	mockDetector.HeadersFn = func(headers map[string]string) map[string][]*webtech.Match {
+		return make(map[string][]*webtech.Match, 0)
+	}
+
+	mockDetector.DOMFn = func(dom string) map[string][]*webtech.Match {
+		return make(map[string][]*webtech.Match, 0)
+	}
+
+	mockDetector.JSToInjectFn = func() string {
+		return ""
+	}
+
+	mockDetector.JSResultsToObjectsFn = func(in interface{}) []*webtech.JSObject {
+		return make([]*webtech.JSObject, 0)
+	}
+
+	mockDetector.MergeMatchesFn = func(results []map[string][]*webtech.Match) map[string]*am.WebTech {
+		return make(map[string]*am.WebTech, 0)
+	}
+
+	return mockDetector
 }

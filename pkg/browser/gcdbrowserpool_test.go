@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/linkai-io/am/am"
+	"github.com/linkai-io/am/amtest"
 )
 
 func TestGCDBrowserPool(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(5)
+	b := NewGCDBrowserPool(5, amtest.MockWebDetector())
 	defer b.Close(ctx)
 
 	if err := b.Init(); err != nil {
@@ -33,7 +34,7 @@ func TestGCDBrowserPool(t *testing.T) {
 
 func TestGCDBrowserPoolTLS(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(1)
+	b := NewGCDBrowserPool(1, amtest.MockWebDetector())
 	defer b.Close(ctx)
 	if err := b.Init(); err != nil {
 		t.Fatalf("error initializing browser: %v\n", err)
@@ -71,7 +72,7 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 
 func TestGCDBrowserPoolClosedPort(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(1)
+	b := NewGCDBrowserPool(1, amtest.MockWebDetector())
 	defer b.Close(ctx)
 	if err := b.Init(); err != nil {
 		t.Fatalf("error initializing browser: %v\n", err)
@@ -94,7 +95,7 @@ func TestGCDBrowserPoolClosedPort(t *testing.T) {
 func TestGCDBrowserPoolNavFailure(t *testing.T) {
 
 	ctx := context.Background()
-	b := NewGCDBrowserPool(2)
+	b := NewGCDBrowserPool(2, amtest.MockWebDetector())
 	b.SetAPITimeout(time.Second * 3)
 	defer b.Close(ctx)
 
@@ -115,7 +116,7 @@ func TestGCDBrowserPoolNavFailure(t *testing.T) {
 
 func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(2)
+	b := NewGCDBrowserPool(2, amtest.MockWebDetector())
 	defer b.Close(ctx)
 
 	if err := b.Init(); err != nil {
@@ -185,121 +186,3 @@ func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 		}
 	}
 }
-
-/*
-Disabled since using headless chrome and not Xvfb (maybe...) 20181021
-func TestGCDBrowserPoolXvfb(t *testing.T) {
-	ctx := context.Background()
-
-	doneContext, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	xvfbPath := "/usr/bin/Xvfb"
-	if _, err := os.Stat(xvfbPath); err != nil {
-		t.Logf("not running due to Xvfb not in path")
-		return
-	}
-	go exec.CommandContext(doneContext, xvfbPath, "-ac", ":99", "-screen", "0", "1280x1024x16").Run()
-	time.Sleep(500 * time.Microsecond)
-	b := NewGCDBrowserPool(5)
-	b.UseDisplay(":99")
-
-	defer b.Close(ctx)
-	if err := b.Init(); err != nil {
-		t.Fatalf("error initializing browser: %v\n", err)
-	}
-
-	b.SetAPITimeout(time.Second * 30)
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*90)
-	defer cancel()
-
-	resultsCh := make(chan *am.WebData, 20)
-	defer close(resultsCh)
-
-	for i := 0; i < 10; i++ {
-		go func() {
-			address := &am.ScanGroupAddress{
-				HostAddress: "example.com",
-				IPAddress:   "93.184.216.34",
-			}
-
-			w, err := b.Load(timeoutCtx, address, "http", "80")
-			if err != nil {
-				t.Fatalf("error loading: %v\n", err)
-			}
-			resultsCh <- w
-		}()
-	}
-
-	go func() {
-		address := &am.ScanGroupAddress{
-			HostAddress: "google.com",
-			IPAddress:   "216.58.197.206",
-		}
-
-		w, err := b.Load(timeoutCtx, address, "http", "80")
-		if err != nil {
-			t.Fatalf("error loading: %v\n", err)
-		}
-		resultsCh <- w
-
-		address = &am.ScanGroupAddress{
-			HostAddress: "example.com",
-			IPAddress:   "93.184.216.34",
-		}
-
-		w, err = b.Load(timeoutCtx, address, "http", "80")
-		if err != nil {
-			t.Fatalf("error loading: %v\n", err)
-		}
-		resultsCh <- w
-	}()
-
-	go func() {
-		address := &am.ScanGroupAddress{
-			HostAddress: "example.com",
-			IPAddress:   "93.184.216.34",
-		}
-
-		w, err := b.Load(timeoutCtx, address, "http", "80")
-		if err != nil {
-			t.Fatalf("error loading: %v\n", err)
-		}
-		resultsCh <- w
-	}()
-
-	timeout, cancel := context.WithTimeout(context.Background(), time.Second*50)
-	defer cancel()
-
-	results := 0
-	for {
-		select {
-		case result := <-resultsCh:
-			t.Logf("got result: %v\n", result.Snapshot)
-			data, _ := base64.StdEncoding.DecodeString(result.Snapshot)
-			results++
-			if results == 10 {
-				return
-			}
-		case <-timeout.Done():
-			t.Fatalf("failed to get results after 20 seconds")
-		}
-	}
-}
-
-func testTLSServer() {
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		log.Printf("REQUSET FROM SERVER SIDE: %#v\n", req)
-		log.Printf("HEADERS FROM SERVER SIDE %#v\n", req.Header)
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("This is an example server.\n"))
-
-	})
-
-	log.Printf("LISTENING")
-	err := http.ListenAndServeTLS(":8444", "testdata/server.crt", "testdata/server.key", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
-*/
