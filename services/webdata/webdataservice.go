@@ -411,9 +411,10 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		w := &am.WebSnapshot{}
 		var responseTime time.Time
 		var url []byte
-		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &url, &responseTime,
-			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted); err != nil {
 
+		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &url, &responseTime,
+			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted,
+			&w.TechCategories, &w.TechNames, &w.TechVersions, &w.TechMatchLocations, &w.TechMatchData, &w.TechIcons, &w.TechWebsites); err != nil {
 			return 0, nil, err
 		}
 
@@ -447,8 +448,9 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *
 		Int64("AddressID", webData.Address.AddressID).Logger()
 
 	if err := s.addSnapshots(ctx, userContext, logger, webData); err != nil {
-		logger.Warn().Err(err).Msg("failed to insert snapshot and serialized dom")
+		logger.Warn().Err(err).Msg("failed to insert snapshot, serialized dom and detected tech")
 	}
+
 	logger.Info().Int64("url_request_timestamp", webData.URLRequestTimestamp).Msg("adding responses for webData")
 	orgID, err := s.addResponses(ctx, userContext, logger, webData)
 	if err != nil {
@@ -459,17 +461,42 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *
 
 func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, webData *am.WebData) error {
 	var err error
+	var tx *pgx.Tx
 
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	var snapshotID int64
 	oid := webData.Address.OrgID
 	gid := webData.Address.GroupID
-	_, err = s.pool.ExecEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, webData.AddressHash, webData.HostAddress, webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.URL, time.Unix(0, webData.ResponseTimestamp), webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink)
+	err = tx.QueryRowEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, webData.AddressHash, webData.HostAddress,
+		webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.URL, time.Unix(0, webData.ResponseTimestamp),
+		webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink).Scan(&snapshotID)
+
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return v
 		}
 		return err
 	}
-	return nil
+
+	if webData.DetectedTech != nil {
+		for techName, data := range webData.DetectedTech {
+			log.Info().Msgf("adding webtech %#v", data)
+			_, err := tx.ExecEx(ctx, "insertWebTech", &pgx.QueryExOptions{}, snapshotID, oid, gid, data.Matched, data.Location, data.Version, techName)
+			if err != nil {
+				if v, ok := err.(pgx.PgError); ok {
+					log.Error().Err(v).Msg("failed to insert web tech")
+					return v
+				}
+			}
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (s *Service) addResponses(ctx context.Context, userContext am.UserContext, logger zerolog.Logger, webData *am.WebData) (int, error) {

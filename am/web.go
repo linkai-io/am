@@ -18,6 +18,13 @@ type WebTech struct {
 	Location string `json:"location"`
 }
 
+type WebTechResults struct {
+	WebTech
+	CategoryName string `json:"category"`
+	Icon         string `json:"icon"`
+	Website      string `json:"website"`
+}
+
 // WebData is the primary container of a scangroup address's http response data.
 type WebData struct {
 	Address             *ScanGroupAddress   `json:"address"`
@@ -111,20 +118,27 @@ type WebCertificate struct {
 
 // WebSnapshot for returning serialized dom and image snapshot links
 type WebSnapshot struct {
-	SnapshotID        int64  `json:"snapshot_id,omitempty"`
-	OrgID             int    `json:"org_id,omitempty"`
-	GroupID           int    `json:"group_id,omitempty"`
-	SnapshotLink      string `json:"snapshot_link"`
-	SerializedDOMHash string `json:"serialized_dom_hash"`
-	SerializedDOMLink string `json:"serialized_dom_link"`
-	ResponseTimestamp int64  `json:"response_timestamp"`
-	IsDeleted         bool   `json:"deleted"`
-	URL               string `json:"url"`
-	AddressHash       string `json:"address_hash"` // unfortunately we can't FK off address_id since we may get a new ip/host before it exists
-	HostAddress       string `json:"host_address"`
-	IPAddress         string `json:"ip_address"`
-	ResponsePort      int    `json:"response_port"`
-	Scheme            string `json:"scheme"`
+	SnapshotID         int64    `json:"snapshot_id,omitempty"`
+	OrgID              int      `json:"org_id,omitempty"`
+	GroupID            int      `json:"group_id,omitempty"`
+	SnapshotLink       string   `json:"snapshot_link"`
+	SerializedDOMHash  string   `json:"serialized_dom_hash"`
+	SerializedDOMLink  string   `json:"serialized_dom_link"`
+	ResponseTimestamp  int64    `json:"response_timestamp"`
+	IsDeleted          bool     `json:"deleted"`
+	URL                string   `json:"url"`
+	AddressHash        string   `json:"address_hash"` // unfortunately we can't FK off address_id since we may get a new ip/host before it exists
+	HostAddress        string   `json:"host_address"`
+	IPAddress          string   `json:"ip_address"`
+	ResponsePort       int      `json:"response_port"`
+	Scheme             string   `json:"scheme"`
+	TechCategories     []string `json:"tech_categories"`
+	TechNames          []string `json:"tech_names"`
+	TechVersions       []string `json:"tech_versions"`
+	TechMatchLocations []string `json:"tech_match_locations"`
+	TechMatchData      []string `json:"tech_match_data"`
+	TechIcons          []string `json:"tech_icons"`
+	TechWebsites       []string `json:"tech_websites"`
 }
 
 // WebResponseFilter used to filter results when searching web data.

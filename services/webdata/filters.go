@@ -10,29 +10,43 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	snapshotColumnsList = strings.Replace(snapshotColumns, "\n\t\t", "", -1)
+	techColumnsList     = strings.Replace(techColumns, "\n\t\t", "", -1)
+	responseColumnsList = strings.Replace(responseColumns, "\n\t\t", "", -1)
+)
+
 func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter) (string, []interface{}, error) {
-	columns := strings.Replace(snapshotColumns, "\n\t\t", "", -1)
-	p := sq.Select().Columns(strings.Split(columns, ",")...).From("am.web_snapshots").
-		Where(sq.Eq{"organization_id": filter.OrgID}).
-		Where(sq.Eq{"scan_group_id": filter.GroupID}).
-		Where(sq.Gt{"snapshot_id": filter.Start})
+
+	p := sq.Select().Columns(strings.Split(snapshotColumnsList, ",")...).
+		Columns(strings.Split(techColumnsList, ",")...).
+		From("am.web_snapshots as ws").
+		LeftJoin("am.web_technologies as wt on ws.snapshot_id=wt.snapshot_id").
+		LeftJoin("am.web_techtypes as wtt on wt.techtype_id=wtt.techtype_id").
+		Where(sq.Eq{"ws.organization_id": filter.OrgID}).
+		Where(sq.Eq{"ws.scan_group_id": filter.GroupID}).
+		Where(sq.Gt{"ws.snapshot_id": filter.Start})
 
 	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
-		p = p.Where(sq.Gt{"response_timestamp": time.Unix(0, val)})
+		p = p.Where(sq.GtOrEq{"response_timestamp": time.Unix(0, val)})
 	}
 
 	if val, ok := filter.Filters.String("host_address"); ok && val != "" {
 		p = p.Where(sq.Eq{"host_address": val})
 	}
 
-	p = p.Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
+	if val, ok := filter.Filters.String("tech_type"); ok && val != "" {
+		p = p.Where(sq.Eq{"lower(wtt.techname)": strings.ToLower(val)})
+	}
+
+	p = p.GroupBy("ws.snapshot_id, ws.organization_id, ws.scan_group_id").
+		Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
 
 	return p.ToSql()
 }
 
 func buildWebFilterQuery(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
-	columns := strings.Replace(responseColumns, "\n\t\t", "", -1)
-	p := sq.Select().Columns(strings.Split(columns, ",")...)
+	p := sq.Select().Columns(strings.Split(responseColumnsList, ",")...)
 
 	if latestOnly, _ := filter.Filters.Bool("latest_only"); latestOnly {
 		return latestWebResponseFilter(p, userContext, filter)
@@ -170,27 +184,27 @@ func buildCertificateFilter(userContext am.UserContext, filter *am.WebCertificat
 	}
 
 	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
-		p = p.Where(sq.Gt{"after_response_time": time.Unix(0, val)})
+		p = p.Where(sq.GtOrEq{"after_response_time": time.Unix(0, val)})
 	}
 
 	if val, ok := filter.Filters.Int64("before_response_time"); ok && val != 0 {
-		p = p.Where(sq.Lt{"before_response_time": time.Unix(0, val)})
+		p = p.Where(sq.LtOrEq{"before_response_time": time.Unix(0, val)})
 	}
 
 	if val, ok := filter.Filters.Int64("after_valid_to"); ok && val != 0 {
-		p = p.Where(sq.Gt{"valid_to": val})
+		p = p.Where(sq.GtOrEq{"valid_to": val})
 	}
 
 	if val, ok := filter.Filters.Int64("before_valid_to"); ok && val != 0 {
-		p = p.Where(sq.Lt{"valid_to": val})
+		p = p.Where(sq.LtOrEq{"valid_to": val})
 	}
 
 	if val, ok := filter.Filters.Int64("after_valid_from"); ok && val != 0 {
-		p = p.Where(sq.Gt{"valid_from": val})
+		p = p.Where(sq.GtOrEq{"valid_from": val})
 	}
 
 	if val, ok := filter.Filters.Int64("before_valid_from"); ok && val != 0 {
-		p = p.Where(sq.Lt{"valid_from": val})
+		p = p.Where(sq.LtOrEq{"valid_from": val})
 	}
 
 	if val, ok := filter.Filters.String("host_address_equals"); ok && val != "" {

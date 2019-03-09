@@ -222,6 +222,9 @@ func TestAllGroups(t *testing.T) {
 	}
 
 	if len(groups) != 1 {
+		for _, group := range groups {
+			t.Logf("%#v", group)
+		}
 		t.Fatalf("expected 1 group, got: %d\n", len(groups))
 	}
 	t.Logf("%#v\n", groups[0])

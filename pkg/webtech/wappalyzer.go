@@ -149,7 +149,6 @@ func (w *Wappalyzer) JSResultsToObjects(in interface{}) []*JSObject {
 }
 
 func (w *Wappalyzer) load(data []byte) error {
-
 	decoder := json.NewDecoder(bytes.NewBuffer(data))
 	if err := decoder.Decode(&w.definitions); err != nil {
 		return err

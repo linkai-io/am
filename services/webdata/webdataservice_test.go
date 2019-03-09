@@ -52,7 +52,7 @@ func initOrg(orgName, groupName string, t *testing.T) (*webdata.Service, *OrgDat
 	service := webdata.New(auth)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
-		t.Fatalf("error initalizing address service: %s\n", err)
+		t.Fatalf("error initalizing webdata service: %s\n", err)
 	}
 
 	orgData.DB = amtest.InitDB(env, t)
@@ -77,7 +77,7 @@ func TestNew(t *testing.T) {
 	service := webdata.New(auth)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
-		t.Fatalf("error initalizing address service: %s\n", err)
+		t.Fatalf("error initalizing webdata service: %s\n", err)
 	}
 }
 
@@ -218,6 +218,67 @@ func TestGetSnapshots(t *testing.T) {
 	if snapshots[0].URL != "http://example.com/" {
 		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
 	}
+	catLen := len(snapshots[0].TechCategories)
+	nameLen := len(snapshots[0].TechNames)
+	verLen := len(snapshots[0].TechVersions)
+	matchLocLen := len(snapshots[0].TechMatchLocations)
+	matchDataLen := len(snapshots[0].TechMatchData)
+	iconLen := len(snapshots[0].TechIcons)
+	webLen := len(snapshots[0].TechWebsites)
+	avg := (catLen + nameLen + verLen + matchLocLen + matchDataLen + iconLen + webLen) / 7
+	if avg != 3 {
+		t.Fatalf("tech data lengths did not match")
+	}
+	t.Logf("%#v\n", snapshots[0])
+}
+
+func TestGetSnapshotsEmptyTech(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetsnapshotsemptytech", "webdatagetsnapshotsemptytech", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData.DetectedTech = nil
+
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+
+	filter := &am.WebSnapshotFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 1 {
+		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
+	}
+
+	if snapshots[0].HostAddress != "example.com" {
+		t.Fatalf("expected address id host address to be set")
+	}
+
+	if snapshots[0].IPAddress != "93.184.216.34" {
+		t.Fatalf("expected address id ip address to be set")
+	}
+
+	if snapshots[0].URL != "http://example.com/" {
+		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
+	}
+	t.Logf("%#v\n", snapshots[0])
+
 }
 
 func TestGetCertificates(t *testing.T) {
@@ -542,6 +603,17 @@ func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip
 				SerializedDOMLink:   "s3:/1/2/3/4",
 				ResponseTimestamp:   time.Now().UnixNano(),
 				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
+				DetectedTech: map[string]*am.WebTech{"3dCart": &am.WebTech{
+					Matched:  "1.1.11,1.1.11",
+					Version:  "1.1.11",
+					Location: "headers",
+				},
+					"jQuery": &am.WebTech{
+						Matched:  "1.1.11,1.1.11",
+						Version:  "1.1.11",
+						Location: "script",
+					},
+				},
 			}
 			urlIndex = 0
 			webData = append(webData, data)
@@ -620,7 +692,41 @@ func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip stri
 		SerializedDOMLink:   "s3:/1/2/3/4",
 		ResponseTimestamp:   time.Now().UnixNano(),
 		URLRequestTimestamp: time.Now().UnixNano(),
+		DetectedTech: map[string]*am.WebTech{"3dCart": &am.WebTech{
+			Matched:  "1.1.11,1.1.11",
+			Version:  "1.1.11",
+			Location: "headers",
+		},
+			"jQuery": &am.WebTech{
+				Matched:  "1.1.11,1.1.11",
+				Version:  "1.1.11",
+				Location: "script",
+			},
+		},
 	}
 
 	return webData
 }
+
+/*
+func TestPopulateWeb(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("populatetest", "populatetest", t)
+	//defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+
+	for i, web := range webData {
+		t.Logf("%d: %d\n", i, len(web.Responses))
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+}
+*/

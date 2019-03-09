@@ -95,6 +95,7 @@ func TestWappalyzerInject(t *testing.T) {
 		HostAddress: "example.com",
 		IPAddress:   "93.184.216.34",
 	}
+	
 	brows := b.Acquire(ctx)
 	defer b.Return(ctx, brows)
 	ta, err := brows.GetFirstTab()

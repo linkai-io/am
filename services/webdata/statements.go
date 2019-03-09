@@ -46,9 +46,9 @@ var (
 		ct_compliance,
 		deleted`
 
-	snapshotColumns = `snapshot_id,
-		organization_id,
-		scan_group_id,
+	snapshotColumns = `ws.snapshot_id,
+		ws.organization_id,
+		ws.scan_group_id,
 		address_hash,
 		host_address,
 		ip_address,
@@ -60,6 +60,15 @@ var (
 		serialized_dom_link,
 		snapshot_link,
 		deleted`
+
+	// do json_agg as opposed to array_agg so nulls aren't horrible to deal with
+	techColumns = `json_agg(wtt.category) as category, 
+		json_agg(wtt.techname) as techname, 
+		json_agg(wt.version) as version, 
+		json_agg(wt.match_location) as match_location, 
+		json_agg(wt.matched_text) as matched_text, 
+		json_agg(wtt.icon) as icon, 
+		json_agg(wtt.website) as website`
 )
 
 var queryMap = map[string]string{
@@ -105,7 +114,14 @@ var queryMap = map[string]string{
 	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted)
 			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, false) 
 		on conflict (organization_id, scan_group_id, address_hash, serialized_dom_hash, response_port) do update set
-			response_timestamp=EXCLUDED.response_timestamp`,
+			response_timestamp=EXCLUDED.response_timestamp
+			returning snapshot_id`,
+
+	"insertWebTech": `insert into am.web_technologies (snapshot_id, organization_id, scan_group_id, techtype_id, matched_text, match_location, version)
+		(select $1, $2, $3, techtype_id, $4, $5, $6 from am.web_techtypes where techname=$7) on conflict (snapshot_id,techtype_id,match_location) do update set
+			matched_text=EXCLUDED.matched_text,
+			match_location=EXCLUDED.match_location,
+			version=EXCLUDED.version`,
 }
 
 var (
