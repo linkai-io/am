@@ -392,12 +392,6 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 		return nil, errors.Wrap(err, "failed to analyze using brute module")
 	}
 
-	// web analysis requires a valid AddressID
-	if updatedAddress.AddressID == 0 {
-		log.Ctx(ctx).Info().Msg("skipping web analysis until AddressID exists")
-		return updatedAddress, nil
-	}
-
 	log.Ctx(ctx).Info().Msg("analyzing web systems")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.WebModule], scanGroupID, updatedAddress)
 	if err != nil {

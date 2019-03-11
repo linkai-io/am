@@ -66,7 +66,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to initialize storage")
 	}
 
-	appJSON, err := store.GetInfraFile(context.Background(), "linkai-infra", appConfig.Region+"/web/apps.json")
+	appJSON, err := store.GetInfraFile(context.Background(), "linkai-infra", appConfig.Env+"/web/apps.json")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to get apps.json file for detectors from storage")
 	}

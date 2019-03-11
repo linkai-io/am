@@ -46,6 +46,9 @@ func (c *ResponseContainer) GetResponses() (*am.HTTPResponse, []*am.HTTPResponse
 	r := make([]*am.HTTPResponse, len(c.responses))
 	i := 0
 	for _, v := range c.responses {
+		if v == nil {
+			continue
+		}
 		r[i] = v
 		if v.RequestID == c.loadRequest {
 			loadResponse = v

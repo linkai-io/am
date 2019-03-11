@@ -101,6 +101,9 @@ func (b *Batcher) update(addresses map[string]*am.ScanGroupAddress) {
 	_, count, err = b.addressClient.Update(ctx, b.userContext, addresses)
 	if err != nil {
 		log.Error().Err(err).Msg("Unable to insert batch of addresses")
+		for k, v := range addresses {
+			log.Info().Msgf("hash: %s val: %#v", k, v)
+		}
 		return
 	}
 

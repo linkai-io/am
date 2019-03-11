@@ -83,6 +83,11 @@ func (w *Web) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) b
 		host = address.IPAddress
 	}
 
+	if parsers.IsBannedIP(address.IPAddress) {
+		log.Ctx(ctx).Warn().Str("ip_address", address.IPAddress).Msg("BANNED IP DETECTED IN WEB SHOULD ANALYZE")
+		return false
+	}
+
 	shouldWeb, err := w.st.DoWebDomain(ctx, address.OrgID, address.GroupID, oneHour, host)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do web domain")

@@ -436,7 +436,7 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *
 		return 0, am.ErrUserNotAuthorized
 	}
 
-	if webData == nil || webData.Address == nil || webData.Address.AddressID == 0 {
+	if webData == nil || webData.Address == nil {
 		return 0, am.ErrEmptyAddress
 	}
 

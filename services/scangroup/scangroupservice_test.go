@@ -221,12 +221,13 @@ func TestAllGroups(t *testing.T) {
 		t.Fatalf("error reading AllGroups: %v\n", err)
 	}
 
-	if len(groups) != 1 {
-		for _, group := range groups {
-			t.Logf("%#v", group)
-		}
-		t.Fatalf("expected 1 group, got: %d\n", len(groups))
+	// NOTE: Unfortunately this test can be run concurrently with others
+	// during make infratest, so we *may* get back more than 1 group since multiple tests
+	// are running concurrently :/
+	if len(groups) < 1 {
+		t.Fatalf("expected 1 or more groups, got: %d\n", len(groups))
 	}
+
 	t.Logf("%#v\n", groups[0])
 	_, _, err = service.Pause(ctx, userContext, gid)
 	if err != nil {

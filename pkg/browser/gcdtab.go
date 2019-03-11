@@ -15,6 +15,7 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
+	"github.com/linkai-io/am/pkg/parsers"
 	"github.com/wirepair/gcd"
 	"github.com/wirepair/gcd/gcdapi"
 )
@@ -202,6 +203,11 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		MaxTotalBufferSize:    -1,
 	})
 
+	// sanity check
+	if _, err := t.t.Network.SetBlockedURLs(parsers.BannedURLs); err != nil {
+		log.Warn().Err(err).Msg("unable to set banned urls")
+	}
+
 	t.t.Subscribe("network.loadingFailed", func(target *gcd.ChromeTarget, payload []byte) {
 		log.Info().Msgf("failed: %s\n", string(payload))
 	})
@@ -211,6 +217,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		if err := json.Unmarshal(payload, message); err != nil {
 			return
 		}
+		//message.Params.RedirectResponse.RemoteIPAddress
 		if message.Params.Type == "Document" {
 			t.container.SetLoadRequest(message.Params.RequestId)
 			log.Info().Msgf("%#v\n%#v\n%#v\n%#v\n", message.Params, message.Params.Initiator, message.Params.RedirectResponse, message.Params.Request)
@@ -224,6 +231,11 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 
 		message := &gcdapi.NetworkResponseReceivedEvent{}
 		if err := json.Unmarshal(payload, message); err != nil {
+			return
+		}
+		
+		if parsers.IsBannedIP(message.Params.Response.RemoteIPAddress) {
+			log.Warn().Str("url", message.Params.Response.Url).Str("ip_address", message.Params.Response.RemoteIPAddress).Msg("BANNED IP REQUESTED")
 			return
 		}
 
@@ -268,6 +280,11 @@ func (t *Tab) buildResponse(address *am.ScanGroupAddress, requestedPort string, 
 	var scheme string
 
 	p := message.Params
+
+	if parsers.IsBannedIP(p.Response.RemoteIPAddress) {
+		return nil
+	}
+
 	u, err := url.Parse(p.Response.Url)
 	if err != nil {
 		log.Warn().

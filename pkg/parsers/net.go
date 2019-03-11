@@ -21,6 +21,54 @@ const (
 	ipv6arpafmt = "%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.%c.ip6.arpa"
 )
 
+// BannedURLs so we don't initiate bad requests
+var BannedURLs = []string{
+	"https://169.254.*",
+	"https://127.*",
+	"https://[::1]*",
+	"https://[fe80::*]*",
+	"https://10.*",
+	"https://192.168.*",
+	"http://169.254.*",
+	"http://127.*",
+	"http://[::1]*",
+	"http://[fe80::*]*",
+	"http://10.*",
+	"http://192.168.*",
+}
+
+var bannedIPBlocks []*net.IPNet
+
+func init() {
+	for _, cidr := range []string{
+		"127.0.0.0/8",    // IPv4 loopback
+		"10.0.0.0/8",     // RFC1918
+		"172.16.0.0/12",  // RFC1918
+		"192.168.0.0/16", // RFC1918
+		"169.254.0.0/16", // EC2 Metadata
+		"::1/128",        // IPv6 loopback
+		"fe80::/10",      // IPv6 link-local
+		"fc00::/7",       // IPv6 link-local
+	} {
+		_, block, _ := net.ParseCIDR(cidr)
+		bannedIPBlocks = append(bannedIPBlocks, block)
+	}
+}
+
+func IsBannedIP(ip string) bool {
+	IP := net.ParseIP(ip)
+	if IP == nil {
+		return false
+	}
+
+	for _, block := range bannedIPBlocks {
+		if block.Contains(IP) {
+			return true
+		}
+	}
+	return false
+}
+
 // Parse cookies by creating a fake response
 func ParseCookies(s string) []*http.Cookie {
 	return (&http.Response{Header: http.Header{"Set-Cookie": {s}}}).Cookies()

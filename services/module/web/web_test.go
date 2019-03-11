@@ -257,3 +257,69 @@ func TestCoTAnalyze(t *testing.T) {
 		t.Logf("%#v\n", v)
 	}
 }
+
+func TestBannedIP(t *testing.T) {
+	ctx := context.Background()
+
+	browserPool := browser.NewGCDBrowserPool(2, amtest.MockWebDetector())
+	if err := browserPool.Init(); err != nil {
+		t.Fatalf("failed initializing browsers: %v\n", err)
+	}
+	defer browserPool.Close(ctx)
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 1)
+
+	stater := amtest.MockWebState()
+	storer := amtest.MockStorage()
+
+	webDataClient := &mock.WebDataService{}
+	webDataClient.AddFn = func(ctx context.Context, userContext am.UserContext, webData *am.WebData) (int, error) {
+		log.Info().Msgf("dom: %s", webData.SerializedDOM)
+		ioutil.WriteFile("testdata/"+webData.SerializedDOMHash, []byte(webData.SerializedDOM), 0644)
+		return 1, nil
+	}
+
+	w := web.New(browserPool, webDataClient, dc, stater, storer)
+	if err := w.Init(); err != nil {
+		t.Fatalf("failed to init web module: %v\n", err)
+	}
+
+	userContext := amtest.CreateUserContext(1, 1)
+	addr := &am.ScanGroupAddress{
+		OrgID:           1,
+		GroupID:         1,
+		HostAddress:     "veracode.com",
+		IPAddress:       "169.254.169.254",
+		ConfidenceScore: 100,
+		AddressHash:     convert.HashAddress("169.254.169.254", "veracode.com"),
+	}
+
+	_, newAddrs, err := w.Analyze(ctx, userContext, addr)
+	if err != nil {
+		t.Fatalf("failed to analyze example.com: %v\n", err)
+	}
+	if len(newAddrs) > 0 {
+		t.Fatalf("should have had banned IP")
+	}
+
+	t.Logf("new addrs: %d\n", len(newAddrs))
+	for _, v := range newAddrs {
+		t.Logf("%#v\n", v)
+	}
+
+	addr = &am.ScanGroupAddress{
+		OrgID:           1,
+		GroupID:         1,
+		HostAddress:     "veracode.com",
+		IPAddress:       "10.0.1.1",
+		ConfidenceScore: 100,
+		AddressHash:     convert.HashAddress("10.0.1.1", "veracode.com"),
+	}
+
+	_, newAddrs, err = w.Analyze(ctx, userContext, addr)
+	if err != nil {
+		t.Fatalf("failed to analyze example.com: %v\n", err)
+	}
+	if len(newAddrs) > 0 {
+		t.Fatalf("should have had banned IP")
+	}
+}

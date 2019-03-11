@@ -47,6 +47,9 @@ func (s *S3Storage) GetInfraFile(ctx context.Context, bucketName, objectName str
 	}
 	out, err := s.s3session.GetObjectWithContext(ctx, input)
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			log.Error().Err(awsErr).Str("bucket", bucketName).Str("key", objectName).Msg("failed to get object")
+		}
 		return nil, err
 	}
 	defer out.Body.Close()

@@ -245,7 +245,7 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 	// we may get multiple hosts back, so check if we've ever found it before?
 	for _, host := range r.Hosts {
 		// we've seen this same host before *or* never resolved this ip before
-		if host == address.HostAddress || address.HostAddress == "" && !foundOriginal {
+		if host == address.HostAddress || (address.HostAddress == "" && !foundOriginal) {
 			foundOriginal = true
 			address.HostAddress = parsers.FQDNTrim(host)
 			if !address.IsHostedService && address.HostAddress != "" {

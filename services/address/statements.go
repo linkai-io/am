@@ -136,7 +136,7 @@ var (
 			temp.found_from,
 			temp.ns_record,
 			temp.address_hash 
-		from sga_add_temp as temp on conflict (scan_group_id, host_address, ip_address) do update set
+		from sga_add_temp as temp on conflict (scan_group_id, address_hash) do update set
 			last_scanned_timestamp=EXCLUDED.last_scanned_timestamp,
 			last_seen_timestamp=EXCLUDED.last_seen_timestamp,
 			confidence_score=EXCLUDED.confidence_score,
@@ -144,10 +144,7 @@ var (
 			is_soa=EXCLUDED.is_soa,
 			is_wildcard_zone=EXCLUDED.is_wildcard_zone,
 			is_hosted_service=EXCLUDED.is_hosted_service,
-			ignored=EXCLUDED.ignored,
-			found_from=EXCLUDED.found_from,
-			ns_record=EXCLUDED.ns_record,
-			address_hash=EXCLUDED.address_hash`
+			ignored=EXCLUDED.ignored`
 
 	DeleteAddressesTempTableKey     = "sga_del_temp"
 	DeleteAddressesTempTableColumns = []string{"address_id"}

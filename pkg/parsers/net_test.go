@@ -202,3 +202,17 @@ func TestSpecialTLD(t *testing.T) {
 	}
 
 }
+
+func TestBannedIP(t *testing.T) {
+	if !parsers.IsBannedIP("127.0.0.1") {
+		t.Fatalf("localhost should be banned")
+	}
+
+	if parsers.IsBannedIP("129.0.1.1") {
+		t.Fatalf("129 should not be banned")
+	}
+
+	if parsers.IsBannedIP("2600:9000:20be:de00:16:a8ff:3100:93a1") {
+		t.Fatalf("2600:9000:20be:de00:16:a8ff:3100:93a1 should not be banned")
+	}
+}
