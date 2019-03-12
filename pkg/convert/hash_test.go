@@ -12,5 +12,6 @@ func TestHashAddress(t *testing.T) {
 	if val == val2 {
 		t.Fatalf("values were equal")
 	}
-	t.Logf("%s %s", val, val2)
+	val3 := convert.HashAddress("13.249.44.82", "test.linkai.io")
+	t.Logf("%s", val3)
 }

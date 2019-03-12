@@ -228,7 +228,6 @@ func TestAllGroups(t *testing.T) {
 		t.Fatalf("expected 1 or more groups, got: %d\n", len(groups))
 	}
 
-	t.Logf("%#v\n", groups[0])
 	_, _, err = service.Pause(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error pausing group: %v\n", err)

@@ -1,20 +1,19 @@
 package convert
 
 import (
+	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
-	"strconv"
-
-	"github.com/spaolacci/murmur3"
+	"strings"
 )
 
 // HashAddress for ip and host returning a hash key to allow modules to check if hosts exist
 func HashAddress(ipAddress, host string) string {
-	hash := murmur3.New64()
-	hash.Write([]byte(ipAddress))
-	hash.Write([]byte(host))
-	sum := hash.Sum64()
-	return strconv.FormatUint(sum, 10)
+	hash := md5.New()
+	hash.Write([]byte(strings.TrimSpace(strings.ToLower(ipAddress))))
+	hash.Write([]byte(strings.TrimSpace(strings.ToLower(host))))
+	sum := hash.Sum(nil)
+	return hex.EncodeToString(sum)
 }
 
 // HashData using a sha1 hash
