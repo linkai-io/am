@@ -245,7 +245,10 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 	// we may get multiple hosts back, so check if we've ever found it before?
 	for _, host := range r.Hosts {
 		// we've seen this same host before *or* never resolved this ip before
-		if host == address.HostAddress || (address.HostAddress == "" && !foundOriginal) {
+		if host == address.HostAddress || address.HostAddress == "" {
+			if foundOriginal {
+				continue
+			}
 			foundOriginal = true
 			address.HostAddress = parsers.FQDNTrim(host)
 			if !address.IsHostedService && address.HostAddress != "" {
@@ -282,31 +285,33 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 	}
 
 	// we don't need to test for original here because we just take the first one
-	// (i == 0 && j == 0)
-	for i, rr := range r {
-		for j, ip := range rr.IPs {
-			if i == 0 && j == 0 {
+	foundOriginal := false
+
+	for _, rr := range r {
+		for _, ip := range rr.IPs {
+			if !foundOriginal && (address.IPAddress == "" || ip == address.IPAddress) {
+				// this record does not have an ip address, and now we have one, update seen time and
+				// set ip address
+				if address.IPAddress == "" {
+					address.IPAddress = ip
+					address.LastSeenTime = time.Now().UnixNano()
+				} else if ip == address.IPAddress {
+					// if we got the same ip address back and it's not empty, update last seen time
+					address.LastSeenTime = time.Now().UnixNano()
+				}
+				foundOriginal = true
+
 				if !address.IsHostedService && address.HostAddress != "" {
 					address.IsHostedService = module.IsHostedDomain(address.HostAddress)
 				}
-				// if we got the same ip address back and it's not empty, update last seen time
-				// or this record does not have an ip address, and now we have one, update seen time and
-				// set ip address
-				if address.IPAddress != "" && ip == address.IPAddress {
-					address.LastSeenTime = time.Now().UnixNano()
-				} else if address.IPAddress == "" {
-					address.IPAddress = ip
-					address.LastSeenTime = time.Now().UnixNano()
-				}
 				address.NSRecord = int32(rr.RecordType)
 				address.AddressHash = convert.HashAddress(ip, address.HostAddress)
-				log.Ctx(ctx).Info().Str("IPAddress", address.IPAddress).Msg("address analysis complete")
-				continue
+				log.Ctx(ctx).Info().Str("ip", ip).Str("IPAddress", address.IPAddress).Str("address_hash", address.AddressHash).Msg("address analysis complete")
+			} else {
+				newAddress := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(rr.RecordType))
+				newAddress.ConfidenceScore = module.CalculateConfidence(ctx, address, newAddress)
+				nsData = append(nsData, newAddress)
 			}
-
-			newAddress := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(rr.RecordType))
-			newAddress.ConfidenceScore = module.CalculateConfidence(ctx, address, newAddress)
-			nsData = append(nsData, newAddress)
 		}
 	}
 	return nsData

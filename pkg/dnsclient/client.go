@@ -456,7 +456,7 @@ func (c *Client) exchange(ctx context.Context, name string, query uint16) (*dns.
 	// randomize dns resolver for requests
 	server := c.servers[rand.Intn(len(c.servers))]
 	err = retrier.RetryAttempts(func() error {
-		result, _, err = c.client.ExchangeContext(ctx, msg, server)
+		result, _, err = c.client.Exchange(msg, server)
 		return err
 	}, c.retry)
 

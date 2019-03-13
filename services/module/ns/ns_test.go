@@ -7,6 +7,7 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/services/module/ns"
 )
@@ -39,6 +40,7 @@ func TestNS_Analyze(t *testing.T) {
 			GroupID:      1,
 			HostAddress:  "linkai.io",
 			IPAddress:    "13.35.67.123",
+			AddressHash:  convert.HashAddress("13.35.67.123", "linkai.io"),
 			DiscoveredBy: "input_list",
 		},
 		&am.ScanGroupAddress{
@@ -66,11 +68,54 @@ func TestNS_Analyze(t *testing.T) {
 	ctx := context.Background()
 
 	for _, tt := range tests {
-		t.Logf("%d\n", tt.AddressID)
-		ns.Analyze(ctx, userContext, tt)
+		hash := tt.AddressHash
+		t.Logf("%d %s\n", tt.AddressID, tt.AddressHash)
+		if tt.AddressID == 3 {
+			t.Logf("three")
+		}
+		r, _, err := ns.Analyze(ctx, userContext, tt)
+		if err != nil {
+			t.Fatalf("error: %#v\n", err)
+		}
+		if hash != "" {
+			if hash != r.AddressHash {
+				t.Fatalf("hash was changed from %s to %s\n", hash, r.AddressHash)
+			}
+		}
+		t.Logf("hash now: %s\n", r.AddressHash)
 	}
 }
 
+func TestLinkaiHashBug(t *testing.T) {
+	state := amtest.MockNSState()
+	dc := dnsclient.New([]string{dnsServer}, 3)
+	ns := ns.New(dc, state)
+	ns.Init(nil)
+	userContext := amtest.CreateUserContext(1, 1)
+	ctx := context.Background()
+
+	addr := &am.ScanGroupAddress{
+		AddressID:    3,
+		OrgID:        1,
+		GroupID:      1,
+		HostAddress:  "linkai.io",
+		IPAddress:    "13.35.67.123",
+		AddressHash:  convert.HashAddress("13.35.67.123", "linkai.io"),
+		DiscoveredBy: "input_list",
+	}
+
+	hash := addr.AddressHash
+	r, _, err := ns.Analyze(ctx, userContext, addr)
+	if err != nil {
+		t.Fatalf("error: %#v\n", err)
+	}
+
+	if r.AddressHash != hash {
+		t.Fatalf("error hash was changed")
+	}
+
+	t.Logf("hash now: %s\n", r.AddressHash)
+}
 func TestNetflixInput(t *testing.T) {
 	orgID := 1
 	groupID := 1

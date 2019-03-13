@@ -89,7 +89,7 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 	}
 	pool := workerpool.New(rps)
 
-	out := make(chan *results, numHosts)
+	out := make(chan *results, numHosts) // how many results we expect
 
 	task := func(ctx context.Context, host string, out chan<- *results) func() {
 		return func() {
@@ -105,7 +105,15 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 			} else {
 				log.Ctx(ctx).Warn().Err(err).Msg("failed to get group from cache during resolve, continuing")
 			}
+			log.Ctx(ctx).Info().Msgf("resolving... %s", host)
 			r, err := dns.ResolveName(ctx, host)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("error")
+			} else {
+				for _, r2 := range r {
+					log.Ctx(ctx).Info().Msgf("%#v", r2)
+				}
+			}
 			out <- &results{Hostname: host, R: r, Err: err}
 		}
 	}
@@ -128,10 +136,11 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 
 		for _, rr := range result.R {
 			for _, ip := range rr.IPs {
-				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Msg("found new record")
+				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Str("hash", convert.HashAddress(ip, result.Hostname)).Msg("found new record")
 				newAddress := NewAddressFromDNS(data.Address, ip, result.Hostname, data.DiscoveryMethod, uint(rr.RecordType))
 				newAddress.ConfidenceScore = CalculateConfidence(ctx, data.Address, newAddress)
 				newRecords[newAddress.AddressHash] = newAddress
+				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Str("newAddress.AddressHash", newAddress.AddressHash).Str("hash", convert.HashAddress(ip, result.Hostname)).Msg("found new record")
 			}
 		}
 	}

@@ -106,3 +106,71 @@ func TestBuildSubDomainList(t *testing.T) {
 		t.Fatalf("did not get proper size back, expected %d got %d\n", expected, len(results))
 	}
 }
+
+func TestAnalyzeLinkai(t *testing.T) {
+	orgID := 1
+	userID := 1
+	groupID := 1
+	input, err := os.Open("testdata/11.txt")
+	if err != nil {
+		t.Fatalf("error opening input: %s\n", err)
+	}
+	dc := dnsclient.New([]string{"1.1.1.1:53"}, 1)
+	st := amtest.MockBruteState()
+	st.GetGroupFn = func(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
+		return &am.ScanGroup{
+			OrgID:              orgID,
+			GroupID:            groupID,
+			GroupName:          "test",
+			CreationTime:       0,
+			CreatedBy:          "test",
+			CreatedByID:        0,
+			ModifiedBy:         "",
+			ModifiedByID:       0,
+			ModifiedTime:       0,
+			OriginalInputS3URL: "",
+			ModuleConfigurations: &am.ModuleConfiguration{
+				NSModule: &am.NSModuleConfig{
+					RequestsPerSecond: 10,
+				},
+				BruteModule: &am.BruteModuleConfig{
+					CustomSubNames:    []string{""},
+					RequestsPerSecond: 10,
+					MaxDepth:          2,
+				},
+				PortModule: &am.PortModuleConfig{
+					RequestsPerSecond: 0,
+					CustomPorts:       nil,
+				},
+				WebModule: &am.WebModuleConfig{
+					TakeScreenShots:       false,
+					RequestsPerSecond:     0,
+					MaxLinks:              0,
+					ExtractJS:             false,
+					FingerprintFrameworks: false,
+				},
+				KeywordModule: &am.KeywordModuleConfig{
+					Keywords: nil,
+				},
+			},
+			Paused:  false,
+			Deleted: false,
+		}, nil
+	}
+
+	b := brute.New(dc, st)
+	if err := b.Init(input); err != nil {
+		t.Fatalf("error initializing brute forcer: %v\n", err)
+	}
+	ctx := context.Background()
+	userContext := amtest.CreateUserContext(orgID, userID)
+
+	addrs := amtest.AddrsFromInputFile(orgID, groupID, strings.NewReader("linkai.io"), t)
+	original, results, err := b.Analyze(ctx, userContext, addrs[0])
+	if err != nil {
+		t.Fatalf("%#v\n", err)
+	}
+	t.Logf("%#v\n", original)
+	t.Logf("%#v\n", results)
+
+}
