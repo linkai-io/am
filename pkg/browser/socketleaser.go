@@ -26,7 +26,7 @@ func NewSocketLeaser() *SocketLeaser {
 }
 
 func (s *SocketLeaser) Acquire() (string, error) {
-	resp, err := s.leaserClient.Get("/acquire")
+	resp, err := s.leaserClient.Get("http://unix/acquire")
 	if err != nil {
 		return "", err
 	}
