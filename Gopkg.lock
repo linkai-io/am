@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:d7dc158f24836f16a8d55da4a93c4a5d392dead4677ed164a8efc07070e1b69b"
+  digest = "1:75ec87c61601521645db82e3e200e3ff297f01fa71b959c85a48c97f58cbddb1"
   name = "cloud.google.com/go"
   packages = [
     "bigquery",
@@ -15,8 +15,8 @@
     "internal/version",
   ]
   pruneopts = "UT"
-  revision = "c9474f2f8deb81759839474b6bd1726bbfe1c1c4"
-  version = "v0.36.0"
+  revision = "f52f9bc132541d2aa914f42100c36d10b1ef7e0c"
+  version = "v0.37.0"
 
 [[projects]]
   digest = "1:14a90eb1290bd0aa42848afa9ee2c9ce247abdb63c2cf614331670119760962f"
@@ -51,7 +51,7 @@
   version = "v1.9.0"
 
 [[projects]]
-  digest = "1:855c772fae70d155be916eb0de6bd6cbc2edad090683ef30bb199b625c8a4d60"
+  digest = "1:f18f456b9cf0babe1facaacb96a6f52031849dee25291d9b3740dce5c221c5a6"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -93,8 +93,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "8b705a6dec722bcda3a9309c0924d4eca24f7c72"
-  version = "v1.17.14"
+  revision = "b0b23985ea7533af9f94731b2c1030a1e46e6500"
+  version = "v1.18.2"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -260,12 +260,12 @@
   revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
-  digest = "1:1b46adc9e3d878cdf38a164cfdac2e19340f4d2662aa5bee88062f6ee08ac9df"
+  digest = "1:4c195ae33dbe8df4eb3485f3357788f47b614547abcd048cbcc59d9025db6b8d"
   name = "github.com/miekg/dns"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8fc2e5773bbd308ca2fcc962fd8d25c1bd0f6743"
-  version = "v1.1.4"
+  revision = "cc8cd02140663157ce797c6650488d6c8563f31f"
+  version = "v1.1.6"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
@@ -332,14 +332,6 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:919bb3aa6d9d0b67648c219fa4925312bc3c2872da19e818fa769e9c97a2b643"
-  name = "github.com/spaolacci/murmur3"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "9f5d223c60793748f04a9d5b4b4eacddfc1f755d"
-  version = "v1.1"
-
-[[projects]]
   digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
   name = "github.com/stretchr/testify"
   packages = [
@@ -351,7 +343,7 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:2d60c78b08f7cf14a58da81a49f1f1276bba6dff9625aca35636162ce415f808"
+  digest = "1:e6ba33f5f00c55d36fb579355e53cbd994386f3ea0b5bf495c0f540526a4ef45"
   name = "github.com/wirepair/gcd"
   packages = [
     ".",
@@ -359,8 +351,8 @@
     "gcdmessage",
   ]
   pruneopts = "UT"
-  revision = "4c25a51b535a262645a591d527b9348c45b1e76e"
-  version = "v1.0.2"
+  revision = "2f7807e117ff2d25c3c702d6eef0155ba9d1a556"
+  version = "v1.0.5"
 
 [[projects]]
   digest = "1:1af1920a0f0dc25426ba2e57154b9c091ec2ed83be9107abcf83d23c6c9a4194"
@@ -394,11 +386,11 @@
     "ed25519/internal/edwards25519",
   ]
   pruneopts = "UT"
-  revision = "c2843e01d9a2bc60bb26ad24e09734fdc2d9ec58"
+  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
 
 [[projects]]
   branch = "master"
-  digest = "1:e91ad8b89bb995d078906a8d3b517270b0d864d6b4f3079d30c40ab6e06880c4"
+  digest = "1:be81a6c8bd840796a067020956512f65def13b6441b87bdfe2c7af92c5da0453"
   name = "golang.org/x/net"
   packages = [
     "bpf",
@@ -420,7 +412,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "16b79f2e4e95ea23b2bf9903c9809ff7b013ce85"
+  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
 
 [[projects]]
   branch = "master"
@@ -438,11 +430,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7ea2a5bdb9273298b19f6c14d01c11f592ed57bd6a658f7c0ddf9927011cc763"
+  digest = "1:f36c7b9a36158e62ffe5d8b02d1b5955500c13106cdaeebf5323d88863cae96f"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "584f3b12f43e1e55248c90e84804777009eed0a4"
+  revision = "fead79001313d15903fb4605b4a1b781532cd93e"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -468,7 +460,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:3dfec3aaa0914e1af33b6928788891d1561b914d03bfd2d524219ce3582bdb7c"
+  digest = "1:4f4f798798e936e6083e617a30d3204ad1dcafc4561df60e2aae959971f8e23a"
   name = "google.golang.org/api"
   packages = [
     "bigquery/v2",
@@ -483,8 +475,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "UT"
-  revision = "19e022d8cf43ce81f046bae8cc18c5397cc7732f"
-  version = "v0.1.0"
+  revision = "e742f5a8defa1f9f5d723dfa04c962e680dc33f0"
+  version = "v0.2.0"
 
 [[projects]]
   digest = "1:fa026a5c59bd2df343ec4a3538e6288dcf4e2ec5281d743ae82c120affe6926a"
@@ -587,7 +579,6 @@
     "github.com/pkg/errors",
     "github.com/rs/zerolog",
     "github.com/rs/zerolog/log",
-    "github.com/spaolacci/murmur3",
     "github.com/wirepair/gcd",
     "github.com/wirepair/gcd/gcdapi",
     "github.com/wirepair/gcd/gcdmessage",

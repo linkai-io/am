@@ -45,7 +45,7 @@ func NewBrowser(target gcdmessage.ChromeTargeter) *Browser {
 type BrowserGrantPermissionsParams struct {
 	//
 	Origin string `json:"origin"`
-	//  enum values: accessibilityEvents, audioCapture, backgroundSync, backgroundFetch, clipboardRead, clipboardWrite, durableStorage, flash, geolocation, midi, midiSysex, notifications, paymentHandler, protectedMediaIdentifier, sensors, videoCapture
+	//  enum values: accessibilityEvents, audioCapture, backgroundSync, backgroundFetch, clipboardRead, clipboardWrite, durableStorage, flash, geolocation, midi, midiSysex, notifications, paymentHandler, protectedMediaIdentifier, sensors, videoCapture, idleDetection
 	Permissions []string `json:"permissions"`
 	// BrowserContext to override permissions. When omitted, default browser context is used.
 	BrowserContextId string `json:"browserContextId,omitempty"`
@@ -58,7 +58,7 @@ func (c *Browser) GrantPermissionsWithParams(v *BrowserGrantPermissionsParams) (
 
 // GrantPermissions - Grant specific permissions to the given origin and reject all others.
 // origin -
-// permissions -  enum values: accessibilityEvents, audioCapture, backgroundSync, backgroundFetch, clipboardRead, clipboardWrite, durableStorage, flash, geolocation, midi, midiSysex, notifications, paymentHandler, protectedMediaIdentifier, sensors, videoCapture
+// permissions -  enum values: accessibilityEvents, audioCapture, backgroundSync, backgroundFetch, clipboardRead, clipboardWrite, durableStorage, flash, geolocation, midi, midiSysex, notifications, paymentHandler, protectedMediaIdentifier, sensors, videoCapture, idleDetection
 // browserContextId - BrowserContext to override permissions. When omitted, default browser context is used.
 func (c *Browser) GrantPermissions(origin string, permissions []string, browserContextId string) (*gcdmessage.ChromeResponse, error) {
 	var v BrowserGrantPermissionsParams
@@ -94,6 +94,11 @@ func (c *Browser) Close() (*gcdmessage.ChromeResponse, error) {
 // Crashes browser on the main thread.
 func (c *Browser) Crash() (*gcdmessage.ChromeResponse, error) {
 	return gcdmessage.SendDefaultRequest(c.target, c.target.GetSendCh(), &gcdmessage.ParamRequest{Id: c.target.GetId(), Method: "Browser.crash"})
+}
+
+// Crashes GPU process.
+func (c *Browser) CrashGpuProcess() (*gcdmessage.ChromeResponse, error) {
+	return gcdmessage.SendDefaultRequest(c.target, c.target.GetSendCh(), &gcdmessage.ParamRequest{Id: c.target.GetId(), Method: "Browser.crashGpuProcess"})
 }
 
 // GetVersion - Returns version information.
@@ -311,8 +316,8 @@ func (c *Browser) GetWindowBounds(windowId int) (*BrowserBounds, error) {
 }
 
 type BrowserGetWindowForTargetParams struct {
-	// Devtools agent host id.
-	TargetId string `json:"targetId"`
+	// Devtools agent host id. If called as a part of the session, associated targetId is used.
+	TargetId string `json:"targetId,omitempty"`
 }
 
 // GetWindowForTargetWithParams - Get the browser window that contains the devtools target.
@@ -349,7 +354,7 @@ func (c *Browser) GetWindowForTargetWithParams(v *BrowserGetWindowForTargetParam
 }
 
 // GetWindowForTarget - Get the browser window that contains the devtools target.
-// targetId - Devtools agent host id.
+// targetId - Devtools agent host id. If called as a part of the session, associated targetId is used.
 // Returns -  windowId - Browser window id. bounds - Bounds information of the window. When window state is 'minimized', the restored window position and size are returned.
 func (c *Browser) GetWindowForTarget(targetId string) (int, *BrowserBounds, error) {
 	var v BrowserGetWindowForTargetParams
@@ -377,4 +382,26 @@ func (c *Browser) SetWindowBounds(windowId int, bounds *BrowserBounds) (*gcdmess
 	v.WindowId = windowId
 	v.Bounds = bounds
 	return c.SetWindowBoundsWithParams(&v)
+}
+
+type BrowserSetDockTileParams struct {
+	//
+	BadgeLabel string `json:"badgeLabel,omitempty"`
+	// Png encoded image.
+	Image string `json:"image,omitempty"`
+}
+
+// SetDockTileWithParams - Set dock tile details, platform-specific.
+func (c *Browser) SetDockTileWithParams(v *BrowserSetDockTileParams) (*gcdmessage.ChromeResponse, error) {
+	return gcdmessage.SendDefaultRequest(c.target, c.target.GetSendCh(), &gcdmessage.ParamRequest{Id: c.target.GetId(), Method: "Browser.setDockTile", Params: v})
+}
+
+// SetDockTile - Set dock tile details, platform-specific.
+// badgeLabel -
+// image - Png encoded image.
+func (c *Browser) SetDockTile(badgeLabel string, image string) (*gcdmessage.ChromeResponse, error) {
+	var v BrowserSetDockTileParams
+	v.BadgeLabel = badgeLabel
+	v.Image = image
+	return c.SetDockTileWithParams(&v)
 }

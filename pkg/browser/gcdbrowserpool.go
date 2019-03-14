@@ -3,8 +3,6 @@ package browser
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -15,7 +13,6 @@ import (
 	"github.com/wirepair/gcd/gcdmessage"
 
 	"github.com/linkai-io/am/am"
-	"github.com/linkai-io/am/pkg/retrier"
 	"github.com/rs/zerolog/log"
 
 	"github.com/pkg/errors"
@@ -76,13 +73,15 @@ type GCDBrowserPool struct {
 	closing          int32
 	display          string
 	detector         webtech.Detector
+	leaser           LeaserService
 }
 
-func NewGCDBrowserPool(maxBrowsers int, techDetect webtech.Detector) *GCDBrowserPool {
+func NewGCDBrowserPool(maxBrowsers int, leaser LeaserService, techDetect webtech.Detector) *GCDBrowserPool {
 	b := &GCDBrowserPool{}
 	b.detector = techDetect
 	b.maxBrowsers = maxBrowsers
 	b.browserTimeout = time.Second * 30
+	b.leaser = leaser
 	b.browsers = make(chan *gcd.Gcd, b.maxBrowsers)
 	return b
 }
@@ -159,7 +158,7 @@ func (b *GCDBrowserPool) Close(ctx context.Context) error {
 	for {
 		browser := b.Acquire(ctx)
 		if browser != nil {
-			browser.ExitProcess()
+			b.returnBrowser(browser)
 		}
 
 		if ctx.Err() != nil {
@@ -176,25 +175,34 @@ func (b *GCDBrowserPool) Close(ctx context.Context) error {
 // to signal it was successfully created.
 func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan struct{}) {
 	if browser != nil {
-		browser.ExitProcess()
+		b.returnBrowser(browser)
 		atomic.AddInt32(&b.acquiredBrowsers, -1)
 	}
 
 	browser = gcd.NewChromeDebugger()
-	browser.DeleteProfileOnExit()
-
-	browser.AddFlags(startupFlags)
-	if b.display != "" {
-		browser.AddEnvironmentVars([]string{b.display})
+	port, err := b.leaser.Acquire()
+	if err != nil {
+		log.Warn().Err(err).Msg("unable to acquire new browser")
+		b.browsers <- nil
+		close(doneCh)
+		return
 	}
 
-	if err := browser.StartProcess("/usr/bin/google-chrome", b.randProfile(), b.randPort()); err != nil {
-		log.Error().Err(err).Msg("failed to start browser")
-		return
+	if err := browser.ConnectToInstance("localhost", string(port)); err != nil {
+		log.Warn().Err(err).Msg("failed to connect to instance")
+		browser = nil
 	}
 
 	b.browsers <- browser
 	close(doneCh)
+}
+
+// returnBrowser returns the browser (identified by port) to the gcdleaser service
+// so it can handle shutting everything down
+func (b *GCDBrowserPool) returnBrowser(browser *gcd.Gcd) {
+	if err := b.leaser.Return(browser.Port()); err != nil {
+		log.Error().Err(err).Msg("failed to return browser")
+	}
 }
 
 // Load an address of scheme and port, returning an image, the dom, all text based responses or an error.
@@ -316,30 +324,4 @@ func (b *GCDBrowserPool) buildURL(tab *Tab, address *am.ScanGroupAddress, scheme
 		url += ":" + port
 	}
 	return url
-}
-
-func (b *GCDBrowserPool) randPort() string {
-	var l net.Listener
-	retryErr := retrier.Retry(func() error {
-		var err error
-		l, err = net.Listen("tcp", ":0")
-		return err
-	})
-
-	if retryErr != nil {
-		log.Warn().Err(retryErr).Msg("unable to get port using default 9022")
-		return "9022"
-	}
-	_, randPort, _ := net.SplitHostPort(l.Addr().String())
-	l.Close()
-	return randPort
-}
-
-func (b *GCDBrowserPool) randProfile() string {
-	profile, err := ioutil.TempDir("/tmp", "gcd")
-	if err != nil {
-		log.Error().Err(err).Msg("failed to create temporary profile directory")
-		return "/tmp/gcd"
-	}
-	return profile
 }

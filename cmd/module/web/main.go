@@ -75,8 +75,9 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to initialize webtech detector")
 	}
 
+	leaser := browser.NewSocketLeaser()
 	ctx := context.Background()
-	browsers := browser.NewGCDBrowserPool(5, wapp)
+	browsers := browser.NewGCDBrowserPool(5, leaser, wapp)
 	if err := browsers.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing browsers")
 	}

@@ -71,7 +71,7 @@ func main() {
 	modules[am.BruteModule] = bruteModule
 
 	// init web module
-	browsers := browser.NewGCDBrowserPool(5, amtest.MockWebDetector())
+	browsers := browser.NewGCDBrowserPool(5, browser.NewLocalLeaser(), amtest.MockWebDetector())
 	if err := browsers.Init(); err != nil {
 		log.Fatalf("failed initializing browsers: %v\n", err)
 	}

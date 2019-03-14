@@ -136,8 +136,9 @@ deployaddressservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service addressservice
 
 pushwebmoduleservice:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/gcdleaser cmd/gcdleaser/main.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
-	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice
+	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice deploy_files/gcdleaser
 	aws s3 cp deploy_files/webmodule.zip s3://linkai-infra/${APP_ENV}/webmodule/webmodule.zip
 
 test:

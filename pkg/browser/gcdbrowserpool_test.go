@@ -9,9 +9,11 @@ import (
 	"github.com/linkai-io/am/amtest"
 )
 
+var leaser = NewLocalLeaser()
+
 func TestGCDBrowserPool(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(5, amtest.MockWebDetector())
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
 	defer b.Close(ctx)
 
 	if err := b.Init(); err != nil {
@@ -34,7 +36,7 @@ func TestGCDBrowserPool(t *testing.T) {
 
 func TestGCDBrowserPoolTLS(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(1, amtest.MockWebDetector())
+	b := NewGCDBrowserPool(1, leaser, amtest.MockWebDetector())
 	defer b.Close(ctx)
 	if err := b.Init(); err != nil {
 		t.Fatalf("error initializing browser: %v\n", err)
@@ -72,7 +74,7 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 
 func TestGCDBrowserPoolClosedPort(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(1, amtest.MockWebDetector())
+	b := NewGCDBrowserPool(1, leaser, amtest.MockWebDetector())
 	defer b.Close(ctx)
 	if err := b.Init(); err != nil {
 		t.Fatalf("error initializing browser: %v\n", err)
@@ -95,7 +97,7 @@ func TestGCDBrowserPoolClosedPort(t *testing.T) {
 func TestGCDBrowserPoolNavFailure(t *testing.T) {
 
 	ctx := context.Background()
-	b := NewGCDBrowserPool(2, amtest.MockWebDetector())
+	b := NewGCDBrowserPool(2, leaser, amtest.MockWebDetector())
 	b.SetAPITimeout(time.Second * 3)
 	defer b.Close(ctx)
 
@@ -116,7 +118,7 @@ func TestGCDBrowserPoolNavFailure(t *testing.T) {
 
 func TestGCDBrowserPoolTakeScreenshots(t *testing.T) {
 	ctx := context.Background()
-	b := NewGCDBrowserPool(2, amtest.MockWebDetector())
+	b := NewGCDBrowserPool(2, leaser, amtest.MockWebDetector())
 	defer b.Close(ctx)
 
 	if err := b.Init(); err != nil {

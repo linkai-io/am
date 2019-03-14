@@ -32,7 +32,7 @@
   "description": "A data platform for customers to create, manage, share and query data.",
   "discoveryVersion": "v1",
   "documentationLink": "https://cloud.google.com/bigquery/",
-  "etag": "\"J3WqvAcMk4eQjJXvfSI4Yr8VouA/eFeCSA4VWy7K7nrpB2R4OL12KqY\"",
+  "etag": "\"J3WqvAcMk4eQjJXvfSI4Yr8VouA/TOaauesIbrP2CllN8u56dQTSTrM\"",
   "icons": {
     "x16": "https://www.google.com/images/icons/product/search-16.gif",
     "x32": "https://www.google.com/images/icons/product/search-32.gif"
@@ -513,6 +513,11 @@
             },
             "pageToken": {
               "description": "Page token, returned by a previous call, to request the next page of results",
+              "location": "query",
+              "type": "string"
+            },
+            "parentJobId": {
+              "description": "If set, retrieves only jobs whose parent is this job. Otherwise, retrieves only jobs which have no parent.",
               "location": "query",
               "type": "string"
             },
@@ -998,7 +1003,7 @@
       }
     }
   },
-  "revision": "20181216",
+  "revision": "20190303",
   "rootUrl": "https://www.googleapis.com/",
   "schemas": {
     "BigQueryModelTraining": {
@@ -1151,23 +1156,27 @@
           "items": {
             "properties": {
               "domain": {
-                "description": "[Pick one] A domain to grant access to. Any users signed in with the domain specified will be granted the specified access. Example: \"example.com\".",
+                "description": "[Pick one] A domain to grant access to. Any users signed in with the domain specified will be granted the specified access. Example: \"example.com\". Maps to IAM policy member \"domain:DOMAIN\".",
                 "type": "string"
               },
               "groupByEmail": {
-                "description": "[Pick one] An email address of a Google Group to grant access to.",
+                "description": "[Pick one] An email address of a Google Group to grant access to. Maps to IAM policy member \"group:GROUP\".",
+                "type": "string"
+              },
+              "iamMember": {
+                "description": "[Pick one] Some other type of member that appears in the IAM Policy but isn't a user, group, domain, or special group.",
                 "type": "string"
               },
               "role": {
-                "description": "[Required] Describes the rights granted to the user specified by the other member of the access object. The following string values are supported: READER, WRITER, OWNER.",
+                "description": "[Required] An IAM role ID that should be granted to the user, group, or domain specified in this access entry. The following legacy mappings will be applied: OWNER  roles/bigquery.dataOwner WRITER  roles/bigquery.dataEditor READER  roles/bigquery.dataViewer This field will accept any of the above formats, but will return only the legacy format. For example, if you set this field to \"roles/bigquery.dataOwner\", it will be returned back as \"OWNER\".",
                 "type": "string"
               },
               "specialGroup": {
-                "description": "[Pick one] A special group to grant access to. Possible values include: projectOwners: Owners of the enclosing project. projectReaders: Readers of the enclosing project. projectWriters: Writers of the enclosing project. allAuthenticatedUsers: All authenticated BigQuery users.",
+                "description": "[Pick one] A special group to grant access to. Possible values include: projectOwners: Owners of the enclosing project. projectReaders: Readers of the enclosing project. projectWriters: Writers of the enclosing project. allAuthenticatedUsers: All authenticated BigQuery users. Maps to similarly-named IAM members.",
                 "type": "string"
               },
               "userByEmail": {
-                "description": "[Pick one] An email address of a user to grant access to. For example: fred@example.com.",
+                "description": "[Pick one] An email address of a user to grant access to. For example: fred@example.com. Maps to IAM policy member \"user:EMAIL\" or \"serviceAccount:EMAIL\".",
                 "type": "string"
               },
               "view": {
@@ -1332,6 +1341,13 @@
         "friendlyName": {
           "description": "[Optional] The friendly name for the destination table. This will only be used if the destination table is newly created. If the table already exists and a value different than the current friendly name is provided, the job will fail.",
           "type": "string"
+        },
+        "labels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "[Optional] The labels associated with this table. You can use these to organize and group your tables. This will only be used if the destination table is newly created. If the table already exists and labels are different than the current labels are provided, the job will fail.",
+          "type": "object"
         }
       },
       "type": "object"
@@ -1561,6 +1577,10 @@
         "googleSheetsOptions": {
           "$ref": "GoogleSheetsOptions",
           "description": "[Optional] Additional options if sourceFormat is set to GOOGLE_SHEETS."
+        },
+        "hivePartitioningMode": {
+          "description": "[Optional, Experimental] If hive partitioning is enabled, which mode to use. Two modes are supported: - AUTO: automatically infer partition key name(s) and type(s). - STRINGS: automatic infer partition key name(s). All types are strings. Not all storage formats support hive partitioning -- requesting hive partitioning on an unsupported format will lead to an error.",
+          "type": "string"
         },
         "ignoreUnknownValues": {
           "description": "[Optional] Indicates if BigQuery should allow extra values that are not represented in the table schema. If true, the extra values are ignored. If false, records with extra columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false. The sourceFormat property determines what BigQuery treats as an extra value: CSV: Trailing columns JSON: Named values that don't match any column names Google Cloud Bigtable: This setting is ignored. Google Cloud Datastore backups: This setting is ignored. Avro: This setting is ignored.",
@@ -1893,6 +1913,10 @@
         },
         "fieldDelimiter": {
           "description": "[Optional] The separator for fields in a CSV file. The separator can be any ISO-8859-1 single-byte character. To use a character in the range 128-255, you must encode the character as UTF8. BigQuery converts the string to ISO-8859-1 encoding, and then uses the first byte of the encoded string to split the data in its raw, binary state. BigQuery also supports the escape sequence \"\\t\" to specify a tab separator. The default value is a comma (',').",
+          "type": "string"
+        },
+        "hivePartitioningMode": {
+          "description": "[Optional, Experimental] If hive partitioning is enabled, which mode to use. Two modes are supported: - AUTO: automatically infer partition key name(s) and type(s). - STRINGS: automatic infer partition key name(s). All types are strings. Not all storage formats support hive partitioning -- requesting hive partitioning on an unsupported format will lead to an error.",
           "type": "string"
         },
         "ignoreUnknownValues": {
@@ -2240,6 +2264,15 @@
           "$ref": "JobStatistics3",
           "description": "[Output-only] Statistics for a load job."
         },
+        "numChildJobs": {
+          "description": "[Output-only] Number of child jobs executed.",
+          "format": "int64",
+          "type": "string"
+        },
+        "parentJobId": {
+          "description": "[Output-only] If this is a child job, the id of the parent.",
+          "type": "string"
+        },
         "query": {
           "$ref": "JobStatistics2",
           "description": "[Output-only] Statistics for a query job."
@@ -2389,7 +2422,7 @@
           "type": "string"
         },
         "totalBytesProcessedAccuracy": {
-          "description": "[Output-only] For dry-run jobs, totalBytesProcessed is an estimate and this field specifies the accuracy of the estimate. Possible values can be: UNKNOWN: accuracy of the estimate is unknown. PRECISE: estimate is precise. LOWER_BOUND: estimate is lower bound of what the query would cost. UPPER_BOUND: estiamte is upper bound of what the query would cost.",
+          "description": "[Output-only] For dry-run jobs, totalBytesProcessed is an estimate and this field specifies the accuracy of the estimate. Possible values can be: UNKNOWN: accuracy of the estimate is unknown. PRECISE: estimate is precise. LOWER_BOUND: estimate is lower bound of what the query would cost. UPPER_BOUND: estimate is upper bound of what the query would cost.",
           "type": "string"
         },
         "totalPartitionsProcessed": {
@@ -2453,6 +2486,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "inputBytes": {
+          "description": "[Output-only] Number of user bytes extracted into the result. This is the byte count as computed by BigQuery for billing purposes.",
+          "format": "int64",
+          "type": "string"
         }
       },
       "type": "object"
@@ -3133,6 +3171,19 @@
     "TableFieldSchema": {
       "id": "TableFieldSchema",
       "properties": {
+        "categories": {
+          "description": "[Optional] The categories attached to this field, used for field-level access control.",
+          "properties": {
+            "names": {
+              "description": "A list of category resource names. For example, \"projects/1/taxonomies/2/categories/3\". At most 5 categories are allowed.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
         "description": {
           "description": "[Optional] The field description. The maximum length is 1,024 characters.",
           "type": "string"
@@ -3320,8 +3371,6 @@
           "type": "string"
         },
         "requirePartitionFilter": {
-          "default": "false",
-          "description": "[Beta] [Optional] If set to true, queries over this table require a partition filter that can be used for partition elimination to be specified.",
           "type": "boolean"
         },
         "type": {

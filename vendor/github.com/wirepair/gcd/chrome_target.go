@@ -1,7 +1,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2017 isaac dawson
+Copyright (c) 2019 isaac dawson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,8 @@ type TargetInfo struct {
 // Events are handled by mapping the method name to a function which takes a target and byte output.
 // For now, callers will need to unmarshall the types themselves.
 type ChromeTarget struct {
+	sendId int64 // An Id which is atomically incremented per request.
+	// must be at top because of alignement and atomic usage
 	replyLock       sync.RWMutex                           // lock for dispatching responses
 	replyDispatcher map[int64]chan *gcdmessage.Message     // Replies to synch methods using a non-buffered channel
 	eventLock       sync.RWMutex                           // lock for dispatching events
@@ -69,7 +71,9 @@ type ChromeTarget struct {
 	Animation            *gcdapi.Animation
 	ApplicationCache     *gcdapi.ApplicationCache // application cache API
 	Browser              *gcdapi.Browser
+	BackgroundService    *gcdapi.BackgroundService
 	CacheStorage         *gcdapi.CacheStorage
+	Cast                 *gcdapi.Cast
 	Console              *gcdapi.Console           // console API
 	CSS                  *gcdapi.CSS               // CSS API
 	Database             *gcdapi.Database          // Database API
@@ -104,12 +108,12 @@ type ChromeTarget struct {
 	Tracing              *gcdapi.Tracing
 	Tethering            *gcdapi.Tethering
 	Testing              *gcdapi.Testing
+	Fetch                *gcdapi.Fetch
 
 	Target      *TargetInfo              // The target information see, TargetInfo
 	sendCh      chan *gcdmessage.Message // The channel used for API components to send back to use
 	doneCh      chan struct{}            // we be donez.
 	apiTimeout  time.Duration            // A customizable timeout for waiting on Chrome to respond to us
-	sendId      int64                    // An Id which is atomically incremented per request.
 	debugEvents bool                     // flag for spitting out event data as a string which we have not subscribed to.
 	debug       bool                     // flag for printing internal debugging messages
 	stopped     bool                     // we are/have shutdown
@@ -140,7 +144,9 @@ func (c *ChromeTarget) Init() {
 	c.Animation = gcdapi.NewAnimation(c)
 	c.ApplicationCache = gcdapi.NewApplicationCache(c)
 	c.Browser = gcdapi.NewBrowser(c)
+	c.BackgroundService = gcdapi.NewBackgroundService(c)
 	c.CacheStorage = gcdapi.NewCacheStorage(c)
+	c.Cast = gcdapi.NewCast(c)
 	c.Console = gcdapi.NewConsole(c)
 	c.CSS = gcdapi.NewCSS(c)
 	c.Database = gcdapi.NewDatabase(c)
@@ -175,6 +181,7 @@ func (c *ChromeTarget) Init() {
 	// if stable channel you'll need to comment this out
 	c.Performance = gcdapi.NewPerformance(c)
 	c.Testing = gcdapi.NewTesting(c)
+	c.Fetch = gcdapi.NewFetch(c)
 }
 
 // clean up this target

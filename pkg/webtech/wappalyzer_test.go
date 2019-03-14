@@ -84,7 +84,7 @@ func TestWappalyzerInject(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	b := browser.NewGCDBrowserPool(2, w)
+	b := browser.NewGCDBrowserPool(2, browser.NewLocalLeaser(), w)
 	defer b.Close(ctx)
 
 	if err := b.Init(); err != nil {
@@ -95,7 +95,7 @@ func TestWappalyzerInject(t *testing.T) {
 		HostAddress: "example.com",
 		IPAddress:   "93.184.216.34",
 	}
-	
+
 	brows := b.Acquire(ctx)
 	defer b.Return(ctx, brows)
 	ta, err := brows.GetFirstTab()
