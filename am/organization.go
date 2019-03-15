@@ -17,11 +17,13 @@ const (
 	OrgStatusAwaitActivation        = 100
 	OrgStatusActive                 = 1000
 
-	SubscriptionPending    = 1
-	SubscriptionOneTime    = 10
-	SubscriptionMonthly    = 100
-	SubscriptionEnterprise = 1000
-	SubscriptionSystem     = 9999
+	SubscriptionPending       = 1
+	SubscriptionOneTime       = 10
+	SubscriptionMonthly       = 100
+	SubscriptionMonthlySMB    = 101
+	SubscriptionMonthlyMedium = 102
+	SubscriptionEnterprise    = 1000
+	SubscriptionSystem        = 9999
 )
 
 // Organization represents an organization that has subscribed to our service
@@ -48,7 +50,7 @@ type Organization struct {
 	CreationTime            int64  `json:"creation_time"`
 	StatusID                int    `json:"status_id"`
 	Deleted                 bool   `json:"deleted"`
-	SubscriptionID          int    `json:"subscription_id"`
+	SubscriptionID          int32  `json:"subscription_id"`
 }
 
 // OrgFilter for filtering organization list results

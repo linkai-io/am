@@ -59,26 +59,28 @@ func UserFilterToDomain(in *prototypes.UserFilter) *am.UserFilter {
 // UserContextToDomain converts from a protoc usercontext to an am.usercontext
 func UserContextToDomain(in *prototypes.UserContext) am.UserContext {
 	return &am.UserContextData{
-		TraceID:   in.TraceID,
-		OrgID:     int(in.OrgID),
-		OrgCID:    in.OrgCID,
-		UserID:    int(in.UserID),
-		UserCID:   in.UserCID,
-		Roles:     in.Roles,
-		IPAddress: in.IPAddress,
+		TraceID:        in.TraceID,
+		OrgID:          int(in.OrgID),
+		OrgCID:         in.OrgCID,
+		UserID:         int(in.UserID),
+		UserCID:        in.UserCID,
+		Roles:          in.Roles,
+		IPAddress:      in.IPAddress,
+		SubscriptionID: in.SubscriptionID,
 	}
 }
 
 // DomainToUserContext converts the domain usercontext to protobuf usercontext
 func DomainToUserContext(in am.UserContext) *prototypes.UserContext {
 	return &prototypes.UserContext{
-		TraceID:   in.GetTraceID(),
-		OrgID:     int32(in.GetOrgID()),
-		OrgCID:    in.GetOrgCID(),
-		UserCID:   in.GetUserCID(),
-		UserID:    int32(in.GetUserID()),
-		Roles:     in.GetRoles(),
-		IPAddress: in.GetIPAddress(),
+		TraceID:        in.GetTraceID(),
+		OrgID:          int32(in.GetOrgID()),
+		OrgCID:         in.GetOrgCID(),
+		UserCID:        in.GetUserCID(),
+		UserID:         int32(in.GetUserID()),
+		Roles:          in.GetRoles(),
+		IPAddress:      in.GetIPAddress(),
+		SubscriptionID: in.GetSubscriptionID(),
 	}
 }
 
@@ -107,7 +109,7 @@ func DomainToOrganization(in *am.Organization) *prototypes.Org {
 		CreationTime:            in.CreationTime,
 		StatusID:                int32(in.StatusID),
 		Deleted:                 in.Deleted,
-		SubscriptionID:          int32(in.SubscriptionID),
+		SubscriptionID:          in.SubscriptionID,
 	}
 }
 
@@ -136,7 +138,7 @@ func OrganizationToDomain(in *prototypes.Org) *am.Organization {
 		CreationTime:            in.CreationTime,
 		StatusID:                int(in.StatusID),
 		Deleted:                 in.Deleted,
-		SubscriptionID:          int(in.SubscriptionID),
+		SubscriptionID:          in.SubscriptionID,
 	}
 }
 

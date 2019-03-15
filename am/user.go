@@ -41,29 +41,32 @@ type UserContext interface {
 	GetUserCID() string
 	GetRoles() []string
 	GetIPAddress() string
+	GetSubscriptionID() int32
 }
 
 // UserContextData for contextual information about a user
 type UserContextData struct {
-	TraceID   string   `json:"trace_id"`
-	OrgID     int      `json:"org_id"`
-	OrgCID    string   `json:"org_customer_id"`
-	UserID    int      `json:"user_id"`
-	UserCID   string   `json:"user_cid"`
-	Roles     []string `json:"roles"`
-	IPAddress string   `json:"ip_address"`
+	TraceID        string   `json:"trace_id"`
+	OrgID          int      `json:"org_id"`
+	OrgCID         string   `json:"org_customer_id"`
+	UserID         int      `json:"user_id"`
+	UserCID        string   `json:"user_cid"`
+	Roles          []string `json:"roles"`
+	IPAddress      string   `json:"ip_address"`
+	SubscriptionID int32    `json:"subscription_id"`
 }
 
 // NewUserContext creates user contextual data
-func NewUserContext(orgID, userID int, orgCID, userCID, traceID, ipAddress string, roles []string) *UserContextData {
+func NewUserContext(orgID, userID int, orgCID, userCID, traceID, ipAddress string, roles []string, subscriptionID int32) *UserContextData {
 	return &UserContextData{
-		TraceID:   traceID,
-		OrgID:     orgID,
-		OrgCID:    orgCID,
-		UserID:    userID,
-		UserCID:   userCID,
-		Roles:     roles,
-		IPAddress: ipAddress,
+		TraceID:        traceID,
+		OrgID:          orgID,
+		OrgCID:         orgCID,
+		UserID:         userID,
+		UserCID:        userCID,
+		Roles:          roles,
+		IPAddress:      ipAddress,
+		SubscriptionID: subscriptionID,
 	}
 }
 
@@ -100,6 +103,11 @@ func (u *UserContextData) GetRoles() []string {
 // GetIPAddress returns this context's user ip address
 func (u *UserContextData) GetIPAddress() string {
 	return u.IPAddress
+}
+
+// GetSubscriptionID returns this context's user subscription level
+func (u *UserContextData) GetSubscriptionID() int32 {
+	return u.SubscriptionID
 }
 
 // UserFilter for limiting results from User List
