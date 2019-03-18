@@ -196,9 +196,7 @@ func (s *Service) runGroup(ctx context.Context, details *pushDetails, start time
 	batcher.Init()
 	defer batcher.Done()
 
-	// TODO: do smart calculation on size of scan group addresses
-	then := start.Add(s.defaultDuration).UnixNano()
-	filter := newFilter(details.userContext, details.scanGroupID, then)
+	filter := s.StartGroupFilter(details.userContext, details.scanGroupID, start)
 
 	s.IncActiveGroups()
 
@@ -453,8 +451,19 @@ func (s *Service) GetActiveAddresses() int32 {
 	return atomic.LoadInt32(&s.activeAddrCount)
 }
 
-func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
+func (s *Service) StartGroupFilter(userContext am.UserContext, scanGroupID int, start time.Time) *am.ScanGroupAddressFilter {
+	duration := s.defaultDuration
 	filter := &am.FilterType{}
+
+	switch userContext.GetSubscriptionID() {
+	case am.SubscriptionMonthlySMB:
+		duration = time.Duration(-12) * time.Hour
+		filter.AddFloat32("confidence_score_above", 99)
+	case am.SubscriptionMonthlyMedium:
+		duration = time.Duration(-6) * time.Hour
+	}
+	then := start.Add(duration).UnixNano()
+
 	filter.AddInt64("before_scanned_time", then)
 	return &am.ScanGroupAddressFilter{
 		OrgID:   userContext.GetOrgID(),
