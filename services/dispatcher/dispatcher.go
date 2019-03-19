@@ -456,9 +456,8 @@ func (s *Service) StartGroupFilter(userContext am.UserContext, scanGroupID int, 
 	filter := &am.FilterType{}
 
 	switch userContext.GetSubscriptionID() {
-	case am.SubscriptionMonthlySMB:
+	case am.SubscriptionMonthlySmall:
 		duration = time.Duration(-12) * time.Hour
-		filter.AddFloat32("confidence_score_above", 99)
 	case am.SubscriptionMonthlyMedium:
 		duration = time.Duration(-6) * time.Hour
 	}

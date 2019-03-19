@@ -16,17 +16,19 @@ import (
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
-	"github.com/linkai-io/am/mock"
 )
 
 const (
 	CreateOrgStmt = `insert into am.organizations (
 		organization_name, organization_custom_id, user_pool_id, identity_pool_id, user_pool_client_id, user_pool_client_secret, user_pool_jwk,
 		owner_email, first_name, last_name, phone, country, state_prefecture, street, 
-		address1, address2, city, postal_code, creation_time, deleted, status_id, subscription_id
+		address1, address2, city, postal_code, creation_time, deleted, status_id, subscription_id,
+		limit_tld, limit_tld_reached, limit_hosts, limit_hosts_reached, limit_custom_web_flows, limit_custom_web_flows_reached
 	)
-	values 
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, false, 1000, 1000);`
+	values ($1, $2, $3, $4, $5, $6, $7, 
+			$8, $9, $10, $11, $12, $13, $14, 
+			$15, $16, $17, $18, $19, $20, $21, $22, 
+			$23, $24, $25, $26, $27, $28);`
 
 	CreateUserStmt      = `insert into am.users (organization_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted) values ($1, $2, $3, $4, $5, $6, $7, false)`
 	CreateScanGroupStmt = `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted) values 
@@ -157,27 +159,6 @@ func AddrsFromInputFile(orgID, groupID int, addrFile io.Reader, t *testing.T) []
 	return addrs
 }
 
-func CreateUserContext(orgID, userID int) *mock.UserContext {
-	userContext := &mock.UserContext{}
-	userContext.GetOrgIDFn = func() int {
-		return orgID
-	}
-
-	userContext.GetUserIDFn = func() int {
-		return userID
-	}
-
-	userContext.GetOrgCIDFn = func() string {
-		return "someorgcid"
-	}
-
-	userContext.GetUserCIDFn = func() string {
-		return "someusercid"
-	}
-
-	return userContext
-}
-
 func RunAggregates(db *pgx.ConnPool, t *testing.T) {
 	aggregates := []string{"am.do_daily_discovered_aggregation", "am.do_daily_seen_aggregation", "am.do_daily_scanned_aggregation",
 		"am.do_trihourly_discovered_aggregation", "am.do_trihourly_seen_aggregation", "am.do_trihourly_scanned_aggregation"}
@@ -225,30 +206,41 @@ func InitDB(env string, t *testing.T) *pgx.ConnPool {
 
 func CreateOrgInstance(orgName string) *am.Organization {
 	return &am.Organization{
-		OrgName:                 orgName,
-		OwnerEmail:              orgName + "email@email.com",
-		UserPoolID:              "userpool.blah",
-		UserPoolAppClientID:     "userpoolclient.id",
-		UserPoolAppClientSecret: "userpoolclient.secret",
-		IdentityPoolID:          "identitypool.blah",
-		UserPoolJWK:             "userpool.jwk",
-		FirstName:               "first",
-		LastName:                "last",
-		Phone:                   "1-111-111-1111",
-		Country:                 "USA",
-		City:                    "Beverly Hills",
-		StatePrefecture:         "CA",
-		PostalCode:              "90210",
-		Street:                  "1 fake lane",
-		SubscriptionID:          1000,
-		StatusID:                1000,
+		OrgCID:                     GenerateID(nil),
+		OrgName:                    orgName,
+		OwnerEmail:                 orgName + "email@email.com",
+		UserPoolID:                 "userpool.blah",
+		UserPoolAppClientID:        "userpoolclient.id",
+		UserPoolAppClientSecret:    "userpoolclient.secret",
+		IdentityPoolID:             "identitypool.blah",
+		UserPoolJWK:                "userpool.jwk",
+		FirstName:                  "first",
+		LastName:                   "last",
+		Phone:                      "1-111-111-1111",
+		Country:                    "USA",
+		StatePrefecture:            "CA",
+		Street:                     "1 fake lane",
+		Address1:                   "",
+		Address2:                   "",
+		City:                       "Beverly Hills",
+		PostalCode:                 "90210",
+		CreationTime:               time.Now().UnixNano(),
+		StatusID:                   1000,
+		Deleted:                    false,
+		SubscriptionID:             1000,
+		LimitTLD:                   9999,
+		LimitTLDReached:            false,
+		LimitHosts:                 9999,
+		LimitHostsReached:          false,
+		LimitCustomWebFlows:        9999,
+		LimitCustomWebFlowsReached: false,
 	}
 }
 
 func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 	_, err := p.Exec(CreateOrgStmt, name, GenerateID(t), "user_pool_id.blah", "userpoolclient.id", "userpoolclient.secret", "identity_pool_id.blah", "user_pool_jwk.blah",
-		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane", "", "",
-		"sf", "90210", time.Now())
+		name+"email@email.com", "first", "last", "1-111-111-1111", "usa", "ca", "1 fake lane",
+		"", "", "sf", "90210", time.Now(), false, am.OrgStatusActive, am.SubscriptionEnterprise, 9999, false, 9999, false, 9999, false)
 
 	if err != nil {
 		t.Fatalf("error creating organization %s: %s\n", name, err)
@@ -259,6 +251,51 @@ func CreateOrg(p *pgx.ConnPool, name string, t *testing.T) {
 	_, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), name+"email@email.com", "first", "last", am.UserStatusActive, time.Now())
 	if err != nil {
 		t.Fatalf("error creating user for %s, %s\n", name, err)
+	}
+}
+
+func CreateSmallOrg(p *pgx.ConnPool, name string, t *testing.T) {
+	org := CreateOrgInstance(name)
+	org.SubscriptionID = am.SubscriptionMonthlySmall
+	org.LimitCustomWebFlows = 1
+	org.LimitHosts = 25
+	org.LimitTLD = 1
+	CreateOrgFromOrg(p, org, t)
+}
+
+func CreateMediumOrg(p *pgx.ConnPool, name string, t *testing.T) {
+	org := CreateOrgInstance(name)
+	org.SubscriptionID = am.SubscriptionMonthlyMedium
+	org.LimitCustomWebFlows = 10
+	org.LimitHosts = 250
+	org.LimitTLD = 3
+	CreateOrgFromOrg(p, org, t)
+}
+
+func CreateEnterpriseOrg(p *pgx.ConnPool, name string, t *testing.T) {
+	org := CreateOrgInstance(name)
+	org.SubscriptionID = am.SubscriptionMonthlySmall
+	org.LimitCustomWebFlows = 100
+	org.LimitHosts = 10000
+	org.LimitTLD = 200
+	CreateOrgFromOrg(p, org, t)
+}
+
+func CreateOrgFromOrg(p *pgx.ConnPool, org *am.Organization, t *testing.T) {
+	_, err := p.Exec(CreateOrgStmt, org.OrgName, org.OrgCID, org.UserPoolID, org.IdentityPoolID, org.UserPoolAppClientID, org.UserPoolAppClientSecret, org.UserPoolJWK,
+		org.OwnerEmail, org.FirstName, org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street,
+		org.Address1, org.Address2, org.City, org.PostalCode, time.Now(), false, org.StatusID, org.SubscriptionID,
+		org.LimitTLD, org.LimitTLDReached, org.LimitHosts, org.LimitHostsReached, org.LimitCustomWebFlows, org.LimitCustomWebFlowsReached)
+
+	if err != nil {
+		t.Fatalf("error creating organization %s: %s\n", org.OrgName, err)
+	}
+
+	orgID := GetOrgID(p, org.OrgName, t)
+
+	_, err = p.Exec(CreateUserStmt, orgID, GenerateID(t), org.OwnerEmail, org.FirstName, org.LastName, am.UserStatusActive, time.Now())
+	if err != nil {
+		t.Fatalf("error creating user for %s, %s\n", org.OrgName, err)
 	}
 }
 

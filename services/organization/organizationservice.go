@@ -152,7 +152,8 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 	err = row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
-		&org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID)
+		&org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
+		&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
@@ -186,8 +187,8 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 		org := &am.Organization{}
 		if err := rows.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 			&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
-			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted,
-			&org.SubscriptionID); err != nil {
+			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
+			&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached); err != nil {
 			return nil, err
 		}
 		org.CreationTime = createTime.UnixNano()
@@ -233,8 +234,9 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.UserPoolAppClientID,
 		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
-		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID, userCID, org.OwnerEmail,
-		org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
+		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID,
+		org.LimitTLD, org.LimitTLDReached, org.LimitHosts, org.LimitHostsReached, org.LimitCustomWebFlows, org.LimitCustomWebFlowsReached,
+		userCID, org.OwnerEmail, org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			log.Error().Err(v).Msgf("create error: %#v", v)
 			return 0, 0, "", "", v
@@ -383,13 +385,39 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 		update.SubscriptionID = org.SubscriptionID
 	}
 
+	if org.LimitTLD != 0 && org.LimitTLD != update.LimitTLD {
+		update.LimitTLD = org.LimitTLD
+	}
+
+	if org.LimitTLDReached != false && org.LimitTLDReached != update.LimitTLDReached {
+		update.LimitTLDReached = org.LimitTLDReached
+	}
+
+	if org.LimitHosts != 0 && org.LimitHosts != update.LimitHosts {
+		update.LimitHosts = org.LimitHosts
+	}
+
+	if org.LimitHostsReached != false && org.LimitHostsReached != update.LimitHostsReached {
+		update.LimitHostsReached = org.LimitHostsReached
+	}
+
+	if org.LimitCustomWebFlows != 0 && org.LimitCustomWebFlows != update.LimitCustomWebFlows {
+		update.LimitCustomWebFlows = org.LimitCustomWebFlows
+	}
+
+	if org.LimitCustomWebFlowsReached != false && org.LimitCustomWebFlowsReached != update.LimitCustomWebFlowsReached {
+		update.LimitCustomWebFlowsReached = org.LimitCustomWebFlowsReached
+	}
+
 	_, err = tx.Exec("orgUpdate", update.UserPoolID, update.UserPoolAppClientID, update.UserPoolAppClientSecret,
 		update.IdentityPoolID, update.UserPoolJWK, update.OwnerEmail, update.FirstName, update.LastName, update.Phone, update.Country,
 		update.StatePrefecture, update.Street, update.Address1, update.Address2, update.City, update.PostalCode,
-		update.StatusID, update.SubscriptionID, oid)
+		update.StatusID, update.SubscriptionID,
+		update.LimitTLD, update.LimitTLDReached, update.LimitHosts, update.LimitHostsReached, update.LimitCustomWebFlows, update.LimitCustomWebFlowsReached,
+		oid)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
-			log.Error().Err(v).Msgf("postgresql error: %#v", v)
+			log.Error().Err(v).Msgf("postgresql error during org update: %#v", v)
 			return 0, v
 		}
 		return 0, err

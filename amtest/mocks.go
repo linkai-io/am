@@ -12,6 +12,31 @@ import (
 	"github.com/linkai-io/am/pkg/webtech"
 )
 
+func CreateUserContext(orgID, userID int) *mock.UserContext {
+	userContext := &mock.UserContext{}
+	userContext.GetOrgIDFn = func() int {
+		return orgID
+	}
+
+	userContext.GetUserIDFn = func() int {
+		return userID
+	}
+
+	userContext.GetOrgCIDFn = func() string {
+		return "someorgcid"
+	}
+
+	userContext.GetUserCIDFn = func() string {
+		return "someusercid"
+	}
+
+	userContext.GetSubscriptionIDFn = func() int32 {
+		return 1000
+	}
+
+	return userContext
+}
+
 func MockAuthorizer() *mock.Authorizer {
 	auth := &mock.Authorizer{}
 	auth.IsAllowedFn = func(subject, resource, action string) error {

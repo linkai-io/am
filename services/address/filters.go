@@ -11,9 +11,15 @@ import (
 
 func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddressFilter) (string, []interface{}, error) {
 	columns := strings.Replace(sharedColumns, "\n\t\t", "", -1)
-	p := sq.Select().Columns(strings.Split(columns, ",")...).
-		From("am.scan_group_addresses as sga").
-		Where(sq.Eq{"sga.organization_id": userContext.GetOrgID()}).
+	p := sq.Select().Columns(strings.Split(columns, ",")...)
+	if userContext.GetSubscriptionID() < 1000 {
+		p = p.FromSelect(restrictedGetFilter(userContext, filter), "uniq").
+			Join("am.scan_group_addresses as sga on sga.host_address=uniq.host_address and sga.discovered_timestamp=uniq.discovered_timestamp")
+	} else {
+		p = p.From("am.scan_group_addresses as sga")
+	}
+
+	p = p.Where(sq.Eq{"sga.organization_id": userContext.GetOrgID()}).
 		Where(sq.Eq{"sga.scan_group_id": filter.GroupID})
 
 	if val, ok := filter.Filters.Bool("ignored"); ok {
@@ -101,4 +107,22 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 	p = p.Where(sq.Gt{"sga.address_id": filter.Start}).OrderBy("sga.address_id")
 	p = p.Limit(uint64(filter.Limit))
 	return p.PlaceholderFormat(sq.Dollar).ToSql()
+}
+
+func restrictedGetFilter(userContext am.UserContext, filter *am.ScanGroupAddressFilter) sq.SelectBuilder {
+	sub := sq.Select("host_address").
+		Column(sq.Alias(sq.Expr("min(discovered_timestamp)"), "discovered_timestamp")).
+		From("am.scan_group_addresses").
+		Where(sq.Eq{"ignored": false}).
+		Where(sq.Eq{"organization_id": userContext.GetOrgID()}).
+		Where(sq.Eq{"scan_group_id": filter.GroupID}).
+		Where(sq.Or{sq.Eq{"confidence_score": 100}, sq.Eq{"user_confidence_score": 100}}).
+		GroupBy("host_address").OrderBy("discovered_timestamp asc")
+	switch userContext.GetSubscriptionID() {
+	case am.SubscriptionMonthlySmall:
+		sub = sub.Limit(100)
+	case am.SubscriptionMonthlyMedium:
+		sub = sub.Limit(300)
+	}
+	return sub
 }

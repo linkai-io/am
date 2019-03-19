@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/miekg/dns"
+
 	"github.com/linkai-io/am/pkg/convert"
 
 	"github.com/linkai-io/am/am"
@@ -381,6 +383,105 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("error getting returned addresses after updating time")
 	}
 	compareAddresses(returned[0], returned2[0], t)
+}
+
+func TestCreateUpdateSmall(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "updateaddresssmall"
+	groupName := "updateaddresssmallgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateSmallOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	//defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	// test empty count first
+	_, count, err := service.Count(ctx, userContext, groupID)
+	if err != nil {
+		t.Fatalf("error getting empty count: %s\n", err)
+	}
+
+	if count != 0 {
+		t.Fatalf("count should be zero for empty scangroup got: %d\n", count)
+	}
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now().UnixNano()
+	for i := 0; i < 100; i++ {
+		ip := fmt.Sprintf("192.168.1.%d", i)
+		host := fmt.Sprintf("%d.example.com", i)
+		hash := convert.HashAddress(ip, host)
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         hash,
+			DiscoveryTime:       now,
+			DiscoveredBy:        "input_list",
+			LastScannedTime:     0,
+			LastSeenTime:        0,
+			ConfidenceScore:     100,
+			UserConfidenceScore: 0.0,
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+		}
+
+		if i >= 80 && i <= 85 {
+			a.NSRecord = int32(dns.TypeMX)
+			a.ConfidenceScore = 0
+		} else if i >= 86 && i < 90 {
+			a.NSRecord = int32(dns.TypeNS)
+			a.ConfidenceScore = 0
+		}
+		addresses[a.AddressHash] = a
+	}
+
+	_, count, err = service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %s\n", err)
+	}
+
+	if count != 100 {
+		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+	// test invalid (missing groupID) filter first
+	filter := &am.ScanGroupAddressFilter{
+		OrgID:   orgID,
+		Start:   0,
+		Limit:   100,
+		GroupID: groupID,
+		Filters: &am.FilterType{},
+	}
+
+	_, addrs, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("addresses returned error: %v\n", err)
+	}
+
+	if len(addrs) != 35 {
+		t.Fatalf("expected 35 addresses, got: %d\n", len(addrs))
+	}
 
 }
 
@@ -944,15 +1045,15 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 }
 
 func TestPopulateData(t *testing.T) {
-	t.Skip("uncomment to populate db")
+	//t.Skip("uncomment to populate db")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
 
 	ctx := context.Background()
 
-	orgName := "testpopulatedata3"
-	groupName := "testpopulatedata3"
+	orgName := "testpopulatedata7"
+	groupName := "testpopulatedata7"
 
 	auth := amtest.MockEmptyAuthorizer()
 

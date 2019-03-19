@@ -1,24 +1,24 @@
 package address
 
 const (
-	sharedColumns = `organization_id, 
-		address_id, 
-		scan_group_id, 
-		host_address,
-		ip_address, 
-		discovered_timestamp, 
+	sharedColumns = `sga.organization_id, 
+		sga.address_id, 
+		sga.scan_group_id, 
+		sga.host_address,
+		sga.ip_address, 
+		sga.discovered_timestamp, 
 		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id),
-		last_scanned_timestamp,
-		last_seen_timestamp,
-		confidence_score,
-		user_confidence_score,
-		is_soa,
-		is_wildcard_zone,
-		is_hosted_service,
-		ignored,
-		found_from,
-		ns_record,
-		address_hash`
+		sga.last_scanned_timestamp,
+		sga.last_seen_timestamp,
+		sga.confidence_score,
+		sga.user_confidence_score,
+		sga.is_soa,
+		sga.is_wildcard_zone,
+		sga.is_hosted_service,
+		sga.ignored,
+		sga.found_from,
+		sga.ns_record,
+		sga.address_hash`
 )
 
 var queryMap = map[string]string{
