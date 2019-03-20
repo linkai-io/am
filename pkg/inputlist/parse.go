@@ -33,9 +33,9 @@ var (
 
 // ParseError contains the line number, line and parse error
 type ParseError struct {
-	LineNumber int
-	Line       string
-	Err        error
+	LineNumber int    `json:"line_number"`
+	Line       string `json:"line"`
+	Err        error  `json:"error"`
 }
 
 // ParseList parses a list of hostnames, domains, urls, ip addresses, and cidr ranges
