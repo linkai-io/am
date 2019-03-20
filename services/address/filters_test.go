@@ -22,10 +22,10 @@ func TestBuildGetFilterQuery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error building get query: %v\n", err)
 	}
-	if len(args) != 3 {
-		t.Fatalf("invalid number of args expected 3 got: %d\n", len(args))
+	if len(args) != 4 {
+		t.Fatalf("invalid number of args expected 4 got: %d\n", len(args))
 	}
-	expected := "SELECT sga.organization_id,  sga.address_id,  sga.scan_group_id,  sga.host_address, sga.ip_address,  sga.discovered_timestamp,  (select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id), sga.last_scanned_timestamp, sga.last_seen_timestamp, sga.confidence_score, sga.user_confidence_score, sga.is_soa, sga.is_wildcard_zone, sga.is_hosted_service, sga.ignored, sga.found_from, sga.ns_record, sga.address_hash FROM am.scan_group_addresses as sga WHERE sga.organization_id = $1 AND sga.scan_group_id = $2 AND sga.address_id > $3 ORDER BY sga.address_id LIMIT 1000"
+	expected := "SELECT sga.organization_id,  sga.address_id,  sga.scan_group_id,  sga.host_address, sga.ip_address,  sga.discovered_timestamp,  (select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id), sga.last_scanned_timestamp, sga.last_seen_timestamp, sga.confidence_score, sga.user_confidence_score, sga.is_soa, sga.is_wildcard_zone, sga.is_hosted_service, sga.ignored, sga.found_from, sga.ns_record, sga.address_hash FROM am.scan_group_addresses as sga WHERE sga.organization_id = $1 AND sga.scan_group_id = $2 AND sga.deleted = $3 AND sga.address_id > $4 ORDER BY sga.address_id LIMIT 1000"
 	if query != expected {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}
@@ -59,10 +59,10 @@ func TestBuildGetFilterQuery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error building get query: %v\n", err)
 	}
-	if len(args) != 20 {
-		t.Fatalf("invalid number of args expected 20 got: %d\n", len(args))
+	if len(args) != 21 {
+		t.Fatalf("invalid number of args expected 21 got: %d\n", len(args))
 	}
-	expected = "SELECT sga.organization_id,  sga.address_id,  sga.scan_group_id,  sga.host_address, sga.ip_address,  sga.discovered_timestamp,  (select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id), sga.last_scanned_timestamp, sga.last_seen_timestamp, sga.confidence_score, sga.user_confidence_score, sga.is_soa, sga.is_wildcard_zone, sga.is_hosted_service, sga.ignored, sga.found_from, sga.ns_record, sga.address_hash FROM am.scan_group_addresses as sga WHERE sga.organization_id = $1 AND sga.scan_group_id = $2 AND sga.ignored = $3 AND sga.is_wildcard_zone = $4 AND sga.last_scanned_timestamp > $5 AND sga.last_scanned_timestamp < $6 AND sga.last_seen_timestamp > $7 AND sga.last_seen_timestamp < $8 AND sga.discovered_timestamp > $9 AND sga.discovered_timestamp < $10 AND sga.confidence_score > $11 AND sga.confidence_score < $12 AND sga.user_confidence_score > $13 AND sga.user_confidence_score < $14 AND sga.ns_record = $15 AND sga.ip_address = $16 AND sga.host_address = $17 AND sga.host_address LIKE $18 AND sga.host_address LIKE $19 AND sga.address_id > $20 ORDER BY sga.address_id LIMIT 1000"
+	expected = "SELECT sga.organization_id,  sga.address_id,  sga.scan_group_id,  sga.host_address, sga.ip_address,  sga.discovered_timestamp,  (select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id), sga.last_scanned_timestamp, sga.last_seen_timestamp, sga.confidence_score, sga.user_confidence_score, sga.is_soa, sga.is_wildcard_zone, sga.is_hosted_service, sga.ignored, sga.found_from, sga.ns_record, sga.address_hash FROM am.scan_group_addresses as sga WHERE sga.organization_id = $1 AND sga.scan_group_id = $2 AND sga.deleted = $3 AND sga.ignored = $4 AND sga.is_wildcard_zone = $5 AND sga.last_scanned_timestamp > $6 AND sga.last_scanned_timestamp < $7 AND sga.last_seen_timestamp > $8 AND sga.last_seen_timestamp < $9 AND sga.discovered_timestamp > $10 AND sga.discovered_timestamp < $11 AND sga.confidence_score > $12 AND sga.confidence_score < $13 AND sga.user_confidence_score > $14 AND sga.user_confidence_score < $15 AND sga.ns_record = $16 AND sga.ip_address = $17 AND sga.host_address = $18 AND sga.host_address LIKE $19 AND sga.host_address LIKE $20 AND sga.address_id > $21 ORDER BY sga.address_id LIMIT 1000"
 	if query != expected {
 		t.Fatalf("expected:\n%v\ngot:\n%v\n", expected, query)
 	}

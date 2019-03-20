@@ -44,20 +44,22 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			where organization_id=$1 
 			and confidence_score=100 or user_confidence_score=100 
 			and ignored=false 
+			and deleted=false
 			group by scan_group_id,discovered_by`,
 
 	"discoveredByGroup": `select 
 		(select discovered_by from am.scan_address_discovered_by where discovery_id=sga.discovery_id) as discovered_by, 
 		count(1) as total from am.scan_group_addresses as sga 
-			where organization_id=$1 
-			and scan_group_id=$2
-			and confidence_score=100 or user_confidence_score=100 
-			and ignored=false 
-			group by scan_group_id,discovered_by`,
+			where sga.organization_id=$1 
+			and sga.scan_group_id=$2
+			and sga.confidence_score=100 or sga.user_confidence_score=100 
+			and sga.ignored=false 
+			and sga.deleted=false
+			group by sga.scan_group_id,discovered_by`,
 
 	// am.scan_group_addresses related
 	"scanGroupAddressesCount": `select count(address_id) as count from am.scan_group_addresses where organization_id=$1 
-		and scan_group_id=$2`,
+		and scan_group_id=$2 and deleted=false`,
 
 	"scanGroupHostList": `select 
 			top.organization_id, 
@@ -70,7 +72,11 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 				top.address_id=arr.address_id 
 		where top.organization_id=$1 and top.scan_group_id=$2 
 			and top.host_address != '' 
+			and top.deleted=false
+			and top.ignored=false
 			and top.address_id > $3 group by top.organization_id, top.scan_group_id, top.host_address limit $4;`,
+
+	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
 }
 
 var (
@@ -152,8 +158,10 @@ var (
 			address_id bigint not null
 		) on commit drop;`
 
-	DeleteAddressesTempToAddress = `delete from am.scan_group_addresses as sga 
-		where organization_id=$1 and scan_group_id=$2 and address_id IN (SELECT address_id FROM sga_del_temp)`
+	DeleteAddressesTempToAddress = `update am.scan_group_addresses as sga 
+		set deleted=true 
+		from sga_del_temp as temp
+		where sga.address_id=temp.address_id and sga.organization_id=$1 and sga.scan_group_id=$2`
 
 	IgnoreAddressesTempTableKey     = "sga_ignore_temp"
 	IgnoreAddressesTempTableColumns = []string{"address_id"}

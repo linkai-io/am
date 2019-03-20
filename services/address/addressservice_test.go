@@ -408,7 +408,7 @@ func TestCreateUpdateSmall(t *testing.T) {
 
 	amtest.CreateSmallOrg(db, orgName, t)
 	orgID := amtest.GetOrgID(db, orgName, t)
-	//defer amtest.DeleteOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
 
 	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
 	userContext := amtest.CreateUserContext(orgID, 1)
@@ -447,10 +447,10 @@ func TestCreateUpdateSmall(t *testing.T) {
 			Ignored:             false,
 		}
 
-		if i >= 80 && i <= 85 {
+		if i >= 80 && i <= 84 {
 			a.NSRecord = int32(dns.TypeMX)
 			a.ConfidenceScore = 0
-		} else if i >= 86 && i < 90 {
+		} else if i >= 85 && i < 90 {
 			a.NSRecord = int32(dns.TypeNS)
 			a.ConfidenceScore = 0
 		}
@@ -465,7 +465,7 @@ func TestCreateUpdateSmall(t *testing.T) {
 	if count != 100 {
 		t.Fatalf("error expected count to be 100, got: %d\n", count)
 	}
-	// test invalid (missing groupID) filter first
+
 	filter := &am.ScanGroupAddressFilter{
 		OrgID:   orgID,
 		Start:   0,
@@ -483,6 +483,51 @@ func TestCreateUpdateSmall(t *testing.T) {
 		t.Fatalf("expected 35 addresses, got: %d\n", len(addrs))
 	}
 
+	mxCount := 0
+	nsCount := 0
+	for _, addr := range addrs {
+		if addr.NSRecord == int32(dns.TypeMX) {
+			mxCount++
+		} else if addr.NSRecord == int32(dns.TypeNS) {
+			nsCount++
+		}
+	}
+
+	if mxCount != 5 || nsCount != 5 {
+		t.Fatalf("expected 5, 5 for mx/ns count, got %v %v\n", mxCount, nsCount)
+	}
+
+	// test adding new addresses (ips) but same hostnames
+	addresses = make(map[string]*am.ScanGroupAddress, 0)
+	now = time.Now().UnixNano()
+	for i := 0; i < 10; i++ {
+		ip := fmt.Sprintf("192.168.2.%d", i) // different ip
+		a := addrs[i]
+		a.DiscoveryTime = now
+		a.IPAddress = ip
+		a.AddressHash = convert.HashAddress(ip, addrs[i].HostAddress)
+		a.DiscoveredBy = "ns_query_name_to_ip"
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, count, err = service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %s\n", err)
+	}
+
+	if count != 10 {
+		t.Fatalf("error expected count to be 10, got: %d\n", count)
+	}
+
+	_, addrs, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("addresses returned error: %v\n", err)
+	}
+
+	if len(addrs) != 45 {
+		t.Fatalf("expected 45 addresses, got: %d\n", len(addrs))
+	}
 }
 
 func TestIgnore(t *testing.T) {
@@ -1045,7 +1090,7 @@ func compareAddresses(e, r *am.ScanGroupAddress, t *testing.T) {
 }
 
 func TestPopulateData(t *testing.T) {
-	//t.Skip("uncomment to populate db")
+	t.Skip("uncomment to populate db")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
