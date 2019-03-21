@@ -38,6 +38,10 @@ type ParseError struct {
 	Err        error  `json:"error"`
 }
 
+func (p *ParseError) Error() string {
+	return p.Err.Error()
+}
+
 // ParseList parses a list of hostnames, domains, urls, ip addresses, and cidr ranges
 // and returns a de-duplicated list of strings and any errors with line numbers
 // returns nil if number of addresses exceeds maxAddress
