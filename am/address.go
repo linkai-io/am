@@ -63,6 +63,7 @@ type ScanGroupAddress struct {
 	FoundFrom           string  `json:"found_from"` // address hash it was discovered from
 	NSRecord            int32   `json:"ns_record"`
 	AddressHash         string  `json:"address_hash"`
+	Deleted             bool    `json:"deleted"`
 }
 
 type ScanGroupHostList struct {

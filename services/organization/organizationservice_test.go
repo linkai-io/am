@@ -292,6 +292,12 @@ func TestUpdate(t *testing.T) {
 	orgNoNameChange.Street = "newvalue"
 	orgNoNameChange.StatusID = 1
 	orgNoNameChange.SubscriptionID = 1
+	orgNoNameChange.LimitTLD = 1
+	orgNoNameChange.LimitTLDReached = true
+	orgNoNameChange.LimitHosts = 25
+	orgNoNameChange.LimitHostsReached = true
+	orgNoNameChange.LimitCustomWebFlows = 1
+	orgNoNameChange.LimitCustomWebFlowsReached = true
 
 	if _, err := service.Update(ctx, userContext, orgNoNameChange); err != nil {
 		t.Fatalf("error updating organization: %s\n", err)

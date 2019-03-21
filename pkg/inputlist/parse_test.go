@@ -68,7 +68,7 @@ func TestParseListURL(t *testing.T) {
 }
 
 func TestParseListIPHost(t *testing.T) {
-	numErrors := 4
+	numErrors := 5
 	numHosts := 7
 	lines := `192.168.2.1
 	2001:0db8:85a3:0000:0000:8a2e:0370:7334
@@ -80,7 +80,8 @@ func TestParseListIPHost(t *testing.T) {
 	日本語.com
 	..example1.com
 	*.domain.com
-	example.com.`
+	example.com.
+	["test.linkai.io"],["blah.linkai.io"]`
 
 	r := strings.NewReader(lines)
 	addr, errs := ParseList(r, testMaxAddresses)
@@ -115,7 +116,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r := strings.NewReader(lines)
 	_, errs := ParseList(r, 4)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected last err to be too many addresses")
 	}
 
@@ -124,7 +125,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r = strings.NewReader(lines)
 	_, errs = ParseList(r, 256)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected err due to max address with cidr")
 	}
 
@@ -137,7 +138,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r = strings.NewReader(lines)
 	_, errs = ParseList(r, 1)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected err due to max address with cidr")
 	}
 

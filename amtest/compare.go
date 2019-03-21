@@ -87,11 +87,35 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 
 	if e.Deleted != r.Deleted {
-		t.Fatalf("Deleted did not match expected: %v got %v\n", e.StatePrefecture, r.StatePrefecture)
+		t.Fatalf("Deleted did not match expected: %v got %v\n", e.Deleted, r.Deleted)
 	}
 
 	if e.SubscriptionID != r.SubscriptionID {
-		t.Fatalf("SubscriptionID did not match expected: %v got %v\n", e.StatePrefecture, r.StatePrefecture)
+		t.Fatalf("SubscriptionID did not match expected: %v got %v\n", e.SubscriptionID, r.SubscriptionID)
+	}
+
+	if e.LimitTLD != r.LimitTLD {
+		t.Fatalf("LimitTLD did not match expected: %v got %v\n", e.LimitTLD, r.LimitTLD)
+	}
+
+	if e.LimitTLDReached != r.LimitTLDReached {
+		t.Fatalf("LimitTLDReached did not match expected: %v got %v\n", e.LimitTLDReached, r.LimitTLDReached)
+	}
+
+	if e.LimitHosts != r.LimitHosts {
+		t.Fatalf("LimitHosts did not match expected: %v got %v\n", e.LimitHosts, r.LimitHosts)
+	}
+
+	if e.LimitHostsReached != r.LimitHostsReached {
+		t.Fatalf("LimitHostsReached did not match expected: %v got %v\n", e.LimitHostsReached, r.LimitHostsReached)
+	}
+
+	if e.LimitCustomWebFlows != r.LimitCustomWebFlows {
+		t.Fatalf("LimitCustomWebFlows did not match expected: %v got %v\n", e.LimitCustomWebFlows, r.LimitCustomWebFlows)
+	}
+
+	if e.LimitCustomWebFlowsReached != r.LimitCustomWebFlowsReached {
+		t.Fatalf("LimitTLD did not match expected: %v got %v\n", e.LimitCustomWebFlowsReached, r.LimitCustomWebFlowsReached)
 	}
 
 	if r.CreationTime <= 0 {
@@ -188,6 +212,10 @@ func TestCompareAddress(e, r *am.ScanGroupAddress, t *testing.T) {
 
 	if e.FoundFrom != r.FoundFrom {
 		t.Fatalf("FoundFrom by was different, %v and %v\n", e.FoundFrom, r.FoundFrom)
+	}
+
+	if e.Deleted != r.Deleted {
+		t.Fatalf("Deleted by was different, %v and %v\n", e.Deleted, r.Deleted)
 	}
 }
 

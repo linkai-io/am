@@ -196,9 +196,7 @@ func (s *Service) runGroup(ctx context.Context, details *pushDetails, start time
 	batcher.Init()
 	defer batcher.Done()
 
-	// TODO: do smart calculation on size of scan group addresses
-	then := start.Add(s.defaultDuration).UnixNano()
-	filter := newFilter(details.userContext, details.scanGroupID, then)
+	filter := s.StartGroupFilter(details.userContext, details.scanGroupID, start)
 
 	s.IncActiveGroups()
 
@@ -274,6 +272,7 @@ func (s *Service) shouldStopGroup(orgID, groupID int) bool {
 // analyzeAddresses iterate over addresses from state and call analyzeAddress for each address returned. Use a worker pool
 // allowing up to NSModule.RequestsPerSecond worker pool to work concurrently.
 func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserContext, batcher *Batcher, scangroup *am.ScanGroup) error {
+	// loop over addresses from state
 	for {
 		if s.shouldStopGroup(scangroup.OrgID, scangroup.GroupID) {
 			return errors.New("group was paused or deleted during analysis")
@@ -319,7 +318,7 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 				s.statGroups.IncActive(details.scangroup.GroupID, -1)
 			}
 		}
-
+		// for each address returned from pop state, submit to our worker pool.
 		for _, addr := range addrMap {
 			analysisAddr := addr
 
@@ -403,6 +402,7 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 	return updatedAddress, nil
 }
 
+// moduleAnalysis takes the list of possible new addresses filters against what is known, and any results left are added to our address map
 func (s *Service) moduleAnalysis(ctx context.Context, userContext am.UserContext, module am.ModuleService, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
 	updatedAddress, possibleNewAddrs, err := module.Analyze(ctx, userContext, address)
 	if err != nil {
@@ -453,8 +453,20 @@ func (s *Service) GetActiveAddresses() int32 {
 	return atomic.LoadInt32(&s.activeAddrCount)
 }
 
-func newFilter(userContext am.UserContext, scanGroupID int, then int64) *am.ScanGroupAddressFilter {
+// StartGroupFilter for building a filter for this scan group. Depending on subscription level we will only extract addresses
+// that have not been scanned since: default: 5 min, small: 12 hours, medium: 6 hours.
+func (s *Service) StartGroupFilter(userContext am.UserContext, scanGroupID int, start time.Time) *am.ScanGroupAddressFilter {
+	duration := s.defaultDuration
 	filter := &am.FilterType{}
+
+	switch userContext.GetSubscriptionID() {
+	case am.SubscriptionMonthlySmall:
+		duration = time.Duration(-12) * time.Hour
+	case am.SubscriptionMonthlyMedium:
+		duration = time.Duration(-6) * time.Hour
+	}
+	then := start.Add(duration).UnixNano()
+
 	filter.AddInt64("before_scanned_time", then)
 	return &am.ScanGroupAddressFilter{
 		OrgID:   userContext.GetOrgID(),

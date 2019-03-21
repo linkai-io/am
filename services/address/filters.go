@@ -11,10 +11,11 @@ import (
 
 func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddressFilter) (string, []interface{}, error) {
 	columns := strings.Replace(sharedColumns, "\n\t\t", "", -1)
-	p := sq.Select().Columns(strings.Split(columns, ",")...).
-		From("am.scan_group_addresses as sga").
-		Where(sq.Eq{"sga.organization_id": userContext.GetOrgID()}).
-		Where(sq.Eq{"sga.scan_group_id": filter.GroupID})
+	p := sq.Select().Columns(strings.Split(columns, ",")...).From("am.scan_group_addresses as sga")
+
+	p = p.Where(sq.Eq{"sga.organization_id": userContext.GetOrgID()}).
+		Where(sq.Eq{"sga.scan_group_id": filter.GroupID}).
+		Where(sq.Eq{"sga.deleted": false})
 
 	if val, ok := filter.Filters.Bool("ignored"); ok {
 		p = p.Where(sq.Eq{"sga.ignored": val})

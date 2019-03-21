@@ -271,7 +271,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, addres
 	return orgID, copyCount, err
 }
 
-// Delete the address from the scan group (cascading all delete's across tables).
+// Delete the address from the scan group by setting the deleted column to true
 func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupID int, addressIDs []int64) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "delete") {
 		return 0, am.ErrUserNotAuthorized
@@ -318,6 +318,12 @@ func (s *Service) Delete(ctx context.Context, userContext am.UserContext, groupI
 		if v, ok := err.(pgx.PgError); ok {
 			return 0, errors.Wrap(v, "failed to delete addresses")
 		}
+		return 0, err
+	}
+
+	// TODO: instead of a trigger, just automatically unset max hosts for this org. While not great, the next update/insert
+	// will test it anyways
+	if _, err := tx.Exec("unsetMaxHosts", orgID); err != nil {
 		return 0, err
 	}
 
@@ -370,6 +376,12 @@ func (s *Service) Ignore(ctx context.Context, userContext am.UserContext, groupI
 	}
 
 	if _, err := tx.Exec(IgnoreAddressesTempToAddress, value, orgID, groupID); err != nil {
+		return 0, err
+	}
+
+	// TODO: instead of a trigger, just automatically unset max hosts for this org. While not great, the next update/insert
+	// will test it anyways
+	if _, err := tx.Exec("unsetMaxHosts", orgID); err != nil {
 		return 0, err
 	}
 
