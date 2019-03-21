@@ -338,9 +338,10 @@ func (s *Service) analyzeAddresses(ctx context.Context, userContext am.UserConte
 }
 
 // processAddress for a given task, running the analysis of the address, and adding the final results to our batcher.
+// if the host being analyzed was skipped, we will *not* set the last scanned time, this allows the next
 func (s *Service) processAddress(details *taskDetails) {
 	ctx := details.ctx
-	updatedAddress, err := s.analyzeAddress(ctx, details.userContext, details.scangroup.GroupID, details.address)
+	skipped, updatedAddress, err := s.analyzeAddress(ctx, details.userContext, details.scangroup.GroupID, details.address)
 	if err != nil {
 		// TODO: need to figure out how to handle not losing hosts, but also not scanning forever if
 		// they are always problematic.
@@ -349,7 +350,9 @@ func (s *Service) processAddress(details *taskDetails) {
 		return
 	}
 
-	updatedAddress.LastScannedTime = time.Now().UnixNano()
+	if !skipped {
+		updatedAddress.LastScannedTime = time.Now().UnixNano()
+	}
 	details.batcher.Add(updatedAddress)
 
 	// this happens iff input_list/manual hosts only have one of ip or host
@@ -370,36 +373,56 @@ func (s *Service) updateOriginal(batcher *Batcher, originalAddress *am.ScanGroup
 	}
 }
 
-// analyzeAddress analyzes ns records, then brute forces, then web systems. (TODO: add bigdata / other modules)
-func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, scanGroupID int, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
+// analyzeAddress analyzes ns records, then brute forces, then web systems. If we do not have an address id for a host
+// for non enterprise users, we will skip it. until it has been successfully inserted into the database. otherwise we would
+// issue web requests for hosts potentially outside of their pricing tier.
+func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext, scanGroupID int, address *am.ScanGroupAddress) (bool, *am.ScanGroupAddress, error) {
 	logger := log.Ctx(ctx).With().Int64("AddressID", address.AddressID).Str("IPAddress", address.IPAddress).Str("HostAddress", address.HostAddress).Logger()
 	ctx = logger.WithContext(ctx)
 
 	log.Ctx(ctx).Info().Str("address_hash", address.AddressHash).Msg("analyzing ns records")
 	updatedAddress, err := s.moduleAnalysis(ctx, userContext, s.moduleClients[am.NSModule], scanGroupID, address)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to analyze using ns module")
+		return false, nil, errors.Wrap(err, "failed to analyze using ns module")
 	}
 
 	log.Ctx(ctx).Info().Str("address_hash", updatedAddress.AddressHash).Msg("brute forcing")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BruteModule], scanGroupID, updatedAddress)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to analyze using brute module")
+		return false, nil, errors.Wrap(err, "failed to analyze using brute module")
+	}
+
+	if s.shouldSkipAnalysis(ctx, userContext, updatedAddress) {
+		return true, updatedAddress, nil
 	}
 
 	log.Ctx(ctx).Info().Str("address_hash", updatedAddress.AddressHash).Msg("bigquery ct subdomain lookup")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BigDataCTSubdomainModule], scanGroupID, updatedAddress)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to analyze using brute module")
+		return false, nil, errors.Wrap(err, "failed to analyze using brute module")
 	}
 
 	log.Ctx(ctx).Info().Str("address_hash", updatedAddress.AddressHash).Msg("analyzing web systems")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.WebModule], scanGroupID, updatedAddress)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to analyze using web module")
+		return false, nil, errors.Wrap(err, "failed to analyze using web module")
 	}
 
-	return updatedAddress, nil
+	return false, updatedAddress, nil
+}
+
+// should we skip ct/web analysis for this host? if enterprise, no, if no, we need to ensure this host has been in the database
+// before we do any analysis on it.
+func (s *Service) shouldSkipAnalysis(ctx context.Context, userContext am.UserContext, updatedAddress *am.ScanGroupAddress) bool {
+	if userContext.GetSubscriptionID() >= am.SubscriptionEnterprise {
+		return false
+	}
+
+	if updatedAddress.AddressID == 0 {
+		log.Ctx(ctx).Info().Msg("skipping until this host has been in the database at least once")
+		return true
+	}
+	return false
 }
 
 // moduleAnalysis takes the list of possible new addresses filters against what is known, and any results left are added to our address map
