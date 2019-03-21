@@ -74,6 +74,7 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			and top.host_address != '' 
 			and top.deleted=false
 			and top.ignored=false
+			and (top.confidence_score=100 or top.user_confidence_score=100)
 			and top.address_id > $3 group by top.organization_id, top.scan_group_id, top.host_address limit $4;`,
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,

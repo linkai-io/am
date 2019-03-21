@@ -107,7 +107,7 @@ func TestGetHostList(t *testing.T) {
 			DiscoveredBy:        "input_list",
 			LastScannedTime:     now.Add(time.Hour * time.Duration(-i)).UnixNano(),
 			LastSeenTime:        now.Add(time.Hour * time.Duration(-i)).UnixNano(),
-			ConfidenceScore:     0.0,
+			ConfidenceScore:     100,
 			UserConfidenceScore: 0.0,
 			IsSOA:               false,
 			IsWildcardZone:      false,
