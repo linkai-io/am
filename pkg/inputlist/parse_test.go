@@ -68,7 +68,7 @@ func TestParseListURL(t *testing.T) {
 }
 
 func TestParseListIPHost(t *testing.T) {
-	numErrors := 4
+	numErrors := 5
 	numHosts := 7
 	lines := `192.168.2.1
 	2001:0db8:85a3:0000:0000:8a2e:0370:7334
@@ -80,7 +80,8 @@ func TestParseListIPHost(t *testing.T) {
 	日本語.com
 	..example1.com
 	*.domain.com
-	example.com.`
+	example.com.
+	["test.linkai.io"],["blah.linkai.io"]`
 
 	r := strings.NewReader(lines)
 	addr, errs := ParseList(r, testMaxAddresses)

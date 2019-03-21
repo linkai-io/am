@@ -50,7 +50,13 @@ func ParseList(in io.Reader, maxAddresses int) (map[string]struct{}, []*ParseErr
 	parserErrors := make([]*ParseError, 0)
 	lineNo := 0
 
-	replacer := strings.NewReplacer(" ", "", "\t", "", "\r", "", "\n", "", "*", "", "..", ".")
+	replacer := strings.NewReplacer(" ", "",
+		"\t", "",
+		"\r", "",
+		"\n", "",
+		"*", "",
+		"..", ".",
+	)
 
 	for scanner.Scan() {
 		lineNo++
@@ -162,6 +168,10 @@ func addHost(line string, addresses map[string]struct{}, parserErrors *[]*ParseE
 		return nil
 	}
 
+	if strings.ContainsAny(line, "[]{},\"'") {
+		*parserErrors = append(*parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: "invalid characters detected"})
+		return nil
+	}
 	addresses[host] = struct{}{}
 	return nil
 }
