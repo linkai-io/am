@@ -115,7 +115,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r := strings.NewReader(lines)
 	_, errs := ParseList(r, 4)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected last err to be too many addresses")
 	}
 
@@ -124,7 +124,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r = strings.NewReader(lines)
 	_, errs = ParseList(r, 256)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected err due to max address with cidr")
 	}
 
@@ -137,7 +137,7 @@ func TestParseListMaxAddresses(t *testing.T) {
 
 	r = strings.NewReader(lines)
 	_, errs = ParseList(r, 1)
-	if errs[len(errs)-1].Err != ErrTooManyAddresses {
+	if errs[len(errs)-1].Err != ErrTooManyAddresses.Error() {
 		t.Fatalf("expected err due to max address with cidr")
 	}
 

@@ -35,11 +35,7 @@ var (
 type ParseError struct {
 	LineNumber int    `json:"line_number"`
 	Line       string `json:"line"`
-	Err        error  `json:"error"`
-}
-
-func (p *ParseError) Error() string {
-	return p.Err.Error()
+	Err        string `json:"error"`
 }
 
 // ParseList parses a list of hostnames, domains, urls, ip addresses, and cidr ranges
@@ -70,7 +66,7 @@ func ParseList(in io.Reader, maxAddresses int) (map[string]struct{}, []*ParseErr
 			err = addHost(line, addresses, &parserErrors, lineNo, maxAddresses)
 		}
 		if err == ErrTooManyAddresses {
-			parserErrors = append(parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: ErrTooManyAddresses})
+			parserErrors = append(parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: ErrTooManyAddresses.Error()})
 			return addresses, parserErrors
 		}
 	}
@@ -125,7 +121,7 @@ func addCIDR(line string, addresses map[string]struct{}, parserErrors *[]*ParseE
 		ones, bits := ipNet.Mask.Size()
 		useableAddresses := math.Pow(2, float64(bits)-float64(ones))
 		if useableAddresses > float64(maxAddresses) {
-			*parserErrors = append(*parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: ErrTooManyCIDRAddresses})
+			*parserErrors = append(*parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: ErrTooManyCIDRAddresses.Error()})
 			return nil
 		}
 
@@ -162,7 +158,7 @@ func addHost(line string, addresses map[string]struct{}, parserErrors *[]*ParseE
 
 	host, err := ParseHost(line)
 	if err != nil {
-		*parserErrors = append(*parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: err})
+		*parserErrors = append(*parserErrors, &ParseError{LineNumber: lineNo, Line: line, Err: err.Error()})
 		return nil
 	}
 
