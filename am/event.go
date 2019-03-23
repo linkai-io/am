@@ -6,10 +6,46 @@ const (
 	RNEventService = "lrn:service:eventservice:feature:events"
 )
 
+/*
+(1, 'initial scan group analysis completed'),
+    (2, 'maximum number of hostnames reached for pricing plan'),
+    (10, 'new hostname'),
+    (11, 'new record'),
+    (100, 'new website detected'),
+    (101, 'website''s html updated'),
+    (102, 'website''s technology changed'),
+    (103, 'website''s javascript changed'),
+    (150, 'certificate expiring in 30 days'),
+    (151, 'certificate expiring in 15 days'),
+    (152, 'certificate expiring in 5 days'),
+    (153, 'certificate expiring in 1 day'),
+    (154, 'certificate expired'),
+    (200, 'dns server exposing records via zone transfer'),
+	(201, 'dns server exposing records via NSEC walking');
+*/
+
+var EventTypes = map[int32]string{
+	1:   "initial scan group analysis completed",
+	2:   "maximum number of hostnames reached for pricing plan",
+	10:  "new hostname",
+	11:  "new record",
+	100: "new website detected",
+	101: "website's html updated",
+	102: "website's technology changed",
+	103: "website's javascript changed",
+	150: "certificate expiring in 30 days",
+	151: "certificate expiring in 15 days",
+	152: "certificate expiring in 5 days",
+	153: "certificate expiring in 1 day",
+	154: "certificate expired",
+	200: "dns server exposing records via zone transfer",
+	201: "dns server exposing records via NSEC walking",
+}
+
 type Event struct {
 	OrgID          int                 `json:"org_id"`
 	GroupID        int                 `json:"group_id"`
-	EventID        int32               `json:"event_id"`
+	NotificationID int64               `json:"notification_id"`
 	TypeID         int32               `json:"type_id"`
 	EventTimestamp int64               `json:"event_timestamp"`
 	Data           map[string][]string `json:"data"`
@@ -19,35 +55,35 @@ type Event struct {
 type EventSubscriptions struct {
 	TypeID              int32 `json:"type_id"`
 	SubscribedTimestamp int64 `json:"subscribed_since"`
+	Subscribed          bool  `json:"subscribed"`
 }
 
 type UserEventSettings struct {
 	WeeklyReportSendDay int32                 `json:"weekly_report_day"`
+	ShouldWeeklyEmail   bool                  `json:"should_email_weekly"`
 	DailyReportSendHour int32                 `json:"daily_report_hour"`
+	ShouldDailyEmail    bool                  `json:"should_email_daily"`
 	UserTimezone        string                `json:"user_timezone"`
 	Subscriptions       []*EventSubscriptions `json:"subscriptions"`
 }
 
-type UserEvents struct {
-	OrgID    int                `json:"org_id"`
-	UserID   int                `json:"user_id"`
-	Settings *UserEventSettings `json:"settings"`
-	Events   []*Event           `json:"events"`
-}
-
 type EventFilter struct {
+	Start   int64       `json:"start"`
+	Limit   int32       `json:"limit"`
 	Filters *FilterType `json:"filter"`
 }
 
 // EventService handles adding events and returning them to users.
 type EventService interface {
 	Init(config []byte) error
-	// Get events and user settings
-	Get(ctx context.Context, userContext UserContext, filter *EventFilter) (*UserEvents, error)
+	// Get events
+	Get(ctx context.Context, userContext UserContext, filter *EventFilter) ([]*Event, error)
+	// GetSettings user settings
+	GetSettings(ctx context.Context, userContext UserContext, filter *EventFilter) (*UserEventSettings, error)
 	// MarkRead events
 	MarkRead(ctx context.Context, userContext UserContext, eventIDs []int32) error
 	// Add events (system only?)
-	Add(ctx context.Context, userContext UserContext, event *Event) error
+	Add(ctx context.Context, userContext UserContext, event []*Event) error
 	// UpdateSettings for user
 	UpdateSettings(ctx context.Context, userContext UserContext, settings *UserEventSettings) error
 	// NotifyComplete that a scan group has completed

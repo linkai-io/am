@@ -31,7 +31,7 @@ func (m *StringEvent) Reset()         { *m = StringEvent{} }
 func (m *StringEvent) String() string { return proto.CompactTextString(m) }
 func (*StringEvent) ProtoMessage()    {}
 func (*StringEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{0}
+	return fileDescriptor_event_177c4d425715f799, []int{0}
 }
 func (m *StringEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -68,7 +68,7 @@ func (m *StringEvent) GetValue() []string {
 }
 
 type EventData struct {
-	EventID              int32                   `protobuf:"varint,1,opt,name=EventID,proto3" json:"EventID,omitempty"`
+	NotificationID       int64                   `protobuf:"varint,1,opt,name=NotificationID,proto3" json:"NotificationID,omitempty"`
 	OrgID                int32                   `protobuf:"varint,2,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
 	GroupID              int32                   `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
 	TypeID               int32                   `protobuf:"varint,4,opt,name=TypeID,proto3" json:"TypeID,omitempty"`
@@ -84,7 +84,7 @@ func (m *EventData) Reset()         { *m = EventData{} }
 func (m *EventData) String() string { return proto.CompactTextString(m) }
 func (*EventData) ProtoMessage()    {}
 func (*EventData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{1}
+	return fileDescriptor_event_177c4d425715f799, []int{1}
 }
 func (m *EventData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -113,9 +113,9 @@ func (m *EventData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventData proto.InternalMessageInfo
 
-func (m *EventData) GetEventID() int32 {
+func (m *EventData) GetNotificationID() int64 {
 	if m != nil {
-		return m.EventID
+		return m.NotificationID
 	}
 	return 0
 }
@@ -165,6 +165,7 @@ func (m *EventData) GetRead() bool {
 type EventSubscriptions struct {
 	TypeID               int32    `protobuf:"varint,1,opt,name=TypeID,proto3" json:"TypeID,omitempty"`
 	SubscribedTimestamp  int64    `protobuf:"varint,2,opt,name=SubscribedTimestamp,proto3" json:"SubscribedTimestamp,omitempty"`
+	Subscribed           bool     `protobuf:"varint,3,opt,name=Subscribed,proto3" json:"Subscribed,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -174,7 +175,7 @@ func (m *EventSubscriptions) Reset()         { *m = EventSubscriptions{} }
 func (m *EventSubscriptions) String() string { return proto.CompactTextString(m) }
 func (*EventSubscriptions) ProtoMessage()    {}
 func (*EventSubscriptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{2}
+	return fileDescriptor_event_177c4d425715f799, []int{2}
 }
 func (m *EventSubscriptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -217,11 +218,20 @@ func (m *EventSubscriptions) GetSubscribedTimestamp() int64 {
 	return 0
 }
 
+func (m *EventSubscriptions) GetSubscribed() bool {
+	if m != nil {
+		return m.Subscribed
+	}
+	return false
+}
+
 type UserEventSettings struct {
 	WeeklyReportSendDay  int32                 `protobuf:"varint,1,opt,name=WeeklyReportSendDay,proto3" json:"WeeklyReportSendDay,omitempty"`
-	DailyReportSendHour  int32                 `protobuf:"varint,2,opt,name=DailyReportSendHour,proto3" json:"DailyReportSendHour,omitempty"`
-	UserTimezone         string                `protobuf:"bytes,3,opt,name=UserTimezone,proto3" json:"UserTimezone,omitempty"`
-	Subscriptions        []*EventSubscriptions `protobuf:"bytes,4,rep,name=Subscriptions" json:"Subscriptions,omitempty"`
+	ShouldWeeklyEmail    bool                  `protobuf:"varint,2,opt,name=ShouldWeeklyEmail,proto3" json:"ShouldWeeklyEmail,omitempty"`
+	DailyReportSendHour  int32                 `protobuf:"varint,3,opt,name=DailyReportSendHour,proto3" json:"DailyReportSendHour,omitempty"`
+	ShouldDailyEmail     bool                  `protobuf:"varint,4,opt,name=ShouldDailyEmail,proto3" json:"ShouldDailyEmail,omitempty"`
+	UserTimezone         string                `protobuf:"bytes,5,opt,name=UserTimezone,proto3" json:"UserTimezone,omitempty"`
+	Subscriptions        []*EventSubscriptions `protobuf:"bytes,6,rep,name=Subscriptions" json:"Subscriptions,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
 	XXX_unrecognized     []byte                `json:"-"`
 	XXX_sizecache        int32                 `json:"-"`
@@ -231,7 +241,7 @@ func (m *UserEventSettings) Reset()         { *m = UserEventSettings{} }
 func (m *UserEventSettings) String() string { return proto.CompactTextString(m) }
 func (*UserEventSettings) ProtoMessage()    {}
 func (*UserEventSettings) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{3}
+	return fileDescriptor_event_177c4d425715f799, []int{3}
 }
 func (m *UserEventSettings) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -267,11 +277,25 @@ func (m *UserEventSettings) GetWeeklyReportSendDay() int32 {
 	return 0
 }
 
+func (m *UserEventSettings) GetShouldWeeklyEmail() bool {
+	if m != nil {
+		return m.ShouldWeeklyEmail
+	}
+	return false
+}
+
 func (m *UserEventSettings) GetDailyReportSendHour() int32 {
 	if m != nil {
 		return m.DailyReportSendHour
 	}
 	return 0
+}
+
+func (m *UserEventSettings) GetShouldDailyEmail() bool {
+	if m != nil {
+		return m.ShouldDailyEmail
+	}
+	return false
 }
 
 func (m *UserEventSettings) GetUserTimezone() string {
@@ -288,79 +312,10 @@ func (m *UserEventSettings) GetSubscriptions() []*EventSubscriptions {
 	return nil
 }
 
-type UserEvents struct {
-	OrgID                int32              `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
-	UserID               int32              `protobuf:"varint,2,opt,name=UserID,proto3" json:"UserID,omitempty"`
-	Settings             *UserEventSettings `protobuf:"bytes,3,opt,name=Settings" json:"Settings,omitempty"`
-	Events               []*EventData       `protobuf:"bytes,4,rep,name=Events" json:"Events,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
-}
-
-func (m *UserEvents) Reset()         { *m = UserEvents{} }
-func (m *UserEvents) String() string { return proto.CompactTextString(m) }
-func (*UserEvents) ProtoMessage()    {}
-func (*UserEvents) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{4}
-}
-func (m *UserEvents) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *UserEvents) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_UserEvents.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (dst *UserEvents) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UserEvents.Merge(dst, src)
-}
-func (m *UserEvents) XXX_Size() int {
-	return m.Size()
-}
-func (m *UserEvents) XXX_DiscardUnknown() {
-	xxx_messageInfo_UserEvents.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UserEvents proto.InternalMessageInfo
-
-func (m *UserEvents) GetOrgID() int32 {
-	if m != nil {
-		return m.OrgID
-	}
-	return 0
-}
-
-func (m *UserEvents) GetUserID() int32 {
-	if m != nil {
-		return m.UserID
-	}
-	return 0
-}
-
-func (m *UserEvents) GetSettings() *UserEventSettings {
-	if m != nil {
-		return m.Settings
-	}
-	return nil
-}
-
-func (m *UserEvents) GetEvents() []*EventData {
-	if m != nil {
-		return m.Events
-	}
-	return nil
-}
-
 type EventFilter struct {
-	Filters              *FilterType `protobuf:"bytes,1,opt,name=Filters" json:"Filters,omitempty"`
+	Start                int64       `protobuf:"varint,1,opt,name=Start,proto3" json:"Start,omitempty"`
+	Limit                int32       `protobuf:"varint,2,opt,name=Limit,proto3" json:"Limit,omitempty"`
+	Filters              *FilterType `protobuf:"bytes,3,opt,name=Filters" json:"Filters,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -370,7 +325,7 @@ func (m *EventFilter) Reset()         { *m = EventFilter{} }
 func (m *EventFilter) String() string { return proto.CompactTextString(m) }
 func (*EventFilter) ProtoMessage()    {}
 func (*EventFilter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_event_0b7aad73198a024c, []int{5}
+	return fileDescriptor_event_177c4d425715f799, []int{4}
 }
 func (m *EventFilter) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -399,6 +354,20 @@ func (m *EventFilter) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventFilter proto.InternalMessageInfo
 
+func (m *EventFilter) GetStart() int64 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *EventFilter) GetLimit() int32 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
 func (m *EventFilter) GetFilters() *FilterType {
 	if m != nil {
 		return m.Filters
@@ -412,7 +381,6 @@ func init() {
 	proto.RegisterMapType((map[string]*StringEvent)(nil), "EventData.DataEntry")
 	proto.RegisterType((*EventSubscriptions)(nil), "EventSubscriptions")
 	proto.RegisterType((*UserEventSettings)(nil), "UserEventSettings")
-	proto.RegisterType((*UserEvents)(nil), "UserEvents")
 	proto.RegisterType((*EventFilter)(nil), "EventFilter")
 }
 func (m *StringEvent) Marshal() (dAtA []byte, err error) {
@@ -466,10 +434,10 @@ func (m *EventData) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.EventID != 0 {
+	if m.NotificationID != 0 {
 		dAtA[i] = 0x8
 		i++
-		i = encodeVarintEvent(dAtA, i, uint64(m.EventID))
+		i = encodeVarintEvent(dAtA, i, uint64(m.NotificationID))
 	}
 	if m.OrgID != 0 {
 		dAtA[i] = 0x10
@@ -560,6 +528,16 @@ func (m *EventSubscriptions) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintEvent(dAtA, i, uint64(m.SubscribedTimestamp))
 	}
+	if m.Subscribed {
+		dAtA[i] = 0x18
+		i++
+		if m.Subscribed {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
 	}
@@ -586,73 +564,40 @@ func (m *UserEventSettings) MarshalTo(dAtA []byte) (int, error) {
 		i++
 		i = encodeVarintEvent(dAtA, i, uint64(m.WeeklyReportSendDay))
 	}
-	if m.DailyReportSendHour != 0 {
+	if m.ShouldWeeklyEmail {
 		dAtA[i] = 0x10
+		i++
+		if m.ShouldWeeklyEmail {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	if m.DailyReportSendHour != 0 {
+		dAtA[i] = 0x18
 		i++
 		i = encodeVarintEvent(dAtA, i, uint64(m.DailyReportSendHour))
 	}
+	if m.ShouldDailyEmail {
+		dAtA[i] = 0x20
+		i++
+		if m.ShouldDailyEmail {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
 	if len(m.UserTimezone) > 0 {
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x2a
 		i++
 		i = encodeVarintEvent(dAtA, i, uint64(len(m.UserTimezone)))
 		i += copy(dAtA[i:], m.UserTimezone)
 	}
 	if len(m.Subscriptions) > 0 {
 		for _, msg := range m.Subscriptions {
-			dAtA[i] = 0x22
-			i++
-			i = encodeVarintEvent(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
-}
-
-func (m *UserEvents) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *UserEvents) MarshalTo(dAtA []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintEvent(dAtA, i, uint64(m.OrgID))
-	}
-	if m.UserID != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintEvent(dAtA, i, uint64(m.UserID))
-	}
-	if m.Settings != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintEvent(dAtA, i, uint64(m.Settings.Size()))
-		n2, err := m.Settings.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
-	}
-	if len(m.Events) > 0 {
-		for _, msg := range m.Events {
-			dAtA[i] = 0x22
+			dAtA[i] = 0x32
 			i++
 			i = encodeVarintEvent(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -683,15 +628,25 @@ func (m *EventFilter) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Start != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintEvent(dAtA, i, uint64(m.Start))
+	}
+	if m.Limit != 0 {
+		dAtA[i] = 0x10
+		i++
+		i = encodeVarintEvent(dAtA, i, uint64(m.Limit))
+	}
 	if m.Filters != nil {
-		dAtA[i] = 0xa
+		dAtA[i] = 0x1a
 		i++
 		i = encodeVarintEvent(dAtA, i, uint64(m.Filters.Size()))
-		n3, err := m.Filters.MarshalTo(dAtA[i:])
+		n2, err := m.Filters.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n2
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -732,8 +687,8 @@ func (m *EventData) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.EventID != 0 {
-		n += 1 + sovEvent(uint64(m.EventID))
+	if m.NotificationID != 0 {
+		n += 1 + sovEvent(uint64(m.NotificationID))
 	}
 	if m.OrgID != 0 {
 		n += 1 + sovEvent(uint64(m.OrgID))
@@ -781,6 +736,9 @@ func (m *EventSubscriptions) Size() (n int) {
 	if m.SubscribedTimestamp != 0 {
 		n += 1 + sovEvent(uint64(m.SubscribedTimestamp))
 	}
+	if m.Subscribed {
+		n += 2
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -796,8 +754,14 @@ func (m *UserEventSettings) Size() (n int) {
 	if m.WeeklyReportSendDay != 0 {
 		n += 1 + sovEvent(uint64(m.WeeklyReportSendDay))
 	}
+	if m.ShouldWeeklyEmail {
+		n += 2
+	}
 	if m.DailyReportSendHour != 0 {
 		n += 1 + sovEvent(uint64(m.DailyReportSendHour))
+	}
+	if m.ShouldDailyEmail {
+		n += 2
 	}
 	l = len(m.UserTimezone)
 	if l > 0 {
@@ -815,40 +779,18 @@ func (m *UserEventSettings) Size() (n int) {
 	return n
 }
 
-func (m *UserEvents) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.OrgID != 0 {
-		n += 1 + sovEvent(uint64(m.OrgID))
-	}
-	if m.UserID != 0 {
-		n += 1 + sovEvent(uint64(m.UserID))
-	}
-	if m.Settings != nil {
-		l = m.Settings.Size()
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	if len(m.Events) > 0 {
-		for _, e := range m.Events {
-			l = e.Size()
-			n += 1 + l + sovEvent(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *EventFilter) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	if m.Start != 0 {
+		n += 1 + sovEvent(uint64(m.Start))
+	}
+	if m.Limit != 0 {
+		n += 1 + sovEvent(uint64(m.Limit))
+	}
 	if m.Filters != nil {
 		l = m.Filters.Size()
 		n += 1 + l + sovEvent(uint64(l))
@@ -983,9 +925,9 @@ func (m *EventData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EventID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field NotificationID", wireType)
 			}
-			m.EventID = 0
+			m.NotificationID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -995,7 +937,7 @@ func (m *EventData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.EventID |= (int32(b) & 0x7F) << shift
+				m.NotificationID |= (int64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1308,6 +1250,26 @@ func (m *EventSubscriptions) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Subscribed", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Subscribed = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])
@@ -1380,6 +1342,26 @@ func (m *UserEventSettings) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ShouldWeeklyEmail", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.ShouldWeeklyEmail = bool(v != 0)
+		case 3:
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DailyReportSendHour", wireType)
 			}
 			m.DailyReportSendHour = 0
@@ -1397,7 +1379,27 @@ func (m *UserEventSettings) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 3:
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ShouldDailyEmail", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.ShouldDailyEmail = bool(v != 0)
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UserTimezone", wireType)
 			}
@@ -1426,7 +1428,7 @@ func (m *UserEventSettings) Unmarshal(dAtA []byte) error {
 			}
 			m.UserTimezone = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Subscriptions", wireType)
 			}
@@ -1454,159 +1456,6 @@ func (m *UserEventSettings) Unmarshal(dAtA []byte) error {
 			}
 			m.Subscriptions = append(m.Subscriptions, &EventSubscriptions{})
 			if err := m.Subscriptions[len(m.Subscriptions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEvent(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *UserEvents) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEvent
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: UserEvents: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UserEvents: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
-			}
-			m.OrgID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OrgID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserID", wireType)
-			}
-			m.UserID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.UserID |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Settings", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Settings == nil {
-				m.Settings = &UserEventSettings{}
-			}
-			if err := m.Settings.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Events = append(m.Events, &EventData{})
-			if err := m.Events[len(m.Events)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1662,6 +1511,44 @@ func (m *EventFilter) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			m.Start = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Start |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Limit", wireType)
+			}
+			m.Limit = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Limit |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Filters", wireType)
 			}
@@ -1821,41 +1708,42 @@ var (
 	ErrIntOverflowEvent   = fmt.Errorf("proto: integer overflow")
 )
 
-func init() { proto.RegisterFile("prototypes/event.proto", fileDescriptor_event_0b7aad73198a024c) }
+func init() { proto.RegisterFile("prototypes/event.proto", fileDescriptor_event_177c4d425715f799) }
 
-var fileDescriptor_event_0b7aad73198a024c = []byte{
-	// 518 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x53, 0x4d, 0x8f, 0xd3, 0x30,
-	0x10, 0xc5, 0xfd, 0xdc, 0x4e, 0x16, 0x04, 0xde, 0x55, 0x65, 0x2d, 0x52, 0x55, 0x05, 0x81, 0x72,
-	0x21, 0x85, 0xc2, 0x01, 0x38, 0x42, 0x0a, 0xf4, 0x84, 0xe4, 0x2e, 0x20, 0x71, 0x40, 0x4a, 0x5b,
-	0x53, 0xac, 0xb6, 0x49, 0x64, 0x3b, 0x95, 0xc2, 0x8f, 0xe0, 0x8c, 0xf8, 0x45, 0x1c, 0x39, 0x71,
-	0x46, 0xe5, 0x8f, 0x20, 0x4f, 0xd2, 0x34, 0xdd, 0xed, 0x25, 0x9a, 0x37, 0xef, 0x39, 0x9e, 0x37,
-	0x33, 0x86, 0x6e, 0xa2, 0x62, 0x13, 0x9b, 0x2c, 0x11, 0x7a, 0x20, 0x36, 0x22, 0x32, 0x3e, 0x26,
-	0x2e, 0xee, 0x56, 0xf2, 0x5f, 0xe4, 0xca, 0x08, 0x65, 0xe3, 0x9c, 0x74, 0xef, 0x81, 0x33, 0x31,
-	0x4a, 0x46, 0x8b, 0x91, 0x3d, 0x41, 0xcf, 0xa1, 0xf9, 0x21, 0x5c, 0xa5, 0x82, 0x91, 0x7e, 0xdd,
-	0xeb, 0xf0, 0x1c, 0xb8, 0x3f, 0x6b, 0xd0, 0x41, 0x3e, 0x08, 0x4d, 0x48, 0x19, 0xb4, 0x11, 0x8c,
-	0x03, 0x46, 0xfa, 0xc4, 0x6b, 0xf2, 0x1d, 0xb4, 0xa7, 0xdf, 0xa9, 0xc5, 0x38, 0x60, 0x35, 0xcc,
-	0xe7, 0xc0, 0xea, 0xdf, 0xa8, 0x38, 0x4d, 0xc6, 0x01, 0xab, 0xe7, 0xfa, 0x02, 0xd2, 0x2e, 0xb4,
-	0x2e, 0xb3, 0x44, 0x8c, 0x03, 0xd6, 0x40, 0xa2, 0x40, 0xf4, 0x01, 0xdc, 0xc2, 0x5f, 0x5e, 0xca,
-	0xb5, 0xd0, 0x26, 0x5c, 0x27, 0xac, 0xd9, 0x27, 0x5e, 0x9d, 0x5f, 0xc9, 0x52, 0x0f, 0x1a, 0xb6,
-	0x22, 0xd6, 0xea, 0xd7, 0x3d, 0x67, 0x78, 0xee, 0x97, 0x35, 0xfa, 0xf6, 0x33, 0x8a, 0x8c, 0xca,
-	0x38, 0x2a, 0x28, 0x85, 0x06, 0x17, 0xe1, 0x9c, 0xb5, 0xfb, 0xc4, 0x3b, 0xe1, 0x18, 0x5f, 0x8c,
-	0xa0, 0x53, 0xca, 0xe8, 0x6d, 0xa8, 0x2f, 0x45, 0x86, 0x86, 0x3a, 0xdc, 0x86, 0xd4, 0x85, 0xe6,
-	0x06, 0x5b, 0x61, 0xcd, 0x38, 0xc3, 0x53, 0xbf, 0xd2, 0x27, 0x9e, 0x53, 0x2f, 0x6a, 0xcf, 0x88,
-	0xfb, 0x19, 0x28, 0xe6, 0x26, 0xe9, 0x54, 0xcf, 0x94, 0x4c, 0x8c, 0x8c, 0x23, 0x5d, 0xb1, 0x46,
-	0x0e, 0xac, 0x3d, 0x82, 0xb3, 0x42, 0x38, 0x15, 0xf3, 0xbd, 0xbf, 0x1a, 0xfa, 0x3b, 0x46, 0xb9,
-	0x7f, 0x08, 0xdc, 0x79, 0xaf, 0x85, 0xca, 0x2f, 0x11, 0xc6, 0xc8, 0x68, 0xa1, 0xed, 0x7f, 0x3e,
-	0x0a, 0xb1, 0x5c, 0x65, 0x5c, 0x24, 0xb1, 0x32, 0x13, 0x11, 0xcd, 0x83, 0x30, 0x2b, 0x2e, 0x3b,
-	0x46, 0xd9, 0x13, 0x41, 0x28, 0xab, 0xd9, 0xb7, 0x71, 0xaa, 0x8a, 0x51, 0x1d, 0xa3, 0xa8, 0x0b,
-	0xa7, 0xf6, 0x62, 0x5b, 0xca, 0xb7, 0x38, 0x12, 0x38, 0xbd, 0x0e, 0x3f, 0xc8, 0xd1, 0xe7, 0x70,
-	0xf3, 0xc0, 0x38, 0x6b, 0xe0, 0x2c, 0xce, 0xfc, 0xeb, 0x3d, 0xe1, 0x87, 0x4a, 0xf7, 0x3b, 0x01,
-	0x28, 0x8d, 0xe9, 0xfd, 0xf2, 0x90, 0xea, 0xf2, 0x74, 0xa1, 0x65, 0x35, 0xe5, 0x4e, 0x15, 0x88,
-	0xfa, 0x70, 0xb2, 0xeb, 0x05, 0xd6, 0xe5, 0x0c, 0xa9, 0x7f, 0xad, 0x4b, 0xbc, 0xd4, 0x50, 0x17,
-	0x5a, 0xf9, 0x3d, 0x45, 0x81, 0xb0, 0x5f, 0x16, 0x5e, 0x30, 0xee, 0x53, 0x70, 0x30, 0x7a, 0x8d,
-	0x8f, 0x84, 0xde, 0x87, 0x76, 0x1e, 0x69, 0x2c, 0xc9, 0x19, 0x3a, 0x7e, 0x8e, 0xed, 0x28, 0xf9,
-	0x8e, 0x7b, 0xf9, 0xea, 0xd7, 0xb6, 0x47, 0x7e, 0x6f, 0x7b, 0xe4, 0xef, 0xb6, 0x47, 0x7e, 0xfc,
-	0xeb, 0xdd, 0xf8, 0xf4, 0x78, 0x21, 0xcd, 0xd7, 0x74, 0xea, 0xcf, 0xe2, 0xf5, 0x60, 0x25, 0xa3,
-	0x65, 0x28, 0x1f, 0xca, 0x78, 0x10, 0xae, 0x07, 0xf8, 0xe4, 0x66, 0x5a, 0xa8, 0x8d, 0x9c, 0x09,
-	0x3d, 0xd8, 0xbf, 0xcb, 0x69, 0x0b, 0xe3, 0x27, 0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0x4f, 0x4a,
-	0x27, 0x1f, 0xc4, 0x03, 0x00, 0x00,
+var fileDescriptor_event_177c4d425715f799 = []byte{
+	// 543 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x53, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0xf9, 0x69, 0x9b, 0x71, 0x41, 0xed, 0xb6, 0xaa, 0xac, 0x22, 0x45, 0x91, 0x11, 0xc8,
+	0x42, 0xe0, 0x40, 0xb8, 0x00, 0x47, 0x70, 0x80, 0x48, 0x08, 0xa4, 0x4d, 0x01, 0x89, 0x13, 0x9b,
+	0x64, 0x9b, 0xae, 0x62, 0x7b, 0xad, 0xf5, 0x3a, 0x92, 0x39, 0xf0, 0x1c, 0x3c, 0x02, 0x47, 0x1e,
+	0x83, 0x23, 0x8f, 0x80, 0xc2, 0x8b, 0xa0, 0x9d, 0x75, 0x9a, 0x84, 0xe4, 0x62, 0xcd, 0x7c, 0xdf,
+	0x78, 0x66, 0xbe, 0x99, 0x59, 0x38, 0xcb, 0x94, 0xd4, 0x52, 0x97, 0x19, 0xcf, 0xbb, 0x7c, 0xce,
+	0x53, 0x1d, 0x22, 0x70, 0x7e, 0x7b, 0x0d, 0xbf, 0x14, 0xb1, 0xe6, 0xca, 0xd8, 0x96, 0xf4, 0xef,
+	0x80, 0x3b, 0xd4, 0x4a, 0xa4, 0xd3, 0xbe, 0xf9, 0x83, 0x9c, 0x42, 0xf3, 0x23, 0x8b, 0x0b, 0xee,
+	0x39, 0x9d, 0x7a, 0xd0, 0xa2, 0xd6, 0xf1, 0x7f, 0xd4, 0xa0, 0x85, 0x7c, 0xc4, 0x34, 0x23, 0xf7,
+	0xe0, 0xd6, 0x3b, 0xa9, 0xc5, 0xa5, 0x18, 0x33, 0x2d, 0x64, 0x3a, 0x88, 0x3c, 0xa7, 0xe3, 0x04,
+	0x75, 0xfa, 0x1f, 0x6a, 0x72, 0xbd, 0x57, 0xd3, 0x41, 0xe4, 0xd5, 0x3a, 0x4e, 0xd0, 0xa4, 0xd6,
+	0x21, 0x1e, 0xec, 0xbf, 0x56, 0xb2, 0xc8, 0x06, 0x91, 0x57, 0x47, 0x7c, 0xe9, 0x92, 0x33, 0xd8,
+	0xbb, 0x28, 0x33, 0x3e, 0x88, 0xbc, 0x06, 0x12, 0x95, 0x67, 0xea, 0x61, 0xf1, 0x0b, 0x91, 0xf0,
+	0x5c, 0xb3, 0x24, 0xf3, 0x9a, 0xb6, 0xde, 0x26, 0x4a, 0x02, 0x68, 0x98, 0xfe, 0xbc, 0xbd, 0x4e,
+	0x3d, 0x70, 0x7b, 0xa7, 0xe1, 0x75, 0xc7, 0xa1, 0xf9, 0xf4, 0x53, 0xad, 0x4a, 0x8a, 0x11, 0x84,
+	0x40, 0x83, 0x72, 0x36, 0xf1, 0xf6, 0x3b, 0x4e, 0x70, 0x40, 0xd1, 0x3e, 0xef, 0x43, 0xeb, 0x3a,
+	0x8c, 0x1c, 0x41, 0x7d, 0xc6, 0x4b, 0xd4, 0xd5, 0xa2, 0xc6, 0x24, 0x3e, 0x34, 0xe7, 0x38, 0x18,
+	0x23, 0xc6, 0xed, 0x1d, 0x86, 0x6b, 0x53, 0xa3, 0x96, 0x7a, 0x5e, 0x7b, 0xea, 0xf8, 0xdf, 0x80,
+	0x20, 0x36, 0x2c, 0x46, 0xf9, 0x58, 0x89, 0xcc, 0xcc, 0x22, 0x5f, 0x93, 0xe6, 0x6c, 0x48, 0x7b,
+	0x04, 0x27, 0x55, 0xe0, 0x88, 0x4f, 0x56, 0xfa, 0x6a, 0xa8, 0x6f, 0x17, 0x45, 0xda, 0x00, 0x2b,
+	0x18, 0x27, 0x78, 0x40, 0xd7, 0x10, 0xff, 0x67, 0x0d, 0x8e, 0x3f, 0xe4, 0x5c, 0xd9, 0x26, 0xb8,
+	0xd6, 0x22, 0x9d, 0xe6, 0xa6, 0xce, 0x27, 0xce, 0x67, 0x71, 0x49, 0x79, 0x26, 0x95, 0x1e, 0xf2,
+	0x74, 0x12, 0xb1, 0xb2, 0x6a, 0x66, 0x17, 0x45, 0x1e, 0xc0, 0xf1, 0xf0, 0x4a, 0x16, 0xf1, 0xc4,
+	0x92, 0xfd, 0x84, 0x89, 0x18, 0xfb, 0x3a, 0xa0, 0xdb, 0x84, 0xc9, 0x1f, 0x31, 0xb1, 0x9e, 0xe3,
+	0x8d, 0x2c, 0x54, 0xb5, 0xe0, 0x5d, 0x14, 0xb9, 0x0f, 0x47, 0x36, 0x0d, 0x92, 0x36, 0x7d, 0x03,
+	0xd3, 0x6f, 0xe1, 0xc4, 0x87, 0x43, 0x23, 0xc9, 0x0c, 0xe1, 0xab, 0x4c, 0x39, 0xae, 0xbf, 0x45,
+	0x37, 0x30, 0xf2, 0x0c, 0x6e, 0x6e, 0x8c, 0xbc, 0xba, 0x82, 0x93, 0x70, 0x7b, 0x1b, 0x74, 0x33,
+	0xd2, 0xff, 0x02, 0x2e, 0x06, 0xbd, 0xc2, 0xb7, 0x61, 0xce, 0x76, 0xa8, 0x99, 0xd2, 0xd5, 0x55,
+	0x5b, 0xc7, 0xa0, 0x6f, 0x45, 0x22, 0xf4, 0xf2, 0x98, 0xd1, 0x21, 0x77, 0x61, 0xdf, 0xfe, 0x95,
+	0xa3, 0x56, 0xb7, 0xe7, 0x86, 0xd6, 0x37, 0xfb, 0xa5, 0x4b, 0xee, 0xc5, 0xcb, 0x5f, 0x8b, 0xb6,
+	0xf3, 0x7b, 0xd1, 0x76, 0xfe, 0x2c, 0xda, 0xce, 0xf7, 0xbf, 0xed, 0x1b, 0x9f, 0x1f, 0x4f, 0x85,
+	0xbe, 0x2a, 0x46, 0xe1, 0x58, 0x26, 0xdd, 0x58, 0xa4, 0x33, 0x26, 0x1e, 0x0a, 0xd9, 0x65, 0x49,
+	0x17, 0x5f, 0xe5, 0x38, 0xe7, 0x6a, 0x2e, 0xc6, 0x3c, 0xef, 0xae, 0x9e, 0xee, 0x68, 0x0f, 0xed,
+	0x27, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0xd2, 0x22, 0xc2, 0x43, 0xe7, 0x03, 0x00, 0x00,
 }

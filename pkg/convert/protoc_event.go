@@ -14,7 +14,7 @@ func DomainToEvent(in *am.Event) *prototypes.EventData {
 	}
 
 	return &prototypes.EventData{
-		EventID:        in.EventID,
+		NotificationID: in.NotificationID,
 		OrgID:          int32(in.OrgID),
 		GroupID:        int32(in.GroupID),
 		TypeID:         in.TypeID,
@@ -35,7 +35,7 @@ func EventToDomain(in *prototypes.EventData) *am.Event {
 	return &am.Event{
 		OrgID:          int(in.OrgID),
 		GroupID:        int(in.GroupID),
-		EventID:        in.EventID,
+		NotificationID: in.NotificationID,
 		TypeID:         in.TypeID,
 		EventTimestamp: in.EventTimestamp,
 		Data:           data,
@@ -47,6 +47,7 @@ func DomainToEventSubscriptions(in *am.EventSubscriptions) *prototypes.EventSubs
 	return &prototypes.EventSubscriptions{
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
+		Subscribed:          in.Subscribed,
 	}
 }
 
@@ -54,6 +55,7 @@ func EventSubscriptionsToDomain(in *prototypes.EventSubscriptions) *am.EventSubs
 	return &am.EventSubscriptions{
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
+		Subscribed:          in.Subscribed,
 	}
 }
 
@@ -66,7 +68,9 @@ func DomainToUserEventSettings(in *am.UserEventSettings) *prototypes.UserEventSe
 	}
 	return &prototypes.UserEventSettings{
 		WeeklyReportSendDay: in.WeeklyReportSendDay,
+		ShouldWeeklyEmail:   in.ShouldWeeklyEmail,
 		DailyReportSendHour: in.DailyReportSendHour,
+		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
 	}
@@ -81,50 +85,46 @@ func UserEventSettingsToDomain(in *prototypes.UserEventSettings) *am.UserEventSe
 	}
 	return &am.UserEventSettings{
 		WeeklyReportSendDay: in.WeeklyReportSendDay,
+		ShouldWeeklyEmail:   in.ShouldWeeklyEmail,
 		DailyReportSendHour: in.DailyReportSendHour,
+		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
 	}
 }
 
-func DomainToUserEvents(in *am.UserEvents) *prototypes.UserEvents {
+func DomainToUserEvents(in []*am.Event) []*prototypes.EventData {
 	events := make([]*prototypes.EventData, 0)
-	if in.Events != nil {
-		for _, event := range in.Events {
+	if in != nil {
+		for _, event := range in {
 			events = append(events, DomainToEvent(event))
 		}
 	}
-	return &prototypes.UserEvents{
-		OrgID:    int32(in.OrgID),
-		UserID:   int32(in.UserID),
-		Settings: DomainToUserEventSettings(in.Settings),
-		Events:   events,
-	}
+	return events
 }
 
-func UserEventsToDomain(in *prototypes.UserEvents) *am.UserEvents {
+func EventsToDomain(in []*prototypes.EventData) []*am.Event {
 	events := make([]*am.Event, 0)
-	if in.Events != nil {
-		for _, event := range in.Events {
+	if in != nil {
+		for _, event := range in {
 			events = append(events, EventToDomain(event))
 		}
 	}
-	return &am.UserEvents{
-		OrgID:    int(in.OrgID),
-		UserID:   int(in.UserID),
-		Settings: UserEventSettingsToDomain(in.Settings),
-		Events:   events,
-	}
+	return events
 }
 
 func DomainToEventFilter(in *am.EventFilter) *prototypes.EventFilter {
 	return &prototypes.EventFilter{
+		Start:   in.Start,
+		Limit:   in.Limit,
 		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
 func EventFilterToDomain(in *prototypes.EventFilter) *am.EventFilter {
 	return &am.EventFilter{
+		Start:   in.Start,
+		Limit:   in.Limit,
 		Filters: FilterTypesToDomain(in.Filters),
 	}
 }

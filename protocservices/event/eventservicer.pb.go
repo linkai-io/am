@@ -39,7 +39,7 @@ func (m *GetRequest) Reset()         { *m = GetRequest{} }
 func (m *GetRequest) String() string { return proto.CompactTextString(m) }
 func (*GetRequest) ProtoMessage()    {}
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{0}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{0}
 }
 func (m *GetRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -90,17 +90,17 @@ func (m *GetRequest) GetFilter() *prototypes.EventFilter {
 }
 
 type GetResponse struct {
-	Events               *prototypes.UserEvents `protobuf:"bytes,1,opt,name=Events" json:"Events,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	Events               []*prototypes.EventData `protobuf:"bytes,1,rep,name=Events" json:"Events,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *GetResponse) Reset()         { *m = GetResponse{} }
 func (m *GetResponse) String() string { return proto.CompactTextString(m) }
 func (*GetResponse) ProtoMessage()    {}
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{1}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{1}
 }
 func (m *GetResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -129,9 +129,103 @@ func (m *GetResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetResponse proto.InternalMessageInfo
 
-func (m *GetResponse) GetEvents() *prototypes.UserEvents {
+func (m *GetResponse) GetEvents() []*prototypes.EventData {
 	if m != nil {
 		return m.Events
+	}
+	return nil
+}
+
+type GetSettingsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GetSettingsRequest) Reset()         { *m = GetSettingsRequest{} }
+func (m *GetSettingsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetSettingsRequest) ProtoMessage()    {}
+func (*GetSettingsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{2}
+}
+func (m *GetSettingsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetSettingsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetSettingsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetSettingsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSettingsRequest.Merge(dst, src)
+}
+func (m *GetSettingsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetSettingsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSettingsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetSettingsRequest proto.InternalMessageInfo
+
+func (m *GetSettingsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type GetSettingsResponse struct {
+	Settings             *prototypes.UserEventSettings `protobuf:"bytes,1,opt,name=Settings" json:"Settings,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *GetSettingsResponse) Reset()         { *m = GetSettingsResponse{} }
+func (m *GetSettingsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetSettingsResponse) ProtoMessage()    {}
+func (*GetSettingsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{3}
+}
+func (m *GetSettingsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetSettingsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetSettingsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetSettingsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSettingsResponse.Merge(dst, src)
+}
+func (m *GetSettingsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetSettingsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSettingsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetSettingsResponse proto.InternalMessageInfo
+
+func (m *GetSettingsResponse) GetSettings() *prototypes.UserEventSettings {
+	if m != nil {
+		return m.Settings
 	}
 	return nil
 }
@@ -148,7 +242,7 @@ func (m *MarkReadRequest) Reset()         { *m = MarkReadRequest{} }
 func (m *MarkReadRequest) String() string { return proto.CompactTextString(m) }
 func (*MarkReadRequest) ProtoMessage()    {}
 func (*MarkReadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{2}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{4}
 }
 func (m *MarkReadRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -201,7 +295,7 @@ func (m *MarkReadResponse) Reset()         { *m = MarkReadResponse{} }
 func (m *MarkReadResponse) String() string { return proto.CompactTextString(m) }
 func (*MarkReadResponse) ProtoMessage()    {}
 func (*MarkReadResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{3}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{5}
 }
 func (m *MarkReadResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -232,7 +326,7 @@ var xxx_messageInfo_MarkReadResponse proto.InternalMessageInfo
 
 type AddRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
-	Data                 *prototypes.EventData   `protobuf:"bytes,2,opt,name=Data" json:"Data,omitempty"`
+	Data                 []*prototypes.EventData `protobuf:"bytes,2,rep,name=Data" json:"Data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
 	XXX_sizecache        int32                   `json:"-"`
@@ -242,7 +336,7 @@ func (m *AddRequest) Reset()         { *m = AddRequest{} }
 func (m *AddRequest) String() string { return proto.CompactTextString(m) }
 func (*AddRequest) ProtoMessage()    {}
 func (*AddRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{4}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{6}
 }
 func (m *AddRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -278,7 +372,7 @@ func (m *AddRequest) GetUserContext() *prototypes.UserContext {
 	return nil
 }
 
-func (m *AddRequest) GetData() *prototypes.EventData {
+func (m *AddRequest) GetData() []*prototypes.EventData {
 	if m != nil {
 		return m.Data
 	}
@@ -295,7 +389,7 @@ func (m *AddedResponse) Reset()         { *m = AddedResponse{} }
 func (m *AddedResponse) String() string { return proto.CompactTextString(m) }
 func (*AddedResponse) ProtoMessage()    {}
 func (*AddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{5}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{7}
 }
 func (m *AddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -336,7 +430,7 @@ func (m *UpdateSettingsRequest) Reset()         { *m = UpdateSettingsRequest{} }
 func (m *UpdateSettingsRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSettingsRequest) ProtoMessage()    {}
 func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{6}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{8}
 }
 func (m *UpdateSettingsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -389,7 +483,7 @@ func (m *SettingsUpdatedResponse) Reset()         { *m = SettingsUpdatedResponse
 func (m *SettingsUpdatedResponse) String() string { return proto.CompactTextString(m) }
 func (*SettingsUpdatedResponse) ProtoMessage()    {}
 func (*SettingsUpdatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{7}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{9}
 }
 func (m *SettingsUpdatedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -430,7 +524,7 @@ func (m *NotifyCompleteRequest) Reset()         { *m = NotifyCompleteRequest{} }
 func (m *NotifyCompleteRequest) String() string { return proto.CompactTextString(m) }
 func (*NotifyCompleteRequest) ProtoMessage()    {}
 func (*NotifyCompleteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{8}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{10}
 }
 func (m *NotifyCompleteRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -483,7 +577,7 @@ func (m *NotifyCompletedResponse) Reset()         { *m = NotifyCompletedResponse
 func (m *NotifyCompletedResponse) String() string { return proto.CompactTextString(m) }
 func (*NotifyCompletedResponse) ProtoMessage()    {}
 func (*NotifyCompletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_fd797d60996c016a, []int{9}
+	return fileDescriptor_eventservicer_b870d028e5eca96f, []int{11}
 }
 func (m *NotifyCompletedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -515,6 +609,8 @@ var xxx_messageInfo_NotifyCompletedResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*GetRequest)(nil), "event.GetRequest")
 	proto.RegisterType((*GetResponse)(nil), "event.GetResponse")
+	proto.RegisterType((*GetSettingsRequest)(nil), "event.GetSettingsRequest")
+	proto.RegisterType((*GetSettingsResponse)(nil), "event.GetSettingsResponse")
 	proto.RegisterType((*MarkReadRequest)(nil), "event.MarkReadRequest")
 	proto.RegisterType((*MarkReadResponse)(nil), "event.MarkReadResponse")
 	proto.RegisterType((*AddRequest)(nil), "event.AddRequest")
@@ -538,6 +634,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type EventClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	GetSettings(ctx context.Context, in *GetSettingsRequest, opts ...grpc.CallOption) (*GetSettingsResponse, error)
 	MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error)
 	Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*AddedResponse, error)
 	UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*SettingsUpdatedResponse, error)
@@ -555,6 +652,15 @@ func NewEventClient(cc *grpc.ClientConn) EventClient {
 func (c *eventClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
 	out := new(GetResponse)
 	err := c.cc.Invoke(ctx, "/event.Event/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventClient) GetSettings(ctx context.Context, in *GetSettingsRequest, opts ...grpc.CallOption) (*GetSettingsResponse, error) {
+	out := new(GetSettingsResponse)
+	err := c.cc.Invoke(ctx, "/event.Event/GetSettings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -600,6 +706,7 @@ func (c *eventClient) NotifyComplete(ctx context.Context, in *NotifyCompleteRequ
 // EventServer is the server API for Event service.
 type EventServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
+	GetSettings(context.Context, *GetSettingsRequest) (*GetSettingsResponse, error)
 	MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error)
 	Add(context.Context, *AddRequest) (*AddedResponse, error)
 	UpdateSettings(context.Context, *UpdateSettingsRequest) (*SettingsUpdatedResponse, error)
@@ -624,6 +731,24 @@ func _Event_Get_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventServer).Get(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Event_GetSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServer).GetSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Event/GetSettings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServer).GetSettings(ctx, req.(*GetSettingsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -709,6 +834,10 @@ var _Event_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Event_Get_Handler,
 		},
 		{
+			MethodName: "GetSettings",
+			Handler:    _Event_GetSettings_Handler,
+		},
+		{
 			MethodName: "MarkRead",
 			Handler:    _Event_MarkRead_Handler,
 		},
@@ -790,15 +919,79 @@ func (m *GetResponse) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Events != nil {
+	if len(m.Events) > 0 {
+		for _, msg := range m.Events {
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintEventservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetSettingsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetSettingsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
 		dAtA[i] = 0xa
 		i++
-		i = encodeVarintEventservicer(dAtA, i, uint64(m.Events.Size()))
-		n3, err := m.Events.MarshalTo(dAtA[i:])
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n3, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n3
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetSettingsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetSettingsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Settings != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.Settings.Size()))
+		n4, err := m.Settings.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -825,29 +1018,29 @@ func (m *MarkReadRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n4, err := m.UserContext.MarshalTo(dAtA[i:])
+		n5, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n5
 	}
 	if len(m.EventIDs) > 0 {
-		dAtA6 := make([]byte, len(m.EventIDs)*10)
-		var j5 int
+		dAtA7 := make([]byte, len(m.EventIDs)*10)
+		var j6 int
 		for _, num1 := range m.EventIDs {
 			num := uint64(num1)
 			for num >= 1<<7 {
-				dAtA6[j5] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA7[j6] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j5++
+				j6++
 			}
-			dAtA6[j5] = uint8(num)
-			j5++
+			dAtA7[j6] = uint8(num)
+			j6++
 		}
 		dAtA[i] = 0x12
 		i++
-		i = encodeVarintEventservicer(dAtA, i, uint64(j5))
-		i += copy(dAtA[i:], dAtA6[:j5])
+		i = encodeVarintEventservicer(dAtA, i, uint64(j6))
+		i += copy(dAtA[i:], dAtA7[:j6])
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -895,21 +1088,23 @@ func (m *AddRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n7, err := m.UserContext.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n7
-	}
-	if m.Data != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintEventservicer(dAtA, i, uint64(m.Data.Size()))
-		n8, err := m.Data.MarshalTo(dAtA[i:])
+		n8, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
 		i += n8
+	}
+	if len(m.Data) > 0 {
+		for _, msg := range m.Data {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintEventservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(dAtA[i:], m.XXX_unrecognized)
@@ -1095,8 +1290,42 @@ func (m *GetResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Events != nil {
-		l = m.Events.Size()
+	if len(m.Events) > 0 {
+		for _, e := range m.Events {
+			l = e.Size()
+			n += 1 + l + sovEventservicer(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetSettingsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovEventservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetSettingsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Settings != nil {
+		l = m.Settings.Size()
 		n += 1 + l + sovEventservicer(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -1150,9 +1379,11 @@ func (m *AddRequest) Size() (n int) {
 		l = m.UserContext.Size()
 		n += 1 + l + sovEventservicer(uint64(l))
 	}
-	if m.Data != nil {
-		l = m.Data.Size()
-		n += 1 + l + sovEventservicer(uint64(l))
+	if len(m.Data) > 0 {
+		for _, e := range m.Data {
+			l = e.Size()
+			n += 1 + l + sovEventservicer(uint64(l))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1439,10 +1670,176 @@ func (m *GetResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Events == nil {
-				m.Events = &prototypes.UserEvents{}
+			m.Events = append(m.Events, &prototypes.EventData{})
+			if err := m.Events[len(m.Events)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
-			if err := m.Events.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetSettingsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetSettingsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetSettingsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetSettingsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetSettingsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetSettingsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Settings", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Settings == nil {
+				m.Settings = &prototypes.UserEventSettings{}
+			}
+			if err := m.Settings.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1764,10 +2161,8 @@ func (m *AddRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Data == nil {
-				m.Data = &prototypes.EventData{}
-			}
-			if err := m.Data.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Data = append(m.Data, &prototypes.EventData{})
+			if err := m.Data[len(m.Data)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2272,39 +2667,41 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("event/eventservicer.proto", fileDescriptor_eventservicer_fd797d60996c016a)
+	proto.RegisterFile("event/eventservicer.proto", fileDescriptor_eventservicer_b870d028e5eca96f)
 }
 
-var fileDescriptor_eventservicer_fd797d60996c016a = []byte{
-	// 473 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0x71, 0x42, 0x42, 0x34, 0x06, 0x0a, 0x2b, 0xd2, 0xba, 0x16, 0xb2, 0x22, 0xc3, 0x21,
-	0x87, 0x62, 0x4b, 0xe1, 0x88, 0x84, 0x14, 0x1a, 0x88, 0x7a, 0xa0, 0x07, 0xa3, 0x5e, 0x10, 0x1c,
-	0xb6, 0xf1, 0x50, 0x56, 0x4d, 0xbc, 0xc6, 0x3b, 0x29, 0x54, 0xe2, 0x41, 0x78, 0x1e, 0x4e, 0x1c,
-	0x79, 0x04, 0x14, 0x5e, 0x04, 0x65, 0xbd, 0xf6, 0x3a, 0xd0, 0x5e, 0x22, 0x2e, 0x51, 0xf6, 0x9f,
-	0xf1, 0xff, 0x8d, 0x66, 0x46, 0x03, 0xfb, 0x78, 0x81, 0x19, 0xc5, 0xfa, 0x57, 0x61, 0x71, 0x21,
-	0x66, 0x58, 0x44, 0x79, 0x21, 0x49, 0xb2, 0x8e, 0x16, 0xfd, 0xbe, 0x7e, 0xd1, 0x65, 0x8e, 0x2a,
-	0x5e, 0xaa, 0x2a, 0xea, 0xef, 0x36, 0x64, 0x9d, 0x58, 0xea, 0xe1, 0x57, 0x80, 0x29, 0x52, 0x82,
-	0x9f, 0x96, 0xa8, 0x88, 0x45, 0xe0, 0x9e, 0x28, 0x2c, 0x0e, 0x65, 0x46, 0xf8, 0x85, 0x3c, 0x67,
-	0xe0, 0x0c, 0xdd, 0xd1, 0xed, 0xa8, 0xa1, 0x25, 0xcd, 0x04, 0xe6, 0xc1, 0xad, 0x69, 0x21, 0x97,
-	0xf9, 0xd1, 0xc4, 0x6b, 0x0d, 0x9c, 0x61, 0x27, 0xa9, 0x9e, 0xec, 0x31, 0x74, 0x5f, 0x89, 0x39,
-	0x61, 0xe1, 0xb5, 0x8d, 0xc9, 0xcb, 0x35, 0xb5, 0xd4, 0x12, 0x13, 0x0b, 0x47, 0xe0, 0x6a, 0xba,
-	0xca, 0x65, 0xa6, 0x90, 0x3d, 0x82, 0xae, 0xce, 0x52, 0x86, 0xec, 0x6a, 0x72, 0x29, 0x25, 0x26,
-	0x14, 0xbe, 0x87, 0x9d, 0xd7, 0xbc, 0x38, 0x4f, 0x90, 0xa7, 0xdb, 0x96, 0xed, 0x43, 0x4f, 0x9b,
-	0x1d, 0x4d, 0x94, 0xd7, 0x1a, 0xb4, 0x87, 0x9d, 0xa4, 0x7e, 0x87, 0x0c, 0xee, 0x59, 0xfb, 0xb2,
-	0xae, 0xf0, 0x1d, 0xc0, 0x38, 0xdd, 0x9a, 0x16, 0xc0, 0xcd, 0x09, 0x27, 0xae, 0x3b, 0xe4, 0x8e,
-	0xa0, 0x6c, 0xc4, 0x5a, 0x49, 0xb4, 0x1e, 0xee, 0xc0, 0x9d, 0x71, 0x9a, 0xa2, 0xc5, 0x7d, 0x86,
-	0xfe, 0x49, 0x9e, 0x72, 0xc2, 0x37, 0x48, 0x24, 0xb2, 0x33, 0xb5, 0x2d, 0x39, 0x82, 0x5e, 0x65,
-	0x61, 0xe8, 0xcc, 0x76, 0xb4, 0x36, 0xaf, 0x73, 0xc2, 0x7d, 0xd8, 0xab, 0xfe, 0x97, 0x05, 0xd8,
-	0x9a, 0x38, 0xf4, 0x8f, 0x25, 0x89, 0x0f, 0x97, 0x87, 0x72, 0x91, 0xcf, 0x91, 0xf0, 0xbf, 0xaf,
-	0xcc, 0x9a, 0xbe, 0x89, 0xa8, 0xe9, 0xa3, 0xef, 0x2d, 0xe8, 0xe8, 0xa2, 0xd9, 0x01, 0xb4, 0xa7,
-	0x48, 0xec, 0x7e, 0x54, 0x2e, 0xb1, 0xdd, 0x5d, 0x9f, 0x35, 0x25, 0xb3, 0x50, 0xcf, 0xa0, 0x57,
-	0x0d, 0x93, 0xed, 0x9a, 0xf8, 0x5f, 0xcb, 0xe3, 0xef, 0xfd, 0xa3, 0x9b, 0x8f, 0x23, 0x68, 0x8f,
-	0xd3, 0xb4, 0x46, 0xd9, 0x0d, 0xf0, 0x1f, 0x58, 0xc9, 0x16, 0xc9, 0x8e, 0xe1, 0xee, 0xe6, 0xd8,
-	0xd8, 0x43, 0x93, 0x77, 0xe5, 0x34, 0xfd, 0xc0, 0x44, 0xaf, 0x69, 0xf9, 0xda, 0x6f, 0xb3, 0x1f,
-	0xb5, 0xdf, 0x95, 0x93, 0xa8, 0xfd, 0xae, 0x69, 0xe2, 0x8b, 0xe7, 0x3f, 0x56, 0x81, 0xf3, 0x73,
-	0x15, 0x38, 0xbf, 0x56, 0x81, 0xf3, 0xed, 0x77, 0x70, 0xe3, 0xed, 0xc1, 0x99, 0xa0, 0x8f, 0xcb,
-	0xd3, 0x68, 0x26, 0x17, 0xf1, 0x5c, 0x64, 0xe7, 0x5c, 0x3c, 0x11, 0x32, 0xe6, 0x8b, 0x58, 0xdf,
-	0x86, 0x99, 0x39, 0x30, 0xe6, 0x60, 0x9c, 0x76, 0xb5, 0xfa, 0xf4, 0x4f, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x09, 0xb5, 0x36, 0x28, 0x84, 0x04, 0x00, 0x00,
+var fileDescriptor_eventservicer_b870d028e5eca96f = []byte{
+	// 510 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0xc5, 0x31, 0x09, 0xd1, 0x04, 0x28, 0x2c, 0xa4, 0x75, 0x2c, 0x64, 0x45, 0x2b, 0x0e, 0x39,
+	0x14, 0x5b, 0x84, 0x23, 0x12, 0x52, 0xa8, 0x4b, 0xd4, 0x03, 0x3d, 0x18, 0xf5, 0x82, 0xe0, 0xe0,
+	0xc6, 0x43, 0xb1, 0x9a, 0x78, 0x8d, 0x77, 0x52, 0xa8, 0xc4, 0x07, 0xf0, 0x09, 0x7c, 0x12, 0x47,
+	0x3e, 0x01, 0x85, 0x1f, 0x41, 0x59, 0xaf, 0xed, 0xb8, 0x24, 0x12, 0x0a, 0xbd, 0x44, 0xd9, 0x37,
+	0xe3, 0xf7, 0xc6, 0x6f, 0x9e, 0x17, 0x7a, 0x78, 0x81, 0x09, 0x79, 0xea, 0x57, 0x62, 0x76, 0x11,
+	0x4f, 0x30, 0x73, 0xd3, 0x4c, 0x90, 0x60, 0x4d, 0x05, 0xda, 0x5d, 0x75, 0xa2, 0xcb, 0x14, 0xa5,
+	0x37, 0x97, 0x45, 0xd5, 0xde, 0x5d, 0x81, 0x55, 0x63, 0x8e, 0xf3, 0xaf, 0x00, 0x63, 0xa4, 0x00,
+	0x3f, 0xcd, 0x51, 0x12, 0x73, 0xa1, 0x73, 0x22, 0x31, 0x3b, 0x10, 0x09, 0xe1, 0x17, 0xb2, 0x8c,
+	0xbe, 0x31, 0xe8, 0x0c, 0x6f, 0xbb, 0x2b, 0x58, 0xb0, 0xda, 0xc0, 0x2c, 0xb8, 0x35, 0xce, 0xc4,
+	0x3c, 0x3d, 0xf2, 0xad, 0x46, 0xdf, 0x18, 0x34, 0x83, 0xe2, 0xc8, 0x1e, 0x43, 0xeb, 0x55, 0x3c,
+	0x25, 0xcc, 0x2c, 0x53, 0x93, 0x1c, 0x2e, 0x55, 0x73, 0x2c, 0xd0, 0x35, 0xfe, 0x14, 0x3a, 0x4a,
+	0x5d, 0xa6, 0x22, 0x91, 0xc8, 0x38, 0xb4, 0x54, 0x97, 0xb4, 0x8c, 0xbe, 0x39, 0xe8, 0x0c, 0x21,
+	0x7f, 0xc8, 0x0f, 0x29, 0x0c, 0x74, 0x85, 0xfb, 0xc0, 0xc6, 0x48, 0x6f, 0x90, 0x28, 0x4e, 0xce,
+	0xe4, 0x96, 0x83, 0xf3, 0x43, 0x78, 0x50, 0x63, 0xd1, 0x03, 0xb8, 0xd0, 0x2e, 0x30, 0xcd, 0xc1,
+	0x14, 0x87, 0xd2, 0x2e, 0xbb, 0xcb, 0x1e, 0xfe, 0x1e, 0x76, 0x5e, 0x87, 0xd9, 0x79, 0x80, 0x61,
+	0xb4, 0xad, 0x85, 0x36, 0xb4, 0x15, 0xfb, 0x91, 0x2f, 0xad, 0x46, 0xdf, 0x1c, 0x34, 0x83, 0xf2,
+	0xcc, 0x19, 0xdc, 0xab, 0xe8, 0xf3, 0x11, 0xf9, 0x3b, 0x80, 0x51, 0xb4, 0xb5, 0x9a, 0x03, 0x37,
+	0x97, 0x6e, 0x2a, 0xa5, 0xba, 0xbf, 0x0a, 0xe7, 0x3b, 0x70, 0x67, 0x14, 0x45, 0x58, 0xc9, 0x7d,
+	0x86, 0xee, 0x49, 0x1a, 0x85, 0x84, 0xff, 0xe9, 0x78, 0xcd, 0xda, 0xc6, 0x3f, 0x58, 0xdb, 0x83,
+	0xbd, 0xe2, 0x7f, 0x3e, 0x40, 0x35, 0x53, 0x08, 0xdd, 0x63, 0x41, 0xf1, 0x87, 0xcb, 0x03, 0x31,
+	0x4b, 0xa7, 0x48, 0x78, 0xed, 0xf1, 0x5d, 0xaa, 0xd7, 0x25, 0x4a, 0xf5, 0xe1, 0x37, 0x13, 0x9a,
+	0x6a, 0x68, 0xb6, 0x0f, 0xe6, 0x18, 0x89, 0xdd, 0x77, 0xf3, 0x0f, 0xaa, 0xfa, 0x8e, 0x6c, 0xb6,
+	0x0a, 0xe9, 0x6c, 0xf9, 0x2a, 0xeb, 0xc5, 0x3b, 0xb1, 0x5e, 0xd5, 0x72, 0xc5, 0x5a, 0xdb, 0x5e,
+	0x57, 0xd2, 0x2c, 0xcf, 0xa1, 0x5d, 0x44, 0x82, 0xed, 0xea, 0xbe, 0x2b, 0x11, 0xb4, 0xf7, 0xfe,
+	0xc2, 0xcb, 0x78, 0x9b, 0xa3, 0x28, 0x2a, 0x07, 0xae, 0x72, 0x64, 0x3f, 0xac, 0xa0, 0xea, 0x55,
+	0xd9, 0x31, 0xdc, 0xad, 0x2f, 0x9f, 0x3d, 0xd2, 0x7d, 0x6b, 0x33, 0x61, 0x3b, 0xba, 0xba, 0x61,
+	0x71, 0x4b, 0xbe, 0xba, 0xab, 0x25, 0xdf, 0xda, 0x7d, 0x96, 0x7c, 0x1b, 0x56, 0xf1, 0xf2, 0xc5,
+	0x8f, 0x85, 0x63, 0xfc, 0x5c, 0x38, 0xc6, 0xaf, 0x85, 0x63, 0x7c, 0xff, 0xed, 0xdc, 0x78, 0xbb,
+	0x7f, 0x16, 0xd3, 0xc7, 0xf9, 0xa9, 0x3b, 0x11, 0x33, 0x6f, 0x1a, 0x27, 0xe7, 0x61, 0xfc, 0x24,
+	0x16, 0x5e, 0x38, 0xf3, 0xd4, 0x6d, 0x37, 0xd1, 0x57, 0xa6, 0xbe, 0x02, 0x4f, 0x5b, 0x0a, 0x7d,
+	0xf6, 0x27, 0x00, 0x00, 0xff, 0xff, 0xb7, 0x89, 0x56, 0x82, 0x56, 0x05, 0x00, 0x00,
 }

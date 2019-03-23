@@ -13,7 +13,6 @@ import (
 var (
 	ErrOrgIDNonMatch      = errors.New("error organization id's did not match")
 	ErrMissingUserContext = errors.New("error request was missing user context")
-	ErrNoAddressesSent    = errors.New("error no addresses were sent")
 	ErrNilUserContext     = errors.New("error empty user context")
 )
 
