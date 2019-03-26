@@ -21,7 +21,9 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.EventFilter) (st
 	}
 
 	if !includeRead {
-		p = p.LeftJoin("am.user_notifications_read as unr on en.notification_id=unr.notification_id")
+		p = p.LeftJoin("am.user_notifications_read as unr on en.notification_id=unr.notification_id").
+			Where(sq.Eq{"unr.notification_id": nil})
+
 	}
 
 	p = p.Where(sq.Eq{"en.organization_id": userContext.GetOrgID()}).

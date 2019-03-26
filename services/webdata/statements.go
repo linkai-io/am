@@ -54,6 +54,7 @@ var (
 		ip_address,
 		scheme,
 		response_port,
+		requested_port,
 		url,
 		response_timestamp,
 		serialized_dom_hash,
@@ -111,8 +112,8 @@ var queryMap = map[string]string{
 			top.address_id=arr.address_id 
 		where top.organization_id=$1 and top.scan_group_id=$2 and top.host_address != '' group by top.organization_id, top.scan_group_id, top.host_address;`,
 
-	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, false) 
+	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, requested_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false) 
 		on conflict (organization_id, scan_group_id, address_hash, serialized_dom_hash, response_port) do update set
 			response_timestamp=EXCLUDED.response_timestamp
 			returning snapshot_id`,
@@ -279,5 +280,7 @@ var (
 			temp.ct_compliance, 
 			false
 		from cert_add_temp as temp on conflict (organization_id, scan_group_id, subject_name, valid_from, valid_to) do update set
+			valid_from=EXCLUDED.valid_from,
+			valid_to=EXCLUDED.valid_to,
 			response_timestamp=EXCLUDED.response_timestamp`
 )

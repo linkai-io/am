@@ -61,9 +61,10 @@ func main() {
 	state := initializers.State(&appConfig)
 	sgClient := initializers.SGClient()
 	addrClient := initializers.AddrClient()
+	eventClient := initializers.EventClient()
 	modules := initializers.Modules(state)
 
-	service := dispatcher.New(sgClient, addrClient, modules, state)
+	service := dispatcher.New(sgClient, eventClient, addrClient, modules, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

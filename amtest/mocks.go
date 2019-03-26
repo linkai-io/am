@@ -70,6 +70,18 @@ func MockEmptyAuthorizer() *mock.Authorizer {
 	return auth
 }
 
+func MockEventService() *mock.EventService {
+	mockEvent := &mock.EventService{}
+	mockEvent.InitFn = func(config []byte) error {
+		return nil
+	}
+
+	mockEvent.AddFn = func(ctx context.Context, userContext am.UserContext, events []*am.Event) error {
+		return nil
+	}
+	return mockEvent
+}
+
 func MockStorage() *mock.Storage {
 	mockStorage := &mock.Storage{}
 	mockStorage.InitFn = func() error {

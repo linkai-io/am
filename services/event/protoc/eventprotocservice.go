@@ -35,9 +35,19 @@ func (s *EventProtocService) Get(ctx context.Context, in *event.GetRequest) (*ev
 	return &event.GetResponse{Events: convert.DomainToUserEvents(events)}, nil
 }
 
+func (s *EventProtocService) GetSettings(ctx context.Context, in *event.GetSettingsRequest) (*event.GetSettingsResponse, error) {
+	s.reporter.Increment(1)
+	settings, err := s.es.GetSettings(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &event.GetSettingsResponse{Settings: convert.DomainToUserEventSettings(settings)}, nil
+}
+
 func (s *EventProtocService) MarkRead(ctx context.Context, in *event.MarkReadRequest) (*event.MarkReadResponse, error) {
 	s.reporter.Increment(1)
-	err := s.es.MarkRead(ctx, convert.UserContextToDomain(in.UserContext), in.EventIDs)
+	err := s.es.MarkRead(ctx, convert.UserContextToDomain(in.UserContext), in.NotificationIDs)
 	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
@@ -47,7 +57,7 @@ func (s *EventProtocService) MarkRead(ctx context.Context, in *event.MarkReadReq
 
 func (s *EventProtocService) Add(ctx context.Context, in *event.AddRequest) (*event.AddedResponse, error) {
 	s.reporter.Increment(1)
-	err := s.es.Add(ctx, convert.UserContextToDomain(in.UserContext), convert.EventToDomain(in.Data))
+	err := s.es.Add(ctx, convert.UserContextToDomain(in.UserContext), convert.EventsToDomain(in.Data))
 	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err
@@ -67,7 +77,7 @@ func (s *EventProtocService) UpdateSettings(ctx context.Context, in *event.Updat
 
 func (s *EventProtocService) NotifyComplete(ctx context.Context, in *event.NotifyCompleteRequest) (*event.NotifyCompletedResponse, error) {
 	s.reporter.Increment(1)
-	err := s.es.NotifyComplete(ctx, convert.UserContextToDomain(in.UserContext), int(in.GroupID))
+	err := s.es.NotifyComplete(ctx, convert.UserContextToDomain(in.UserContext), in.StartTime, int(in.GroupID))
 	s.reporter.Increment(-1)
 	if err != nil {
 		return nil, err

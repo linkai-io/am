@@ -412,7 +412,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		var responseTime time.Time
 		var url []byte
 
-		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &url, &responseTime,
+		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &w.RequestedPort, &url, &responseTime,
 			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted,
 			&w.TechCategories, &w.TechNames, &w.TechVersions, &w.TechMatchLocations, &w.TechMatchData, &w.TechIcons, &w.TechWebsites); err != nil {
 			return 0, nil, err
@@ -473,7 +473,7 @@ func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, 
 	oid := webData.Address.OrgID
 	gid := webData.Address.GroupID
 	err = tx.QueryRowEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, webData.AddressHash, webData.HostAddress,
-		webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.URL, time.Unix(0, webData.ResponseTimestamp),
+		webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.RequestedPort, webData.URL, time.Unix(0, webData.ResponseTimestamp),
 		webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink).Scan(&snapshotID)
 
 	if err != nil {

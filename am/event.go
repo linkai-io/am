@@ -3,27 +3,24 @@ package am
 import "context"
 
 const (
-	RNEventService = "lrn:service:eventservice:feature:events"
+	RNEventService  = "lrn:service:eventservice:feature:events"
+	EventServiceKey = "eventservice"
 )
 
-/*
-(1, 'initial scan group analysis completed'),
-    (2, 'maximum number of hostnames reached for pricing plan'),
-    (10, 'new hostname'),
-    (11, 'new record'),
-    (100, 'new website detected'),
-    (101, 'website''s html updated'),
-    (102, 'website''s technology changed'),
-    (103, 'website''s javascript changed'),
-    (150, 'certificate expiring in 30 days'),
-    (151, 'certificate expiring in 15 days'),
-    (152, 'certificate expiring in 5 days'),
-    (153, 'certificate expiring in 1 day'),
-    (154, 'certificate expired'),
-    (200, 'dns server exposing records via zone transfer'),
-	(201, 'dns server exposing records via NSEC walking');
-*/
-
+var (
+	EventInitialGroupComplete int32 = 1
+	EventMaxHostPricing       int32 = 2
+	EventNewHost              int32 = 10
+	EventNewRecord            int32 = 11
+	EventNewWebsite           int32 = 100
+	EventWebHTMLUpdated       int32 = 101
+	EventWebTechChanged       int32 = 102
+	EventWebJSChanged         int32 = 103
+	EventCertExpiring         int32 = 150
+	EventCertExpired          int32 = 151
+	EventAXFR                 int32 = 200
+	EventNSEC                 int32 = 201
+)
 var EventTypes = map[int32]string{
 	1:   "initial scan group analysis completed",
 	2:   "maximum number of hostnames reached for pricing plan",
@@ -33,19 +30,16 @@ var EventTypes = map[int32]string{
 	101: "website's html updated",
 	102: "website's technology changed",
 	103: "website's javascript changed",
-	150: "certificate expiring in 30 days",
-	151: "certificate expiring in 15 days",
-	152: "certificate expiring in 5 days",
-	153: "certificate expiring in 1 day",
-	154: "certificate expired",
+	150: "certificate expiring",
+	151: "certificate expired",
 	200: "dns server exposing records via zone transfer",
 	201: "dns server exposing records via NSEC walking",
 }
 
 type Event struct {
+	NotificationID int64               `json:"notification_id"`
 	OrgID          int                 `json:"org_id"`
 	GroupID        int                 `json:"group_id"`
-	NotificationID int64               `json:"notification_id"`
 	TypeID         int32               `json:"type_id"`
 	EventTimestamp int64               `json:"event_timestamp"`
 	Data           map[string][]string `json:"data"`
@@ -79,13 +73,13 @@ type EventService interface {
 	// Get events
 	Get(ctx context.Context, userContext UserContext, filter *EventFilter) ([]*Event, error)
 	// GetSettings user settings
-	GetSettings(ctx context.Context, userContext UserContext, filter *EventFilter) (*UserEventSettings, error)
+	GetSettings(ctx context.Context, userContext UserContext) (*UserEventSettings, error)
 	// MarkRead events
-	MarkRead(ctx context.Context, userContext UserContext, eventIDs []int32) error
+	MarkRead(ctx context.Context, userContext UserContext, notificationIDs []int64) error
 	// Add events (system only?)
-	Add(ctx context.Context, userContext UserContext, event []*Event) error
+	Add(ctx context.Context, userContext UserContext, events []*Event) error
 	// UpdateSettings for user
 	UpdateSettings(ctx context.Context, userContext UserContext, settings *UserEventSettings) error
 	// NotifyComplete that a scan group has completed
-	NotifyComplete(ctx context.Context, userContext UserContext, groupID int) error
+	NotifyComplete(ctx context.Context, userContext UserContext, startTime int64, groupID int) error
 }

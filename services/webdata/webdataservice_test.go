@@ -3,12 +3,9 @@ package webdata_test
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/linkai-io/am/pkg/convert"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -91,7 +88,7 @@ func TestAdd(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
 
 	_, err := service.Add(ctx, org.UserContext, webData)
 	if err != nil {
@@ -115,7 +112,7 @@ func TestOrgStats(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
 
 	for _, web := range webData {
 		_, err := service.Add(ctx, org.UserContext, web)
@@ -162,7 +159,7 @@ func TestOrgStats(t *testing.T) {
 	}
 
 	// add with nil server header
-	web := testCreateWebData(org, address, "test.com", "1.1.1.1")
+	web := amtest.CreateWebData(address, "test.com", "1.1.1.1")
 	if _, err := service.Add(ctx, org.UserContext, web); err != nil {
 		t.Fatalf("error adding web data")
 	}
@@ -184,7 +181,7 @@ func TestGetSnapshots(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
 
 	_, err := service.Add(ctx, org.UserContext, webData)
 	if err != nil {
@@ -242,7 +239,7 @@ func TestGetSnapshotsEmptyTech(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
 	webData.DetectedTech = nil
 
 	_, err := service.Add(ctx, org.UserContext, webData)
@@ -291,7 +288,7 @@ func TestGetCertificates(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
 
 	_, err := service.Add(ctx, org.UserContext, webData)
 	if err != nil {
@@ -325,7 +322,7 @@ func TestGetResponses(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
 
 	_, err := service.Add(ctx, org.UserContext, webData)
 	if err != nil {
@@ -372,7 +369,7 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
 
 	for _, web := range webData {
 		_, err := service.Add(ctx, org.UserContext, web)
@@ -461,7 +458,7 @@ func TestGetURLList(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
 
 	for i, web := range webData {
 		t.Logf("%d: %d\n", i, len(web.Responses))
@@ -525,191 +522,8 @@ func TestGetURLList(t *testing.T) {
 	}
 }
 
-func testCreateMultiWebData(org *OrgData, address *am.ScanGroupAddress, host, ip string) []*am.WebData {
-	webData := make([]*am.WebData, 0)
-	insertHost := host
-
-	responses := make([]*am.HTTPResponse, 0)
-	urlIndex := 0
-	groupIdx := 0
-
-	for i := 1; i < 101; i++ {
-		headers := make(map[string]string, 0)
-		headers["host"] = host
-		headers["server"] = fmt.Sprintf("Apache 1.0.%d", i)
-		headers["content-type"] = "text/html"
-
-		response := &am.HTTPResponse{
-			OrgID:               address.OrgID,
-			GroupID:             address.GroupID,
-			Scheme:              "http",
-			AddressHash:         convert.HashAddress(ip, host),
-			HostAddress:         host,
-			IPAddress:           ip,
-			ResponsePort:        "80",
-			RequestedPort:       "80",
-			Status:              200,
-			StatusText:          "HTTP 200 OK",
-			URL:                 fmt.Sprintf("http://%s/%d", host, urlIndex),
-			Headers:             headers,
-			MimeType:            "text/html",
-			RawBody:             "",
-			RawBodyLink:         "s3://data/1/1/1/1",
-			RawBodyHash:         "1111",
-			ResponseTimestamp:   time.Now().UnixNano(),
-			URLRequestTimestamp: 0,
-			IsDocument:          true,
-			WebCertificate: &am.WebCertificate{
-				ResponseTimestamp: time.Now().UnixNano(),
-				HostAddress:       host,
-				IPAddress:         ip,
-				AddressHash:       convert.HashAddress(ip, host),
-				Port:              "443",
-				Protocol:          "h2",
-				KeyExchange:       "kex",
-				KeyExchangeGroup:  "keg",
-				Cipher:            "aes",
-				Mac:               "1234",
-				CertificateValue:  0,
-				SubjectName:       host,
-				SanList: []string{
-					"www." + insertHost,
-					insertHost,
-				},
-				Issuer:                            "",
-				ValidFrom:                         time.Now().Unix(),
-				ValidTo:                           time.Now().Add(time.Hour * time.Duration(24*i)).Unix(),
-				CertificateTransparencyCompliance: "unknown",
-				IsDeleted:                         false,
-			},
-			IsDeleted: false,
-		}
-		responses = append(responses, response)
-		urlIndex++
-
-		if i%10 == 0 {
-			groupIdx++
-			data := &am.WebData{
-				Address:             address,
-				Responses:           responses,
-				SnapshotLink:        "s3://snapshot/1",
-				URL:                 fmt.Sprintf("http://%s/%d", host, urlIndex),
-				Scheme:              "http",
-				AddressHash:         convert.HashAddress(ip, host),
-				HostAddress:         host,
-				IPAddress:           ip,
-				ResponsePort:        80,
-				SerializedDOMHash:   "1234",
-				SerializedDOMLink:   "s3:/1/2/3/4",
-				ResponseTimestamp:   time.Now().UnixNano(),
-				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
-				DetectedTech: map[string]*am.WebTech{"3dCart": &am.WebTech{
-					Matched:  "1.1.11,1.1.11",
-					Version:  "1.1.11",
-					Location: "headers",
-				},
-					"jQuery": &am.WebTech{
-						Matched:  "1.1.11,1.1.11",
-						Version:  "1.1.11",
-						Location: "script",
-					},
-				},
-			}
-			urlIndex = 0
-			webData = append(webData, data)
-
-			insertHost = fmt.Sprintf("%d.%s", i, host)
-			responses = make([]*am.HTTPResponse, 0)
-		}
-	}
-
-	return webData
-}
-
-func testCreateWebData(org *OrgData, address *am.ScanGroupAddress, host, ip string) *am.WebData {
-	headers := make(map[string]string, 0)
-	headers["host"] = host
-	headers["content-type"] = "text/html"
-
-	response := &am.HTTPResponse{
-		Scheme:              "http",
-		AddressHash:         convert.HashAddress(ip, host),
-		HostAddress:         host,
-		IPAddress:           ip,
-		ResponsePort:        "80",
-		RequestedPort:       "80",
-		Status:              200,
-		StatusText:          "HTTP 200 OK",
-		URL:                 fmt.Sprintf("http://%s/", host),
-		Headers:             headers,
-		MimeType:            "text/html",
-		RawBody:             "",
-		RawBodyLink:         "s3://data/1/1/1/1",
-		RawBodyHash:         "1111",
-		ResponseTimestamp:   time.Now().UnixNano(),
-		URLRequestTimestamp: 0,
-		IsDocument:          true,
-		WebCertificate: &am.WebCertificate{
-			ResponseTimestamp: time.Now().UnixNano(),
-			HostAddress:       host,
-			IPAddress:         ip,
-			AddressHash:       convert.HashAddress(ip, host),
-			Port:              "443",
-			Protocol:          "h2",
-			KeyExchange:       "kex",
-			KeyExchangeGroup:  "keg",
-			Cipher:            "aes",
-			Mac:               "1234",
-			CertificateValue:  0,
-			SubjectName:       host,
-			SanList: []string{
-				"www." + host,
-				host,
-			},
-			Issuer:                            "",
-			ValidFrom:                         time.Now().Unix(),
-			ValidTo:                           time.Now().Add(time.Hour * time.Duration(24)).Unix(),
-			CertificateTransparencyCompliance: "unknown",
-			IsDeleted:                         false,
-		},
-		IsDeleted: false,
-	}
-	responses := make([]*am.HTTPResponse, 1)
-	responses[0] = response
-
-	webData := &am.WebData{
-		Address:             address,
-		Responses:           responses,
-		Snapshot:            "",
-		SnapshotLink:        "s3://snapshot/1",
-		URL:                 fmt.Sprintf("http://%s/", host),
-		Scheme:              "http",
-		AddressHash:         convert.HashAddress(ip, host),
-		HostAddress:         host,
-		IPAddress:           ip,
-		ResponsePort:        80,
-		SerializedDOMHash:   "1234",
-		SerializedDOMLink:   "s3:/1/2/3/4",
-		ResponseTimestamp:   time.Now().UnixNano(),
-		URLRequestTimestamp: time.Now().UnixNano(),
-		DetectedTech: map[string]*am.WebTech{"3dCart": &am.WebTech{
-			Matched:  "1.1.11,1.1.11",
-			Version:  "1.1.11",
-			Location: "headers",
-		},
-			"jQuery": &am.WebTech{
-				Matched:  "1.1.11,1.1.11",
-				Version:  "1.1.11",
-				Location: "script",
-			},
-		},
-	}
-
-	return webData
-}
-
-/*
 func TestPopulateWeb(t *testing.T) {
+	t.Skip("uncomment to populate data")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
@@ -719,7 +533,7 @@ func TestPopulateWeb(t *testing.T) {
 	//defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := testCreateMultiWebData(org, address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
 
 	for i, web := range webData {
 		t.Logf("%d: %d\n", i, len(web.Responses))
@@ -729,4 +543,3 @@ func TestPopulateWeb(t *testing.T) {
 		}
 	}
 }
-*/

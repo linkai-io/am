@@ -47,10 +47,12 @@ func main() {
 
 	addrClient := mockAddressService(orgID, addresses)
 
+	eventClient := amtest.MockEventService()
+
 	// init NS module state system & NS module
 	nsstate := amtest.MockNSState()
 	dc := dnsclient.New(dnsServers, 2)
-	nsModule := ns.New(dc, nsstate)
+	nsModule := ns.New(eventClient, dc, nsstate)
 	if err := nsModule.Init(nil); err != nil {
 		log.Fatalf("error initializing ns module: %s\n", err)
 	}
@@ -95,7 +97,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	disState := mockDispatcherState(wg)
 
-	dispatcher := dispatcher.New(sgClient, addrClient, modules, disState)
+	dispatcher := dispatcher.New(sgClient, eventClient, addrClient, modules, disState)
 	dispatcher.Init(nil)
 
 	userContext := amtest.CreateUserContext(orgID, userID)

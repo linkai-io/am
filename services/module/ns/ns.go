@@ -31,8 +31,9 @@ var (
 
 // NS module for extracting NS related information for a scan group.
 type NS struct {
-	st state.Stater
-	dc *dnsclient.Client
+	st          state.Stater
+	dc          *dnsclient.Client
+	eventClient am.EventService
 	// for closing subscriptions to listen for group updates
 	exitContext context.Context
 	cancel      context.CancelFunc
@@ -42,9 +43,10 @@ type NS struct {
 
 // New creates a new NS module for identifying zone information via DNS
 // and storing the results in Redis.
-func New(dc *dnsclient.Client, st state.Stater) *NS {
+func New(eventClient am.EventService, dc *dnsclient.Client, st state.Stater) *NS {
 	ctx, cancel := context.WithCancel(context.Background())
-	ns := &NS{st: st, exitContext: ctx, cancel: cancel}
+
+	ns := &NS{st: st, exitContext: ctx, cancel: cancel, eventClient: eventClient}
 	ns.dc = dc
 	// start cache subscriber and listen for updates
 	ns.groupCache = cache.NewScanGroupSubscriber(ctx, st)
@@ -132,7 +134,7 @@ func (ns *NS) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	if ok {
 		log.Ctx(ctx).Info().Msg("will analyze zone")
-		zoneRecords := ns.analyzeZone(ctx, nsCfg, etld, address)
+		zoneRecords := ns.analyzeZone(ctx, userContext, nsCfg, etld, address)
 		log.Ctx(ctx).Info().Int("zone_records", len(zoneRecords)).Str("etld", etld).Msg("got records")
 		module.AddAddressToMap(nsRecords, zoneRecords)
 	}
@@ -156,7 +158,7 @@ func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
 }
 
 // analyzeZone looks up various supporting records for a zone (mx/ns/axfr)
-func (ns *NS) analyzeZone(ctx context.Context, nsCfg *am.NSModuleConfig, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
+func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
 
 	log.Ctx(ctx).Info().Msg("will analyze mx")
@@ -203,7 +205,9 @@ func (ns *NS) analyzeZone(ctx context.Context, nsCfg *am.NSModuleConfig, zone st
 		return nsData
 	}
 
-	for _, result := range axfr {
+	axfrServers := make([]string, 0)
+	for serv, result := range axfr {
+		axfrServers = append(axfrServers, serv)
 		// TODO report axfr ns servers as a finding
 		for _, r := range result {
 			if len(r.Hosts) == 1 {
@@ -218,6 +222,23 @@ func (ns *NS) analyzeZone(ctx context.Context, nsCfg *am.NSModuleConfig, zone st
 				}
 			}
 		}
+	}
+
+	// notify event service that the ns server is leaking addrs via axfr
+	axfrEvents := make([]*am.Event, 1)
+	axfrEvents[0] = &am.Event{
+		OrgID:          userContext.GetOrgID(),
+		GroupID:        address.GroupID,
+		TypeID:         am.EventAXFR,
+		EventTimestamp: time.Now().UnixNano(),
+		Data: map[string][]string{
+			am.EventTypes[am.EventAXFR]: axfrServers,
+		},
+		Read: false,
+	}
+
+	if err := ns.eventClient.Add(ctx, userContext, axfrEvents); err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to notify server of axfr leaky servers")
 	}
 	return nsData
 }

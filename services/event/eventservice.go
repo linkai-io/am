@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -176,7 +177,8 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 	settings.Subscriptions = make([]*am.EventSubscriptions, 0)
 	for i := 0; rows.Next(); i++ {
 		sub := &am.EventSubscriptions{}
-		if err := rows.Scan(&oid, &uid, &sub.TypeID, &sub.SubscribedTimestamp); err != nil {
+		var ts time.Time
+		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts); err != nil {
 			return nil, err
 		}
 
@@ -187,7 +189,7 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 		if uid != userContext.GetUserID() {
 			return nil, am.ErrUserIDMismatch
 		}
-
+		sub.SubscribedTimestamp = ts.UnixNano()
 		settings.Subscriptions = append(settings.Subscriptions, sub)
 	}
 
@@ -198,7 +200,7 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 }
 
 // MarkRead events
-func (s *Service) MarkRead(ctx context.Context, userContext am.UserContext, eventIDs []int32) error {
+func (s *Service) MarkRead(ctx context.Context, userContext am.UserContext, notificationIDs []int64) error {
 	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "update") {
 		return am.ErrUserNotAuthorized
 	}
@@ -212,7 +214,7 @@ func (s *Service) MarkRead(ctx context.Context, userContext am.UserContext, even
 	var tx *pgx.Tx
 	var err error
 
-	log.Ctx(ctx).Info().Int("eventid_len", len(eventIDs)).Msg("adding")
+	log.Ctx(ctx).Info().Int("notifyid_len", len(notificationIDs)).Msg("adding")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
@@ -224,14 +226,14 @@ func (s *Service) MarkRead(ctx context.Context, userContext am.UserContext, even
 		return err
 	}
 
-	numEvents := len(eventIDs)
+	numEvents := len(notificationIDs)
 
 	eventRows := make([][]interface{}, numEvents)
 	orgID := userContext.GetOrgID()
 	userID := userContext.GetUserID()
 
-	for i := 0; i < len(eventIDs); i++ {
-		eventRows[i] = []interface{}{orgID, userID, eventIDs[i]}
+	for i := 0; i < len(notificationIDs); i++ {
+		eventRows[i] = []interface{}{orgID, userID, notificationIDs[i]}
 	}
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{MarkReadTempTableKey}, MarkReadTempTableColumns, pgx.CopyFromRows(eventRows))
@@ -288,6 +290,7 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 	//userID := userContext.GetUserID()
 
 	for i := 0; i < numEvents; i++ {
+		log.Ctx(ctx).Info().Msgf("%#v", events[i])
 		eventRows[i] = []interface{}{orgID, events[i].GroupID, events[i].TypeID, time.Unix(0, events[i].EventTimestamp), events[i].Data}
 	}
 
@@ -379,5 +382,168 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "update") {
 		return am.ErrUserNotAuthorized
 	}
-	return nil
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("call", "event.NotifyComplete").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	ctx = serviceLog.WithContext(ctx)
+
+	events := make([]*am.Event, 0)
+	tx, err := s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback() // safe to call as no-op on success
+	newHosts, err := s.newHostnames(ctx, userContext, tx, startTime, groupID)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather new hosts events")
+	} else if newHosts != nil {
+		events = append(events, newHosts)
+	}
+
+	// new websites
+	newWebsites, err := s.newWebsites(ctx, userContext, tx, startTime, groupID)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather new websites events")
+	} else if newWebsites != nil {
+		events = append(events, newWebsites)
+	}
+	// diff websites
+
+	// test web tech
+
+	// check certificates
+	expiringCerts, err := s.expiringCerts(ctx, userContext, tx, startTime, groupID)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather new certificate expiration events")
+	} else if expiringCerts != nil {
+		events = append(events, expiringCerts)
+	}
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, "failed to notify complete")
+		}
+		return err
+	}
+
+	return s.Add(ctx, userContext, events)
+}
+
+func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
+	oid := userContext.GetOrgID()
+	// check new hostnames
+	rows, err := tx.Query("checkCertExpiration", oid, groupID, time.Unix(0, startTime))
+	if err != nil {
+		return nil, err
+	}
+
+	certs := make([]string, 0)
+	for i := 0; rows.Next(); i++ {
+		var subjectName string
+		var port int
+		var validTo int64
+		if err := rows.Scan(&subjectName, &port, &validTo); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new website event")
+			continue
+		}
+		validTime := time.Unix(validTo, 0)
+		ts := validTime.Sub(time.Now()).Hours()
+		expires := ""
+		if ts <= float64(24) {
+			expires = fmt.Sprintf("%g hours", ts)
+		} else {
+			expires = fmt.Sprintf("%g days", ts/float64(24))
+		}
+		certs = append(certs, subjectName)
+		certs = append(certs, fmt.Sprintf("%d", port))
+		certs = append(certs, expires)
+	}
+	// no new urls this round
+	if len(certs) == 0 {
+		return nil, nil
+	}
+
+	e := &am.Event{
+		OrgID:          oid,
+		GroupID:        groupID,
+		TypeID:         am.EventCertExpiring,
+		EventTimestamp: time.Now().UnixNano(),
+		Data: map[string][]string{
+			am.EventTypes[am.EventCertExpiring]: certs,
+		},
+	}
+	return e, nil
+}
+
+func (s *Service) newWebsites(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
+	oid := userContext.GetOrgID()
+	// check new hostnames
+	rows, err := tx.Query("newWebsites", oid, groupID, time.Unix(0, startTime), oid, groupID)
+	if err != nil {
+		return nil, err
+	}
+	urlPorts := make([]string, 0)
+	for i := 0; rows.Next(); i++ {
+		var url []byte
+		var port int
+		if err := rows.Scan(&url, &port); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new website event")
+			continue
+		}
+		urlPorts = append(urlPorts, string(url))
+		urlPorts = append(urlPorts, fmt.Sprintf("%d", port))
+	}
+	// no new urls this round
+	if len(urlPorts) == 0 {
+		return nil, nil
+	}
+
+	e := &am.Event{
+		OrgID:          oid,
+		GroupID:        groupID,
+		TypeID:         am.EventNewWebsite,
+		EventTimestamp: time.Now().UnixNano(),
+		Data: map[string][]string{
+			am.EventTypes[am.EventNewWebsite]: urlPorts,
+		},
+	}
+	return e, nil
+}
+
+func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
+	oid := userContext.GetOrgID()
+	// check new hostnames
+	rows, err := tx.Query("newHostnames", oid, groupID, time.Unix(0, startTime), oid, groupID)
+	if err != nil {
+		return nil, err
+	}
+	hosts := make([]string, 0)
+	for i := 0; rows.Next(); i++ {
+
+		var host string
+		if err := rows.Scan(&host); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new hostname event")
+			continue
+		}
+		hosts = append(hosts, host)
+
+	}
+	// no new hosts this round
+	if len(hosts) == 0 {
+		return nil, nil
+	}
+
+	e := &am.Event{
+		OrgID:          oid,
+		GroupID:        groupID,
+		TypeID:         am.EventNewHost,
+		EventTimestamp: time.Now().UnixNano(),
+		Data: map[string][]string{
+			am.EventTypes[am.EventNewHost]: hosts,
+		},
+	}
+	return e, nil
 }

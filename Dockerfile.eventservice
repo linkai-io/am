@@ -1,0 +1,25 @@
+FROM golang:alpine as builder
+
+RUN apk update && apk add git && apk add ca-certificates
+
+RUN adduser -D -g '' appuser 
+
+COPY . $GOPATH/src/github.com/linkai-io/am/
+WORKDIR $GOPATH/src/github.com/linkai-io/am/
+COPY third_party/grpc_health_probe-linux-amd64 /bin/grpc_health_probe-linux-amd64
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o /go/bin/eventservice cmd/event/main.go
+
+# STEP 2 build a small image
+# start from scratch
+FROM scratch
+# Copy our static executable and supporting
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /bin/grpc_health_probe-linux-amd64 /bin/
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /go/bin/eventservice /go/bin/eventservice 
+USER appuser 
+
+ENV PORT 50051
+EXPOSE 50051
+ENTRYPOINT ["/go/bin/eventservice"]

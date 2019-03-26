@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/linkai-io/am/clients/event"
 	"github.com/linkai-io/am/pkg/bq"
 
 	"github.com/linkai-io/am/pkg/discovery"
@@ -188,6 +189,20 @@ func AddrClient() am.AddressService {
 		log.Fatal().Err(err).Msg("error connecting to address server")
 	}
 	return addrClient
+}
+
+// EventClient connects to the address service
+func EventClient() am.EventService {
+	eventClient := event.New()
+
+	err := retrier.RetryUntil(func() error {
+		return eventClient.Init(nil)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to event server")
+	}
+	return eventClient
 }
 
 // CoordClient connects to the coordinator service

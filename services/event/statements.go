@@ -20,6 +20,52 @@ var queryMap = map[string]string{
 		user_timezone=EXCLUDED.user_timezone,
 		should_weekly_email=EXCLUDED.should_weekly_email,
 		should_daily_email=EXCLUDED.should_daily_email`, sharedSettingColumns),
+
+	"newHostnames": `select sga.host_address from 
+		(select min(discovered_timestamp) as discovered_timestamp, host_address from am.scan_group_addresses 
+			where organization_id=$1 and scan_group_id=$2 and 
+			(confidence_score=100 or user_confidence_score=100) and
+			deleted=false and
+			ignored=false
+			group by host_address) as uniq
+		join am.scan_group_addresses as sga on sga.discovered_timestamp=uniq.discovered_timestamp 
+			where sga.discovered_timestamp >= $3 and 
+			organization_id=$4 and 
+			scan_group_id=$5 group by sga.host_address`,
+	"newWebsites": `select ws.url,ws.response_port from
+		(select min(response_timestamp) as response_timestamp, url, response_port from am.web_snapshots 
+			where organization_id=$1 and scan_group_id=$2 and 
+			deleted=false
+			group by url,response_port) as uniq
+		join am.web_snapshots as ws on ws.response_timestamp=uniq.response_timestamp
+			where ws.response_timestamp >= $3 and
+			organization_id=$4 and
+			scan_group_id=$5 group by ws.url, ws.response_port`,
+	"webHashChanged": `select 
+		wf.response_timestamp, 
+		wf.url, 
+		wf.host_address, 
+		wf.response_port, 
+		wf.prev_hash, 
+		wf.serialized_dom_hash from 
+			(select 
+				response_timestamp, 
+				url,
+				host_address,
+				response_port,
+				lead(serialized_dom_hash) over (partition by url,response_port order by response_timestamp desc ) as prev_hash,
+				row_number() over (partition by url,response_port order by response_timestamp desc ) as row_number,
+				serialized_dom_hash from am.web_snapshots where 
+				organization_id=$1 and
+				scan_group_id=$2
+			order by host_address,response_port,response_timestamp desc) as wf
+		where row_number<=1;`,
+	"checkCertExpiration": `select subject_name, port, valid_to from am.web_certificates 
+		where (TIMESTAMPTZ 'epoch' + valid_to * '1 second'::interval) 
+		between now() and now() + interval '30 days'
+		and organization_id=$1
+		and scan_group_id=$2
+		and response_timestamp>=$3`,
 }
 
 var (
