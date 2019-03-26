@@ -23,6 +23,10 @@ func New() *Client {
 	return &Client{defaultTimeout: (time.Second * 60)}
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.defaultTimeout = timeout
+}
+
 func (c *Client) Init(config []byte) error {
 	conn, err := grpc.DialContext(context.Background(), "srv://consul/"+am.EventServiceKey, grpc.WithInsecure(), grpc.WithBalancerName(roundrobin.Name))
 	if err != nil {
