@@ -160,6 +160,7 @@ func (s *Service) groupListener() {
 			start := time.Now()
 			s.runGroup(ctx, details, start)
 			log.Ctx(ctx).Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
+
 			// notify event service this group is complete.
 			if err := s.eventClient.NotifyComplete(ctx, details.userContext, start.UnixNano(), details.scanGroupID); err != nil {
 				log.Ctx(ctx).Error().Err(err).Msg("failed to notify scan group complete")
