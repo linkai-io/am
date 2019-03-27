@@ -231,10 +231,8 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 		GroupID:        address.GroupID,
 		TypeID:         am.EventAXFR,
 		EventTimestamp: time.Now().UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventAXFR]: axfrServers,
-		},
-		Read: false,
+		Data:           axfrServers,
+		Read:           false,
 	}
 
 	if err := ns.eventClient.Add(ctx, userContext, axfrEvents); err != nil {

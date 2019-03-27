@@ -90,36 +90,28 @@ func TestAddGet(t *testing.T) {
 		GroupID:        groupID,
 		TypeID:         1,
 		EventTimestamp: now.UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[1]: []string{"completed run"},
-		},
+		Data:           []string{"completed run"},
 	}
 	events[1] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
 		TypeID:         am.EventNewHost,
 		EventTimestamp: now.UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventNewHost]: []string{"example.com", "test.example.com", "something.example.com"},
-		},
+		Data:           []string{"example.com", "test.example.com", "something.example.com"},
 	}
 	events[2] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
 		TypeID:         am.EventNewWebsite,
 		EventTimestamp: now.UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventNewWebsite]: []string{"https://blah.example.com"},
-		},
+		Data:           []string{"https://blah.example.com"},
 	}
 	events[3] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
 		TypeID:         am.EventCertExpiring,
 		EventTimestamp: now.UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventCertExpiring]: []string{"test.example.com", "443", "1111111111111"},
-		},
+		Data:           []string{"test.example.com", "443", "1111111111111"},
 	}
 	if err := service.Add(ctx, userContext, events); err != nil {
 		t.Fatalf("error adding events: %v\n", err)

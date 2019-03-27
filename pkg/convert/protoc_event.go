@@ -6,39 +6,25 @@ import (
 )
 
 func DomainToEvent(in *am.Event) *prototypes.EventData {
-	data := make(map[string]*prototypes.StringEvent, 0)
-	if in.Data != nil {
-		for k, v := range in.Data {
-			data[k] = &prototypes.StringEvent{Value: v}
-		}
-	}
-
 	return &prototypes.EventData{
 		NotificationID: in.NotificationID,
 		OrgID:          int32(in.OrgID),
 		GroupID:        int32(in.GroupID),
 		TypeID:         in.TypeID,
 		EventTimestamp: in.EventTimestamp,
-		Data:           data,
+		Data:           in.Data,
 		Read:           false,
 	}
 }
 
 func EventToDomain(in *prototypes.EventData) *am.Event {
-	data := make(map[string][]string, 0)
-	if in.Data != nil {
-		for k, v := range in.Data {
-			data[k] = v.Value
-		}
-	}
-
 	return &am.Event{
 		OrgID:          int(in.OrgID),
 		GroupID:        int(in.GroupID),
 		NotificationID: in.NotificationID,
 		TypeID:         in.TypeID,
 		EventTimestamp: in.EventTimestamp,
-		Data:           data,
+		Data:           in.Data,
 		Read:           in.Read,
 	}
 }

@@ -55,17 +55,8 @@ func TestAnalyze(t *testing.T) {
 		{addrs[0], false, false, 0}, // second check should be ignored and return 0 records because it's in cache
 		{zonetransferme[0], false, false, 1},
 		{mutate[0], false, false, 1},
-		{linkedin[0], false, false, 10},
+		{linkedin[0], false, false, 12},
 		{maxdepth[0], false, false, 0},
-	}
-
-	tests = []struct {
-		in           *am.ScanGroupAddress
-		isError      bool
-		isWildcard   bool
-		hasResultLen int
-	}{
-		{linkedin[0], false, false, 10},
 	}
 
 	for _, test := range tests {

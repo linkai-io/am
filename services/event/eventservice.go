@@ -124,7 +124,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	for i := 0; rows.Next(); i++ {
 		var ts time.Time
 		e := &am.Event{}
-		e.Data = make(map[string][]string, 0)
+		e.Data = make([]string, 0)
 		if err := rows.Scan(&e.OrgID, &e.GroupID, &e.NotificationID, &e.TypeID, &ts, &e.Data); err != nil {
 			return nil, err
 		}
@@ -471,9 +471,7 @@ func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext,
 		GroupID:        groupID,
 		TypeID:         am.EventCertExpiring,
 		EventTimestamp: time.Now().UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventCertExpiring]: certs,
-		},
+		Data:           certs,
 	}
 	return e, nil
 }
@@ -506,9 +504,7 @@ func (s *Service) newWebsites(ctx context.Context, userContext am.UserContext, t
 		GroupID:        groupID,
 		TypeID:         am.EventNewWebsite,
 		EventTimestamp: time.Now().UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventNewWebsite]: urlPorts,
-		},
+		Data:           urlPorts,
 	}
 	return e, nil
 }
@@ -541,9 +537,7 @@ func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, 
 		GroupID:        groupID,
 		TypeID:         am.EventNewHost,
 		EventTimestamp: time.Now().UnixNano(),
-		Data: map[string][]string{
-			am.EventTypes[am.EventNewHost]: hosts,
-		},
+		Data:           hosts,
 	}
 	return e, nil
 }

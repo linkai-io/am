@@ -37,13 +37,13 @@ var EventTypes = map[int32]string{
 }
 
 type Event struct {
-	NotificationID int64               `json:"notification_id"`
-	OrgID          int                 `json:"org_id"`
-	GroupID        int                 `json:"group_id"`
-	TypeID         int32               `json:"type_id"`
-	EventTimestamp int64               `json:"event_timestamp"`
-	Data           map[string][]string `json:"data"`
-	Read           bool                `json:"read"`
+	NotificationID int64    `json:"notification_id"`
+	OrgID          int      `json:"org_id"`
+	GroupID        int      `json:"group_id"`
+	TypeID         int32    `json:"type_id"`
+	EventTimestamp int64    `json:"event_timestamp"`
+	Data           []string `json:"data"`
+	Read           bool     `json:"read"`
 }
 
 type EventSubscriptions struct {
