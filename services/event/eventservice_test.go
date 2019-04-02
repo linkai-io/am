@@ -194,7 +194,7 @@ func TestNotifyComplete(t *testing.T) {
 
 	amtest.CreateOrg(db, orgName, t)
 	orgID := amtest.GetOrgID(db, orgName, t)
-	defer amtest.DeleteOrg(db, orgName, t)
+	//defer amtest.DeleteOrg(db, orgName, t)
 	userID := amtest.GetUserId(db, orgID, orgName, t)
 
 	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
@@ -212,9 +212,9 @@ func TestNotifyComplete(t *testing.T) {
 
 	settings := &am.UserEventSettings{
 		WeeklyReportSendDay: 0,
-		ShouldWeeklyEmail:   false,
+		ShouldWeeklyEmail:   true,
 		DailyReportSendHour: 0,
-		ShouldDailyEmail:    false,
+		ShouldDailyEmail:    true,
 		UserTimezone:        "Asia/Tokyo",
 		Subscriptions: []*am.EventSubscriptions{
 			&am.EventSubscriptions{

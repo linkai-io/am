@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -446,22 +447,16 @@ func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext,
 		var port int
 		var validTo int64
 		if err := rows.Scan(&subjectName, &port, &validTo); err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new website event")
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new certificate expiring event")
 			continue
 		}
-		validTime := time.Unix(validTo, 0)
-		ts := validTime.Sub(time.Now()).Hours()
-		expires := ""
-		if ts <= float64(24) {
-			expires = fmt.Sprintf("%g hours", ts)
-		} else {
-			expires = fmt.Sprintf("%g days", ts/float64(24))
-		}
+		validTime := strconv.FormatInt(validTo, 10)
+
 		certs = append(certs, subjectName)
 		certs = append(certs, fmt.Sprintf("%d", port))
-		certs = append(certs, expires)
+		certs = append(certs, validTime)
 	}
-	// no new urls this round
+	// no new certs this round
 	if len(certs) == 0 {
 		return nil, nil
 	}

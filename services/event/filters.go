@@ -12,7 +12,8 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.EventFilter) (st
 		"en.type_id",
 		"en.event_timestamp",
 		"en.event_data").From("am.event_notifications as en").
-		Join("lateral (select type_id, event_timestamp from am.user_notification_subscriptions as uns where uns.subscribed=true and en.type_id=uns.type_id and en.event_timestamp >= uns.subscribed_since) as uns on true")
+		Join("lateral (select user_id, type_id, event_timestamp from am.user_notification_subscriptions as uns where uns.subscribed=true and en.type_id=uns.type_id and en.event_timestamp >= uns.subscribed_since) as uns on true").
+		Where(sq.Eq{"uns.user_id": userContext.GetUserID()})
 		//Where(sq.GtOrEq{"en.event_timestamp": "uns.subscribed_since"})
 
 	includeRead := false
