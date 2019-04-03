@@ -32,6 +32,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	tenMinutes    = 600
+	thirtyMinutes = tenMinutes * 3
+)
+
 // AppConfig represents values taken from environment variables
 type AppConfig struct {
 	Env          string
@@ -269,7 +274,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 	switch moduleType {
 	case am.NSModule:
 		nsClient := module.New()
-		cfg := &module.Config{ModuleType: am.NSModule}
+		cfg := &module.Config{ModuleType: am.NSModule, Timeout: tenMinutes}
 		data, _ := json.Marshal(cfg)
 
 		err := retrier.RetryUntil(func() error {
@@ -282,7 +287,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 		return nsClient
 	case am.BruteModule:
 		bruteClient := module.New()
-		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: 600}
+		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: tenMinutes}
 		data, _ := json.Marshal(cfg)
 
 		err := retrier.RetryUntil(func() error {
@@ -295,7 +300,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 		return bruteClient
 	case am.WebModule:
 		webClient := module.New()
-		cfg := &module.Config{ModuleType: am.WebModule, Timeout: 600}
+		cfg := &module.Config{ModuleType: am.WebModule, Timeout: tenMinutes}
 		data, _ := json.Marshal(cfg)
 
 		err := retrier.RetryUntil(func() error {
@@ -308,7 +313,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 		return webClient
 	case am.BigDataCTSubdomainModule:
 		bdClient := module.New()
-		cfg := &module.Config{ModuleType: am.BigDataCTSubdomainModule, Timeout: 600}
+		cfg := &module.Config{ModuleType: am.BigDataCTSubdomainModule, Timeout: tenMinutes}
 		data, _ := json.Marshal(cfg)
 		err := retrier.RetryUntil(func() error {
 			return bdClient.Init(data)

@@ -20,7 +20,7 @@ type Client struct {
 }
 
 func New() *Client {
-	return &Client{defaultTimeout: (time.Second * 60)}
+	return &Client{defaultTimeout: (time.Second * 120)}
 }
 
 func (c *Client) SetTimeout(timeout time.Duration) {

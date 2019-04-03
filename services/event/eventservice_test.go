@@ -194,7 +194,7 @@ func TestNotifyComplete(t *testing.T) {
 
 	amtest.CreateOrg(db, orgName, t)
 	orgID := amtest.GetOrgID(db, orgName, t)
-	//defer amtest.DeleteOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
 	userID := amtest.GetUserId(db, orgID, orgName, t)
 
 	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)

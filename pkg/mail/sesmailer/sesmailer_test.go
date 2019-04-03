@@ -7,6 +7,7 @@ import (
 )
 
 func TestSendMail(t *testing.T) {
+	t.Skip("skipping mail test")
 	m := sesmailer.New("dev", "us-east-1")
 	if err := m.Init(nil); err != nil {
 		t.Fatalf("failed to initalize mailer: %v\n", err)
