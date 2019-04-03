@@ -46,6 +46,7 @@ type Service struct {
 	status           int32                              // service status
 	groupCache       *cache.ScanGroupSubscriber         // listen for scan group updates from cache (deleted/paused)
 	defaultDuration  time.Duration                      // filter used to extract addresses from address service
+	eventClient      am.EventService                    // used for notifying completion of scan groups
 	sgClient         am.ScanGroupService                // scangroup service connection
 	addressClient    am.AddressService                  // address service connection
 	moduleClients    map[am.ModuleType]am.ModuleService // map of module service connections
@@ -58,9 +59,9 @@ type Service struct {
 }
 
 // New for dispatching groups to be analyzed to the modules
-func New(sgClient am.ScanGroupService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
+func New(sgClient am.ScanGroupService, eventClient am.EventService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
-		defaultDuration: time.Duration(-5) * time.Minute,
+		defaultDuration: time.Duration(-30) * time.Minute,
 		groupCache:      cache.NewScanGroupSubscriber(context.Background(), stater),
 		state:           stater,
 		sgClient:        sgClient,
@@ -160,6 +161,10 @@ func (s *Service) groupListener() {
 			s.runGroup(ctx, details, start)
 			log.Ctx(ctx).Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
 
+			// notify event service this group is complete.
+			if err := s.eventClient.NotifyComplete(ctx, details.userContext, start.UnixNano(), details.scanGroupID); err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("failed to notify scan group complete")
+			}
 			s.stopGroup(ctx, details.userContext, details.scanGroupID)
 			s.DecActiveGroups()
 		}
@@ -411,7 +416,7 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 	return false, updatedAddress, nil
 }
 
-// should we skip ct/web analysis for this host? if enterprise, no, if no, we need to ensure this host has been in the database
+// should we skip ct/web analysis for this host? if enterprise, no, if yes, we need to ensure this host has been in the database
 // before we do any analysis on it.
 func (s *Service) shouldSkipAnalysis(ctx context.Context, userContext am.UserContext, updatedAddress *am.ScanGroupAddress) bool {
 	if userContext.GetSubscriptionID() >= am.SubscriptionEnterprise {

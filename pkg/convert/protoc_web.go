@@ -259,6 +259,7 @@ func DomainToWebData(in *am.WebData) *prototypes.WebData {
 		IPAddress:           in.IPAddress,
 		Scheme:              in.Scheme,
 		ResponsePort:        int32(in.ResponsePort),
+		RequestedPort:       int32(in.RequestedPort),
 		DetectedTech:        DomainToDetectedTech(in.DetectedTech),
 	}
 }
@@ -295,6 +296,7 @@ func WebDataToDomain(in *prototypes.WebData) *am.WebData {
 		HostAddress:         in.HostAddress,
 		IPAddress:           in.IPAddress,
 		ResponsePort:        int(in.ResponsePort),
+		RequestedPort:       int(in.RequestedPort),
 		SerializedDOMHash:   in.SerializedDOMHash,
 		SerializedDOMLink:   in.SerializedDOMLink,
 		ResponseTimestamp:   in.ResponseTimestamp,
@@ -318,6 +320,7 @@ func DomainToWebSnapshot(in *am.WebSnapshot) *prototypes.WebSnapshot {
 		HostAddress:        in.HostAddress,
 		IPAddress:          in.IPAddress,
 		ResponsePort:       int32(in.ResponsePort),
+		RequestedPort:      int32(in.RequestedPort),
 		Scheme:             in.Scheme,
 		TechCategories:     in.TechCategories,
 		TechNames:          in.TechNames,
@@ -344,6 +347,7 @@ func WebSnapshotToDomain(in *prototypes.WebSnapshot) *am.WebSnapshot {
 		HostAddress:        in.HostAddress,
 		IPAddress:          in.IPAddress,
 		ResponsePort:       int(in.ResponsePort),
+		RequestedPort:      int(in.RequestedPort),
 		Scheme:             in.Scheme,
 		TechCategories:     in.TechCategories,
 		TechNames:          in.TechNames,

@@ -61,9 +61,12 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
+	// initialize event client so we can notify of axfr servers
+	eventClient := initializers.EventClient()
+
 	state := initializers.State(&appConfig)
 	dc := dnsclient.New(dnsAddrs, 3)
-	service := ns.New(dc, state)
+	service := ns.New(eventClient, dc, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

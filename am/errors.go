@@ -22,6 +22,10 @@ var (
 	ErrOrganizationNotExists = errors.New("organization does not exist")
 
 	// User Specific
-	ErrUserExists   = errors.New("user already exists")
-	ErrUserCIDEmpty = errors.New("user cid is empty")
+	ErrUserExists     = errors.New("user already exists")
+	ErrUserCIDEmpty   = errors.New("user cid is empty")
+	ErrUserIDMismatch = errors.New("user id does not match user context user id")
+
+	// Events & Notifications
+	ErrEventCopyCount = errors.New("copy count of events did not match expected amount")
 )

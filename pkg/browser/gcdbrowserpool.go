@@ -209,6 +209,7 @@ func (b *GCDBrowserPool) returnBrowser(browser *gcd.Gcd) {
 func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress, scheme, port string) (*am.WebData, error) {
 	var browser *gcd.Gcd
 
+	requestPort, _ := strconv.Atoi(port) // safe to assume this won't fail
 	if atomic.LoadInt32(&b.closing) == 1 {
 		return nil, ErrBrowserClosing
 	}
@@ -273,7 +274,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	responsePort, err := strconv.Atoi(loadResponse.ResponsePort)
 	if err != nil {
-		responsePort, _ = strconv.Atoi(port) // safe to assume this won't fail
+		responsePort = requestPort
 	}
 
 	domMatches := b.detector.DOM(dom)
@@ -296,6 +297,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		HostAddress:         loadResponse.HostAddress,
 		IPAddress:           loadResponse.IPAddress,
 		ResponsePort:        responsePort,
+		RequestedPort:       requestPort,
 		Scheme:              loadResponse.Scheme,
 		SerializedDOM:       dom,
 		SerializedDOMHash:   convert.HashData([]byte(dom)),

@@ -62,7 +62,9 @@ func TestNS_Analyze(t *testing.T) {
 	}
 	state := amtest.MockNSState()
 	dc := dnsclient.New([]string{dnsServer}, 3)
-	ns := ns.New(dc, state)
+	eventClient := amtest.MockEventService()
+
+	ns := ns.New(eventClient, dc, state)
 	ns.Init(nil)
 	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
@@ -84,12 +86,17 @@ func TestNS_Analyze(t *testing.T) {
 		}
 		t.Logf("hash now: %s\n", r.AddressHash)
 	}
+	if !eventClient.AddInvoked {
+		t.Fatalf("error zonetransfer.me should have invoked eventClient Add")
+	}
 }
 
 func TestLinkaiHashBug(t *testing.T) {
 	state := amtest.MockNSState()
 	dc := dnsclient.New([]string{dnsServer}, 3)
-	ns := ns.New(dc, state)
+	eventClient := amtest.MockEventService()
+
+	ns := ns.New(eventClient, dc, state)
 	ns.Init(nil)
 	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
@@ -128,7 +135,9 @@ func TestNetflixInput(t *testing.T) {
 
 	state := amtest.MockNSState()
 	dc := dnsclient.New([]string{dnsServer}, 3)
-	ns := ns.New(dc, state)
+	eventClient := amtest.MockEventService()
+
+	ns := ns.New(eventClient, dc, state)
 	ns.Init(nil)
 
 	ctx := context.Background()

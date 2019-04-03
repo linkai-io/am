@@ -225,6 +225,9 @@ func TestAllGroups(t *testing.T) {
 	// during make infratest, so we *may* get back more than 1 group since multiple tests
 	// are running concurrently :/
 	if len(groups) < 1 {
+		for _, g := range groups {
+			t.Logf("%v\n", g)
+		}
 		t.Fatalf("expected 1 or more groups, got: %d\n", len(groups))
 	}
 
@@ -243,8 +246,15 @@ func TestAllGroups(t *testing.T) {
 		t.Fatalf("error reading AllGroups: %v\n", err)
 	}
 
-	if len(groups) != 1 {
-		t.Fatalf("expected 1 group, got: %d\n", len(groups))
+	found := false
+	for _, group := range groups {
+		if group.GroupID == gid {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatalf("expected to find group with pause filter\n")
 	}
 
 	f = &am.FilterType{}
@@ -257,8 +267,15 @@ func TestAllGroups(t *testing.T) {
 		t.Fatalf("error reading AllGroups: %v\n", err)
 	}
 
-	if len(groups) != 0 {
-		t.Fatalf("expected 0 group, got: %d\n", len(groups))
+	found = false
+	for _, g := range groups {
+		if g.GroupID == gid {
+			found = true
+		}
+		t.Logf("%v\n", g)
+	}
+	if found {
+		t.Fatalf("expected to not find group but it was\n")
 	}
 }
 

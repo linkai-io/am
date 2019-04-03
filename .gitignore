@@ -11,6 +11,7 @@ cmd/pipeline/pipeline
 cmd/webdata/webdata
 cmd/module/brute/brute
 cmd/module/web/web
+cmd/event/event
 services/module/web/testdata/*
 deploy_files/webmodule.zip
 deploy_files/webmoduleservice

@@ -37,6 +37,7 @@ type WebData struct {
 	HostAddress         string              `json:"host_address"`
 	IPAddress           string              `json:"ip_address"`
 	ResponsePort        int                 `json:"response_port"`
+	RequestedPort       int                 `json:"requested_port"`
 	SerializedDOM       string              `json:"serialized_dom,omitempty"` // only used internally by browser package
 	SerializedDOMHash   string              `json:"serialized_dom_hash"`
 	SerializedDOMLink   string              `json:"serialized_dom_link"`
@@ -131,6 +132,7 @@ type WebSnapshot struct {
 	HostAddress        string   `json:"host_address"`
 	IPAddress          string   `json:"ip_address"`
 	ResponsePort       int      `json:"response_port"`
+	RequestedPort      int      `json:"requested_port"`
 	Scheme             string   `json:"scheme"`
 	TechCategories     []string `json:"tech_categories"`
 	TechNames          []string `json:"tech_names"`
