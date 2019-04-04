@@ -65,6 +65,7 @@ func New(sgClient am.ScanGroupService, eventClient am.EventService, addrClient a
 		groupCache:      cache.NewScanGroupSubscriber(context.Background(), stater),
 		state:           stater,
 		sgClient:        sgClient,
+		eventClient:     eventClient,
 		addressClient:   addrClient,
 		moduleClients:   modClients,
 		pushCh:          make(chan *pushDetails),
