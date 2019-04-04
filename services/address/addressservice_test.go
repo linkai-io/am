@@ -984,8 +984,16 @@ func TestOrgStats(t *testing.T) {
 		t.Fatalf("error org id mismatch")
 	}
 
-	brute := orgStats[0].DiscoveredBy[am.DiscoveryBruteSubDomain]
-	input := orgStats[0].DiscoveredBy[am.DiscoveryNSInputList]
+	var brute int32
+	var input int32
+	for i, s := range orgStats[0].DiscoveredBy {
+		if s == am.DiscoveryBruteSubDomain {
+			brute = orgStats[0].DiscoveredByCount[i]
+		}
+		if s == am.DiscoveryNSInputList {
+			input = orgStats[0].DiscoveredByCount[i]
+		}
+	}
 	if brute != 10 || input != 90 {
 		t.Fatalf("expected 10 brute findings, and 90 input list got: %d %d", brute, input)
 	}

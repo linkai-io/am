@@ -91,12 +91,13 @@ type ScanGroupAggregates struct {
 
 // ScanGroupAddressStats general statistics for scan group addresses
 type ScanGroupAddressStats struct {
-	OrgID          int                             `json:"org_id"`
-	GroupID        int                             `json:"group_id"`
-	DiscoveredBy   map[string]int32                `json:"discovered_by"`
-	Aggregates     map[string]*ScanGroupAggregates `json:"aggregates"`
-	Total          int32                           `json:"total"`
-	ConfidentTotal int32                           `json:"confident_total"`
+	OrgID             int                             `json:"org_id"`
+	GroupID           int                             `json:"group_id"`
+	DiscoveredBy      []string                        `json:"discovered_by"`
+	DiscoveredByCount []int32                         `json:"discovered_by_count"`
+	Aggregates        map[string]*ScanGroupAggregates `json:"aggregates"`
+	Total             int32                           `json:"total"`
+	ConfidentTotal    int32                           `json:"confident_total"`
 }
 
 // AddressService manages all asset data

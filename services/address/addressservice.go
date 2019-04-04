@@ -437,6 +437,8 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 
 		if stat, ok = stats[groupID]; !ok {
 			stat = &am.ScanGroupAddressStats{}
+			stat.DiscoveredBy = make([]string, 0)
+			stat.DiscoveredByCount = make([]int32, 0)
 			stat.Aggregates = make(map[string]*am.ScanGroupAggregates)
 			stat.GroupID = groupID
 			stat.OrgID = userContext.GetOrgID()
@@ -451,6 +453,7 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		stat.Aggregates[aggType].Count = append(stat.Aggregates[aggType].Count, count)
 		stat.Aggregates[aggType].Time = append(stat.Aggregates[aggType].Time, periodStart.UnixNano())
 	}
+
 	rows, err = s.pool.QueryEx(ctx, "discoveredByOrg", &pgx.QueryExOptions{}, userContext.GetOrgID())
 	defer rows.Close()
 	if err != nil {
@@ -467,6 +470,7 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		if err := rows.Scan(&groupID, &by, &count); err != nil {
 			return 0, nil, err
 		}
+
 		if stat, ok = stats[groupID]; !ok {
 			stat = &am.ScanGroupAddressStats{}
 			stat.Aggregates = make(map[string]*am.ScanGroupAggregates)
@@ -476,10 +480,12 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		}
 
 		if stats[groupID].DiscoveredBy == nil {
-			stats[groupID].DiscoveredBy = make(map[string]int32, 0)
+			stats[groupID].DiscoveredBy = make([]string, 0)
+			stats[groupID].DiscoveredByCount = make([]int32, 0)
 		}
 
-		stats[groupID].DiscoveredBy[by] = count
+		stats[groupID].DiscoveredBy = append(stats[groupID].DiscoveredBy, by)
+		stats[groupID].DiscoveredByCount = append(stats[groupID].DiscoveredByCount, count)
 		stats[groupID].ConfidentTotal += count // since our query already counts only confident hosts, just add to the total
 	}
 

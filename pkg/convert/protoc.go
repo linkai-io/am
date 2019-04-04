@@ -611,12 +611,13 @@ func DomainToScanGroupAggregates(in map[string]*am.ScanGroupAggregates) map[stri
 
 func DomainToScanGroupAddressStats(in *am.ScanGroupAddressStats) *prototypes.ScanGroupAddressStats {
 	return &prototypes.ScanGroupAddressStats{
-		OrgID:          int32(in.OrgID),
-		GroupID:        int32(in.GroupID),
-		DiscoveredBy:   in.DiscoveredBy,
-		Aggregates:     DomainToScanGroupAggregates(in.Aggregates),
-		Total:          in.Total,
-		ConfidentTotal: in.ConfidentTotal,
+		OrgID:             int32(in.OrgID),
+		GroupID:           int32(in.GroupID),
+		DiscoveredBy:      in.DiscoveredBy,
+		DiscoveredByCount: in.DiscoveredByCount,
+		Aggregates:        DomainToScanGroupAggregates(in.Aggregates),
+		Total:             in.Total,
+		ConfidentTotal:    in.ConfidentTotal,
 	}
 }
 
@@ -641,12 +642,13 @@ func ScanGroupAggregatesToDomain(in map[string]*prototypes.ScanGroupAggregates) 
 
 func ScanGroupAddressStatsToDomain(in *prototypes.ScanGroupAddressStats) *am.ScanGroupAddressStats {
 	return &am.ScanGroupAddressStats{
-		OrgID:          int(in.OrgID),
-		GroupID:        int(in.GroupID),
-		DiscoveredBy:   in.DiscoveredBy,
-		Aggregates:     ScanGroupAggregatesToDomain(in.Aggregates),
-		Total:          in.Total,
-		ConfidentTotal: in.ConfidentTotal,
+		OrgID:             int(in.OrgID),
+		GroupID:           int(in.GroupID),
+		DiscoveredBy:      in.DiscoveredBy,
+		DiscoveredByCount: in.DiscoveredByCount,
+		Aggregates:        ScanGroupAggregatesToDomain(in.Aggregates),
+		Total:             in.Total,
+		ConfidentTotal:    in.ConfidentTotal,
 	}
 }
 
