@@ -145,8 +145,10 @@ func TestOrgStats(t *testing.T) {
 		t.Fatalf("expected 100 unique servers")
 	}
 
-	if stats[0].ServerTypes["Apache 1.0.55"] != 1 {
-		t.Fatalf("expected only 1 for Apache 1.0.55, got %d\n", stats[0].ServerTypes["Apache 1.0.55"])
+	for i, serverType := range stats[0].ServerTypes {
+		if serverType == "Apache 1.0.55" && stats[0].ServerCounts[i] != 1 {
+			t.Fatalf("expected only 1 for Apache 1.0.55, got %d\n", stats[0].ServerCounts[i])
+		}
 	}
 
 	_, groupStats, err := service.GroupStats(ctx, org.UserContext, stats[0].GroupID)

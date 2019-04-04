@@ -206,10 +206,11 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 	}
 
 	axfrServers := make([]string, 0)
+	axfrWorked := false
 	for serv, result := range axfr {
 		axfrServers = append(axfrServers, serv)
-		// TODO report axfr ns servers as a finding
 		for _, r := range result {
+			axfrWorked = true // we actually got responses
 			if len(r.Hosts) == 1 {
 				for _, ip := range r.IPs {
 					newAddress := module.NewAddressFromDNS(address, ip, parsers.FQDNTrim(r.Hosts[0]), am.DiscoveryNSAXFR, uint(r.RecordType))
@@ -225,19 +226,21 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 	}
 
 	// notify event service that the ns server is leaking addrs via axfr
-	axfrEvents := make([]*am.Event, 1)
-	axfrEvents[0] = &am.Event{
-		OrgID:          userContext.GetOrgID(),
-		GroupID:        address.GroupID,
-		TypeID:         am.EventAXFR,
-		EventTimestamp: time.Now().UnixNano(),
-		Data:           axfrServers,
-		Read:           false,
+	if axfrWorked {
+		axfrEvents := make([]*am.Event, 1)
+		axfrEvents[0] = &am.Event{
+			OrgID:          userContext.GetOrgID(),
+			GroupID:        address.GroupID,
+			TypeID:         am.EventAXFR,
+			EventTimestamp: time.Now().UnixNano(),
+			Data:           axfrServers,
+			Read:           false,
+		}
+		if err := ns.eventClient.Add(ctx, userContext, axfrEvents); err != nil {
+			log.Ctx(ctx).Warn().Err(err).Msg("failed to notify server of axfr leaky servers")
+		}
 	}
 
-	if err := ns.eventClient.Add(ctx, userContext, axfrEvents); err != nil {
-		log.Ctx(ctx).Warn().Err(err).Msg("failed to notify server of axfr leaky servers")
-	}
 	return nsData
 }
 

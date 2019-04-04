@@ -13,6 +13,7 @@ func DomainToScanGroupWebDataStats(in *am.ScanGroupWebDataStats) *prototypes.Sca
 		ExpiringCerts30Days: in.ExpiringCerts30Days,
 		UniqueWebServers:    in.UniqueWebServers,
 		ServerTypes:         in.ServerTypes,
+		ServerCounts:        in.ServerCounts,
 	}
 }
 
@@ -32,6 +33,7 @@ func ScanGroupWebDataStatsToDomain(in *prototypes.ScanGroupWebDataStats) *am.Sca
 		ExpiringCerts30Days: in.ExpiringCerts30Days,
 		UniqueWebServers:    in.UniqueWebServers,
 		ServerTypes:         in.ServerTypes,
+		ServerCounts:        in.ServerCounts,
 	}
 }
 

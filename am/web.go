@@ -172,12 +172,13 @@ type WebCertificateFilter struct {
 
 // ScanGroupWebDataStats returns general statistics for web related asset data
 type ScanGroupWebDataStats struct {
-	OrgID               int              `json:"org_id"`
-	GroupID             int              `json:"group_id"`
-	ExpiringCerts15Days int32            `json:"expiring_certs_15"`
-	ExpiringCerts30Days int32            `json:"expiring_certs_30"`
-	UniqueWebServers    int32            `json:"unique_web_servers"`
-	ServerTypes         map[string]int32 `json:"server_types"`
+	OrgID               int      `json:"org_id"`
+	GroupID             int      `json:"group_id"`
+	ExpiringCerts15Days int32    `json:"expiring_certs_15"`
+	ExpiringCerts30Days int32    `json:"expiring_certs_30"`
+	UniqueWebServers    int32    `json:"unique_web_servers"`
+	ServerTypes         []string `json:"server_types"`
+	ServerCounts        []int32  `json:"server_counts"`
 }
 
 // WebDataService adds and returns all web responses

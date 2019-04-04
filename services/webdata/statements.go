@@ -76,7 +76,7 @@ var queryMap = map[string]string{
 	"serverCounts": `select 
 		scan_group_id,
 		agg.server, 
-		count(1) from 
+		count(1) as cnt from 
 			(select host_address,headers->>'server' as server,
 					max(web_responses.url_request_timestamp) as url_request_timestamp,
 					max(web_responses.response_timestamp) as response_timestamp from am.web_responses 
@@ -86,7 +86,7 @@ var queryMap = map[string]string{
 					group by server,host_address) as agg 
 			join am.web_responses as wb 
 				on wb.url_request_timestamp=agg.url_request_timestamp 
-				and wb.response_timestamp=agg.response_timestamp group by scan_group_id,agg.server;`,
+				and wb.response_timestamp=agg.response_timestamp group by scan_group_id,agg.server order by cnt desc;`,
 
 	"expiringCerts": `select 
 		scan_group_id, 'thirty' as days, count(1) from am.web_certificates 

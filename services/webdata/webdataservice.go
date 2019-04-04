@@ -107,9 +107,11 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		if err := rows.Scan(&groupID, &server, &count); err != nil {
 			return 0, nil, err
 		}
+
 		if stat, ok = stats[groupID]; !ok {
 			stat = &am.ScanGroupWebDataStats{}
-			stat.ServerTypes = make(map[string]int32, 0)
+			stat.ServerTypes = make([]string, 0)
+			stat.ServerCounts = make([]int32, 0)
 			stats[groupID] = stat
 		}
 		stat.GroupID = groupID
@@ -117,7 +119,8 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		if server == nil {
 			continue
 		}
-		stat.ServerTypes[*server] += count
+		stat.ServerTypes = append(stat.ServerTypes, *server)
+		stat.ServerCounts = append(stat.ServerCounts, count)
 		stat.UniqueWebServers += count // add the total of server types (since they are unique host/port)
 	}
 	log.Info().Msgf("%#v\n", stats)
@@ -142,7 +145,8 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 
 		if stat, ok = stats[groupID]; !ok {
 			stat = &am.ScanGroupWebDataStats{}
-			stat.ServerTypes = make(map[string]int32, 0)
+			stat.ServerTypes = make([]string, 0)
+			stat.ServerCounts = make([]int32, 0)
 			stats[groupID] = stat
 		}
 		switch expiresTime {
