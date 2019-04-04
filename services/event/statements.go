@@ -12,7 +12,7 @@ const sharedSettingColumns = `organization_id,
 
 var queryMap = map[string]string{
 	"getUserSettings":      fmt.Sprintf(`select %s from am.user_notification_settings where organization_id=$1 and user_id=$2`, sharedSettingColumns),
-	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
+	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
 	"updateUserSettings": fmt.Sprintf(`insert into am.user_notification_settings (%s) values
 		($1, $2, $3, $4, $5, $6, $7) on conflict (organization_id,user_id) do update set
 		weekly_report_send_day=EXCLUDED.weekly_report_send_day,

@@ -179,7 +179,7 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 	for i := 0; rows.Next(); i++ {
 		sub := &am.EventSubscriptions{}
 		var ts time.Time
-		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts); err != nil {
+		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts, &sub.Subscribed); err != nil {
 			return nil, err
 		}
 

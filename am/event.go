@@ -54,9 +54,9 @@ type EventSubscriptions struct {
 
 type UserEventSettings struct {
 	WeeklyReportSendDay int32                 `json:"weekly_report_day"`
-	ShouldWeeklyEmail   bool                  `json:"should_email_weekly"`
+	ShouldWeeklyEmail   bool                  `json:"should_weekly_email"`
 	DailyReportSendHour int32                 `json:"daily_report_hour"`
-	ShouldDailyEmail    bool                  `json:"should_email_daily"`
+	ShouldDailyEmail    bool                  `json:"should_daily_email"`
 	UserTimezone        string                `json:"user_timezone"`
 	Subscriptions       []*EventSubscriptions `json:"subscriptions"`
 }

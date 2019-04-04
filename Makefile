@@ -1,5 +1,5 @@
-ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice
-BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice
+ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice eventservice
+BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice eventservice
 MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
 APP_ENV = dev
 build:
@@ -61,7 +61,10 @@ webmoduleservice:
 bigdatamoduleservice:
 	docker build -t bigdatamoduleservice -f Dockerfile.bigdatamoduleservice .
 
-allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice webmoduleservice bigdatamoduleservice
+eventservice:
+	docker build -t eventservice -f Dockerfile.eventservice .
+
+allservices: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice webmoduleservice bigdatamoduleservice eventservice
 
 backend: orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice
 
@@ -104,6 +107,9 @@ pushwebdataservice:
 pushbigdataservice:
 	docker tag bigdataservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdataservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/bigdataservice:latest
 
+pusheventservice:
+	docker tag eventservice:latest 447064213022.dkr.ecr.us-east-1.amazonaws.com/eventservice:latest && docker push 447064213022.dkr.ecr.us-east-1.amazonaws.com/eventservice:latest
+
 deploybackend: 
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
@@ -136,6 +142,9 @@ deploybigdataservice:
 
 deployaddressservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service addressservice
+
+deployeventservice:
+	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service eventservice
 
 pushwebmoduleservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/gcdleaser cmd/gcdleaser/main.go
