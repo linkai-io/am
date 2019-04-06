@@ -131,6 +131,7 @@ func TestGetHostList(t *testing.T) {
 		Start:   0,
 		Limit:   10000,
 		GroupID: groupID,
+		Filters: &am.FilterType{},
 	}
 
 	oid, hosts, err := service.GetHostList(ctx, userContext, filter)

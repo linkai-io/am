@@ -22,9 +22,9 @@ type Mail struct {
 }
 
 func New(env, region string) *Mail {
-	sender := fmt.Sprintf("noreply@%s.noreply.linkai.io", env)
+	sender := fmt.Sprintf("notifications@%s.hakken.linkai.io", env)
 	if env == "prod" {
-		sender = fmt.Sprintf("noreply@noreply.linkai.io")
+		sender = fmt.Sprintf("notifications@hakken.linkai.io")
 	}
 
 	return &Mail{env: env, region: region, sender: sender}
