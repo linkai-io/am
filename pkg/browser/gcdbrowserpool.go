@@ -226,6 +226,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		b.Return(ctx, browser)
 		return nil, err
 	}
+
 	defer b.Return(ctx, browser)
 	defer browser.CloseTab(t) // closes websocket go routines
 
