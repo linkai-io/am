@@ -219,8 +219,14 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	}
 
 	log.Info().Msg("acquired browser")
-	defer b.Return(ctx, browser)
+
 	t, err := browser.GetFirstTab()
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get first tab")
+		b.Return(ctx, browser)
+		return nil, err
+	}
+	defer b.Return(ctx, browser)
 	defer browser.CloseTab(t) // closes websocket go routines
 
 	t.SetApiTimeout(b.browserTimeout)

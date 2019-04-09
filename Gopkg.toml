@@ -41,10 +41,6 @@
   version = "1.15.45"
 
 [[constraint]]
-  name = "github.com/bsm/grpclb"
-  version = "0.5.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/gammazero/workerpool"
 
@@ -62,11 +58,11 @@
 
 [[constraint]]
   name = "github.com/hashicorp/consul"
-  version = "1.2.3"
+  version = "1.4.4"
 
 [[constraint]]
   name = "github.com/jackc/pgx"
-  version = "3.2.0"
+  version = "3.3.0"
 
 [[constraint]]
   name = "github.com/miekg/dns"
@@ -83,10 +79,6 @@
 [[constraint]]
   name = "github.com/rs/zerolog"
   version = "1.9.1"
-
-[[constraint]]
-  name = "github.com/spaolacci/murmur3"
-  version = "1.1.0"
 
 [[constraint]]
   branch = "master"
