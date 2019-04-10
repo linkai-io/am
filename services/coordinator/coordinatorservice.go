@@ -150,14 +150,18 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return errors.Wrap(err, "failed to get group status")
 	}
 
-	groupLog.Info().Msg("Getting group via scangroupclient")
+	groupLog.Info().Bool("exists", exists).Int("status", int(status)).Msg("Getting group via scangroupclient")
 	oid, group, err := s.scanGroupClient.Get(ctx, userContext, scanGroupID)
 	if err != nil {
 		return errors.Wrap(err, "err with scan group client")
 	}
 
 	if status == am.GroupStarted || group.Paused || group.Deleted {
-		s.shouldUpdateGroup(ctx, userContext, group)
+		if err := s.shouldUpdateGroup(ctx, userContext, group); err != nil {
+			groupLog.Error().Err(err).Msg("shouldUpdate group failed")
+			return err
+		}
+		groupLog.Info().Msg("Group already started")
 		return ErrScanGroupAlreadyStarted
 	}
 
@@ -206,15 +210,18 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 // StopGroup checks the group status in our state system. If it's already stopped, we are done. Otherwise,
 // it extracts group from scangroup client to create a proxyUserContext. Then call stopGroup to delete the
 // old config from state, and replace it with the new, paused state after calling sgClient.Pause.
-func (s *Service) StopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) (string, error) {
+func (s *Service) StopGroup(ctx context.Context, userContext am.UserContext, orgID, scanGroupID int) (string, error) {
 	if userContext.GetOrgID() != s.systemOrgID && userContext.GetUserID() != s.systemUserID {
 		return "", am.ErrUserNotAuthorized
 	}
 
-	exists, status, err := s.state.GroupStatus(ctx, userContext, scanGroupID)
+	// need the org id to actually look it up from state.
+	exists, status, err := s.state.GroupStatus(ctx, &am.UserContextData{OrgID: orgID}, scanGroupID)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get group status")
 	}
+
+	log.Info().Bool("exists", exists).Int("status", int(status)).Msg("stop group got group status")
 
 	if status == am.GroupStopped {
 		return "group already stopped", nil

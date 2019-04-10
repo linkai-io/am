@@ -13,7 +13,7 @@ type CoordinatorService interface {
 	// externally accessable rpcs
 	//GroupStats(ctx context.Context, userContext UserContext, scanGroupID int) (*ScanGroupStats, error)
 	StartGroup(ctx context.Context, userContext UserContext, scanGroupID int) error
-	StopGroup(ctx context.Context, userContext UserContext, scanGroupID int) (string, error)
+	StopGroup(ctx context.Context, userContext UserContext, orgID, scanGroupID int) (string, error)
 	//DeleteGroup(ctx context.Context, userContext UserContext, scanGroupID int) error
 
 	// internal methods
