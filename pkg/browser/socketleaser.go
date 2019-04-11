@@ -25,6 +25,25 @@ func NewSocketLeaser() *SocketLeaser {
 	return s
 }
 
+func (s *SocketLeaser) Cleanup() (string, error) {
+	resp, err := s.leaserClient.Get("http://unix/cleanup")
+	if err != nil {
+		return "", err
+	}
+
+	response, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode == 500 {
+		return "", errors.New(string(response))
+	}
+
+	return string(response), nil
+}
+
 func (s *SocketLeaser) Acquire() (string, error) {
 	resp, err := s.leaserClient.Get("http://unix/acquire")
 	if err != nil {

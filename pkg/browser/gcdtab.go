@@ -220,7 +220,6 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		//message.Params.RedirectResponse.RemoteIPAddress
 		if message.Params.Type == "Document" {
 			t.container.SetLoadRequest(message.Params.RequestId)
-			log.Info().Msgf("%#v\n%#v\n%#v\n%#v\n", message.Params, message.Params.Initiator, message.Params.RedirectResponse, message.Params.Request)
 		}
 	})
 
@@ -233,7 +232,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		if err := json.Unmarshal(payload, message); err != nil {
 			return
 		}
-		
+
 		if parsers.IsBannedIP(message.Params.Response.RemoteIPAddress) {
 			log.Warn().Str("url", message.Params.Response.Url).Str("ip_address", message.Params.Response.RemoteIPAddress).Msg("BANNED IP REQUESTED")
 			return

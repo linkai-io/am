@@ -56,3 +56,14 @@ func (s *LocalLeaser) Return(port string) error {
 
 	return errors.New("not found")
 }
+
+func (s *LocalLeaser) Cleanup() (string, error) {
+	if err := KillOldProcesses(); err != nil {
+		return "", err
+	}
+
+	if err := RemoveTmpContents(); err != nil {
+		return "", err
+	}
+	return "ok", nil
+}

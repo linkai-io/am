@@ -56,7 +56,6 @@ func (b *Batcher) Drain() map[string]*am.ScanGroupAddress {
 				return results
 			}
 		default:
-			log.Info().Int("count", len(results)).Msg("Uploader Drained")
 			return results
 		}
 	}

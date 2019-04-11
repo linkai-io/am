@@ -68,6 +68,7 @@ type GCDBrowserPool struct {
 	profileDir       string
 	maxBrowsers      int
 	acquiredBrowsers int32
+	acquireErrors    int32
 	browsers         chan *gcd.Gcd
 	browserTimeout   time.Duration
 	closing          int32
@@ -93,6 +94,9 @@ func (b *GCDBrowserPool) UseDisplay(display string) {
 
 // Init starts the browser/Browser pool
 func (b *GCDBrowserPool) Init() error {
+	if _, err := b.leaser.Cleanup(); err != nil {
+		return err
+	}
 	return b.Start()
 }
 
@@ -120,7 +124,7 @@ func (b *GCDBrowserPool) Start() error {
 }
 
 // Acquire a Browser, unless context expired. If expired, increment our Browser error count
-// which is used to restart the entire browser process aftere a max limit on errors
+// which is used to restart the entire browser process after a max limit on errors
 // is reached
 func (b *GCDBrowserPool) Acquire(ctx context.Context) *gcd.Gcd {
 
@@ -130,13 +134,14 @@ func (b *GCDBrowserPool) Acquire(ctx context.Context) *gcd.Gcd {
 		return browser
 	case <-ctx.Done():
 		log.Warn().Err(ctx.Err()).Msg("failed to acquire Browser from pool")
+		atomic.AddInt32(&b.acquireErrors, 1)
 		return nil
 	}
 }
 
 // Return a browser
 func (b *GCDBrowserPool) Return(ctx context.Context, browser *gcd.Gcd) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*3)
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	doneCh := make(chan struct{})
 
@@ -144,38 +149,19 @@ func (b *GCDBrowserPool) Return(ctx context.Context, browser *gcd.Gcd) {
 
 	select {
 	case <-timeoutCtx.Done():
+		log.Error().Msg("failed to closeAndCreateBrowser in time")
 	case <-doneCh:
 		return
 	}
 }
 
-// Close all browsers and return. TODO: make this not terrible.
-func (b *GCDBrowserPool) Close(ctx context.Context) error {
-	if !atomic.CompareAndSwapInt32(&b.closing, 0, 1) {
-		return nil
-	}
-
-	for {
-		browser := b.Acquire(ctx)
-		if browser != nil {
-			b.returnBrowser(browser)
-		}
-
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		if len(b.browsers) == 0 {
-			return nil
-		}
-	}
-}
-
 // closeAndCreateBrowser takes an optional Browser to close, and creates a new one, closing doneCh
-// to signal it was successfully created.
+// to signal it completed (although it may be a nil browser if error occurred).
 func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan struct{}) {
 	if browser != nil {
-		b.returnBrowser(browser)
+		if err := b.leaser.Return(browser.Port()); err != nil {
+			log.Error().Err(err).Msg("failed to return browser")
+		}
 		atomic.AddInt32(&b.acquiredBrowsers, -1)
 	}
 
@@ -197,14 +183,6 @@ func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan str
 	close(doneCh)
 }
 
-// returnBrowser returns the browser (identified by port) to the gcdleaser service
-// so it can handle shutting everything down
-func (b *GCDBrowserPool) returnBrowser(browser *gcd.Gcd) {
-	if err := b.leaser.Return(browser.Port()); err != nil {
-		log.Error().Err(err).Msg("failed to return browser")
-	}
-}
-
 // Load an address of scheme and port, returning an image, the dom, all text based responses or an error.
 func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress, scheme, port string) (*am.WebData, error) {
 	var browser *gcd.Gcd
@@ -214,6 +192,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		return nil, ErrBrowserClosing
 	}
 
+	// if nil, do not return browser
 	if browser = b.Acquire(ctx); browser == nil {
 		return nil, errors.New("browser acquisition failed during Load")
 	}
@@ -235,7 +214,6 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	tab := NewTab(t, address)
 	defer tab.Close()
 
-	log.Info().Msg("capturing traffic")
 	tab.CaptureNetworkTraffic(ctx, address, port)
 
 	url := b.buildURL(tab, address, scheme, port)
@@ -315,6 +293,30 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	log.Info().Msg("closed browser")
 	return webData, nil
+}
+
+// Close all browsers and return. TODO: make this not terrible.
+func (b *GCDBrowserPool) Close(ctx context.Context) error {
+	if !atomic.CompareAndSwapInt32(&b.closing, 0, 1) {
+		return nil
+	}
+
+	for {
+		browser := b.Acquire(ctx)
+		if browser != nil {
+			if err := b.leaser.Return(browser.Port()); err != nil {
+				log.Error().Err(err).Msg("failed to return browser")
+			}
+		}
+
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if len(b.browsers) == 0 {
+			return nil
+		}
+	}
 }
 
 // buildURL and signal the browser to inject IP address if we have an IP/Host pair

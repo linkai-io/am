@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 	"github.com/wirepair/gcd"
 )
 
-const SOCK = "/tmp/gcdleaser.sock"
+const SOCK = "/tmp/leaser.sock"
 
 type GcdLeaser struct {
 	listener       net.Listener
@@ -37,6 +39,15 @@ func (g *GcdLeaser) Serve() error {
 	var err error
 	// Start Server
 	os.Remove(SOCK)
+
+	if err := KillOldProcesses(); err != nil {
+		log.Fatal().Err(err).Msg("failed to kill old chrome processes")
+	}
+
+	if err := RemoveTmpContents(); err != nil {
+		log.Fatal().Err(err).Msg("failed to remove tmp contents")
+	}
+
 	g.listener, err = net.Listen("unix", SOCK)
 	// HACK HACK HACK TODO: put the users in proper 'browser' group to share file via 770
 	if err := os.Chmod(SOCK, 0777); err != nil {
@@ -47,6 +58,7 @@ func (g *GcdLeaser) Serve() error {
 		log.Fatal().Err(err).Msg("Listen (UNIX socket): ")
 	}
 
+	http.HandleFunc("/cleanup", g.Cleanup)
 	http.HandleFunc("/acquire", g.Acquire)
 	http.HandleFunc("/return", g.Return)
 
@@ -79,7 +91,6 @@ func (g *GcdLeaser) Acquire(w http.ResponseWriter, r *http.Request) {
 	g.browserLock.Lock()
 	g.browsers[port] = b
 	g.browserLock.Unlock()
-
 	w.WriteHeader(200)
 	fmt.Fprintf(w, port)
 }
@@ -93,12 +104,13 @@ func (g *GcdLeaser) Return(w http.ResponseWriter, r *http.Request) {
 	defer g.browserLock.Unlock()
 
 	if b, ok := g.browsers[port]; ok {
+		delete(g.browsers, port)
 		if err := b.ExitProcess(); err != nil {
 			w.WriteHeader(500)
 			fmt.Fprintf(w, "error: "+err.Error())
 			return
 		}
-		delete(g.browsers, port)
+
 		w.WriteHeader(200)
 		fmt.Fprintf(w, "ok")
 		return
@@ -106,6 +118,45 @@ func (g *GcdLeaser) Return(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(404)
 	fmt.Fprintf(w, "not found")
+}
+
+func (g *GcdLeaser) Cleanup(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	if err := KillOldProcesses(); err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "failed to kill old chrome processes: "+err.Error())
+		return
+	}
+
+	if err := RemoveTmpContents(); err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "failed to remove tmp contents: "+err.Error())
+		return
+	}
+}
+
+func RemoveTmpContents() error {
+	files, err := filepath.Glob(filepath.Join("/tmp", "gcd*"))
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		err = os.RemoveAll(file)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func KillOldProcesses() error {
+	cmd := exec.Command("killall", "google-chrome")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Warn().Msgf("%s:%s", err.Error(), string(output))
+	}
+	return nil
 }
 
 func randPort() string {
