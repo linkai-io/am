@@ -2,6 +2,7 @@ package webtech
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -461,7 +462,9 @@ func findMatches(content string, regexes []AppRegexp, location string) []*Match 
 func findMatchesPool(content string, regexes []AppRegexp, location string) []*Match {
 	poolLen := runtime.NumCPU() // cpu bound so only need a pool of # cpus
 	pool := workerpool.New(poolLen)
-	out := make(chan *Match, poolLen)
+	out := make(chan *Match, 1000)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
 	task := func(r AppRegexp) func() {
 		return func() {
@@ -477,7 +480,11 @@ func findMatchesPool(content string, regexes []AppRegexp, location string) []*Ma
 			if r.Version != "" {
 				match.Version = findVersion(regexMatches, r.Version)
 			}
-			out <- match
+			select {
+			case out <- match:
+			case <-timeoutCtx.Done():
+				log.Error().Msg("failed to send match")
+			}
 		}
 	}
 

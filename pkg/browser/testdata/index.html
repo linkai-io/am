@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<head>
+    <title>dom update test</title>
+    <script>
+    window.addEventListener('load', function() {
+        setInterval(function() {
+            var ele = document.getElementById('updateme');
+            ele.textContent = new Date().getMilliseconds();
+            ele.appendChild(document.createElement('div'));
+        }, 10);
+    });
+    </script>
+</head>
+<body>
+    <div id="updateme"></div>
+</body>
+</html>

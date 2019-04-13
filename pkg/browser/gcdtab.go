@@ -38,7 +38,7 @@ type Tab struct {
 	lastNodeChangeTimeVal atomic.Value
 }
 
-func NewTab(tab *gcd.ChromeTarget, address *am.ScanGroupAddress) *Tab {
+func NewTab(ctx context.Context, tab *gcd.ChromeTarget, address *am.ScanGroupAddress) *Tab {
 	t := &Tab{
 		t:            tab,
 		address:      address,
@@ -47,7 +47,7 @@ func NewTab(tab *gcd.ChromeTarget, address *am.ScanGroupAddress) *Tab {
 		exitCh:       make(chan struct{}),
 		navigationCh: make(chan int),
 	}
-	t.subscribeBrowserEvents()
+	t.subscribeBrowserEvents(ctx)
 	return t
 }
 
@@ -59,10 +59,10 @@ func (t *Tab) Close() {
 // LoadPage capture network traffic and take screen shot of DOM and image
 func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	navParams := &gcdapi.PageNavigateParams{Url: url, TransitionType: "typed"}
-	log.Info().Str("url", url).Msg("navigating")
+	log.Ctx(ctx).Info().Msg("navigating")
 	_, _, errText, err := t.t.Page.NavigateWithParams(navParams)
 	if err != nil {
-		log.Warn().Err(err).Str("host_address", t.address.HostAddress).
+		log.Ctx(ctx).Warn().Err(err).Str("host_address", t.address.HostAddress).
 			Str("ip_address", t.address.IPAddress).
 			Str("url", url).Msg("failed to load page")
 		return err
@@ -72,8 +72,10 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 		return errors.Wrap(ErrNavigating, errText)
 	}
 
-	log.Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
-	return t.WaitReady(ctx, time.Second*3)
+	log.Ctx(ctx).Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
+	err = t.WaitReady(ctx, time.Second*3)
+	log.Ctx(ctx).Info().Msg("wait ready returned")
+	return err
 }
 
 // InjectJS only caller knows what the response type will be so return an interface{}
@@ -117,7 +119,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	defer ticker.Stop()
 
 	navTimer := time.After(30 * time.Second)
-	log.Info().Msg("waiting for nav to complete")
+	log.Ctx(ctx).Info().Msg("waiting for nav to complete")
 	// wait navigation to complete.
 	select {
 	case <-navTimer:
@@ -134,7 +136,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	stableTimer := time.After(5 * time.Second)
 
 	// wait for DOM & network stability
-	log.Info().Msg("waiting for DOM & network stability")
+	log.Ctx(ctx).Info().Msg("waiting for DOM & network stability")
 	for {
 		select {
 		case reason := <-t.crashedCh:
@@ -144,12 +146,14 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 		case <-t.exitCh:
 			return ErrTabClosing
 		case <-stableTimer:
+			log.Ctx(ctx).Info().Msg("stability timed out")
 			return ErrTimedOut
 		case <-ticker.C:
 			if changeTime, ok := t.lastNodeChangeTimeVal.Load().(time.Time); ok {
 				//log.Info().Int32("requests", t.container.GetRequests()).Msgf("tick %s", time.Now().Sub(changeTime))
 				if time.Now().Sub(changeTime) >= stableAfter && t.container.GetRequests() == 0 {
 					// times up, should be stable now
+					log.Ctx(ctx).Info().Msg("stable")
 					return nil
 				}
 			}
@@ -234,7 +238,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		}
 
 		if parsers.IsBannedIP(message.Params.Response.RemoteIPAddress) {
-			log.Warn().Str("url", message.Params.Response.Url).Str("ip_address", message.Params.Response.RemoteIPAddress).Msg("BANNED IP REQUESTED")
+			log.Ctx(ctx).Warn().Str("url", message.Params.Response.Url).Str("ip_address", message.Params.Response.RemoteIPAddress).Msg("BANNED IP REQUESTED")
 			return
 		}
 
@@ -248,7 +252,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 			url = "(dataurl)"
 		}
 
-		log.Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
+		log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
 		if err := t.container.WaitFor(timeoutCtx, p.RequestId); err != nil {
 			return
 		}
@@ -267,7 +271,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		if err := json.Unmarshal(payload, message); err != nil {
 			return
 		}
-		log.Info().Str("request_id", message.Params.RequestId).Msg("finished")
+		log.Ctx(ctx).Info().Str("request_id", message.Params.RequestId).Msg("finished")
 		t.container.BodyReady(message.Params.RequestId)
 	})
 }
@@ -401,14 +405,14 @@ func (t *Tab) encodeResponseBody(p *gcdapi.NetworkResponseReceivedEvent) string 
 	return bodyStr
 }
 
-func (t *Tab) domUpdated() func(target *gcd.ChromeTarget, payload []byte) {
+func (t *Tab) domUpdated(ctx context.Context) func(target *gcd.ChromeTarget, payload []byte) {
 	return func(target *gcd.ChromeTarget, payload []byte) {
-		log.Info().Msg("dom updated")
+		log.Ctx(ctx).Info().Msg("dom updated")
 		t.lastNodeChangeTimeVal.Store(time.Now())
 	}
 }
 
-func (t *Tab) subscribeBrowserEvents() {
+func (t *Tab) subscribeBrowserEvents(ctx context.Context) {
 	t.t.DOM.Enable()
 	t.t.Inspector.Enable()
 	t.t.Page.Enable()
@@ -429,7 +433,7 @@ func (t *Tab) subscribeBrowserEvents() {
 		}
 
 		t.t.Security.HandleCertificateErrorWithParams(p)
-		log.Info().Msg("certificate error handled")
+		log.Ctx(ctx).Info().Msg("certificate error handled")
 	})
 
 	t.t.Subscribe("Inspector.targetCrashed", func(target *gcd.ChromeTarget, payload []byte) {
@@ -462,13 +466,13 @@ func (t *Tab) subscribeBrowserEvents() {
 	})
 
 	// new nodes
-	t.t.Subscribe("DOM.setChildNodes", t.domUpdated())
-	t.t.Subscribe("DOM.attributeModified", t.domUpdated())
-	t.t.Subscribe("DOM.attributeRemoved", t.domUpdated())
-	t.t.Subscribe("DOM.characterDataModified", t.domUpdated())
-	t.t.Subscribe("DOM.childNodeCountUpdated", t.domUpdated())
-	t.t.Subscribe("DOM.childNodeInserted", t.domUpdated())
-	t.t.Subscribe("DOM.childNodeRemoved", t.domUpdated())
-	t.t.Subscribe("DOM.documentUpdated", t.domUpdated())
+	t.t.Subscribe("DOM.setChildNodes", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.attributeModified", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.attributeRemoved", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.characterDataModified", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.childNodeCountUpdated", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.childNodeInserted", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.childNodeRemoved", t.domUpdated(ctx))
+	t.t.Subscribe("DOM.documentUpdated", t.domUpdated(ctx))
 
 }

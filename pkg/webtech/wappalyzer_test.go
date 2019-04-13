@@ -104,10 +104,64 @@ func TestWappalyzerInject(t *testing.T) {
 	}
 	defer brows.CloseTab(ta) // closes websocket go routines
 
-	tab := browser.NewTab(ta, address)
+	tab := browser.NewTab(ctx, ta, address)
 	defer tab.Close()
 
 	if err := tab.LoadPage(ctx, "https://angularjs.org/"); err != nil {
+		t.Fatalf("error loading page:%v\n", err)
+	}
+	start := time.Now()
+	result, err := tab.InjectJS(w.JSToInject())
+	if err != nil {
+		t.Fatalf("error injecting js: %v\n", err)
+	}
+	jsobjs := w.JSResultsToObjects(result)
+	jsMatches := w.JS(jsobjs)
+
+	t.Logf("%s", time.Now().Sub(start))
+
+	dom := tab.SerializeDOM()
+	domMatches := w.DOM(dom)
+
+	results := w.MergeMatches([]map[string][]*webtech.Match{domMatches, jsMatches})
+	for k, v := range results {
+		t.Logf("%s %#v\n", k, v)
+	}
+}
+
+func TestWappalyzerDraftInject(t *testing.T) {
+	appJSON := testGetAppFile(t)
+
+	w := webtech.NewWappalyzer()
+	if err := w.Init(appJSON); err != nil {
+		t.Fatalf("error loading wappalyzer data: %v\n", err)
+	}
+
+	ctx := context.Background()
+	b := browser.NewGCDBrowserPool(2, browser.NewLocalLeaser(), w)
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "example.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	brows := b.Acquire(ctx)
+	defer b.Return(ctx, brows)
+	ta, err := brows.GetFirstTab()
+	if err != nil {
+		t.Fatalf("error getting tab: %v\n", err)
+	}
+	defer brows.CloseTab(ta) // closes websocket go routines
+
+	tab := browser.NewTab(ctx, ta, address)
+	defer tab.Close()
+
+	if err := tab.LoadPage(ctx, "http://mt.draftkings.com/"); err != nil {
 		t.Fatalf("error loading page:%v\n", err)
 	}
 	start := time.Now()

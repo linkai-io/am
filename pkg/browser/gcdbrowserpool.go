@@ -13,6 +13,7 @@ import (
 	"github.com/wirepair/gcd/gcdmessage"
 
 	"github.com/linkai-io/am/am"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/pkg/errors"
@@ -75,6 +76,7 @@ type GCDBrowserPool struct {
 	display          string
 	detector         webtech.Detector
 	leaser           LeaserService
+	logger           zerolog.Logger
 }
 
 func NewGCDBrowserPool(maxBrowsers int, leaser LeaserService, techDetect webtech.Detector) *GCDBrowserPool {
@@ -196,8 +198,9 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	if browser = b.Acquire(ctx); browser == nil {
 		return nil, errors.New("browser acquisition failed during Load")
 	}
-
-	log.Info().Msg("acquired browser")
+	logger := log.With().Str("HostAddress", address.HostAddress).Str("port", port).Logger()
+	ctx = logger.WithContext(ctx)
+	log.Ctx(ctx).Info().Msg("acquired browser")
 
 	t, err := browser.GetFirstTab()
 	if err != nil {
@@ -211,17 +214,20 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	t.SetApiTimeout(b.browserTimeout)
 
-	tab := NewTab(t, address)
+	tab := NewTab(ctx, t, address)
 	defer tab.Close()
 
 	tab.CaptureNetworkTraffic(ctx, address, port)
 
 	url := b.buildURL(tab, address, scheme, port)
 
-	log.Info().Msg("loading url")
+	//logger = log.Ctx(ctx).With().Str("url", url).Logger()
+	//ctx = logger.WithContext(ctx)
+	log.Ctx(ctx).Info().Msg("loading url")
+
 	start := time.Now().UnixNano()
 	if err := tab.LoadPage(ctx, url); err != nil {
-		log.Warn().Err(err).Msg("loading page")
+		log.Ctx(ctx).Warn().Err(err).Msg("loading page")
 		if err == ErrNavigationTimedOut {
 			return nil, err
 		}
@@ -234,9 +240,9 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		}
 	}
 
-	log.Info().Str("url", url).Msg("taking screenshot")
+	log.Ctx(ctx).Info().Str("url", url).Msg("taking screenshot")
 	img, err := tab.TakeScreenshot(ctx)
-	log.Info().Str("url", url).Msg("screenshot taken")
+	log.Ctx(ctx).Info().Str("url", url).Msg("screenshot taken")
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
@@ -246,7 +252,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	// if for some reason we can't find the load response, just fake it
 	// with current address details :(
 	if loadResponse == nil {
-		log.Warn().Msg("unable to find original load response, using address data")
+		log.Ctx(ctx).Warn().Msg("unable to find original load response, using address data")
 		loadResponse = &am.HTTPResponse{
 			Headers:      make(map[string]string, 0),
 			HostAddress:  address.HostAddress,
@@ -266,7 +272,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	headerMatches := b.detector.Headers(loadResponse.Headers)
 	jsResults, err := tab.InjectJS(b.detector.JSToInject())
 	if err != nil {
-		log.Warn().Err(err).Msg("failed to inject web tech detection js")
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to inject web tech detection js")
 	}
 	jsObjects := b.detector.JSResultsToObjects(jsResults)
 	jsMatches := b.detector.JS(jsObjects)
@@ -291,7 +297,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		URLRequestTimestamp: start,
 	}
 
-	log.Info().Msg("closed browser")
+	log.Ctx(ctx).Info().Msg("closed browser")
 	return webData, nil
 }
 

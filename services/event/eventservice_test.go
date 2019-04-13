@@ -3,6 +3,7 @@ package event_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -281,6 +282,114 @@ func TestNotifyComplete(t *testing.T) {
 
 	if len(returned) != 1 {
 		t.Fatalf("error events returned after mark read should be 1 got: %d\n", len(returned))
+	}
+
+}
+
+func TestDeletePopulated(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	auth := amtest.MockEmptyAuthorizer()
+	service := event.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing event service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+
+	for i := 0; i < 5; i++ {
+		orgName := fmt.Sprintf("eventpopulate%d", i)
+		amtest.DeleteOrg(db, orgName, t)
+	}
+}
+
+func TestPopulate(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := event.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing event service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	for i := 0; i < 5; i++ {
+
+		orgName := fmt.Sprintf("eventpopulate%d", i)
+		groupName := fmt.Sprintf("eventpopulate%d", i)
+
+		webService := webdata.New(auth)
+		if err := webService.Init([]byte(webDBString)); err != nil {
+			t.Fatalf("error initalizing webdata service: %s\n", err)
+		}
+
+		amtest.CreateOrg(db, orgName, t)
+		orgID := amtest.GetOrgID(db, orgName, t)
+		//defer amtest.DeleteOrg(db, orgName, t)
+		userID := amtest.GetUserId(db, orgID, orgName, t)
+
+		groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+		userContext := amtest.CreateUserContext(orgID, userID)
+		now := time.Now()
+
+		// populate with fake data
+		addr := amtest.CreateScanGroupAddress(db, orgID, groupID, t)
+		addr.HostAddress = fmt.Sprintf("%s.eample.com", orgName)
+		webData := amtest.CreateMultiWebData(addr, addr.HostAddress, addr.IPAddress)
+		for _, web := range webData {
+			if _, err := webService.Add(ctx, userContext, web); err != nil {
+				t.Fatalf("error adding webdata for notify complete")
+			}
+		}
+
+		settings := &am.UserEventSettings{
+			WeeklyReportSendDay: 0,
+			ShouldWeeklyEmail:   true,
+			DailyReportSendHour: 0,
+			ShouldDailyEmail:    true,
+			UserTimezone:        "Asia/Tokyo",
+			Subscriptions: []*am.EventSubscriptions{
+				&am.EventSubscriptions{
+					TypeID:              am.EventInitialGroupComplete,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventNewHost,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventNewWebsite,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventCertExpiring,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+			},
+		}
+
+		if err := service.UpdateSettings(ctx, userContext, settings); err != nil {
+			t.Fatalf("error updating user settings: %v\n", err)
+		}
+
+		err := service.NotifyComplete(ctx, userContext, now.UnixNano(), groupID)
+		if err != nil {
+			t.Fatalf("error notifying complete")
+		}
 	}
 
 }

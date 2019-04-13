@@ -2,6 +2,9 @@ package browser
 
 import (
 	"context"
+	"log"
+	"net"
+	"net/http"
 	"testing"
 	"time"
 
@@ -10,6 +13,46 @@ import (
 )
 
 var leaser = NewLocalLeaser()
+
+func testServer() (string, *http.Server) {
+	srv := &http.Server{Handler: http.FileServer(http.Dir("testdata/"))}
+	testListener, _ := net.Listen("tcp", ":0")
+	_, testServerPort, _ := net.SplitHostPort(testListener.Addr().String())
+	//testServerAddr := fmt.Sprintf("http://localhost:%s/", testServerPort)
+	go func() {
+		if err := srv.Serve(testListener); err != http.ErrServerClosed {
+			log.Fatalf("Serve(): %s", err)
+		}
+	}()
+
+	return testServerPort, srv
+}
+func TestGCDDomUpdatedTimeout(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "www.draftkings.com",
+		IPAddress:   "",
+	}
+
+	//port, srv := testServer()
+	//defer srv.Shutdown(context.Background())
+
+	webData, err := b.Load(ctx, address, "https", "443")
+	if err != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	t.Logf("%s\n", webData.SerializedDOM)
+	for _, resp := range webData.Responses {
+		t.Logf("%v\n", resp.URL)
+	}
+}
 
 func TestGCDBrowserPool(t *testing.T) {
 	ctx := context.Background()
