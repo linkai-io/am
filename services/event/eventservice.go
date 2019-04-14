@@ -88,8 +88,8 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 
 	var getQuery string
 	var args []interface{}
-	var rows *pgx.Rows
 	var tx *pgx.Tx
+	var rows *pgx.Rows
 	var err error
 
 	serviceLog := log.With().
@@ -108,7 +108,6 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	}
 
 	serviceLog.Info().Str("query", getQuery).Msgf("executing query %v", args)
-
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -121,6 +120,8 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	}
 
 	defer rows.Close()
+	serviceLog.Info().Msg("reading rows")
+
 	events := make([]*am.Event, 0)
 	for i := 0; rows.Next(); i++ {
 		var ts time.Time
@@ -132,8 +133,10 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		e.EventTimestamp = ts.UnixNano()
 		events = append(events, e)
 	}
-
 	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return nil, v
+		}
 		return nil, err
 	}
 	return events, nil
@@ -195,6 +198,9 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 	}
 
 	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return nil, v
+		}
 		return nil, err
 	}
 	return settings, nil

@@ -62,8 +62,10 @@ func TestAddGet(t *testing.T) {
 
 	ctx := context.Background()
 
-	orgName := "eventaddget"
-	groupName := "eventaddgetgroup"
+	orgOne := "eventaddget1"
+	groupOne := "eventaddgetgroup1"
+	orgTwo := "eventaddget2"
+	groupTwo := "eventaddgetgroup2"
 
 	auth := amtest.MockEmptyAuthorizer()
 
@@ -76,16 +78,110 @@ func TestAddGet(t *testing.T) {
 	db := amtest.InitDB(env, t)
 	defer db.Close()
 
-	amtest.CreateOrg(db, orgName, t)
-	orgID := amtest.GetOrgID(db, orgName, t)
-	defer amtest.DeleteOrg(db, orgName, t)
-	//userID := amtest.GetUserId(db, orgID, orgName, t)
+	amtest.CreateOrg(db, orgOne, t)
+	orgOneID := amtest.GetOrgID(db, orgOne, t)
+	defer amtest.DeleteOrg(db, orgOne, t)
 
-	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
-	userContext := amtest.CreateUserContext(orgID, 1)
+	amtest.CreateOrg(db, orgTwo, t)
+	orgTwoID := amtest.GetOrgID(db, orgTwo, t)
+	defer amtest.DeleteOrg(db, orgTwo, t)
 
-	events := make([]*am.Event, 4)
+	userOneID := amtest.GetUserId(db, orgOneID, orgOne, t)
+	userTwoID := amtest.GetUserId(db, orgTwoID, orgTwo, t)
+
+	groupOneID := amtest.CreateScanGroup(db, orgOne, groupOne, t)
+	groupTwoID := amtest.CreateScanGroup(db, orgTwo, groupTwo, t)
+	userOneContext := amtest.CreateUserContext(orgOneID, userOneID)
+	userTwoContext := amtest.CreateUserContext(orgTwoID, userTwoID)
+
 	now := time.Now()
+
+	eventsOne := makeEvents(orgOneID, groupOneID, now)
+	if err := service.Add(ctx, userOneContext, eventsOne); err != nil {
+		t.Fatalf("error adding events 1: %v\n", err)
+	}
+
+	eventsTwo := makeEvents(orgTwoID, groupTwoID, now)
+	if err := service.Add(ctx, userTwoContext, eventsTwo); err != nil {
+		t.Fatalf("error adding events 2: %v\n", err)
+	}
+
+	settings := &am.UserEventSettings{
+		WeeklyReportSendDay: 0,
+		ShouldWeeklyEmail:   false,
+		DailyReportSendHour: 0,
+		ShouldDailyEmail:    false,
+		UserTimezone:        "Asia/Tokyo",
+		Subscriptions: []*am.EventSubscriptions{
+			&am.EventSubscriptions{
+				TypeID:              am.EventInitialGroupComplete,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
+			&am.EventSubscriptions{
+				TypeID:              am.EventNewHost,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
+			&am.EventSubscriptions{
+				TypeID:              am.EventNewWebsite,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
+		},
+	}
+
+	if err := service.UpdateSettings(ctx, userOneContext, settings); err != nil {
+		t.Fatalf("error updating user settings: %v\n", err)
+	}
+
+	retSettings, err := service.GetSettings(ctx, userOneContext)
+	if err != nil {
+		t.Fatalf("error getting settings: %v\n", err)
+	}
+	testCompareSettings(settings, retSettings, t)
+
+	returned, err := service.Get(ctx, userOneContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events: %#v\n", err)
+	}
+
+	// should only get 3 since those are what we subscribed to
+	if len(returned) != 3 {
+		t.Fatalf("expected 3 results got %v\n", len(returned))
+	}
+	for _, e := range returned {
+		t.Logf("%#v\n", e)
+	}
+
+	// Test group two
+	if err := service.UpdateSettings(ctx, userTwoContext, settings); err != nil {
+		t.Fatalf("error updating user settings: %v\n", err)
+	}
+
+	retSettings, err = service.GetSettings(ctx, userTwoContext)
+	if err != nil {
+		t.Fatalf("error getting settings: %v\n", err)
+	}
+	testCompareSettings(settings, retSettings, t)
+
+	returned, err = service.Get(ctx, userTwoContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events: %v\n", err)
+	}
+
+	// should only get 3 since those are what we subscribed to
+	if len(returned) != 3 {
+		t.Fatalf("expected 3 results got %v\n", len(returned))
+	}
+	for _, e := range returned {
+		t.Logf("%#v\n", e)
+	}
+}
+
+func makeEvents(orgID, groupID int, now time.Time) []*am.Event {
+	events := make([]*am.Event, 4)
+
 	events[0] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
@@ -114,57 +210,7 @@ func TestAddGet(t *testing.T) {
 		EventTimestamp: now.UnixNano(),
 		Data:           []string{"test.example.com", "443", "1111111111111"},
 	}
-	if err := service.Add(ctx, userContext, events); err != nil {
-		t.Fatalf("error adding events: %v\n", err)
-	}
-
-	settings := &am.UserEventSettings{
-		WeeklyReportSendDay: 0,
-		ShouldWeeklyEmail:   false,
-		DailyReportSendHour: 0,
-		ShouldDailyEmail:    false,
-		UserTimezone:        "Asia/Tokyo",
-		Subscriptions: []*am.EventSubscriptions{
-			&am.EventSubscriptions{
-				TypeID:              am.EventInitialGroupComplete,
-				Subscribed:          true,
-				SubscribedTimestamp: now.UnixNano(),
-			},
-			&am.EventSubscriptions{
-				TypeID:              am.EventNewHost,
-				Subscribed:          true,
-				SubscribedTimestamp: now.UnixNano(),
-			},
-			&am.EventSubscriptions{
-				TypeID:              am.EventNewWebsite,
-				Subscribed:          true,
-				SubscribedTimestamp: now.UnixNano(),
-			},
-		},
-	}
-
-	if err := service.UpdateSettings(ctx, userContext, settings); err != nil {
-		t.Fatalf("error updating user settings: %v\n", err)
-	}
-
-	retSettings, err := service.GetSettings(ctx, userContext)
-	if err != nil {
-		t.Fatalf("error getting settings: %v\n", err)
-	}
-	testCompareSettings(settings, retSettings, t)
-
-	returned, err := service.Get(ctx, userContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
-	if err != nil {
-		t.Fatalf("error getting events: %v\n", err)
-	}
-
-	// should only get 3 since those are what we subscribed to
-	if len(returned) != 3 {
-		t.Fatalf("expected 3 results got %v\n", len(returned))
-	}
-	for _, e := range returned {
-		t.Logf("%#v\n", e)
-	}
+	return events
 }
 
 func TestNotifyComplete(t *testing.T) {
@@ -287,6 +333,7 @@ func TestNotifyComplete(t *testing.T) {
 }
 
 func TestDeletePopulated(t *testing.T) {
+	t.Skip("disabled for testing mailreports")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
@@ -307,6 +354,7 @@ func TestDeletePopulated(t *testing.T) {
 }
 
 func TestPopulate(t *testing.T) {
+	t.Skip("disabled for testing mailreports")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
@@ -381,9 +429,12 @@ func TestPopulate(t *testing.T) {
 				},
 			},
 		}
-
-		if err := service.UpdateSettings(ctx, userContext, settings); err != nil {
-			t.Fatalf("error updating user settings: %v\n", err)
+		// skip 1 org to make sure they don't get emails
+		if i != 4 {
+			t.Logf("updating settings for %s\n", orgName)
+			if err := service.UpdateSettings(ctx, userContext, settings); err != nil {
+				t.Fatalf("error updating user settings: %v\n", err)
+			}
 		}
 
 		err := service.NotifyComplete(ctx, userContext, now.UnixNano(), groupID)
