@@ -89,7 +89,14 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-
+	serviceLog := log.With().
+		Str("call", "webdataservice.OrgStats").
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+	
+	log.Ctx(ctx).Info().Msg("getting server counts")
 	rows, err := s.pool.QueryEx(ctx, "serverCounts", &pgx.QueryExOptions{}, userContext.GetOrgID())
 	if err != nil {
 		return 0, nil, err
@@ -123,7 +130,7 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		stat.ServerCounts = append(stat.ServerCounts, count)
 		stat.UniqueWebServers += count // add the total of server types (since they are unique host/port)
 	}
-	log.Info().Msgf("%#v\n", stats)
+	log.Ctx(ctx).Info().Msg("got group stats")
 
 	rows, err = s.pool.QueryEx(ctx, "expiringCerts", &pgx.QueryExOptions{}, userContext.GetOrgID())
 	if err != nil {
@@ -156,11 +163,11 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 			stats[groupID].ExpiringCerts15Days += count
 		}
 	}
-	log.Info().Msgf("%#v\n", stats)
+
 	for _, v := range stats {
 		orgStats = append(orgStats, v)
 	}
-
+	log.Ctx(ctx).Info().Msg("got expiring certs stats, returning org stats")
 	return userContext.GetOrgID(), orgStats, nil
 }
 
