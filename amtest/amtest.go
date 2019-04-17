@@ -185,6 +185,22 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	return m
 }
 
+func BuildScanGroup(orgID, groupID int) *am.ScanGroup {
+	return &am.ScanGroup{
+		OrgID:                orgID,
+		GroupID:              groupID,
+		GroupName:            fmt.Sprintf("testgroup%d", groupID),
+		CreationTime:         time.Now().UnixNano(),
+		CreatedBy:            "test",
+		CreatedByID:          1,
+		ModifiedBy:           "test",
+		ModifiedByID:         1,
+		ModifiedTime:         time.Now().UnixNano(),
+		OriginalInputS3URL:   "test",
+		ModuleConfigurations: CreateModuleConfig(),
+	}
+}
+
 func InitDB(env string, t *testing.T) *pgx.ConnPool {
 	sec := secrets.NewSecretsCache(env, "")
 	dbstring, err := sec.DBString("linkai_admin")

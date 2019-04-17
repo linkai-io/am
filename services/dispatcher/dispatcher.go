@@ -148,28 +148,32 @@ func (s *Service) groupListener() {
 			}
 			return
 		case details := <-s.pushCh:
-			ctx := context.Background()
-			groupLog := log.With().
-				Int("UserID", details.userContext.GetUserID()).
-				Int("GroupID", details.scanGroupID).
-				Int("OrgID", details.userContext.GetOrgID()).
-				Str("TraceID", details.userContext.GetTraceID()).Logger()
-			ctx = groupLog.WithContext(ctx)
-
-			log.Ctx(ctx).Info().Msg("Starting Analysis")
-
-			start := time.Now()
-			s.runGroup(ctx, details, start)
-			log.Ctx(ctx).Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
-
-			// notify event service this group is complete.
-			if err := s.eventClient.NotifyComplete(ctx, details.userContext, start.UnixNano(), details.scanGroupID); err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("failed to notify scan group complete")
-			}
-			s.stopGroup(ctx, details.userContext, details.scanGroupID)
-			s.DecActiveGroups()
+			go s.startGroup(details)
 		}
 	}
+}
+
+func (s *Service) startGroup(details *pushDetails) {
+	ctx := context.Background()
+	groupLog := log.With().
+		Int("UserID", details.userContext.GetUserID()).
+		Int("GroupID", details.scanGroupID).
+		Int("OrgID", details.userContext.GetOrgID()).
+		Str("TraceID", details.userContext.GetTraceID()).Logger()
+	ctx = groupLog.WithContext(ctx)
+
+	log.Ctx(ctx).Info().Msg("Starting Analysis")
+
+	start := time.Now()
+	s.runGroup(ctx, details, start)
+	log.Ctx(ctx).Info().Float64("group_analysis_time_seconds", time.Now().Sub(start).Seconds()).Msg("Group analysis complete")
+
+	// notify event service this group is complete.
+	if err := s.eventClient.NotifyComplete(ctx, details.userContext, start.UnixNano(), details.scanGroupID); err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to notify scan group complete")
+	}
+	s.stopGroup(ctx, details.userContext, details.scanGroupID)
+	s.DecActiveGroups()
 }
 
 func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) {
