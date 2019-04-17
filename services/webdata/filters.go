@@ -2,6 +2,7 @@ package webdata
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -25,7 +26,7 @@ func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter
 		LeftJoin("am.web_techtypes as wtt on wt.techtype_id=wtt.techtype_id").
 		Where(sq.Eq{"ws.organization_id": filter.OrgID}).
 		Where(sq.Eq{"ws.scan_group_id": filter.GroupID}).
-		Where(sq.Gt{"ws.snapshot_id": filter.Start})
+		Where(sq.Lt{"url_request_timestamp": time.Unix(0, filter.Start)})
 
 	if val, ok := filter.Filters.Int64("after_response_time"); ok && val != 0 {
 		p = p.Where(sq.GtOrEq{"response_timestamp": time.Unix(0, val)})
@@ -40,6 +41,7 @@ func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter
 	}
 
 	p = p.GroupBy("ws.snapshot_id, ws.organization_id, ws.scan_group_id").
+		OrderBy("ws.url_request_timestamp desc").
 		Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
 
 	return p.ToSql()
@@ -47,6 +49,10 @@ func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter
 
 func buildWebFilterQuery(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
 	p := sq.Select().Columns(strings.Split(responseColumnsList, ",")...)
+
+	if filter.Start == 0 {
+		filter.Start = math.MaxInt64
+	}
 
 	if latestOnly, _ := filter.Filters.Bool("latest_only"); latestOnly {
 		return latestWebResponseFilter(p, userContext, filter)
@@ -58,11 +64,12 @@ func buildWebFilterQuery(userContext am.UserContext, filter *am.WebResponseFilte
 
 	p = p.Where(sq.Eq{"organization_id": userContext.GetOrgID()}).
 		Where(sq.Eq{"scan_group_id": filter.GroupID}).
-		Where(sq.Gt{"response_id": filter.Start})
+		Where(sq.Lt{"response_id": filter.Start})
 
 	p = webResponseFilterClauses(p, userContext, filter)
 
-	p = p.Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
+	p = p.OrderBy("response_id desc").
+		Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
 	return p.ToSql()
 }
 
@@ -72,14 +79,14 @@ func latestWebResponseFilter(p sq.SelectBuilder, userContext am.UserContext, fil
 		From("am.web_responses").
 		Where(sq.Eq{"organization_id": userContext.GetOrgID()}).
 		Where(sq.Eq{"scan_group_id": filter.GroupID}).
-		Where(sq.Gt{"response_id": filter.Start}).GroupBy("url")
+		Where(sq.Lt{"response_id": filter.Start}).GroupBy("url")
 
 	p = webResponseFilterClauses(p, userContext, filter)
 	p = p.FromSelect(sub, "latest").
 		Join("am.web_responses as wb on wb.url_request_timestamp=latest.url_request_timestamp and wb.url=latest.url").
 		Join("am.web_status_text as wst on wb.status_text_id = wst.status_text_id").
 		Join("am.web_mime_type as wmt on wb.mime_type_id = wmt.mime_type_id").
-		OrderBy("response_id").
+		OrderBy("response_id desc").
 		Limit(uint64(filter.Limit)).
 		PlaceholderFormat(sq.Dollar)
 	return p.ToSql()

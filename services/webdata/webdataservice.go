@@ -95,7 +95,7 @@ func (s *Service) OrgStats(ctx context.Context, userContext am.UserContext) (oid
 		Int("OrgID", userContext.GetOrgID()).
 		Str("TraceID", userContext.GetTraceID()).Logger()
 	ctx = serviceLog.WithContext(ctx)
-	
+
 	log.Ctx(ctx).Info().Msg("getting server counts")
 	rows, err := s.pool.QueryEx(ctx, "serverCounts", &pgx.QueryExOptions{}, userContext.GetOrgID())
 	if err != nil {
@@ -332,9 +332,6 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 	return userContext.GetOrgID(), responses, err
 }
 
-// BuildWebFilterQuery for building a parameterized query that allows for dynamic conditionals. I'll admit, this
-// is one hell of a gnarly generator :/.
-
 // GetCertificates that match the provided filter.
 func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContext, filter *am.WebCertificateFilter) (int, []*am.WebCertificate, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataCertificates, "read") {
@@ -409,7 +406,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	if err != nil {
 		return 0, nil, err
 	}
-
+	log.Info().Msgf("%s %#v", query, args)
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 	if err != nil {
@@ -417,14 +414,16 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	}
 
 	snapshots := make([]*am.WebSnapshot, 0)
-	log.Info().Msgf("%s", query)
+
 	for i := 0; rows.Next(); i++ {
 		w := &am.WebSnapshot{}
 		var responseTime time.Time
+		var urlRequestTime time.Time
 		var url []byte
+		var loadURL []byte
 
 		if err := rows.Scan(&w.SnapshotID, &w.OrgID, &w.GroupID, &w.AddressHash, &w.HostAddress, &w.IPAddress, &w.Scheme, &w.ResponsePort, &w.RequestedPort, &url, &responseTime,
-			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted,
+			&w.SerializedDOMHash, &w.SerializedDOMLink, &w.SnapshotLink, &w.IsDeleted, &loadURL, &urlRequestTime,
 			&w.TechCategories, &w.TechNames, &w.TechVersions, &w.TechMatchLocations, &w.TechMatchData, &w.TechIcons, &w.TechWebsites); err != nil {
 			return 0, nil, err
 		}
@@ -433,7 +432,10 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 			return 0, nil, am.ErrOrgIDMismatch
 		}
 		w.URL = string(url)
+		w.LoadURL = string(loadURL)
 		w.ResponseTimestamp = responseTime.UnixNano()
+		log.Info().Time("url_request_time", urlRequestTime).Msg("url request time...")
+		w.URLRequestTimestamp = urlRequestTime.UnixNano()
 		snapshots = append(snapshots, w)
 	}
 
@@ -485,7 +487,7 @@ func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, 
 	gid := webData.Address.GroupID
 	err = tx.QueryRowEx(ctx, "insertSnapshot", &pgx.QueryExOptions{}, oid, gid, webData.AddressHash, webData.HostAddress,
 		webData.IPAddress, webData.Scheme, webData.ResponsePort, webData.RequestedPort, webData.URL, time.Unix(0, webData.ResponseTimestamp),
-		webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink).Scan(&snapshotID)
+		webData.SerializedDOMHash, webData.SerializedDOMLink, webData.SnapshotLink, webData.LoadURL, time.Unix(0, webData.URLRequestTimestamp)).Scan(&snapshotID)
 
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {

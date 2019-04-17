@@ -156,12 +156,19 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 			}
 
 			webData := &am.WebData{}
+			retryAttempts := uint(2)
+
+			// don't retry for non-standard ports
+			if port != 80 && port != 443 {
+				retryAttempts = 1
+			}
+
 			retryErr := retrier.RetryAttempts(func() error {
 				var err error
 				log.Ctx(ctx).Info().Int32("port", port).Str("scheme", scheme).Msg("calling load")
 				webData, err = w.browsers.Load(ctx, address, scheme, portStr)
 				return err
-			}, 2)
+			}, retryAttempts)
 
 			if retryErr != nil {
 				continue

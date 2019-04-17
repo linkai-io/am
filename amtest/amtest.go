@@ -461,7 +461,7 @@ func CreateMultiWebData(address *am.ScanGroupAddress, host, ip string) []*am.Web
 				IPAddress:           ip,
 				ResponsePort:        80,
 				RequestedPort:       80,
-				SerializedDOMHash:   "1234",
+				SerializedDOMHash:   fmt.Sprintf("1234%d", i),
 				SerializedDOMLink:   "s3:/1/2/3/4",
 				ResponseTimestamp:   time.Now().UnixNano(),
 				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
@@ -492,7 +492,7 @@ func CreateWebData(address *am.ScanGroupAddress, host, ip string) *am.WebData {
 	headers := make(map[string]string, 0)
 	headers["host"] = host
 	headers["content-type"] = "text/html"
-
+	now := time.Now().UnixNano()
 	response := &am.HTTPResponse{
 		Scheme:              "http",
 		AddressHash:         convert.HashAddress(ip, host),
@@ -508,11 +508,11 @@ func CreateWebData(address *am.ScanGroupAddress, host, ip string) *am.WebData {
 		RawBody:             "",
 		RawBodyLink:         "s3://data/1/1/1/1",
 		RawBodyHash:         "1111",
-		ResponseTimestamp:   time.Now().UnixNano(),
-		URLRequestTimestamp: 0,
+		ResponseTimestamp:   now + 100000,
+		URLRequestTimestamp: now,
 		IsDocument:          true,
 		WebCertificate: &am.WebCertificate{
-			ResponseTimestamp: time.Now().UnixNano(),
+			ResponseTimestamp: now,
 			HostAddress:       host,
 			IPAddress:         ip,
 			AddressHash:       convert.HashAddress(ip, host),
@@ -553,8 +553,9 @@ func CreateWebData(address *am.ScanGroupAddress, host, ip string) *am.WebData {
 		RequestedPort:       80,
 		SerializedDOMHash:   "1234",
 		SerializedDOMLink:   "s3:/1/2/3/4",
-		ResponseTimestamp:   time.Now().UnixNano(),
-		URLRequestTimestamp: time.Now().UnixNano(),
+		ResponseTimestamp:   time.Now().UnixNano() + (100000),
+		URLRequestTimestamp: now,
+		LoadURL:             fmt.Sprintf("http://%s/", host),
 		DetectedTech: map[string]*am.WebTech{"3dCart": &am.WebTech{
 			Matched:  "1.1.11,1.1.11",
 			Version:  "1.1.11",

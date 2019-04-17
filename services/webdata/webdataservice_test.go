@@ -194,7 +194,7 @@ func TestGetSnapshots(t *testing.T) {
 		OrgID:   org.OrgID,
 		GroupID: org.GroupID,
 		Filters: &am.FilterType{},
-		Start:   0,
+		Start:   time.Now().UnixNano(),
 		Limit:   1000,
 	}
 	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
@@ -217,6 +217,11 @@ func TestGetSnapshots(t *testing.T) {
 	if snapshots[0].URL != "http://example.com/" {
 		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
 	}
+
+	if snapshots[0].LoadURL != "http://example.com/" {
+		t.Fatalf("expected LoadURL: http://example.com/ got %s\n", snapshots[0].LoadURL)
+	}
+
 	catLen := len(snapshots[0].TechCategories)
 	nameLen := len(snapshots[0].TechNames)
 	verLen := len(snapshots[0].TechVersions)
@@ -229,6 +234,63 @@ func TestGetSnapshots(t *testing.T) {
 		t.Fatalf("tech data lengths did not match")
 	}
 	t.Logf("%#v\n", snapshots[0])
+}
+
+func TestGetMultiSnapshots(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetsnapshots", "webdatagetsnapshots", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
+
+	for _, data := range webData {
+		_, err := service.Add(ctx, org.UserContext, data)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	ids := make(map[int64]struct{})
+	lastIndex := time.Now().UnixNano()
+	for {
+		filter := &am.WebSnapshotFilter{
+			OrgID:   org.OrgID,
+			GroupID: org.GroupID,
+			Filters: &am.FilterType{},
+			Start:   lastIndex,
+			Limit:   1,
+		}
+		t.Logf("queryingg with %d\n", lastIndex)
+		_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+		if err != nil {
+			t.Fatalf("error getting snapshots: %#v\n", err)
+		}
+
+		if snapshots == nil || len(snapshots) == 0 {
+			break
+		}
+
+		t.Logf("len: %d\n", len(snapshots))
+		for _, s := range snapshots {
+			t.Logf("%d %d %d\n", s.SnapshotID, lastIndex, s.URLRequestTimestamp)
+			if s.URLRequestTimestamp < lastIndex {
+				lastIndex = s.URLRequestTimestamp
+			}
+
+			if _, exists := ids[s.SnapshotID]; exists {
+				t.Fatalf("error got duplicate snapshot id during filter")
+			}
+			ids[s.SnapshotID] = struct{}{}
+		}
+	}
+	if len(ids) != 10 {
+		t.Fatalf("expected 10 ids got %d\n", len(ids))
+	}
 }
 
 func TestGetSnapshotsEmptyTech(t *testing.T) {
@@ -253,7 +315,7 @@ func TestGetSnapshotsEmptyTech(t *testing.T) {
 		OrgID:   org.OrgID,
 		GroupID: org.GroupID,
 		Filters: &am.FilterType{},
-		Start:   0,
+		Start:   time.Now().UnixNano(),
 		Limit:   1000,
 	}
 	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
@@ -276,8 +338,10 @@ func TestGetSnapshotsEmptyTech(t *testing.T) {
 	if snapshots[0].URL != "http://example.com/" {
 		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
 	}
+	if snapshots[0].LoadURL != "http://example.com/" {
+		t.Fatalf("expected LoadURL: http://example.com/ got %s\n", snapshots[0].LoadURL)
+	}
 	t.Logf("%#v\n", snapshots[0])
-
 }
 
 func TestGetCertificates(t *testing.T) {
@@ -422,6 +486,7 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	if len(responses) != 10 {
 		t.Fatalf("expected 10 responses with latest got: %d\n", len(responses))
 	}
+
 	responseDay := time.Unix(0, responses[0].URLRequestTimestamp).Day()
 	if responseDay != time.Now().Day()-1 {
 		t.Fatalf("expected day to be now -1, got %d %d\n", responseDay, time.Now().Day()-1)
@@ -524,15 +589,21 @@ func TestGetURLList(t *testing.T) {
 	}
 }
 
+func TestDeletePopulateWeb(t *testing.T) {
+	//t.Skip("uncomment to populate data")
+	db := amtest.InitDB(env, t)
+	amtest.DeleteOrg(db, "populatetest", t)
+
+}
 func TestPopulateWeb(t *testing.T) {
-	t.Skip("uncomment to populate data")
+	//t.Skip("uncomment to populate data")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}
 
 	ctx := context.Background()
 	service, org := initOrg("populatetest", "populatetest", t)
-	//defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
 	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")

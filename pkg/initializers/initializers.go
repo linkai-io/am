@@ -287,7 +287,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 		return nsClient
 	case am.BruteModule:
 		bruteClient := module.New()
-		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: tenMinutes}
+		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: thirtyMinutes}
 		data, _ := json.Marshal(cfg)
 
 		err := retrier.RetryUntil(func() error {

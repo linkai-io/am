@@ -295,6 +295,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 		ResponseTimestamp:   time.Now().UnixNano(),
 		DetectedTech:        webTech,
 		URLRequestTimestamp: start,
+		LoadURL:             url,
 	}
 
 	log.Ctx(ctx).Info().Msg("closed browser")

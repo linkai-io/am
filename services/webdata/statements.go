@@ -60,7 +60,9 @@ var (
 		serialized_dom_hash,
 		serialized_dom_link,
 		snapshot_link,
-		deleted`
+		deleted,
+		load_url,
+		url_request_timestamp`
 
 	// do json_agg as opposed to array_agg so nulls aren't horrible to deal with
 	techColumns = `json_agg(wtt.category) as category, 
@@ -101,21 +103,12 @@ var queryMap = map[string]string{
 			and organization_id=$1
 			group by scan_group_id`,
 
-	"responseURLList": `select 
-		top.organization_id, 
-		top.scan_group_id, 
-		top.host_address, 
-		array_agg(arr.ip_address) as addresses, 
-		array_agg(arr.address_id) as address_ids 
-			from am.scan_group_addresses as top 
-		left join am.scan_group_addresses as arr on 
-			top.address_id=arr.address_id 
-		where top.organization_id=$1 and top.scan_group_id=$2 and top.host_address != '' group by top.organization_id, top.scan_group_id, top.host_address;`,
-
-	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, requested_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false) 
+	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, 
+			requested_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted, load_url, url_request_timestamp)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, $14, $15) 
 		on conflict (organization_id, scan_group_id, address_hash, serialized_dom_hash, response_port) do update set
-			response_timestamp=EXCLUDED.response_timestamp
+			response_timestamp=EXCLUDED.response_timestamp,
+			url_request_timestamp=EXCLUDED.url_request_timestamp
 			returning snapshot_id`,
 
 	"insertWebTech": `insert into am.web_technologies (snapshot_id, organization_id, scan_group_id, techtype_id, matched_text, match_location, version)
