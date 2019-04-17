@@ -248,7 +248,7 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	}
 
 	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
-		p = p.Where(sq.Or{sq.Eq{"wb.url_request_timestamp": "1970-01-01 00:00:00+00"}, sq.Eq{"wb.url_request_timestamp": val}})
+		p = p.Where(sq.Or{sq.Eq{"wb.url_request_timestamp": "1970-01-01 00:00:00+00"}, sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)}})
 	} else {
 		log.Info().Msgf("%v %v\n", val, ok)
 	}

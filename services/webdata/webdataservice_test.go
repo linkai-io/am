@@ -587,6 +587,23 @@ func TestGetURLList(t *testing.T) {
 	if requestDay != time.Now().Day()-1 {
 		t.Fatalf("last series of URLs should all have request timestamp of day - 1 got %d %d", requestDay, time.Now().Day()-1)
 	}
+
+	// test after request time
+	filter = &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddInt64("after_request_time", time.Now().Add(time.Hour*-72).UnixNano())
+	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	if len(urlLists) != 2 {
+		t.Fatalf("expected 2 urllists got: %d\n", len(urlLists))
+	}
 }
 
 func TestDeletePopulateWeb(t *testing.T) {
