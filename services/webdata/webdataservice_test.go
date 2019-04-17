@@ -590,13 +590,13 @@ func TestGetURLList(t *testing.T) {
 }
 
 func TestDeletePopulateWeb(t *testing.T) {
-	//t.Skip("uncomment to populate data")
+	t.Skip("uncomment to populate data")
 	db := amtest.InitDB(env, t)
 	amtest.DeleteOrg(db, "populatetest", t)
 
 }
 func TestPopulateWeb(t *testing.T) {
-	//t.Skip("uncomment to populate data")
+	t.Skip("uncomment to populate data")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}

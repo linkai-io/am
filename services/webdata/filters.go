@@ -226,6 +226,10 @@ func buildCertificateFilter(userContext am.UserContext, filter *am.WebCertificat
 func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
 	var latestOnly bool
 	latestOnly, _ = filter.Filters.Bool("latest_only")
+	// start high since we are using timestamp as index for start/limit
+	if filter.Start == 0 {
+		filter.Start = time.Now().UnixNano()
+	}
 
 	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "load_host_address", "load_ip_address").
 		Column("array_agg(wb.url) as urls").
@@ -248,12 +252,13 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	} else {
 		log.Info().Msgf("%v %v\n", val, ok)
 	}
-	p = p.Where(sq.Gt{"wb.response_id": filter.Start})
+
+	p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)})
 
 	if latestOnly {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp desc")
 	} else {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp")
+		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp desc")
 	}
 
 	p = p.Limit(uint64(filter.Limit))
