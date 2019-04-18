@@ -19,6 +19,10 @@ var (
 
 func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter) (string, []interface{}, error) {
 
+	if filter.Start == 0 {
+		filter.Start = time.Now().Add(time.Hour).UnixNano()
+	}
+
 	p := sq.Select().Columns(strings.Split(snapshotColumnsList, ",")...).
 		Columns(strings.Split(techColumnsList, ",")...).
 		From("am.web_snapshots as ws").
@@ -228,7 +232,7 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	latestOnly, _ = filter.Filters.Bool("latest_only")
 	// start high since we are using timestamp as index for start/limit
 	if filter.Start == 0 {
-		filter.Start = time.Now().UnixNano()
+		filter.Start = time.Now().Add(time.Hour).UnixNano()
 	}
 
 	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "load_host_address", "load_ip_address").
