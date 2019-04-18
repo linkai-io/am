@@ -274,6 +274,7 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 	serviceLog := log.With().
 		Int("UserID", userContext.GetUserID()).
 		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "GetResponses").
 		Str("TraceID", userContext.GetTraceID()).Logger()
 	ctx = serviceLog.WithContext(ctx)
 
@@ -290,7 +291,7 @@ func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, 
 		return 0, nil, err
 	}
 
-	serviceLog.Info().Str("query", getQuery).Msg("executing query")
+	serviceLog.Info().Msgf("executing query %s %#v", getQuery, args)
 
 	rows, err = s.pool.Query(getQuery, args...)
 	defer rows.Close()
@@ -338,6 +339,12 @@ func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContex
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 
+	logger := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "GetCertificates").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
 	var rows *pgx.Rows
 	var err error
 
@@ -353,6 +360,7 @@ func (s *Service) GetCertificates(ctx context.Context, userContext am.UserContex
 		return 0, nil, err
 	}
 
+	logger.Info().Msgf("executing query %s %#v", query, args)
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 
@@ -391,6 +399,13 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataSnapshots, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
+
+	logger := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "GetSnapshots").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
 	var rows *pgx.Rows
 	var err error
 
@@ -406,7 +421,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 	if err != nil {
 		return 0, nil, err
 	}
-	log.Info().Msgf("%s %#v", query, args)
+	logger.Info().Msgf("executing query %s %#v", query, args)
 	rows, err = s.pool.Query(query, args...)
 	defer rows.Close()
 	if err != nil {
@@ -434,7 +449,6 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		w.URL = string(url)
 		w.LoadURL = string(loadURL)
 		w.ResponseTimestamp = responseTime.UnixNano()
-		log.Info().Time("url_request_time", urlRequestTime).Msg("url request time...")
 		w.URLRequestTimestamp = urlRequestTime.UnixNano()
 		snapshots = append(snapshots, w)
 	}
@@ -498,7 +512,6 @@ func (s *Service) addSnapshots(ctx context.Context, userContext am.UserContext, 
 
 	if webData.DetectedTech != nil {
 		for techName, data := range webData.DetectedTech {
-			log.Info().Msgf("adding webtech %#v", data)
 			_, err := tx.ExecEx(ctx, "insertWebTech", &pgx.QueryExOptions{}, snapshotID, oid, gid, data.Matched, data.Location, data.Version, techName)
 			if err != nil {
 				if v, ok := err.(pgx.PgError); ok {
