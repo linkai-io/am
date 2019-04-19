@@ -94,7 +94,9 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, config
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "create") {
 		return 0, am.ErrUserNotAuthorized
 	}
+
 	var group *am.ScanGroup
+	var tx *pgx.Tx
 
 	serviceLog := log.With().
 		Int("UserID", userContext.GetUserID()).
@@ -103,6 +105,12 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, config
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Creating CustomWebFlow")
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
 
 	if _, group, err = s.scanGroupClient.Get(ctx, userContext, config.GroupID); err != nil {
 		return 0, err
@@ -113,8 +121,11 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, config
 	}
 
 	// creates and sets webflowid
-	err = s.pool.QueryRow("createCustomWebScan", userContext.GetOrgID(), group.GroupID, config.WebFlowName, config.Configuration, time.Now(), time.Now()).Scan(&webFlowID)
+	err = tx.QueryRow("createCustomWebScan", userContext.GetOrgID(), group.GroupID, config.WebFlowName, config.Configuration, time.Now(), time.Now()).Scan(&webFlowID)
 	if err != nil {
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 
@@ -192,6 +203,19 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Starting web flow")
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+	_, status, err := s.getStatus(ctx, tx, webFlowID)
+	if err != nil {
+		return 0, err
+	}
+	if status.WebFlowStatus == am.WebFlowStatusRunning {
+		return 0, errors.New("this web flow is already running")
+	}
+
 	custom := &am.CustomWebFlowConfig{}
 	//organization_id, scan_group_id, web_flow_id, web_flow_name, configuration, created_timestamp, modified_timestamp, deleted
 	err = tx.QueryRow("getCustomWebScan", userContext.GetOrgID(), webFlowID).Scan(&custom.OrgID, &custom.GroupID, &custom.WebFlowID,
@@ -199,8 +223,10 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 	if err != nil {
 		return 0, err
 	}
+
 	custom.CreationTime = createTime.UnixNano()
 	custom.ModifiedTime = modifyTime.UnixNano()
+
 	return 0, nil
 }
 
@@ -211,11 +237,15 @@ func (s *Service) Stop(ctx context.Context, userContext am.UserContext, webFlowI
 	return 0, nil
 }
 
-func (s *Service) GetStatus(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, []*am.CustomWebStatus, error) {
+func (s *Service) GetStatus(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, *am.CustomWebStatus, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return 0, nil, nil
+}
+
+func (s *Service) getStatus(ctx context.Context, tx *pgx.Tx, webFlowID int32) (int, *am.CustomWebStatus, error) {
+
 }
 
 func (s *Service) GetResults(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, []*am.CustomWebFlowResults, error) {
