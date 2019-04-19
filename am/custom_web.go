@@ -1,6 +1,8 @@
 package am
 
-import "context"
+import (
+	"context"
+)
 
 const (
 	CustomWebFlowServiceKey = "customwebflowservice"
@@ -56,19 +58,24 @@ type CustomWebFlowResults struct {
 	Result            []*CustomRequestResult `json:"result"`
 	ResponseBodyHash  string                 `json:"response_body_hash"`
 	ResponseBodyLink  string                 `json:"response_body_link"`
+	Error             string                 `json:"error"`
 }
 
 type CustomWebStatus struct {
-	EventID              int64 `json:"event_id"`
+	StatusID             int64 `json:"status_id"`
 	OrgID                int   `json:"org_id"`
 	GroupID              int   `json:"group_id"`
 	WebFlowID            int32 `json:"web_flow_id"`
+	LastUpdatedTimestamp int64 `json:"last_updated_timestamp"`
 	StartedTimestamp     int64 `json:"started_timestamp"`
 	FinishedTimestamp    int64 `json:"finished_timestamp"`
-	LastUpdatedTimestamp int64 `json:"event_timestamp"`
+	WebFlowStatus        int32 `json:"web_flow_status"`
 	Total                int32 `json:"total"`
 	InProgress           int32 `json:"in_progress"`
 	Completed            int32 `json:"completed"`
+}
+
+type CustomWebFilter struct {
 }
 
 type CustomWebFlowService interface {
@@ -78,6 +85,6 @@ type CustomWebFlowService interface {
 	Delete(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
 	Start(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
 	Stop(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
-	GetStatus(ctx context.Context, userContext UserContext, webFlowID int32) (int, []*CustomWebStatus, error)
-	GetResults(ctx context.Context, userContext UserContext, webFlowID int32) (int, []*CustomWebFlowResults, error)
+	GetStatus(ctx context.Context, userContext UserContext, webFlowID int32) (int, *CustomWebStatus, error)
+	GetResults(ctx context.Context, userContext UserContext, filter *CustomWebFilter) (int, []*CustomWebFlowResults, error)
 }
