@@ -61,6 +61,11 @@ type CustomWebFlowResults struct {
 	Error             string                 `json:"error"`
 }
 
+const (
+	WebFlowStatusStopped int32 = 1
+	WebFlowStatusRunning int32 = 2
+)
+
 type CustomWebStatus struct {
 	StatusID             int64 `json:"status_id"`
 	OrgID                int   `json:"org_id"`
