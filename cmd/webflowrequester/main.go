@@ -1,22 +1,39 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/linkai-io/am/pkg/filestorage"
+	"github.com/linkai-io/am/pkg/initializers"
+	"github.com/linkai-io/am/pkg/webflow"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-type MyEvent struct {
-	Name string `json:"What is your name?"`
-	Age  int    `json:"How old are you?"`
+var client *webflow.Client
+
+var (
+	appConfig initializers.AppConfig
+)
+
+func init() {
+	appConfig.Env = os.Getenv("APP_ENV")
+	appConfig.Region = os.Getenv("APP_REGION")
+	appConfig.SelfRegister = os.Getenv("APP_SELF_REGISTER")
+	appConfig.Addr = os.Getenv("APP_ADDR")
+	store := filestorage.NewStorage(appConfig.Env, appConfig.Region)
+	if err := store.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize storage")
+	}
+	client = webflow.New(store)
 }
 
-type MyResponse struct {
-	Message string `json:"Answer:"`
-}
-
-func HandleLambdaEvent(event MyEvent) (MyResponse, error) {
-	return MyResponse{Message: fmt.Sprintf("%s is %d years old!", event.Name, event.Age)}, nil
+func HandleLambdaEvent(ctx context.Context, event webflow.RequestEvent) (*webflow.Results, error) {
+	zerolog.TimeFieldFormat = ""
+	log.Logger = log.With().Str("service", "WebModuleService").Logger()
+	return client.Do(ctx, &event)
 }
 
 func main() {
