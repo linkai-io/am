@@ -125,6 +125,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, config
 	if err != nil {
 		return 0, err
 	}
+
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -199,7 +200,7 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 		Int("UserID", userContext.GetUserID()).
 		Int("OrgID", userContext.GetOrgID()).
 		Int32("WebFlowID", webFlowID).
-		Str("Call", "CustomWebFlow.Delete").
+		Str("Call", "CustomWebFlow.Start").
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Starting web flow")
@@ -208,10 +209,12 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 		return 0, err
 	}
 	defer tx.Rollback() // safe to call as no-op on success
-	_, status, err := s.getStatus(ctx, tx, webFlowID)
+
+	_, status, err := s.getStatus(ctx, userContext, tx, webFlowID)
 	if err != nil {
 		return 0, err
 	}
+
 	if status.WebFlowStatus == am.WebFlowStatusRunning {
 		return 0, errors.New("this web flow is already running")
 	}
@@ -244,8 +247,22 @@ func (s *Service) GetStatus(ctx context.Context, userContext am.UserContext, web
 	return 0, nil, nil
 }
 
-func (s *Service) getStatus(ctx context.Context, tx *pgx.Tx, webFlowID int32) (int, *am.CustomWebStatus, error) {
+func (s *Service) getStatus(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, webFlowID int32) (int, *am.CustomWebStatus, error) {
+	//organization_id, scan_group_id, last_updated_timestamp, started_timestamp, finished_timestamp, web_flow_status, total, in_progress, completed
+	status := &am.CustomWebStatus{}
+	var lastUpdated time.Time
+	var startTime time.Time
+	var finishTime time.Time
+	err := tx.QueryRow("getCustomWebScanStatus", userContext.GetOrgID(), webFlowID).Scan(&status.OrgID, &status.GroupID, &lastUpdated,
+		&startTime, &finishTime, &status.WebFlowStatus, &status.Total, &status.InProgress, &status.Completed)
+	if err != nil {
+		return 0, nil, err
+	}
 
+	status.LastUpdatedTimestamp = lastUpdated.UnixNano()
+	status.StartedTimestamp = startTime.UnixNano()
+	status.FinishedTimestamp = finishTime.UnixNano()
+	return status.OrgID, status, nil
 }
 
 func (s *Service) GetResults(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, []*am.CustomWebFlowResults, error) {
