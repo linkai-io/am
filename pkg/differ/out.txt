@@ -1,0 +1,2035 @@
+=== RUN   TestDiff
+<!DOCTYPE  and <!DOCTYPE 
+
+        
+
+    
+    
+    日本マイクロソフト - Official Home Page
+    
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+        
+
+
+    
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+    
+
+
+    
+
+
+    
+    
+
+    
+    
+    
+    
+        
+
+    
+    
+    
+
+
+
+    
+    
+    
+            
+
+
+
+            
+            <img src="https://web.vortex.data.microsoft.com:443/collect/v1/t.gif?&amp;name=%27Ms.Webi.PageView%27&amp;ver=%272.1%27&amp;appId=%27JS%3AMicrosoftHP%27&amp;cV=%27XCxD6yy%2FGECOczUl.0%27&amp;ext-app-env=%27onerf_prod%27&amp;ext-javascript-libver=%274.0.0-beta-10%27&amp;ext-user-localId=%27t%3A3135F845EDBC64AB0C8BF501EC94657A%27&amp;*baseType=%27Ms.Content.PageView%27&amp;*isJs=True&amp;*isLoggedIn=False&amp;*isManual=True&amp;*serverImpressionGuid=%27791b7d85-79bb-49c6-8c35-947da117e29d%27&amp;-ver=%271.0%27&amp;-impressionGuid=%2700000000-0000-0000-0000-000000000000%27&amp;-pageName=%27Homepage%27&amp;-uri=%27https%3A%2F%2Fwww.microsoft.com%2Fja-jp%2F%27&amp;-pageType=%27HP.AllModules%27&amp;-pageTags=%27%7B%22tasId%22%3A%22791b7d85-79bb-49c6-8c35-947da117e29d%22%2C%22tasMuid%22%3A%223135F845EDBC64AB0C8BF501EC94657A%22%2C%22browserGroup%22%3A%22uplevel.web.pc.webkit.chrome%22%2C%22isOneRf%22%3A%22True%22%7D%27&amp;-behavior=0&amp;-market=%27ja-jp%27" role="presentation" style="display:none" aria-hidden="true" />
+        
+
+    
+    
+        
+                    
+
+                    
+
+    
+        
+
+
+
+
+
+		スキップしてメイン コンテンツへ
+
+	
+	
+		
+			
+			
+					
+						
+						Microsoft
+					
+			
+				
+				
+				
+			
+
+
+
+			        
+            
+                                        
+                            Office
+                        
+                        
+                            Windows
+                        
+                        
+                            Surface
+                        
+                        
+                            Xbox
+                        
+                        
+                            お買い得商品
+                        
+                        
+                            サポート 
+                        
+
+
+                
+                        
+        表示を増やす
+        
+        
+    
+
+                
+                            
+            
+        
+
+
+			
+				        
+            
+                
+                    
+                         すべて Microsoft 製品
+                        
+                                    
+            
+        
+            Office
+            
+        
+        
+            Windows
+            
+        
+        
+            Surface
+            
+        
+        
+            Xbox
+            
+        
+        
+            お買い得商品
+            
+        
+        
+            サポート 
+            
+        
+            
+        
+
+        
+
+            ソフトウェア
+            
+        
+            Windows アプリ
+            
+        
+        
+            OneDrive
+            
+        
+        
+            Outlook
+            
+        
+        
+            Skype
+            
+        
+        
+            OneNote
+            
+        
+            
+            
+        
+        
+
+            PC とデバイス
+            
+        
+            PCs & tablets
+            
+        
+        
+            アクセサリ
+            
+        
+            
+            
+        
+        
+
+            エンタメ
+            
+        
+            Xbox とゲーム
+            
+        
+        
+            ゲーム
+            
+        
+        
+            Windows ゲーム
+            
+        
+        
+            映画とテレビ番組
+            
+        
+            
+            
+        
+        
+
+            法人向け
+            
+        
+            Microsoft Azure
+            
+        
+        
+            Microsoft Dynamics 365
+            
+        
+        
+            Microsoft 365
+            
+        
+        
+            Microsoft Industry
+            
+        
+        
+            データ プラットフォーム
+            
+        
+            
+            
+        
+        
+
+            Developer & IT  
+            
+        
+            .NET
+            
+        
+        
+            Visual Studio
+            
+        
+        
+            Windows Server
+            
+        
+        
+            Windows アプリの開発
+            
+        
+        
+            ドキュメント
+            
+        
+            
+            
+        
+        
+
+            その他
+            
+        
+            Microsoft Store
+            
+        
+        
+            Microsoft Rewards 
+            
+        
+        
+            無料ダウンロード & セキュリティ
+            
+        
+        
+            教育
+            
+        
+        
+            プリペイド カード
+            
+        
+            
+            
+        
+                                                            
+                                    サイトマップの表示
+                                
+                            
+                        
+                    
+                
+            
+        
+
+		
+			
+			
+				検索
+			
+			
+				
+			
+			
+		
+		
+			キャンセル
+		
+		
+			0
+			カート
+		
+			
+		
+				
+			
+		
+		
+		
+	
+	
+
+
+
+
+
+    
+        
+
+                    
+            
+
+        
+    
+    
+            
+    
+                
+
+    
+        
+            
+                            
+                            
+                    
+            
+            
+    
+
+                
+                スライドの一時停止
+    
+    
+        
+            
+                            
+                                        
+                
+                    
+                
+            
+                
+あなただけの 365 日        Office 365 で毎日何ができるか見つけましょう
+
+            
+                
+                今すぐ購入
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+                                        
+                
+                    
+                
+            
+                
+新しい Surface Pro 6        軽さの中に、無限の可能性を。
+
+            
+                
+                購入はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+        
+        
+            
+                
+    
+                
+                    
+                
+Surface Book 2        想像を超えた、パフォーマンスを。
+
+
+                購入はこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Xbox One X        世界最上級のゲーム マシン
+
+
+                購入はこちら
+            
+        
+    
+                
+            
+            
+                
+    
+                
+                    
+                
+Xbox One S デジタル専用エディション        ダウンロードしたゲームをクラウド対応ライブラリに保存してどこにいても楽しめる。
+
+
+                ご予約はこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Microsoft atLife        Windows や Surface の最新情報
+
+
+                MICROSOFT 製品で暮らしを楽しく快適に
+            
+        
+    
+                
+            
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+            
+                            
+                        
+                
+                    
+                
+            
+                
+Surface Go        もっとできるを、軽がると - LTE Advanced でご利用可能です
+
+            
+                
+                今すぐ購入
+            
+
+            
+                
+            
+            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+        
+            法人のお客様
+        
+        
+        
+            
+                
+    
+                
+                    
+                
+Windows 10 Enterprise        90 日間利用可能な IT プロフェッショナル向けの評価版 (無料) をダウンロードいただけます。
+
+
+                ダウンロードはこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Surface Hub 2S が登場        チームワークのために作られたオールインワン コラボレーション デバイス。
+
+
+                詳細を見る
+            
+        
+    
+                
+            
+            
+                
+    
+                
+                    
+                
+Visual Studio 2019 を入手        生産性が高く、現代的で、革新的な IDE である Visual Studio 2019 をダウンロードしましょう。
+
+
+                今すぐダウンロード
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+de:code 2019        最新テクノロジを体感する 2 日間
+
+
+                詳細はこちら
+            
+        
+    
+                
+            
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+            
+                            
+                            
+                    
+            
+            
+    
+
+                
+                スライドの一時停止
+    
+    
+        
+            
+                            
+                                        
+                
+                    
+                
+            
+                
+News Center        プレスリリースなどの最新企業情報
+
+            
+                
+                詳細はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+                                        
+                
+                    
+                
+            
+                
+新元号対応について        マイクロソフトの新元号対応まとめ情報
+
+            
+                
+                詳細はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+    Microsoft をフォロー
+    
+        
+            
+                
+                    
+                    
+                
+            
+        
+        
+            
+                
+                    
+                    
+                
+            
+        
+        
+            
+                
+                    
+                    
+                
+            
+        
+    
+    
+
+    
+        
+
+    
+        
+            
+
+    
+        
+                    
+
+                    
+
+    
+        
+
+
+
+
+        
+            
+                
+                        
+                            最新情報
+
+                            
+                                        
+                                            新しい  Surface Pro 6
+                                        
+                                        
+                                            新しい  Surface Laptop 2
+                                        
+                                        
+                                            新しい Surface Go
+                                        
+                                        
+                                            Xbox One X
+                                        
+                                        
+                                            Xbox One S
+                                        
+                                        
+                                            Windows 10 アプリ
+                                        
+                                        
+                                            Office アプリ
+                                        
+
+                            
+                            
+                        
+                        
+                            ストアとサポート
+
+                            
+                                        
+                                            アカウント プロファイル
+                                        
+                                        
+                                            ダウンロード センター
+                                        
+                                        
+                                            セールスとサポート
+                                        
+                                        
+                                            返品・返金
+                                        
+                                        
+                                            ご注文履歴
+                                        
+                                        
+                                            サポート
+                                        
+
+                            
+                            
+                        
+                        
+                            教育
+
+                            
+                                        
+                                            教育機関向けの Microsoft 製品
+                                        
+                                        
+                                            学生向け Office
+                                        
+                                        
+                                            Office 365 の教育機関向け製品
+                                        
+                                        
+                                            教育機関向けの Microsoft Azure
+                                        
+
+                            
+                            
+                        
+                
+                
+                        
+                            エンタープライズ
+
+                            
+                                        
+                                            Microsoft Azure 
+                                        
+                                        
+                                            Microsoft Industry
+                                        
+                                        
+                                            データ プラットフォーム
+                                        
+                                        
+                                            Microsoft パートナー リソース
+                                        
+                                        
+                                            医療機関
+                                        
+                                        
+                                            金融サービス
+                                        
+
+                            
+                            
+                        
+                        
+                            開発者
+
+                            
+                                        
+                                            Microsoft Visual Studio
+                                        
+                                        
+                                            Windows デベロッパー センター
+                                        
+                                        
+                                            Developer Network
+                                        
+                                        
+                                            TechNet
+                                        
+                                        
+                                            Microsoft 開発者プログラム
+                                        
+                                        
+                                            チャネル 9
+                                        
+                                        
+                                            Office デベロッパー センター   
+                                        
+
+                            
+                            
+                        
+                        
+                            会社
+
+                            
+                                        
+                                            採用情報
+                                        
+                                        
+                                            会社のニュース
+                                        
+                                        
+                                            マイクロソフトにおけるプライバシー
+                                        
+                                        
+                                            投資家
+                                        
+                                        
+                                            アクセシビリティ
+                                        
+                                        
+                                            セキュリティ
+                                        
+
+                            
+                            
+                        
+                
+        
+    
+                日本語 (日本)
+
+        
+            
+                                
+                    Microsoft に問い合わせ
+                
+                
+                    プライバシー
+                
+                
+                    使用条件
+                
+                
+                    商標
+                
+                
+                    広告について
+                
+
+                © Microsoft 2019
+                
+            
+        
+    
+    
+
+
+
+
+
+    
+        
+
+                    
+            
+
+        
+    
+    
+    
+    
+    
+
+        
+
+    
+
+
+
+
+
+
+DOM2
+
+        
+
+    
+    
+    日本マイクロソフト - Official Home Page
+    
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+        
+
+
+    
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+    
+
+
+    
+
+
+    
+    
+
+    
+    
+    
+    
+        
+
+    
+    
+    
+
+
+
+    
+    
+    
+            
+
+
+
+            
+            <img src="https://web.vortex.data.microsoft.com:443/collect/v1/t.gif?&amp;name=%27Ms.Webi.PageView%27&amp;ver=%272.1%27&amp;appId=%27JS%3AMicrosoftHP%27&amp;cV=%27mErK7Z6lGUCpX4w5.0%27&amp;ext-app-env=%27onerf_prod%27&amp;ext-javascript-libver=%274.0.0-beta-10%27&amp;ext-user-localId=%27t%3A18690046B6976CD5217D0D02B76A6D27%27&amp;*baseType=%27Ms.Content.PageView%27&amp;*isJs=True&amp;*isLoggedIn=False&amp;*isManual=True&amp;*serverImpressionGuid=%278804e6d3-ca9a-46ae-ad19-2c21120ed81a%27&amp;-ver=%271.0%27&amp;-impressionGuid=%2700000000-0000-0000-0000-000000000000%27&amp;-pageName=%27Homepage%27&amp;-uri=%27https%3A%2F%2Fwww.microsoft.com%2Fja-jp%2F%27&amp;-pageType=%27HP.AllModules%27&amp;-pageTags=%27%7B%22tasId%22%3A%228804e6d3-ca9a-46ae-ad19-2c21120ed81a%22%2C%22tasMuid%22%3A%2218690046B6976CD5217D0D02B76A6D27%22%2C%22browserGroup%22%3A%22uplevel.web.pc.webkit.chrome%22%2C%22isOneRf%22%3A%22True%22%7D%27&amp;-behavior=0&amp;-market=%27ja-jp%27" role="presentation" style="display:none" aria-hidden="true" />
+        
+
+    
+    
+        
+                    
+
+                    
+
+    
+        
+
+
+
+
+
+		スキップしてメイン コンテンツへ
+
+	
+	
+		
+			
+			
+					
+						
+						Microsoft
+					
+			
+				
+				
+				
+			
+
+
+
+			        
+            
+                                        
+                            Office
+                        
+                        
+                            Windows
+                        
+                        
+                            Surface
+                        
+                        
+                            Xbox
+                        
+                        
+                            お買い得商品
+                        
+                        
+                            サポート 
+                        
+
+
+                
+                        
+        表示を増やす
+        
+        
+    
+
+                
+                            
+            
+        
+
+
+			
+				        
+            
+                
+                    
+                         すべて Microsoft 製品
+                        
+                                    
+            
+        
+            Office
+            
+        
+        
+            Windows
+            
+        
+        
+            Surface
+            
+        
+        
+            Xbox
+            
+        
+        
+            お買い得商品
+            
+        
+        
+            サポート 
+            
+        
+            
+        
+
+        
+
+            ソフトウェア
+            
+        
+            Windows アプリ
+            
+        
+        
+            OneDrive
+            
+        
+        
+            Outlook
+            
+        
+        
+            Skype
+            
+        
+        
+            OneNote
+            
+        
+            
+            
+        
+        
+
+            PC とデバイス
+            
+        
+            PCs & tablets
+            
+        
+        
+            アクセサリ
+            
+        
+            
+            
+        
+        
+
+            エンタメ
+            
+        
+            Xbox とゲーム
+            
+        
+        
+            ゲーム
+            
+        
+        
+            Windows ゲーム
+            
+        
+        
+            映画とテレビ番組
+            
+        
+            
+            
+        
+        
+
+            法人向け
+            
+        
+            Microsoft Azure
+            
+        
+        
+            Microsoft Dynamics 365
+            
+        
+        
+            Microsoft 365
+            
+        
+        
+            Microsoft Industry
+            
+        
+        
+            データ プラットフォーム
+            
+        
+            
+            
+        
+        
+
+            Developer & IT  
+            
+        
+            .NET
+            
+        
+        
+            Visual Studio
+            
+        
+        
+            Windows Server
+            
+        
+        
+            Windows アプリの開発
+            
+        
+        
+            ドキュメント
+            
+        
+            
+            
+        
+        
+
+            その他
+            
+        
+            Microsoft Store
+            
+        
+        
+            Microsoft Rewards 
+            
+        
+        
+            無料ダウンロード & セキュリティ
+            
+        
+        
+            教育
+            
+        
+        
+            プリペイド カード
+            
+        
+            
+            
+        
+                                                            
+                                    サイトマップの表示
+                                
+                            
+                        
+                    
+                
+            
+        
+
+		
+			
+			
+				検索
+			
+			
+				
+			
+			
+		
+		
+			キャンセル
+		
+		
+			0
+			カート
+		
+			
+		
+				
+			
+		
+		
+		
+	
+	
+
+
+
+
+
+    
+        
+
+                    
+            
+
+        
+    
+    
+            
+    
+                
+
+    
+        
+            
+                            
+                            
+                    
+            
+            
+    
+
+                
+                スライドの一時停止
+    
+    
+        
+            
+                            
+                                        
+                
+                    
+                
+            
+                
+あなただけの 365 日        Office 365 で毎日何ができるか見つけましょう
+
+            
+                
+                今すぐ購入
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+                                        
+                
+                    
+                
+            
+                
+新しい Surface Pro 6        軽さの中に、無限の可能性を。
+
+            
+                
+                購入はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+        
+        
+            
+                
+    
+                
+                    
+                
+Surface Book 2        想像を超えた、パフォーマンスを。
+
+
+                購入はこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Xbox One X        世界最上級のゲーム マシン
+
+
+                購入はこちら
+            
+        
+    
+                
+            
+            
+                
+    
+                
+                    
+                
+Xbox One S デジタル専用エディション        ダウンロードしたゲームをクラウド対応ライブラリに保存してどこにいても楽しめる。
+
+
+                ご予約はこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Microsoft atLife        Windows や Surface の最新情報
+
+
+                MICROSOFT 製品で暮らしを楽しく快適に
+            
+        
+    
+                
+            
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+            
+                            
+                        
+                
+                    
+                
+            
+                
+Surface Go        もっとできるを、軽がると - LTE Advanced でご利用可能です
+
+            
+                
+                今すぐ購入
+            
+
+            
+                
+            
+            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+        
+            法人のお客様
+        
+        
+        
+            
+                
+    
+                
+                    
+                
+Windows 10 Enterprise        90 日間利用可能な IT プロフェッショナル向けの評価版 (無料) をダウンロードいただけます。
+
+
+                ダウンロードはこちら
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+Surface Hub 2S が登場        チームワークのために作られたオールインワン コラボレーション デバイス。
+
+
+                詳細を見る
+            
+        
+    
+                
+            
+            
+                
+    
+                
+                    
+                
+Visual Studio 2019 を入手        生産性が高く、現代的で、革新的な IDE である Visual Studio 2019 をダウンロードしましょう。
+
+
+                今すぐダウンロード
+            
+        
+    
+                
+                
+    
+                
+                    
+                
+de:code 2019        最新テクノロジを体感する 2 日間
+
+
+                詳細はこちら
+            
+        
+    
+                
+            
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+            
+                            
+                            
+                    
+            
+            
+    
+
+                
+                スライドの一時停止
+    
+    
+        
+            
+                            
+                                        
+                
+                    
+                
+            
+                
+News Center        プレスリリースなどの最新企業情報
+
+            
+                
+                詳細はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+                                        
+                
+                    
+                
+            
+                
+新元号対応について        マイクロソフトの新元号対応まとめ情報
+
+            
+                
+                詳細はこちら
+            
+
+            
+                
+            
+            
+        
+
+                            
+                            
+        
+
+            
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+        
+
+    
+        
+    Microsoft をフォロー
+    
+        
+            
+                
+                    
+                    
+                
+            
+        
+        
+            
+                
+                    
+                    
+                
+            
+        
+        
+            
+                
+                    
+                    
+                
+            
+        
+    
+    
+
+    
+        
+
+    
+        
+            
+
+    
+        
+                    
+
+                    
+
+    
+        
+
+
+
+
+        
+            
+                
+                        
+                            最新情報
+
+                            
+                                        
+                                            新しい  Surface Pro 6
+                                        
+                                        
+                                            新しい  Surface Laptop 2
+                                        
+                                        
+                                            新しい Surface Go
+                                        
+                                        
+                                            Xbox One X
+                                        
+                                        
+                                            Xbox One S
+                                        
+                                        
+                                            Windows 10 アプリ
+                                        
+                                        
+                                            Office アプリ
+                                        
+
+                            
+                            
+                        
+                        
+                            ストアとサポート
+
+                            
+                                        
+                                            アカウント プロファイル
+                                        
+                                        
+                                            ダウンロード センター
+                                        
+                                        
+                                            セールスとサポート
+                                        
+                                        
+                                            返品・返金
+                                        
+                                        
+                                            ご注文履歴
+                                        
+                                        
+                                            サポート
+                                        
+
+                            
+                            
+                        
+                        
+                            教育
+
+                            
+                                        
+                                            教育機関向けの Microsoft 製品
+                                        
+                                        
+                                            学生向け Office
+                                        
+                                        
+                                            Office 365 の教育機関向け製品
+                                        
+                                        
+                                            教育機関向けの Microsoft Azure
+                                        
+
+                            
+                            
+                        
+                
+                
+                        
+                            エンタープライズ
+
+                            
+                                        
+                                            Microsoft Azure 
+                                        
+                                        
+                                            Microsoft Industry
+                                        
+                                        
+                                            データ プラットフォーム
+                                        
+                                        
+                                            Microsoft パートナー リソース
+                                        
+                                        
+                                            医療機関
+                                        
+                                        
+                                            金融サービス
+                                        
+
+                            
+                            
+                        
+                        
+                            開発者
+
+                            
+                                        
+                                            Microsoft Visual Studio
+                                        
+                                        
+                                            Windows デベロッパー センター
+                                        
+                                        
+                                            Developer Network
+                                        
+                                        
+                                            TechNet
+                                        
+                                        
+                                            Microsoft 開発者プログラム
+                                        
+                                        
+                                            チャネル 9
+                                        
+                                        
+                                            Office デベロッパー センター   
+                                        
+
+                            
+                            
+                        
+                        
+                            会社
+
+                            
+                                        
+                                            採用情報
+                                        
+                                        
+                                            会社のニュース
+                                        
+                                        
+                                            マイクロソフトにおけるプライバシー
+                                        
+                                        
+                                            投資家
+                                        
+                                        
+                                            アクセシビリティ
+                                        
+                                        
+                                            セキュリティ
+                                        
+
+                            
+                            
+                        
+                
+        
+    
+                日本語 (日本)
+
+        
+            
+                                
+                    Microsoft に問い合わせ
+                
+                
+                    プライバシー
+                
+                
+                    使用条件
+                
+                
+                    商標
+                
+                
+                    広告について
+                
+
+                © Microsoft 2019
+                
+            
+        
+    
+    
+
+
+
+
+
+    
+        
+
+                    
+            
+
+        
+    
+    
+    
+    
+    
+
+        
+
+    
+
+
+
+
+
+
+8f3d4332946d437278688fe937d02ad1dc53e27a
+a9789e5cdb9f84161bdb063fdfe79766b6ce63c4
+[]string{"//www.microsoft.com/onerfstatics/marketingsites-wcus-prod/_h/46c44584/coreui.statics/externalscripts/jquery/jquery-3.3.1.min.js", "//www.microsoft.com/onerfstatics/marketingsites-wcus-prod/mscomhp/_scrf/js/themes=default/d3-e6b21f/2f-63ce8f/45-f9a0d4/aa-dc1460/2d-7a9063/dc-7e9864/4f-5115f8/7d-266f10/4a-abd94b/78-4c7d22/9f-d154ca/e4-8302f6/cd-23d3b0/6d-1e7ed0/b7-cadaa7/ca-40b7b0/4e-ee3a55/3e-f5c39b/c3-6454d7/f9-7592d3/92-10345d/f8-73a5f2/79-499886/7e-cda2d3/32-6dafa3/93-283c2d/91-97a04f/1f-100dea/33-abe4df/18-d72213/e3-082b89?ver=2.0", "//www.microsoft.com/onerfstatics/marketingsites-wcus-prod/mscomhp/_scrf/js/themes=default/78-6f121b/1e-fd610f?ver=2.0", "https://www.microsoft.com/mwf/js/MWF_20190102_13628700/alert/autosuggest/contentplacement/contentplacementitem/glyph/heading/hero/heroitem/hyperlinkgroup/image/list/pagebehaviors/skiptomain/social?apiVersion=1.0", "https://web.vortex.data.microsoft.com/collect/v1/t.js?ver='2.1'&name='Ms.Webi.PageView'&time='2019-04-20T12%3A18%3A58.239Z'&os='Unix'&appId='JS%3AMicrosoftHP'&cV='XCxD6yy%2FGECOczUl.0'&-ver='1.0'&-impressionGuid='1ad602ad-b8d4-4d29-870f-88f19618e336'&-pageName='Homepage'&-uri='https%3A%2F%2Fwww.microsoft.com%2Fja-jp%2F'&-market='ja-jp'&-pageType='HP.AllModules'&-resHeight=768&-resWidth=1024&-pageTags='%7B%22browserGroup%22%3A%22uplevel.web.pc.webkit.chrome%22%2C%22isTentedPage%22%3Afalse%2C%22tasId%22%3A%22791b7d85-79bb-49c6-8c35-947da117e29d%22%2C%22tasMuid%22%3A%223135F845EDBC64AB0C8BF501EC94657A%22%2C%22pageVersion%22%3A%220.1%22%2C%22isCachedPage%22%3Afalse%2C%22enabledFeatures%22%3A%22optimizely_disabled%3A1%2Cuhf_retailstore2%3A1%2CUhfPb%3A1%2CUhfUsePh%3A1%2CEnableLocaleDetection%3A1%2CUhfSwp%3A1%2Cuhfgreenid%3A1%2Cenable_sasslib_minification_runtime%3A1%2Ccore_cookiecompliance_enabled%3A1%2Ccore_akamai_im_enabled%3A1%2Ccoreui_hero_image_resize_90%3A1%2Cuhf_as_iris%3A1%2Ccore_use_coreui_mwf%3A1%2Ccoreui_makeimagebackgroundtransparent%3A1%2Cf_audiencemanager_disabled%3A1%2Ccore_BypassJWTValidation%3A1%2CMSADisableForceSignin%3A1%2CIsRtoRuleDisabled%3A1%2CDisableToSkipMarketdetectionforUknownRoutes%3A1%2Cf_video_uselegacyservice%3A1%2Cuhf_magic_triangle%3A1%2CRelevanceOverride%3A1%2Cpipeline%3A1%2Ccoreui_videomodule_useflexsize%3A1%2CEnableAzureActiveDirectory20%3A1%2CAutoCORS_disabled%3A1%2CIsIrisV4Enabled%3A1%2Cf_video_useadaptive%3A1%2Ccore_uhf_access_policy%3A1%2Cuhf_st_enabled%3A1%2Cjquery_latest%3A1%2Ccore_trustedCors%3A1%2CDisableOneRFSearchRoute%3A1%2CclientTypeSfw%3A1%2CResolveDataProviderByPartnerNameSpace%3A1%2Ccore_disable_extensibility%3A1%2CInvokeLoginAuthorizeAndRedirect%3A1%2CAllowIncludeExclusivityArguments%3A1%2Cuhf_stick_footer_to_bottom%3A1%2CEnableFetchOfKnownDocument%3A1%2Cboomerang_disabled%3A1%2CDisableTATToken%3A1%2CretailServerFromTenantConfig%3A1%2Cnode_scnr_blob%3A1%2Cnode_disable_app_cache%3A1%2Ccore_pageTypeToken%3A1%22%2C%22pageSubType%22%3A%22RE2MDAF%22%2C%22canvasType%22%3A%22Web%22%2C%22deviceFamily%22%3Anull%2C%22isOneRf%22%3Atrue%2C%22isCorpNet%22%3Afalse%2C%22dataVersion%22%3A%222019%2F04%2F18%2022%3A41%3A39%20%2B00%3A00%22%2C%22serviceName%22%3A%22marketingsites-prod-odwestcentralus%22%2C%22metaTags%22%3A%7B%7D%2C%22scripts%22%3A%22JQuery%2CComscore%2CAudienceManager%22%7D'&-behavior=0&*baseType='Ms.Content.PageView'&*cookieEnabled=true&*isJs=true&*title='%E6%97%A5%E6%9C%AC%E3%83%9E%E3%82%A4%E3%82%AF%E3%83%AD%E3%82%BD%E3%83%95%E3%83%88%20-%20Official%20Home%20Page'&*isLoggedIn=false&*serverImpressionGuid='791b7d85-79bb-49c6-8c35-947da117e29d'&ext-app-env='onerf_prod'&ext-app-expId='EX%3Asfwaab'&ext-javascript-ver='1.1'&ext-javascript-libVer='4.2.8'&ext-javascript-domain='www.microsoft.com'&ext-javascript-userConsent=false&ext-user-localId='t%3A3135F845EDBC64AB0C8BF501EC94657A'&$mscomCookies=true", "https://mem.gfx.ms/me/MeControl/10.19085.0/ja-JP/meBoot.min.js", "https://mem.gfx.ms/me/MeControl/10.19085.0/ja-JP/meCore.min.js", "https://www.microsoft.com/library/svy/broker.js", "//www.microsoft.com/onerfstatics/marketingsites-wcus-prod/_h/9ae23327/mscom.statics/externalscripts/mscomhp/audiencemanager.js", "https://mem.gfx.ms/meversion?partner=MSHomePage&market=ja-jp&uhf=1", "https://www.microsoft.com/library/svy/broker-config.js?1555762738638"} []string{"//www.microsoft.com/onerfstatics/marketingsites-eus-prod/_h/46c44584/coreui.statics/externalscripts/jquery/jquery-3.3.1.min.js", "//www.microsoft.com/onerfstatics/marketingsites-eus-prod/mscomhp/_scrf/js/themes=default/d3-e6b21f/2f-63ce8f/45-f9a0d4/aa-dc1460/2d-7a9063/dc-7e9864/4f-5115f8/7d-266f10/4a-abd94b/78-4c7d22/9f-d154ca/e4-8302f6/cd-23d3b0/6d-1e7ed0/b7-cadaa7/ca-40b7b0/4e-ee3a55/3e-f5c39b/c3-6454d7/f9-7592d3/92-10345d/f8-73a5f2/79-499886/7e-cda2d3/32-6dafa3/93-283c2d/91-97a04f/1f-100dea/33-abe4df/18-d72213/e3-082b89?ver=2.0", "//www.microsoft.com/onerfstatics/marketingsites-eus-prod/mscomhp/_scrf/js/themes=default/78-6f121b/1e-fd610f?ver=2.0", "https://www.microsoft.com/mwf/js/MWF_20190102_13628700/alert/autosuggest/contentplacement/contentplacementitem/glyph/heading/hero/heroitem/hyperlinkgroup/image/list/pagebehaviors/skiptomain/social?apiVersion=1.0", "https://web.vortex.data.microsoft.com/collect/v1/t.js?ver='2.1'&name='Ms.Webi.PageView'&time='2019-04-20T12%3A19%3A03.045Z'&os='Unix'&appId='JS%3AMicrosoftHP'&cV='mErK7Z6lGUCpX4w5.0'&-ver='1.0'&-impressionGuid='532c3d19-47bd-4fc8-a5ec-ec8c3c633698'&-pageName='Homepage'&-uri='https%3A%2F%2Fwww.microsoft.com%2Fja-jp%2F'&-market='ja-jp'&-pageType='HP.AllModules'&-resHeight=768&-resWidth=1024&-pageTags='%7B%22browserGroup%22%3A%22uplevel.web.pc.webkit.chrome%22%2C%22isTentedPage%22%3Afalse%2C%22tasId%22%3A%228804e6d3-ca9a-46ae-ad19-2c21120ed81a%22%2C%22tasMuid%22%3A%2218690046B6976CD5217D0D02B76A6D27%22%2C%22pageVersion%22%3A%220.1%22%2C%22isCachedPage%22%3Afalse%2C%22enabledFeatures%22%3A%22optimizely_disabled%3A1%2Cuhf_retailstore2%3A1%2CUhfPb%3A1%2CUhfUsePh%3A1%2CEnableLocaleDetection%3A1%2CUhfSwp%3A1%2Cuhfgreenid%3A1%2Cenable_sasslib_minification_runtime%3A1%2Ccore_cookiecompliance_enabled%3A1%2Ccore_akamai_im_enabled%3A1%2Ccoreui_hero_image_resize_90%3A1%2Cuhf_as_iris%3A1%2Ccore_use_coreui_mwf%3A1%2Ccoreui_makeimagebackgroundtransparent%3A1%2Cf_audiencemanager_disabled%3A1%2Ccore_BypassJWTValidation%3A1%2CMSADisableForceSignin%3A1%2CIsRtoRuleDisabled%3A1%2CDisableToSkipMarketdetectionforUknownRoutes%3A1%2Cf_video_uselegacyservice%3A1%2Cuhf_magic_triangle%3A1%2CRelevanceOverride%3A1%2Cpipeline%3A1%2Ccoreui_videomodule_useflexsize%3A1%2CEnableAzureActiveDirectory20%3A1%2CAutoCORS_disabled%3A1%2CIsIrisV4Enabled%3A1%2Cf_video_useadaptive%3A1%2Ccore_uhf_access_policy%3A1%2Cuhf_st_enabled%3A1%2Cjquery_latest%3A1%2Ccore_trustedCors%3A1%2CDisableOneRFSearchRoute%3A1%2CclientTypeSfw%3A1%2CResolveDataProviderByPartnerNameSpace%3A1%2Ccore_disable_extensibility%3A1%2CInvokeLoginAuthorizeAndRedirect%3A1%2CAllowIncludeExclusivityArguments%3A1%2Cuhf_stick_footer_to_bottom%3A1%2CEnableFetchOfKnownDocument%3A1%2Cboomerang_disabled%3A1%2CDisableTATToken%3A1%2CretailServerFromTenantConfig%3A1%2Cnode_scnr_blob%3A1%2Cnode_disable_app_cache%3A1%2Ccore_pageTypeToken%3A1%22%2C%22pageSubType%22%3A%22RE2MDAF%22%2C%22canvasType%22%3A%22Web%22%2C%22deviceFamily%22%3Anull%2C%22isOneRf%22%3Atrue%2C%22isCorpNet%22%3Afalse%2C%22dataVersion%22%3A%222019%2F04%2F18%2022%3A41%3A39%20%2B00%3A00%22%2C%22serviceName%22%3A%22marketingsites-prod-odeastus%22%2C%22metaTags%22%3A%7B%7D%2C%22scripts%22%3A%22JQuery%2CComscore%2CAudienceManager%22%7D'&-behavior=0&*baseType='Ms.Content.PageView'&*cookieEnabled=true&*isJs=true&*title='%E6%97%A5%E6%9C%AC%E3%83%9E%E3%82%A4%E3%82%AF%E3%83%AD%E3%82%BD%E3%83%95%E3%83%88%20-%20Official%20Home%20Page'&*isLoggedIn=false&*serverImpressionGuid='8804e6d3-ca9a-46ae-ad19-2c21120ed81a'&ext-app-env='onerf_prod'&ext-app-expId='EX%3Asfwaaa'&ext-javascript-ver='1.1'&ext-javascript-libVer='4.2.8'&ext-javascript-domain='www.microsoft.com'&ext-javascript-userConsent=false&ext-user-localId='t%3A18690046B6976CD5217D0D02B76A6D27'&$mscomCookies=true", "https://mem.gfx.ms/me/MeControl/10.19085.0/ja-JP/meBoot.min.js", "https://mem.gfx.ms/me/MeControl/10.19085.0/ja-JP/meCore.min.js", "https://www.microsoft.com/library/svy/broker.js", "//www.microsoft.com/onerfstatics/marketingsites-eus-prod/_h/9ae23327/mscom.statics/externalscripts/mscomhp/audiencemanager.js", "https://mem.gfx.ms/meversion?partner=MSHomePage&market=ja-jp&uhf=1", "https://www.microsoft.com/library/svy/broker-config.js?1555762743414"}
+--- PASS: TestDiff (0.01s)
+PASS
+ok  	github.com/linkai-io/am/pkg/differ	0.010s

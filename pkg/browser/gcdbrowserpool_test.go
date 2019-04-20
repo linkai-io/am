@@ -2,6 +2,8 @@ package browser
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -10,6 +12,8 @@ import (
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
+	"github.com/linkai-io/am/pkg/convert"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 var leaser = NewLocalLeaser()
@@ -75,6 +79,40 @@ func TestGCDBrowserPool(t *testing.T) {
 	for _, resp := range webData.Responses {
 		t.Logf("%v\n", resp.URL)
 	}
+}
+
+func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "microsoft.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	dom, err := b.LoadForDiff(ctx, address, "http", "80")
+	if err != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/dom1.html", []byte(dom), 0600)
+	t.Logf("%s\n", convert.HashData([]byte(dom)))
+
+	dom2, err2 := b.LoadForDiff(ctx, address, "http", "80")
+	if err2 != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/dom2.html", []byte(dom2), 0600)
+	t.Logf("%s\n", convert.HashData([]byte(dom)))
+	dmp := diffmatchpatch.New()
+	diffs := dmp.DiffMain(dom, dom2, false)
+	fmt.Println(dmp.DiffText1(diffs))
+	//diffs := dmp.DiffMain(dom, dom2, false)
+	//fmt.Println(dmp.DiffPrettyText(dmp.DiffMain(dom, dom2, false)))
 }
 
 func TestGCDBrowserPoolTLS(t *testing.T) {
