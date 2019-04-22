@@ -13,6 +13,9 @@ type Storage struct {
 	WriteFn      func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error)
 	WriteInvoked bool
 
+	WriteWithHashFn      func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hashName string) (string, error)
+	WriteWithHashInvoked bool
+
 	GetInfraFileFn      func(ctx context.Context, bucketName, objectName string) ([]byte, error)
 	GetFileInfraInvoked bool
 
@@ -28,6 +31,11 @@ func (s *Storage) Init() error {
 func (s *Storage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
 	s.WriteInvoked = true
 	return s.WriteFn(ctx, userContext, address, data)
+}
+
+func (s *Storage) WriteWithHash(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hashName string) (string, error) {
+	s.WriteWithHashInvoked = true
+	return s.WriteWithHashFn(ctx, userContext, address, data, hashName)
 }
 
 func (s *Storage) GetInfraFile(ctx context.Context, bucketName, objectName string) ([]byte, error) {

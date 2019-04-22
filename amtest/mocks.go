@@ -141,6 +141,18 @@ func MockStorage() *mock.Storage {
 		}
 		return hashName, fileName, nil
 	}
+
+	mockStorage.WriteWithHashFn = func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hashName string) (string, error) {
+		if data == nil || len(data) == 0 {
+			return "", nil
+		}
+
+		fileName := filestorage.PathFromData(address, hashName)
+		if fileName == "null" {
+			return "", nil
+		}
+		return fileName, nil
+	}
 	return mockStorage
 }
 

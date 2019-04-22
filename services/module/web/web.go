@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/linkai-io/am/pkg/differ"
+
 	"github.com/linkai-io/am/pkg/convert"
 
 	"github.com/linkai-io/am/pkg/filestorage"
@@ -50,6 +52,7 @@ type Web struct {
 	cancel      context.CancelFunc
 	// concurrent safe cache of scan groups updated via Subscribe callbacks
 	groupCache *cache.ScanGroupSubscriber
+	diff       *differ.Diff
 }
 
 // New web analysis module
@@ -63,6 +66,7 @@ func New(browsers browser.Browser, webDataClient am.WebDataService, dc *dnsclien
 	b.storage = storage
 	// start cache subscriber and listen for updates
 	b.groupCache = cache.NewScanGroupSubscriber(ctx, st)
+	b.diff = differ.New()
 	return b
 }
 
@@ -155,7 +159,6 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
-			webData := &am.WebData{}
 			retryAttempts := uint(2)
 
 			// don't retry for non-standard ports
@@ -163,9 +166,16 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				retryAttempts = 1
 			}
 
+			webData := &am.WebData{}
+			loadDiffDom := ""
+
 			retryErr := retrier.RetryAttempts(func() error {
 				var err error
 				log.Ctx(ctx).Info().Int32("port", port).Str("scheme", scheme).Msg("calling load")
+				loadDiffDom, err = w.browsers.LoadForDiff(ctx, address, scheme, portStr)
+				if err != nil {
+					return err
+				}
 				webData, err = w.browsers.Load(ctx, address, scheme, portStr)
 				return err
 			}, retryAttempts)
@@ -174,7 +184,8 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
-			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData)
+			diffHash, _ := w.diff.DiffHash(ctx, webData.SerializedDOM, loadDiffDom)
+			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData, diffHash)
 			if err != nil {
 				continue
 			}
@@ -187,8 +198,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	return address, webRecords, nil
 }
 
-func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData) (map[string]*am.ScanGroupAddress, error) {
-	var hash string
+func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData, diffHash string) (map[string]*am.ScanGroupAddress, error) {
 	var link string
 	var err error
 
@@ -209,11 +219,11 @@ func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, ns
 	}
 	webData.SnapshotLink = link
 
-	hash, link, err = w.storage.Write(ctx, userContext, address, []byte(webData.SerializedDOM))
+	link, err = w.storage.WriteWithHash(ctx, userContext, address, []byte(webData.SerializedDOM), diffHash)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("failed to write serialized dom data to storage")
 	}
-	webData.SerializedDOMHash = hash
+	webData.SerializedDOMHash = diffHash
 	webData.SerializedDOMLink = link
 
 	if webData.Responses != nil {
