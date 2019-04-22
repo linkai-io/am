@@ -216,8 +216,6 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	defer tab.Close()
 	url := b.buildURL(tab, address, scheme, port)
 
-	//logger = log.Ctx(ctx).With().Str("url", url).Logger()
-	//ctx = logger.WithContext(ctx)
 	log.Ctx(ctx).Info().Msg("loading url")
 
 	if err := tab.LoadPage(ctx, url); err != nil {

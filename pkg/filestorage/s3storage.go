@@ -74,15 +74,14 @@ func (s *S3Storage) PutInfraFile(ctx context.Context, bucketName, objectName str
 	return nil
 }
 
-func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
-	hashName := convert.HashData(data)
+func (s *S3Storage) WriteWithHash(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hashName string) (string, error) {
 	fileName := PathFromData(address, hashName)
 	if fileName == "null" {
-		return "", "", nil
+		return "", nil
 	}
 
 	if userContext.GetOrgCID() == "" {
-		return "", "", errors.New("empty org cid")
+		return "", errors.New("empty org cid")
 	}
 
 	fileName = userContext.GetOrgCID() + fileName
@@ -96,14 +95,20 @@ func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, addre
 
 	out, err := s.s3session.HeadObjectWithContext(ctx, headObjectInput)
 	if err != nil {
-		return hashName, fileName, s.uploadWithRetry(ctx, bucket, fileName, data)
+		return fileName, s.uploadWithRetry(ctx, bucket, fileName, data)
 	}
 
 	// already exists don't bother uploading again
 	if out != nil {
-		return hashName, fileName, nil
+		return fileName, nil
 	}
-	return "", "", nil
+	return "", nil
+}
+
+func (s *S3Storage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+	hashName := convert.HashData(data)
+	link, err := s.WriteWithHash(ctx, userContext, address, data, hashName)
+	return hashName, link, err
 }
 
 func (s *S3Storage) uploadWithRetry(ctx context.Context, bucket, fileName string, data []byte) error {

@@ -2,7 +2,6 @@ package browser
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -13,7 +12,7 @@ import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/pkg/convert"
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/linkai-io/am/pkg/differ"
 )
 
 var leaser = NewLocalLeaser()
@@ -91,7 +90,7 @@ func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
 	}
 
 	address := &am.ScanGroupAddress{
-		HostAddress: "microsoft.com",
+		HostAddress: "google.com",
 		IPAddress:   "93.184.216.34",
 	}
 
@@ -107,12 +106,13 @@ func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
 		t.Fatalf("error during load: %v\n", err)
 	}
 	ioutil.WriteFile("testdata/dom2.html", []byte(dom2), 0600)
-	t.Logf("%s\n", convert.HashData([]byte(dom)))
-	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(dom, dom2, false)
-	fmt.Println(dmp.DiffText1(diffs))
-	//diffs := dmp.DiffMain(dom, dom2, false)
-	//fmt.Println(dmp.DiffPrettyText(dmp.DiffMain(dom, dom2, false)))
+
+	d := differ.New()
+	hash, same := d.DiffHash(ctx, dom, dom2)
+	if !same {
+		t.Fatalf("error diff hash failed")
+	}
+	t.Logf("%s\n", hash)
 }
 
 func TestGCDBrowserPoolTLS(t *testing.T) {

@@ -22,22 +22,27 @@ func (s *LocalStorage) Init() error {
 	return nil
 }
 
-// Writes the data to local storage, returning the hash and link/path
-func (s *LocalStorage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+func (s *LocalStorage) WriteWithHash(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hashName string) (string, error) {
 	if data == nil || len(data) == 0 {
-		return "", "", nil
+		return "", nil
 	}
 
-	hashName := convert.HashData(data)
 	fileName := PathFromData(address, hashName)
 	if fileName == "null" {
-		return "", "", nil
+		return "", nil
 	}
 	dir := filepath.Dir(userContext.GetOrgCID() + fileName)
 	if err := os.MkdirAll(dir, 0766); err != nil {
-		return "", "", err
+		return "", err
 	}
 	err := ioutil.WriteFile(userContext.GetOrgCID()+fileName, data, 0766)
+	return fileName, err
+}
+
+// Writes the data to local storage, returning the hash and link/path
+func (s *LocalStorage) Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error) {
+	hashName := convert.HashData(data)
+	fileName, err := s.WriteWithHash(ctx, userContext, address, data, hashName)
 	return hashName, userContext.GetOrgCID() + fileName, err
 }
 

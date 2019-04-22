@@ -15,6 +15,7 @@ var (
 type Storage interface {
 	Init() error
 	Write(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte) (string, string, error)
+	WriteWithHash(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, data []byte, hash string) (string, error)
 	GetInfraFile(ctx context.Context, pathName, objectName string) ([]byte, error)
 	PutInfraFile(ctx context.Context, pathName, objectName string, data []byte) error
 }

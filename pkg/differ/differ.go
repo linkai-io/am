@@ -1,13 +1,16 @@
 package differ
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/parsers"
+	"github.com/rs/zerolog/log"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"golang.org/x/net/html"
 )
@@ -22,14 +25,64 @@ func New() *Diff {
 	}
 }
 
-func (d *Diff) DiffRemove(text1, text2 string) string {
+// DiffHash parses text1 and text2 html and
+func (d *Diff) DiffHash(ctx context.Context, text1, text2 string) (string, bool) {
 	dom1, scripts1 := d.domParse(text1)
 	dom2, scripts2 := d.domParse(text2)
-	fmt.Printf("%s\nDOM2\n%s\n", dom1, dom2)
-	fmt.Printf("%s\n%s\n", convert.HashData([]byte(dom1)), convert.HashData([]byte(dom2)))
-	fmt.Printf("%#v %#v\n\n\n\n", scripts1, scripts2)
-	fmt.Printf("%v\n", d.compareJS(scripts1, scripts2))
-	return ""
+	dom1 += parseScript(scripts1)
+	dom2 += parseScript(scripts2)
+	result1 := d.diffPatch(dom1, dom2)
+	result2 := d.diffPatch(dom2, dom1)
+	hash1 := convert.HashData([]byte(result1))
+	hash2 := convert.HashData([]byte(result2))
+	same := hash1 == hash2
+	log.Info().Str("hash1", hash1).Str("hash2", hash2).Msg("comparing hash v2")
+	return hash1, same
+}
+
+func (d *Diff) diffPatch(dom1, dom2 string) string {
+	diff := d.dmp.DiffMain(dom1, dom2, true)
+	result := ""
+	for _, d := range diff {
+		if d.Type == diffmatchpatch.DiffEqual && len(d.Text) > 20 {
+			result += d.Text
+		}
+	}
+	return result
+}
+
+/*
+log.Info().Str("hash1", hash1).Str("hash2", hash2).Msg("comparing hash")
+	same := hash1 == hash2
+	if !same {
+		log.Warn().Msg("hashes did not match, doing diffpatch")
+		d.compareJS(scripts1, scripts2)
+		log.Info().Msg("diffpatch 1")
+		result1 := d.diffPatch(dom1, dom2)
+		//fmt.Printf("RESULT1: %s\n", result1)
+		log.Info().Msg("diffpatch 2")
+		result2 := d.diffPatch(dom2, dom1)
+		//fmt.Printf("RESULT2: %s\n", result2)
+		hash1 = convert.HashData([]byte(result1))
+		hash2 = convert.HashData([]byte(result2))
+		same = hash1 == hash2
+		log.Info().Str("hash1", hash1).Str("hash2", hash2).Msg("comparing hash v2")
+	}
+*/
+func parseScript(scripts []string) string {
+	toSort := make([]string, len(scripts))
+	for i := range scripts {
+		url, err := url.Parse(scripts[i])
+		if err != nil {
+			fmt.Printf("%s not a url\n", scripts[i])
+			continue
+		}
+		_, fileName := filepath.Split(url.Path)
+		toSort[i] = url.Host + fileName
+	}
+
+	sort.Strings(toSort)
+	return strings.Join(toSort, "")
 }
 
 func (d *Diff) compareJS(scripts1, scripts2 []string) bool {
@@ -70,11 +123,12 @@ func (d *Diff) domParse(text string) (string, []string) {
 
 	fn := func(n *html.Node) error {
 		if n.Type == html.TextNode {
-			if prevNode == "script" || prevNode == "style" || prevNode == "noscript" {
+			//prevNode == "script" ||
+			if prevNode == "style" || prevNode == "noscript" {
 				prevNode = ""
 				return nil
 			}
-			data.WriteString(n.Data)
+			data.WriteString(strings.Trim(n.Data, " \t"))
 		}
 		if n.Type != html.ElementNode {
 			return nil
