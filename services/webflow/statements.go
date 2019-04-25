@@ -31,3 +31,60 @@ var queryMap = map[string]string{
 	"startCustomWebScan":  "",
 	"stopCustomWebScan":   "",
 }
+
+var (
+	AddWebFlowResultsTempTableKey     = "result_add_temp"
+	AddWebFlowResultsTempTableColumns = []string{"web_flow_id", "organization_id", "scan_group_id", "run_timestamp", "url",
+		"load_url", "load_host_address", "load_ip_address", "requested_port", "response_port", "response_timestamp", "result", "response_body_hash",
+		"response_body_link"}
+
+	AddWebFlowResultsTempTable = `create temporary table result_add_temp (
+			web_flow_id integer,
+			organization_id integer,
+			scan_group_id integer,
+			run_timestamp timestamptz not null,
+			url bytea not null default '',
+			load_url bytea not null default '',
+			load_host_address varchar(512) not null default '',
+			load_ip_address varchar(256) not null default '',
+			requested_port int not null default 0,
+			response_port int not null default 0,
+			response_timestamp timestamptz not null,
+			result jsonb,
+			response_body_hash varchar(512) not null default '',
+			response_body_link text not null default ''
+		) on commit drop;`
+
+	AddTempToWebFlowResults = `insert into am.custom_web_flow_results as result (
+			web_flow_id,
+			organization_id,
+			scan_group_id,
+			run_timestamp,
+			url,
+			load_url,
+			load_host_address,
+			load_ip_address,
+			requested_port,
+			response_port,
+			response_timestamp,
+			result,
+			response_body_hash,
+			response_body_link
+		)
+		select
+			temp.web_flow_id,
+			temp.organization_id,
+			temp.scan_group_id,
+			temp.run_timestamp,
+			temp.url,
+			temp.load_url,
+			temp.load_host_address,
+			temp.load_ip_address,
+			temp.requested_port,
+			temp.response_port,
+			temp.response_timestamp,
+			temp.result,
+			temp.response_body_hash,
+			temp.response_body_link
+		from result_add_temp as temp on conflict do nothing`
+)

@@ -48,6 +48,7 @@ type CustomWebFlowResults struct {
 	OrgID             int                    `json:"org_id"`
 	GroupID           int                    `json:"group_id"`
 	WebFlowID         int32                  `json:"web_flow_id"`
+	RunTimestamp      int64                  `json:"run_timestamp"`
 	URL               string                 `json:"url"`
 	LoadURL           string                 `json:"load_url"`
 	LoadHostAddress   string                 `json:"load_host_address"`
@@ -92,4 +93,5 @@ type CustomWebFlowService interface {
 	Stop(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
 	GetStatus(ctx context.Context, userContext UserContext, webFlowID int32) (int, *CustomWebStatus, error)
 	GetResults(ctx context.Context, userContext UserContext, filter *CustomWebFilter) (int, []*CustomWebFlowResults, error)
+	AddResults(ctx context.Context, userContext UserContext, results []*CustomWebFlowResults) error
 }

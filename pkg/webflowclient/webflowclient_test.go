@@ -93,10 +93,12 @@ func TestDoBannedIP(t *testing.T) {
 			TraceID: "1234-test",
 		},
 	}
+
 	r, err := c.Do(context.Background(), event)
 	if err != nil {
 		t.Fatalf("error Do: %#v\n", err)
 	}
+
 	for _, res := range r.Results {
 		t.Logf("%#v\n", res)
 		if res.URL == "https://dev.console.linkai.io:443/" && len(res.Result) != 2 {

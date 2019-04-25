@@ -54,8 +54,26 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 		log.Printf("adding %d addresses\n", len(addrs))
 		return orgID, len(addrs), nil
 	}
+	addrClient.GetHostListFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (int, []*am.ScanGroupHostList, error) {
+		hosts := make([]*am.ScanGroupHostList, len(addresses))
+		for i, addr := range addresses {
+			if _, ok := filter.Filters.String("starts_host_address"); ok {
+				return orgID, nil, nil
+			}
+			hosts[i] = &am.ScanGroupHostList{
+				OrgID:       1,
+				GroupID:     addr.GroupID,
+				ETLD:        "example.com",
+				HostAddress: addr.HostAddress,
+				AddressIDs:  []int64{addr.AddressID},
+				IPAddresses: []string{addr.IPAddress},
+			}
+		}
+		return orgID, hosts, nil
+	}
 	return addrClient
 }
+
 func MockScanGroupService(orgID, groupID int) *mock.ScanGroupService {
 	sgClient := &mock.ScanGroupService{}
 	sgClient.GetFn = func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroup, error) {

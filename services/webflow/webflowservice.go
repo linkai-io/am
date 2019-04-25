@@ -265,9 +265,57 @@ func (s *Service) getStatus(ctx context.Context, userContext am.UserContext, tx 
 	return status.OrgID, status, nil
 }
 
-func (s *Service) GetResults(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, []*am.CustomWebFlowResults, error) {
+func (s *Service) GetResults(ctx context.Context, userContext am.UserContext, filter *am.CustomWebFilter) (int, []*am.CustomWebFlowResults, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
 	return 0, nil, nil
+}
+
+func (s *Service) AddResults(ctx context.Context, userContext am.UserContext, results []*am.CustomWebFlowResults) error {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "create") {
+		return am.ErrUserNotAuthorized
+	}
+
+	if len(results) == 0 {
+		return nil
+	}
+
+	var tx *pgx.Tx
+	var err error
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	resultRows := make([][]interface{}, 0)
+	for _, r := range results {
+		resultRows = append(resultRows, []interface{}{r.WebFlowID, r.OrgID, r.GroupID, time.Unix(0, r.RunTimestamp), r.URL, r.LoadURL,
+			r.LoadHostAddress, r.LoadIPAddress, r.RequestedPort, r.ResponsePort, time.Unix(0, r.ResponseTimestamp), r.Result, r.ResponseBodyHash,
+			r.ResponseBodyLink})
+	}
+
+	if _, err := tx.Exec(AddWebFlowResultsTempTable); err != nil {
+		return err
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{AddWebFlowResultsTempTableKey}, AddWebFlowResultsTempTableColumns, pgx.CopyFromRows(resultRows))
+	if err != nil {
+		return err
+	}
+
+	if copyCount != len(results) {
+		return ErrCopyCount
+	}
+
+	if _, err := tx.Exec(AddTempToWebFlowResults); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, "failed to add web flow results")
+		}
+		return err
+	}
+
+	return tx.Commit()
 }

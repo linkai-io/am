@@ -13,12 +13,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type WebFlowRequester interface {
+	Do(ctx context.Context, request webflowclient.RequestEvent) (*webflowclient.Results, error)
+}
 type Executor interface {
 	Init() error
 	Start(ctx context.Context, webFlowConfig *am.CustomWebFlowConfig) error
 }
 
 type WebFlowExecutor struct {
+	requester       WebFlowRequester
 	userContext     am.UserContext
 	webFlowService  am.CustomWebFlowService
 	addressClient   am.AddressService
@@ -30,9 +34,10 @@ type WebFlowExecutor struct {
 	webFlowConfig *am.CustomWebFlowConfig
 }
 
-func NewWebFlowExecutor(userContext am.UserContext, webFlowService am.CustomWebFlowService, addressClient am.AddressService, scanGroupClient am.ScanGroupService) *WebFlowExecutor {
+func NewWebFlowExecutor(userContext am.UserContext, webFlowService am.CustomWebFlowService, addressClient am.AddressService, scanGroupClient am.ScanGroupService, requester WebFlowRequester) *WebFlowExecutor {
 	return &WebFlowExecutor{
 		userContext:     userContext,
+		requester:       requester,
 		webFlowService:  webFlowService,
 		addressClient:   addressClient,
 		scanGroupClient: scanGroupClient,
@@ -96,12 +101,12 @@ func (e *WebFlowExecutor) Start(ctx context.Context, webFlowConfig *am.CustomWeb
 
 func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 	ctx := context.Background()
+
 	groupLog := log.With().
 		Int("UserID", e.userContext.GetUserID()).
 		Int("GroupID", group.GroupID).
 		Int32("WebFlowID", e.webFlowConfig.WebFlowID).
-		Int("OrgID", e.userContext.GetOrgID()).
-		Str("TraceID", e.userContext.GetTraceID()).Logger()
+		Int("OrgID", e.userContext.GetOrgID()).Logger()
 
 	ctx = groupLog.WithContext(ctx)
 
@@ -113,35 +118,78 @@ func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 		ports = append(ports, group.ModuleConfigurations.PortModule.CustomPorts...)
 	}
 
-	pool := workerpool.New(5)
-	for {
-		filter := &am.ScanGroupAddressFilter{
-			OrgID:   e.userContext.GetOrgID(),
-			GroupID: group.GroupID,
-			Start:   0,
-			Limit:   1000,
-			Filters: &am.FilterType{},
-		}
+	filter := &am.ScanGroupAddressFilter{
+		OrgID:   e.userContext.GetOrgID(),
+		GroupID: group.GroupID,
+		Start:   0,
+		Limit:   5,
+		Filters: &am.FilterType{},
+	}
 
+	for {
 		_, hosts, err := e.addressClient.GetHostList(ctx, e.userContext, filter)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("error getting hosts from client")
 			return
 		}
 
+		log.Ctx(ctx).Info().Int("hosts", len(hosts)).Msg("got hosts from client")
 		if hosts == nil || len(hosts) == 0 {
 			break
 		}
 
-		for _, host := range hosts {
-			hostName := host.HostAddress
-			if hostName == "" {
-				continue
-			}
-			req := webflowclient.RequestEvent{UserContext: e.userContext, Host: hostName, Ports: ports, Config: e.webFlowConfig.Configuration}
-		}
+		lastHost := hosts[len(hosts)-1].HostAddress
+		filter.Filters.AddString("starts_host_address", lastHost)
+		log.Ctx(ctx).Info().Msg("pooling host requests")
+		e.poolRequests(ctx, group, hosts, ports)
 	}
-
 }
 
-func (e *WebFlowExecutor) executeLambda(taskDetails)
+func (e *WebFlowExecutor) poolRequests(ctx context.Context, group *am.ScanGroup, hosts []*am.ScanGroupHostList, ports []int32) {
+	rps := int(group.ModuleConfigurations.NSModule.RequestsPerSecond)
+	numHosts := len(hosts)
+
+	if len(hosts) < rps {
+		rps = numHosts
+	}
+	pool := workerpool.New(rps)
+
+	out := make(chan *webflowclient.Results, numHosts)
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(30*numHosts))
+	defer cancel()
+
+	log.Ctx(ctx).Info().Msg("iterating hosts")
+	for _, host := range hosts {
+		hostName := host.HostAddress
+		if hostName == "" {
+			continue
+		}
+		log.Ctx(ctx).Info().Msgf("queueing %s", hostName)
+		req := &webflowclient.RequestEvent{UserContext: e.userContext, Host: hostName, Ports: ports, Config: e.webFlowConfig.Configuration}
+		pool.Submit(e.executeRequest(timeoutCtx, req, out))
+	}
+	log.Ctx(ctx).Info().Msg("queued all hosts")
+	pool.StopWait()
+	close(out)
+
+	for res := range out {
+		if err := e.webFlowService.AddResults(ctx, e.userContext, res.Results); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to add results")
+		}
+	}
+}
+
+func (e *WebFlowExecutor) executeRequest(ctx context.Context, req *webflowclient.RequestEvent, out chan *webflowclient.Results) func() {
+	return func() {
+		log.Ctx(ctx).Info().Msgf("doing request: %s", req.Host)
+		result, err := e.requester.Do(ctx, *req)
+		if err != nil {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case out <- result:
+		}
+	}
+}
