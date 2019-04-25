@@ -6,6 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gammazero/workerpool"
+	"github.com/linkai-io/am/pkg/webflowclient"
+
 	"github.com/linkai-io/am/am"
 	"github.com/rs/zerolog/log"
 )
@@ -102,6 +105,15 @@ func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 
 	ctx = groupLog.WithContext(ctx)
 
+	ports := make([]int32, 2)
+	ports[0] = int32(80)
+	ports[1] = int32(443)
+
+	if e.webFlowConfig.Configuration.OnlyPort == 0 && group.ModuleConfigurations.PortModule.CustomPorts != nil {
+		ports = append(ports, group.ModuleConfigurations.PortModule.CustomPorts...)
+	}
+
+	pool := workerpool.New(5)
 	for {
 		filter := &am.ScanGroupAddressFilter{
 			OrgID:   e.userContext.GetOrgID(),
@@ -120,6 +132,16 @@ func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 		if hosts == nil || len(hosts) == 0 {
 			break
 		}
+
+		for _, host := range hosts {
+			hostName := host.HostAddress
+			if hostName == "" {
+				continue
+			}
+			req := webflowclient.RequestEvent{UserContext: e.userContext, Host: hostName, Ports: ports, Config: e.webFlowConfig.Configuration}
+		}
 	}
 
 }
+
+func (e *WebFlowExecutor) executeLambda(taskDetails)
