@@ -8,11 +8,13 @@ import (
 	"github.com/linkai-io/am/pkg/filestorage"
 	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/webflowclient"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 var client *webflowclient.Client
+var client *webflow.Client
 
 var (
 	appConfig initializers.AppConfig
@@ -28,9 +30,9 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to initialize storage")
 	}
 	client = webflowclient.New(store)
-}
 
-func HandleLambdaEvent(ctx context.Context, event webflowclient.RequestEvent) (*webflowclient.Results, error) {
+
+func HandleLambdaEvent(ctx context.Context, event webflow.RequestEvent) (*webflow.Results, error) {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "WebModuleService").Logger()
 	return client.Do(ctx, &event)
