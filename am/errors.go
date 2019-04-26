@@ -28,4 +28,7 @@ var (
 
 	// Events & Notifications
 	ErrEventCopyCount = errors.New("copy count of events did not match expected amount")
+
+	// Custom WebFlows
+	ErrEmptyCustomWebFlowConfig = errors.New("custom web flow configuration was empty")
 )

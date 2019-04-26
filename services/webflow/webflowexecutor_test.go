@@ -39,9 +39,11 @@ func TestExecutor(t *testing.T) {
 	addrClient := amtest.MockAddressService(1, addrs)
 	userContext := amtest.CreateUserContext(1, 1)
 	sgClient := amtest.MockScanGroupService(1, 1)
-	webFlowClient := webflow.New(nil, nil, nil)
-	webFlowClient.Init(nil)
 	requester := &testRequester{t: t, wg: wg}
+
+	webFlowClient := webflow.New(nil, nil, nil, requester)
+	webFlowClient.Init(nil)
+
 	executor := webflow.NewWebFlowExecutor(userContext, webFlowClient, addrClient, sgClient, requester)
 	cfg := &am.CustomWebFlowConfig{
 		OrgID:        1,

@@ -82,15 +82,22 @@ type CustomWebStatus struct {
 }
 
 type CustomWebFilter struct {
+	OrgID     int         `json:"org_id"`
+	GroupID   int         `json:"group_id"`
+	WebFlowID int32       `json:"web_flow_id"`
+	Filters   *FilterType `json:"filters"`
+	Start     int64       `json:"start"`
+	Limit     int         `json:"limit"`
 }
 
 type CustomWebFlowService interface {
 	Init(config []byte) error
-	Create(ctx context.Context, userContext UserContext, config *CustomWebFlowConfig) (int, error)
+	Create(ctx context.Context, userContext UserContext, config *CustomWebFlowConfig) (int32, error)
 	Update(ctx context.Context, userContext UserContext, config *CustomWebFlowConfig) (int, error)
 	Delete(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
 	Start(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
 	Stop(ctx context.Context, userContext UserContext, webFlowID int32) (int, error)
+	UpdateStatus(ctx context.Context, userContext UserContext, total, inProgress, completed, webFlowID int32) error
 	GetStatus(ctx context.Context, userContext UserContext, webFlowID int32) (int, *CustomWebStatus, error)
 	GetResults(ctx context.Context, userContext UserContext, filter *CustomWebFilter) (int, []*CustomWebFlowResults, error)
 	AddResults(ctx context.Context, userContext UserContext, results []*CustomWebFlowResults) error

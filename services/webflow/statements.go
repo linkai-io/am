@@ -1,5 +1,20 @@
 package webflow
 
+var resultsColumnsList = `r.web_flow_id,
+	r.organization_id,
+	r.scan_group_id,
+	r.run_timestamp,
+	r.url,
+	r.load_url,
+	r.load_host_address,
+	r.load_ip_address,
+	r.requested_port,
+	r.response_port,
+	r.response_timestamp,
+	r.result,
+	r.response_body_hash,
+	r.response_body_link`
+
 var queryMap = map[string]string{
 	"getCustomWebScan": `select organization_id, scan_group_id, web_flow_id, web_flow_name, configuration, created_timestamp, modified_timestamp, deleted from am.custom_web_flows where organization_id=$1 and web_flow_id=$2`,
 
@@ -23,37 +38,37 @@ var queryMap = map[string]string{
 	"createCustomWebScan": `insert into am.custom_web_flows (organization_id, scan_group_id, web_flow_name, configuration, created_timestamp, modified_timestamp, deleted) values 
 		($1, $2, $3, $4, $5, $6, false) returning web_flow_id`,
 
-	"updateCustomWebStatus": `insert into am.custom_web_flow_status (web_flow_id, organization_id, scan_group_id, last_updated_timestamp, 
-		started_timestamp, finished_timestamp, web_flow_status, total, in_progress, completed) values 
-		($1, $2, $3, 44, $5, $6, $7, $8, $9, $10)`,
+	"updateCustomWebStatus": `update am.custom_web_flow_status set 
+		last_updated_timestamp=now(), total=$1, in_progress=$2, completed=$3 where organization_id=$4 and web_flow_id=$5`,
+
+	"startStopCustomWeb": `update am.custom_web_flow_status set 
+	last_updated_timestamp=now(), web_flow_status=$1 where organization_id=$2 and web_flow_id=$3`,
 
 	"deleteCustomWebScan": "update am.custom_web_flows set deleted=true, web_flow_name=$1 where organization_id=$2 and web_flow_id=$3",
-	"startCustomWebScan":  "",
-	"stopCustomWebScan":   "",
 }
 
 var (
+	AddWebFlowResultsTempTable = `create temporary table result_add_temp (
+		web_flow_id integer,
+		organization_id integer,
+		scan_group_id integer,
+		run_timestamp timestamptz not null,
+		url bytea not null default '',
+		load_url bytea not null default '',
+		load_host_address varchar(512) not null default '',
+		load_ip_address varchar(256) not null default '',
+		requested_port int not null default 0,
+		response_port int not null default 0,
+		response_timestamp timestamptz not null,
+		result jsonb,
+		response_body_hash varchar(512) not null default '',
+		response_body_link text not null default ''
+	) on commit drop;`
+
 	AddWebFlowResultsTempTableKey     = "result_add_temp"
 	AddWebFlowResultsTempTableColumns = []string{"web_flow_id", "organization_id", "scan_group_id", "run_timestamp", "url",
 		"load_url", "load_host_address", "load_ip_address", "requested_port", "response_port", "response_timestamp", "result", "response_body_hash",
 		"response_body_link"}
-
-	AddWebFlowResultsTempTable = `create temporary table result_add_temp (
-			web_flow_id integer,
-			organization_id integer,
-			scan_group_id integer,
-			run_timestamp timestamptz not null,
-			url bytea not null default '',
-			load_url bytea not null default '',
-			load_host_address varchar(512) not null default '',
-			load_ip_address varchar(256) not null default '',
-			requested_port int not null default 0,
-			response_port int not null default 0,
-			response_timestamp timestamptz not null,
-			result jsonb,
-			response_body_hash varchar(512) not null default '',
-			response_body_link text not null default ''
-		) on commit drop;`
 
 	AddTempToWebFlowResults = `insert into am.custom_web_flow_results as result (
 			web_flow_id,

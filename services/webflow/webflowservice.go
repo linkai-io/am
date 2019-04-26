@@ -26,14 +26,16 @@ type Service struct {
 	authorizer      auth.Authorizer
 	scanGroupClient am.ScanGroupService
 	addressClient   am.AddressService
+	requester       WebFlowRequester
 }
 
 // New returns an empty Service
-func New(authorizer auth.Authorizer, scanGroupClient am.ScanGroupService, addressClient am.AddressService) *Service {
+func New(authorizer auth.Authorizer, scanGroupClient am.ScanGroupService, addressClient am.AddressService, requester WebFlowRequester) *Service {
 	return &Service{
 		authorizer:      authorizer,
 		scanGroupClient: scanGroupClient,
 		addressClient:   addressClient,
+		requester:       requester,
 	}
 }
 
@@ -76,7 +78,7 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
-			return err
+			return errors.Wrap(err, "key: "+k)
 		}
 	}
 	return nil
@@ -90,7 +92,7 @@ func (s *Service) IsAuthorized(ctx context.Context, userContext am.UserContext, 
 	return true
 }
 
-func (s *Service) Create(ctx context.Context, userContext am.UserContext, config *am.CustomWebFlowConfig) (webFlowID int, err error) {
+func (s *Service) Create(ctx context.Context, userContext am.UserContext, config *am.CustomWebFlowConfig) (webFlowID int32, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "create") {
 		return 0, am.ErrUserNotAuthorized
 	}
@@ -211,6 +213,78 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 	defer tx.Rollback() // safe to call as no-op on success
 
 	_, status, err := s.getStatus(ctx, userContext, tx, webFlowID)
+	if err != nil && err != pgx.ErrNoRows {
+		return 0, err
+	}
+
+	if status != nil && (status.WebFlowStatus == am.WebFlowStatusRunning) {
+		return 0, errors.New("this web flow is already running")
+	}
+
+	custom := &am.CustomWebFlowConfig{}
+	custom.Configuration = &am.CustomRequestConfig{}
+	//organization_id, scan_group_id, web_flow_id, web_flow_name, configuration, created_timestamp, modified_timestamp, deleted
+	err = tx.QueryRow("getCustomWebScan", userContext.GetOrgID(), webFlowID).Scan(&custom.OrgID, &custom.GroupID, &custom.WebFlowID,
+		&custom.WebFlowName, custom.Configuration, &createTime, &modifyTime, &custom.Deleted)
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to start web flow")
+		}
+		return 0, err
+	}
+
+	custom.CreationTime = createTime.UnixNano()
+	custom.ModifiedTime = modifyTime.UnixNano()
+
+	if _, err := tx.Exec("startStopCustomWeb", am.WebFlowStatusRunning, userContext.GetOrgID(), webFlowID); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to start web flow")
+		}
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to commit start web flow")
+		}
+		return 0, err
+	}
+
+	executor := NewWebFlowExecutor(userContext, s, s.addressClient, s.scanGroupClient, s.requester)
+	if err := executor.Init(); err != nil {
+		return 0, errors.Wrap(err, "unable to start custom web flow")
+	}
+
+	if err := executor.Start(ctx, custom); err != nil {
+		return 0, errors.Wrap(err, "unable to start custom web flow")
+	}
+
+	return 0, nil
+}
+
+func (s *Service) Stop(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "update") {
+		return 0, am.ErrUserNotAuthorized
+	}
+	var tx *pgx.Tx
+	var err error
+	var createTime time.Time
+	var modifyTime time.Time
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int32("WebFlowID", webFlowID).
+		Str("Call", "CustomWebFlow.Start").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Starting web flow")
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	_, status, err := s.getStatus(ctx, userContext, tx, webFlowID)
 	if err != nil {
 		return 0, err
 	}
@@ -230,21 +304,73 @@ func (s *Service) Start(ctx context.Context, userContext am.UserContext, webFlow
 	custom.CreationTime = createTime.UnixNano()
 	custom.ModifiedTime = modifyTime.UnixNano()
 
+	if _, err := tx.Exec("startStopCustomWeb", am.WebFlowStatusStopped, userContext.GetOrgID(), webFlowID); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to start web flow")
+		}
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to commit start web flow")
+		}
+		return 0, err
+	}
+
 	return 0, nil
 }
 
-func (s *Service) Stop(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, error) {
+func (s *Service) UpdateStatus(ctx context.Context, userContext am.UserContext, total, inProgress, completed, webFlowID int32) error {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "update") {
-		return 0, am.ErrUserNotAuthorized
+		return am.ErrUserNotAuthorized
 	}
-	return 0, nil
+
+	if _, err := s.pool.Exec("updateCustomWebStatus", total, inProgress, completed, userContext.GetOrgID(), webFlowID); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return errors.Wrap(v, "failed to update web flow status")
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *Service) GetStatus(ctx context.Context, userContext am.UserContext, webFlowID int32) (int, *am.CustomWebStatus, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return 0, nil, nil
+
+	var tx *pgx.Tx
+	var err error
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int32("WebFlowID", webFlowID).
+		Str("Call", "CustomWebFlow.Start").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	serviceLog.Info().Msg("Starting web flow")
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	oid, status, err := s.getStatus(ctx, userContext, tx, webFlowID)
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, nil, errors.Wrap(v, "failed to get web flow status")
+		}
+		return 0, nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, nil, errors.Wrap(v, "failed to commit on get web flow status")
+		}
+		return 0, nil, err
+	}
+	return oid, status, nil
 }
 
 func (s *Service) getStatus(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, webFlowID int32) (int, *am.CustomWebStatus, error) {
@@ -269,7 +395,62 @@ func (s *Service) GetResults(ctx context.Context, userContext am.UserContext, fi
 	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "read") {
 		return 0, nil, am.ErrUserNotAuthorized
 	}
-	return 0, nil, nil
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Int32("WebFlowID", filter.WebFlowID).
+		Str("Call", "CustomWebFlow.GetResults").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	var rows *pgx.Rows
+	var err error
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	query, args, err := buildGetResultsQuery(userContext, filter)
+	if err != nil {
+		return 0, nil, err
+	}
+	serviceLog.Info().Msgf("executing query %s %#v", query, args)
+	rows, err = s.pool.Query(query, args...)
+	defer rows.Close()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	results := make([]*am.CustomWebFlowResults, 0)
+
+	for i := 0; rows.Next(); i++ {
+		r := &am.CustomWebFlowResults{}
+		var responseTime time.Time
+		var runTime time.Time
+		var url []byte
+		var loadURL []byte
+
+		if err := rows.Scan(&r.WebFlowID, &r.OrgID, &r.GroupID, &runTime, &url, &loadURL,
+			&r.LoadHostAddress, &r.LoadIPAddress, &r.RequestedPort, &r.ResponsePort,
+			&responseTime, &r.Result, &r.ResponseBodyHash, &r.ResponseBodyLink); err != nil {
+			return 0, nil, err
+		}
+
+		if r.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+		r.URL = string(url)
+		r.LoadURL = string(loadURL)
+		r.ResponseTimestamp = responseTime.UnixNano()
+		r.RunTimestamp = runTime.UnixNano()
+		results = append(results, r)
+	}
+
+	return userContext.GetOrgID(), results, err
+
 }
 
 func (s *Service) AddResults(ctx context.Context, userContext am.UserContext, results []*am.CustomWebFlowResults) error {

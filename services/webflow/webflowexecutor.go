@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gammazero/workerpool"
@@ -16,6 +17,7 @@ import (
 type WebFlowRequester interface {
 	Do(ctx context.Context, request webflowclient.RequestEvent) (*webflowclient.Results, error)
 }
+
 type Executor interface {
 	Init() error
 	Start(ctx context.Context, webFlowConfig *am.CustomWebFlowConfig) error
@@ -27,8 +29,12 @@ type WebFlowExecutor struct {
 	webFlowService  am.CustomWebFlowService
 	addressClient   am.AddressService
 	scanGroupClient am.ScanGroupService
+	shouldStop      int32
 	closeCh         chan struct{}
 	stopCh          chan struct{}
+	total           int32
+	inProgress      int32
+	completed       int32
 
 	webFlowLock   *sync.RWMutex
 	webFlowConfig *am.CustomWebFlowConfig
@@ -48,7 +54,6 @@ func NewWebFlowExecutor(userContext am.UserContext, webFlowService am.CustomWebF
 }
 
 func (e *WebFlowExecutor) Init() error {
-	go e.monitorFlows()
 	return nil
 }
 
@@ -78,14 +83,22 @@ func (e *WebFlowExecutor) monitorFlows() {
 
 			if status.WebFlowStatus == am.WebFlowStatusStopped {
 				close(e.stopCh)
+				atomic.AddInt32(&e.shouldStop, am.WebFlowStatusStopped)
+				return
 			}
-
+			total := atomic.LoadInt32(&e.total)
+			inProgress := atomic.LoadInt32(&e.inProgress)
+			completed := atomic.LoadInt32(&e.completed)
+			timeoutCtx, cancel = context.WithTimeout(context.Background(), time.Second*20)
+			if err := e.webFlowService.UpdateStatus(timeoutCtx, e.userContext, total, inProgress, completed, e.webFlowConfig.WebFlowID); err != nil {
+				log.Warn().Err(err).Int32("web_flow_id", e.webFlowConfig.WebFlowID).Msg("failed to update status for web flow")
+			}
+			cancel()
 		}
 	}
 }
 
 func (e *WebFlowExecutor) Start(ctx context.Context, webFlowConfig *am.CustomWebFlowConfig) error {
-
 	oid, group, err := e.scanGroupClient.Get(ctx, e.userContext, webFlowConfig.GroupID)
 	if err != nil {
 		return err
@@ -94,7 +107,12 @@ func (e *WebFlowExecutor) Start(ctx context.Context, webFlowConfig *am.CustomWeb
 	if oid != e.userContext.GetOrgID() {
 		return am.ErrOrgIDMismatch
 	}
+
 	e.webFlowConfig = webFlowConfig
+	if e.webFlowConfig == nil {
+		return am.ErrEmptyCustomWebFlowConfig
+	}
+	go e.monitorFlows()
 	go e.run(group)
 	return nil
 }
@@ -122,15 +140,19 @@ func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 		OrgID:   e.userContext.GetOrgID(),
 		GroupID: group.GroupID,
 		Start:   0,
-		Limit:   5,
+		Limit:   1000,
 		Filters: &am.FilterType{},
 	}
 
+	lastHost := ""
 	for {
+		if atomic.LoadInt32(&e.shouldStop) == am.WebFlowStatusStopped {
+			break
+		}
 		_, hosts, err := e.addressClient.GetHostList(ctx, e.userContext, filter)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("error getting hosts from client")
-			return
+			break
 		}
 
 		log.Ctx(ctx).Info().Int("hosts", len(hosts)).Msg("got hosts from client")
@@ -138,16 +160,21 @@ func (e *WebFlowExecutor) run(group *am.ScanGroup) {
 			break
 		}
 
-		lastHost := hosts[len(hosts)-1].HostAddress
-		filter.Filters.AddString("starts_host_address", lastHost)
+		lastHost = hosts[len(hosts)-1].HostAddress
+		filter.Filters.AddString("start_host", lastHost)
 		log.Ctx(ctx).Info().Msg("pooling host requests")
 		e.poolRequests(ctx, group, hosts, ports)
+	}
+
+	if _, err := e.webFlowService.Stop(ctx, e.userContext, e.webFlowConfig.WebFlowID); err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("failed to stop custom web flow")
 	}
 }
 
 func (e *WebFlowExecutor) poolRequests(ctx context.Context, group *am.ScanGroup, hosts []*am.ScanGroupHostList, ports []int32) {
 	rps := int(group.ModuleConfigurations.NSModule.RequestsPerSecond)
 	numHosts := len(hosts)
+	atomic.AddInt32(&e.total, int32(numHosts))
 
 	if len(hosts) < rps {
 		rps = numHosts
@@ -160,12 +187,18 @@ func (e *WebFlowExecutor) poolRequests(ctx context.Context, group *am.ScanGroup,
 
 	log.Ctx(ctx).Info().Msg("iterating hosts")
 	for _, host := range hosts {
+		if atomic.LoadInt32(&e.shouldStop) == am.WebFlowStatusStopped {
+			return
+		}
+
 		hostName := host.HostAddress
 		if hostName == "" {
 			continue
 		}
+
 		log.Ctx(ctx).Info().Msgf("queueing %s", hostName)
 		req := &webflowclient.RequestEvent{UserContext: e.userContext, Host: hostName, Ports: ports, Config: e.webFlowConfig.Configuration}
+		atomic.AddInt32(&e.inProgress, 1)
 		pool.Submit(e.executeRequest(timeoutCtx, req, out))
 	}
 	log.Ctx(ctx).Info().Msg("queued all hosts")
@@ -183,13 +216,18 @@ func (e *WebFlowExecutor) executeRequest(ctx context.Context, req *webflowclient
 	return func() {
 		log.Ctx(ctx).Info().Msgf("doing request: %s", req.Host)
 		result, err := e.requester.Do(ctx, *req)
+		atomic.AddInt32(&e.inProgress, -1)
+		atomic.AddInt32(&e.completed, 1)
 		if err != nil {
 			return
 		}
 		select {
+		case <-e.stopCh:
+			return
 		case <-ctx.Done():
 			return
 		case out <- result:
+			return
 		}
 	}
 }
