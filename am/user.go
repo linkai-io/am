@@ -20,16 +20,18 @@ const (
 
 // User represents a user of an organization that has subscribed to our service
 type User struct {
-	OrgID        int    `json:"org_id"`
-	OrgCID       string `json:"org_customer_id"`
-	UserCID      string `json:"user_customer_id"`
-	UserID       int    `json:"user_id"`
-	UserEmail    string `json:"user_email"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	StatusID     int    `json:"status_id"`
-	CreationTime int64  `json:"creation_time"`
-	Deleted      bool   `json:"deleted"`
+	OrgID                      int    `json:"org_id"`
+	OrgCID                     string `json:"org_customer_id"`
+	UserCID                    string `json:"user_customer_id"`
+	UserID                     int    `json:"user_id"`
+	UserEmail                  string `json:"user_email"`
+	FirstName                  string `json:"first_name"`
+	LastName                   string `json:"last_name"`
+	StatusID                   int    `json:"status_id"`
+	CreationTime               int64  `json:"creation_time"`
+	Deleted                    bool   `json:"deleted"`
+	AgreementAccepted          bool   `json:"agreement_accepted"`
+	AgreementAcceptedTimestamp int64  `json:"agreement_accepted_timestamp"`
 }
 
 // UserContext interface for passing contextual data about a request for tracking & auth
@@ -129,4 +131,5 @@ type UserService interface {
 	Create(ctx context.Context, userContext UserContext, user *User) (oid int, uid int, ucid string, err error)
 	Update(ctx context.Context, userContext UserContext, user *User, userID int) (oid int, uid int, err error)
 	Delete(ctx context.Context, userContext UserContext, userID int) (oid int, err error)
+	AcceptAgreement(ctx context.Context, userContext UserContext, accepted bool) (oid int, uid int, err error)
 }

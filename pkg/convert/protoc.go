@@ -9,32 +9,36 @@ import (
 // DomainToUser convert domain user type to protobuf user type
 func DomainToUser(in *am.User) *prototypes.User {
 	return &prototypes.User{
-		OrgID:        int32(in.OrgID),
-		OrgCID:       in.OrgCID,
-		UserCID:      in.UserCID,
-		UserID:       int32(in.UserID),
-		UserEmail:    in.UserEmail,
-		FirstName:    in.FirstName,
-		LastName:     in.LastName,
-		StatusID:     int32(in.StatusID),
-		CreationTime: in.CreationTime,
-		Deleted:      in.Deleted,
+		OrgID:                      int32(in.OrgID),
+		OrgCID:                     in.OrgCID,
+		UserCID:                    in.UserCID,
+		UserID:                     int32(in.UserID),
+		UserEmail:                  in.UserEmail,
+		FirstName:                  in.FirstName,
+		LastName:                   in.LastName,
+		StatusID:                   int32(in.StatusID),
+		CreationTime:               in.CreationTime,
+		Deleted:                    in.Deleted,
+		AgreementAccepted:          in.AgreementAccepted,
+		AgreementAcceptedTimestamp: in.AgreementAcceptedTimestamp,
 	}
 }
 
 // UserToDomain convert protobuf user type to domain user type
 func UserToDomain(in *prototypes.User) *am.User {
 	return &am.User{
-		OrgID:        int(in.OrgID),
-		OrgCID:       in.OrgCID,
-		UserCID:      in.UserCID,
-		UserID:       int(in.UserID),
-		UserEmail:    in.UserEmail,
-		FirstName:    in.FirstName,
-		LastName:     in.LastName,
-		StatusID:     int(in.StatusID),
-		CreationTime: in.CreationTime,
-		Deleted:      in.Deleted,
+		OrgID:                      int(in.OrgID),
+		OrgCID:                     in.OrgCID,
+		UserCID:                    in.UserCID,
+		UserID:                     int(in.UserID),
+		UserEmail:                  in.UserEmail,
+		FirstName:                  in.FirstName,
+		LastName:                   in.LastName,
+		StatusID:                   int(in.StatusID),
+		CreationTime:               in.CreationTime,
+		Deleted:                    in.Deleted,
+		AgreementAccepted:          in.AgreementAccepted,
+		AgreementAcceptedTimestamp: in.AgreementAcceptedTimestamp,
 	}
 }
 

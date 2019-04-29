@@ -206,3 +206,27 @@ func (c *Client) Delete(ctx context.Context, userContext am.UserContext, userID 
 	}
 	return int(resp.GetOrgID()), nil
 }
+
+func (c *Client) AcceptAgreement(ctx context.Context, userContext am.UserContext, accepted bool) (oid int, uid int, err error) {
+	var resp *service.UserAgreementResponse
+
+	in := &service.UserAgreementRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Agreement:   accepted,
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.AcceptAgreement(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update user agreement from user client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(resp.GetOrgID()), int(resp.GetUserID()), nil
+}

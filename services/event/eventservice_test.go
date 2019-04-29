@@ -220,8 +220,8 @@ func TestNotifyComplete(t *testing.T) {
 
 	ctx := context.Background()
 
-	orgName := "eventaddget"
-	groupName := "eventaddgetgroup"
+	orgName := "eventnotifycomplete"
+	groupName := "eventnotifycomplete"
 
 	auth := amtest.MockEmptyAuthorizer()
 

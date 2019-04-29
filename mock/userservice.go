@@ -33,6 +33,9 @@ type UserService struct {
 
 	DeleteFn      func(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error)
 	DeleteInvoked bool
+
+	AcceptAgreementFn      func(ctx context.Context, userContext am.UserContext, accepted bool) (oid int, uid int, err error)
+	AcceptAgreementInvoked bool
 }
 
 func (c *UserService) Init(config []byte) error {
@@ -78,4 +81,9 @@ func (c *UserService) Update(ctx context.Context, userContext am.UserContext, us
 func (c *UserService) Delete(ctx context.Context, userContext am.UserContext, userID int) (oid int, err error) {
 	c.DeleteInvoked = true
 	return c.DeleteFn(ctx, userContext, userID)
+}
+
+func (c *UserService) AcceptAgreement(ctx context.Context, userContext am.UserContext, accepted bool) (oid int, uid int, err error) {
+	c.AcceptAgreementInvoked = true
+	return c.AcceptAgreementFn(ctx, userContext, accepted)
 }

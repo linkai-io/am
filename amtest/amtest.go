@@ -57,6 +57,8 @@ const (
 	DeleteUserStmt = "delete from am.users where organization_id=(select organization_id from am.organizations where organization_name=$1)"
 	GetOrgIDStmt   = "select organization_id from am.organizations where organization_name=$1"
 	GetUserIDStmt  = "select user_id from am.users where organization_id=$1 and email=$2"
+	GetUserStmt    = `select organization_id, user_id, user_custom_id, email, first_name, last_name, user_status_id, creation_time, deleted, agreement_accepted, agreement_accepted_timestamp
+						from am.users where organization_id=$1 and email=$2`
 )
 
 func GenerateID(t *testing.T) string {
@@ -335,6 +337,21 @@ func GetUserId(p *pgx.ConnPool, orgID int, name string, t *testing.T) int {
 		t.Fatalf("error finding user id for %s: %s\n", name, err)
 	}
 	return userID
+}
+
+func GetUser(p *pgx.ConnPool, orgID int, name string, t *testing.T) *am.User {
+	user := &am.User{}
+	var agreeTime time.Time
+	var createTime time.Time
+	err := p.QueryRow(GetUserStmt, orgID, name+"email@email.com").Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID,
+		&createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime)
+
+	if err != nil {
+		t.Fatalf("error finding user for %s: %s\n", name, err)
+	}
+	user.AgreementAcceptedTimestamp = agreeTime.UnixNano()
+	user.CreationTime = createTime.UnixNano()
+	return user
 }
 
 func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) int {

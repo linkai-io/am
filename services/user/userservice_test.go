@@ -246,6 +246,68 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+func TestAcceptAgreement(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "userupdate"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	service := user.New(auth)
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing organization service: %s\n", err)
+	}
+
+	amtest.CreateOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	expected := amtest.GetUser(db, orgID, orgName, t)
+
+	userContext := amtest.CreateUserContext(orgID, expected.UserID)
+
+	_, returned, err := service.Get(ctx, userContext, expected.UserEmail)
+	if err != nil {
+		t.Fatalf("error getting user by cid: %s\n", err)
+	}
+
+	if _, _, err := service.AcceptAgreement(ctx, userContext, true); err != nil {
+		t.Fatalf("error updating user: %s\n", err)
+	}
+
+	_, new, err := service.Get(ctx, userContext, returned.UserEmail)
+	if err != nil {
+		t.Fatalf("error getting user after update: %s\n", err)
+	}
+
+	if returned.AgreementAccepted == new.AgreementAccepted {
+		t.Fatalf("error agreement was not updated")
+	}
+
+	acceptTime := new.AgreementAcceptedTimestamp
+
+	// test that calling it again does not update the time it was accepted.
+	if _, _, err := service.AcceptAgreement(ctx, userContext, true); err != nil {
+		t.Fatalf("error updating user: %s\n", err)
+	}
+
+	_, new, err = service.Get(ctx, userContext, returned.UserEmail)
+	if err != nil {
+		t.Fatalf("error getting user after update: %s\n", err)
+	}
+
+	if new.AgreementAcceptedTimestamp != acceptTime {
+		t.Fatalf("error accepted timestamp was updated")
+	}
+
+}
+
 func testCompareUsers(e, r *am.User, t *testing.T) {
 
 	if e.Deleted != r.Deleted {
@@ -266,6 +328,14 @@ func testCompareUsers(e, r *am.User, t *testing.T) {
 
 	if e.OrgID != r.OrgID {
 		t.Fatalf("OrgID did not match: expected: %v got: %v\n", e.OrgID, r.OrgID)
+	}
+
+	if e.AgreementAccepted != r.AgreementAccepted {
+		t.Fatalf("AgreementAccepted did not match: expected: %v got: %v\n", e.AgreementAccepted, r.AgreementAccepted)
+	}
+
+	if e.AgreementAcceptedTimestamp != r.AgreementAcceptedTimestamp {
+		t.Fatalf("AgreementAcceptedTimestamp did not match: expected: %v got: %v\n", e.AgreementAcceptedTimestamp, r.AgreementAcceptedTimestamp)
 	}
 }
 

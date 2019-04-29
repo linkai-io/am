@@ -83,3 +83,13 @@ func (s *UserProtocService) Delete(ctx context.Context, in *user.DeleteUserReque
 	}
 	return &user.UserDeletedResponse{OrgID: int32(oid)}, nil
 }
+
+func (s *UserProtocService) AcceptAgreement(ctx context.Context, in *user.UserAgreementRequest) (*user.UserAgreementResponse, error) {
+	s.reporter.Increment(1)
+	oid, uid, err := s.userservice.AcceptAgreement(ctx, convert.UserContextToDomain(in.UserContext), in.Agreement)
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &user.UserAgreementResponse{OrgID: int32(oid), UserID: int32(uid)}, nil
+}
