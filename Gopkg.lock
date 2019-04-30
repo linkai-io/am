@@ -28,11 +28,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ef5b0622d834c139454148b8fd0c92bb314828900532b267ae62da9fec109866"
+  digest = "1:2210176f5644b328fb429f7d59b2944e598b22fda4b5071e09d6dcad001cdc37"
   name = "github.com/armon/go-metrics"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f0300d1749da6fa982027e449ec0c7a145510c3c"
+  revision = "2801d9688273d5b516966851b9a0863b9e6b0652"
 
 [[projects]]
   digest = "1:b28b250b648609be14e0fa4a220b9b991ccaf7b1226781fd9d6e4dd6f4e086fd"
@@ -51,7 +51,7 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:4cce717a34fe2bce5f8a9dc73ad4e8befc8ec127ee8c3a6c7de55723f27b35ac"
+  digest = "1:aa6152766fb9db3732615748d08646eedf93477d132e0f18afa670beac67aa02"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "56c1def75689cceec1fa6f14c2eedb4b798827f9"
-  version = "v1.19.11"
+  revision = "26af3c32ec16138888e2b1c1fdc2ea66b99b0ef3"
+  version = "v1.19.20"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -219,8 +219,8 @@
   name = "github.com/hashicorp/serf"
   packages = ["coordinate"]
   pruneopts = "UT"
-  revision = "b89a09ebd4b1b570e0076d5097272e67c10ac4f6"
-  version = "v0.8.2"
+  revision = "15cfd05de3dffb3664aa37b06e91f970b825e380"
+  version = "v0.8.3"
 
 [[projects]]
   digest = "1:6a5edb6e9ad91f22d33e01739bbabea324fed674c40bc4f7d60adb48235e8b48"
@@ -320,7 +320,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:e30b5c6d83a83f1369fa92f0e279ab8046e9ee7fa2d71360956e910f44072ffb"
+  digest = "1:fb63fb6cb9cf7310c6bd83998cc430ee5af1ec52612572ecb42c7aad74bd3598"
   name = "github.com/rs/zerolog"
   packages = [
     ".",
@@ -329,8 +329,16 @@
     "log",
   ]
   pruneopts = "UT"
-  revision = "651d361cfeb9d0f5b9f1d14b162c66c82509ef6d"
-  version = "v1.13.0"
+  revision = "acf3980132bfcdc48638724e6e3d9e5749b85999"
+  version = "v1.14.3"
+
+[[projects]]
+  digest = "1:d917313f309bda80d27274d53985bc65651f81a5b66b820749ac7f8ef061fd04"
+  name = "github.com/sergi/go-diff"
+  packages = ["diffmatchpatch"]
+  pruneopts = "UT"
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
@@ -356,7 +364,7 @@
   version = "v1.0.5"
 
 [[projects]]
-  digest = "1:63f2090dcc07a5b7737d687e9169c3261ba36a143f19fe7c09a54f7a427b3c0f"
+  digest = "1:6a0fd720abef071f9c9821249e2a7ee87a2e90fe7e45cef8fe413e6b5287363a"
   name = "go.opencensus.io"
   packages = [
     ".",
@@ -377,8 +385,8 @@
     "trace/tracestate",
   ]
   pruneopts = "UT"
-  revision = "8930459677fde1e11e3e1b50bbed1acc850b5665"
-  version = "v0.20.1"
+  revision = "df6e2001952312404b06f5f6f03fcb4aec1648e5"
+  version = "v0.21.0"
 
 [[projects]]
   branch = "master"
@@ -389,11 +397,11 @@
     "ed25519/internal/edwards25519",
   ]
   pruneopts = "UT"
-  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
+  revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
 
 [[projects]]
   branch = "master"
-  digest = "1:fe7757b75d1f2799982a8d7ace0b79cf9a98277e3a7bcaddb303dff5ee258011"
+  digest = "1:7da7ed0d676623e1350910788fffbb6bec55f784aba311d91b6cdfda4dd63ec1"
   name = "golang.org/x/net"
   packages = [
     "bpf",
@@ -415,7 +423,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "eb5bcb51f2a31c7d5141d810b70815c05d9c9146"
+  revision = "4829fb13d2c62012c17688fa7f629f371014946d"
 
 [[projects]]
   branch = "master"
@@ -433,20 +441,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cf353a5a9ffb2d6f850e9c773e25388a425a70c270546480427ed069e87b136a"
+  digest = "1:dcd2e9de31e20e01b156288ce4fc239498564295bdbb59d8aaf591af94778162"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
+  revision = "d89cdac9e8725f2aefce25fcbfef41134c9ad412"
 
 [[projects]]
-  digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
+  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
   name = "golang.org/x/text"
   packages = [
     "collate",
     "collate/build",
     "internal/colltab",
     "internal/gen",
+    "internal/language",
+    "internal/language/compact",
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
@@ -459,11 +469,11 @@
     "unicode/rangetable",
   ]
   pruneopts = "UT"
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
 
 [[projects]]
-  digest = "1:d238aee1606527815926ec20ca1fa3d1b31589c45119f4783cb8976ba65f1259"
+  digest = "1:cca91a61ebe69a7209998d50509e7a8972bb6eee405293b8a37cfe281ae99445"
   name = "google.golang.org/api"
   packages = [
     "bigquery/v2",
@@ -478,8 +488,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "UT"
-  revision = "0cbcb99a9ea0c8023c794b2693cbe1def82ed4d7"
-  version = "v0.3.2"
+  revision = "067bed655e9cbc26f4dbac8f8897b30756d90990"
+  version = "v0.4.0"
 
 [[projects]]
   digest = "1:04f2ff15fc59e1ddaf9900ad0e19e5b19586b31f9dafd4d592b617642b239d8f"
@@ -509,10 +519,10 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "64821d5d210748c883cd2b809589555ae4654203"
+  revision = "357c62f0e4bbba7e6cc403ae09edcf3e2b9028fe"
 
 [[projects]]
-  digest = "1:92a8d9a9c2e674375a7d8a86a0c67571bba5b39b77e5d50e8a0e5612274e2e08"
+  digest = "1:2ea0c49f26db77b4b50ea6ab010b681295a5cc4a263647141359c3988559654b"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -531,6 +541,7 @@
     "health/grpc_health_v1",
     "internal",
     "internal/backoff",
+    "internal/balancerload",
     "internal/binarylog",
     "internal/channelz",
     "internal/envconfig",
@@ -552,8 +563,8 @@
     "tap",
   ]
   pruneopts = "UT"
-  revision = "3507fb8e1a5ad030303c106fef3a47c9fdad16ad"
-  version = "v1.19.1"
+  revision = "25c4f928eaa6d96443009bd842389fb4fa48664e"
+  version = "v1.20.1"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -583,6 +594,7 @@
     "github.com/pkg/errors",
     "github.com/rs/zerolog",
     "github.com/rs/zerolog/log",
+    "github.com/sergi/go-diff/diffmatchpatch",
     "github.com/wirepair/gcd",
     "github.com/wirepair/gcd/gcdapi",
     "github.com/wirepair/gcd/gcdmessage",
