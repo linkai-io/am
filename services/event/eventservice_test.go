@@ -329,7 +329,6 @@ func TestNotifyComplete(t *testing.T) {
 	if len(returned) != 1 {
 		t.Fatalf("error events returned after mark read should be 1 got: %d\n", len(returned))
 	}
-
 }
 
 func TestDeletePopulated(t *testing.T) {
