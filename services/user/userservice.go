@@ -143,11 +143,13 @@ func (s *Service) GetByCID(ctx context.Context, userContext am.UserContext, user
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, user *am.User, err error) {
 	user = &am.User{}
 	var createTime time.Time
-	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted)
+	var agreeTime time.Time
+	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
 	user.CreationTime = createTime.UnixNano()
+	user.AgreementAcceptedTimestamp = agreeTime.UnixNano()
 	return user.OrgID, user, err
 }
 
@@ -194,9 +196,12 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 	for i := 0; rows.Next(); i++ {
 		var createTime time.Time
+		var agreeTime time.Time
+
 		user := &am.User{}
 
-		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted); err != nil {
+		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID,
+			&createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime); err != nil {
 			return 0, nil, err
 		}
 
@@ -204,6 +209,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 			return 0, nil, am.ErrOrgIDMismatch
 		}
 		user.CreationTime = createTime.UnixNano()
+		user.AgreementAcceptedTimestamp = agreeTime.UnixNano()
 		users = append(users, user)
 	}
 
@@ -322,6 +328,30 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 		return 0, 0, err
 	}
 	return oid, uid, tx.Commit()
+}
+
+func (s *Service) AcceptAgreement(ctx context.Context, userContext am.UserContext, accepted bool) (oid int, uid int, err error) {
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "userservice.AcceptAgreement").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	serviceLog.Info().Int("userID_parameter", userContext.GetUserID()).Msg("processing")
+
+	if !s.IsAuthorized(ctx, userContext, am.RNUserManage, "update") {
+		serviceLog.Error().Msg("user not authorized")
+		return 0, 0, am.ErrUserNotAuthorized
+	}
+
+	if !accepted {
+		return 0, 0, am.ErrUserNotAccepted
+	}
+
+	if _, err = s.pool.Exec("userUpdateAgreement", userContext.GetOrgID(), userContext.GetUserID()); err != nil {
+		return 0, 0, err
+	}
+
+	return userContext.GetOrgID(), userContext.GetUserID(), nil
 }
 
 // Delete the user
