@@ -7,6 +7,7 @@ import (
 	"github.com/linkai-io/am/services/module"
 
 	"github.com/linkai-io/am/pkg/bq"
+	"github.com/linkai-io/am/pkg/certstream"
 	"github.com/linkai-io/am/pkg/retrier"
 
 	"github.com/linkai-io/am/pkg/parsers"
@@ -27,11 +28,11 @@ const (
 // BigData will query our locally cached results of big data first, then the bigquery database
 // if we should need updated values looking for sub domains of a etld.
 type BigData struct {
-	st         state.Stater
-	dc         *dnsclient.Client
-	bdClient   am.BigDataService
-	bigQuerier bq.BigQuerier
-	subdomains []string
+	st           state.Stater
+	dc           *dnsclient.Client
+	bdClient     am.BigDataService
+	bigQuerier   bq.BigQuerier
+	certListener certstream.Listener
 
 	// for closing subscriptions to listen for group updates
 	exitContext context.Context
@@ -41,13 +42,14 @@ type BigData struct {
 }
 
 // New big data analysis module
-func New(dc *dnsclient.Client, st state.Stater, bdClient am.BigDataService, bqQuerier bq.BigQuerier) *BigData {
+func New(dc *dnsclient.Client, st state.Stater, bdClient am.BigDataService, bqQuerier bq.BigQuerier, certListener certstream.Listener) *BigData {
 	ctx, cancel := context.WithCancel(context.Background())
 	b := &BigData{exitContext: ctx, cancel: cancel}
 	b.st = st
 	b.dc = dc
 	b.bdClient = bdClient
 	b.bigQuerier = bqQuerier
+	b.certListener = certListener
 	// start cache subscriber and listen for updates
 	b.groupCache = cache.NewScanGroupSubscriber(ctx, st)
 	return b
@@ -106,6 +108,11 @@ func (b *BigData) Analyze(ctx context.Context, userContext am.UserContext, addre
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to get etld, not running bigdata tests")
 		return address, bigDataRecords, nil
 	}
+
+	// we should already have it, but just in case
+	// NOTE: if this is the first time it is seen, only one instance
+	// will have this until records are added to the database that other instances will be able to read via GetETLDs
+	b.certListener.AddETLD(etld)
 
 	records, err := b.doCTSubdomainAnalysis(ctx, userContext, nsCfg, address, etld)
 	if err != nil {

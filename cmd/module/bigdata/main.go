@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/certstream"
+
 	"github.com/linkai-io/am/pkg/bq"
 
 	"github.com/linkai-io/am/am"
@@ -63,6 +65,22 @@ func main() {
 
 	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
 
+	sysOrgID, err := sec.SystemOrgID()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get system org id")
+	}
+
+	sysUserID, err := sec.SystemUserID()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get system user id")
+	}
+
+	systemContext := &am.UserContextData{
+		TraceID: "bigdata-system",
+		OrgID:   sysOrgID,
+		UserID:  sysUserID,
+	}
+
 	bqCredentials, err := sec.BigQueryCredentials()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to get bigquery credentials")
@@ -86,11 +104,14 @@ func main() {
 
 	state := initializers.State(&appConfig)
 	dc := dnsclient.New(dnsAddrs, 3)
-	bdService := initializers.BigDataClient()
 
+	bdService := initializers.BigDataClient()
 	bqClient := initializers.BigQueryClient(&bqConfig, []byte(bqCredentials))
 
-	service := bigdata.New(dc, state, bdService, bqClient)
+	closeCh := make(chan struct{})
+	certListener := initializeCertStream(systemContext, bdService, closeCh)
+
+	service := bigdata.New(dc, state, bdService, bqClient, certListener)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})
@@ -117,5 +138,30 @@ func main() {
 	log.Info().Msg("Starting Service")
 	if err := s.Serve(listener); err != nil {
 		log.Fatal().Err(err).Msg("failed to serve grpc")
+		close(closeCh)
 	}
+}
+
+func initializeCertStream(systemContext am.UserContext, bdService am.BigDataService, closeCh chan struct{}) certstream.Listener {
+	ctx := context.Background()
+
+	batcher := certstream.NewBatcher(systemContext, bdService, 100)
+	if err := batcher.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize cert stream batcher")
+	}
+
+	certListener := certstream.New(batcher)
+	if err := certListener.Init(closeCh); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize cert stream listener")
+	}
+
+	etlds, _ := bdService.GetETLDs(ctx, systemContext)
+	if etlds == nil {
+		return certListener
+	}
+	for _, etld := range etlds {
+		certListener.AddETLD(etld.ETLD)
+	}
+
+	return certListener
 }

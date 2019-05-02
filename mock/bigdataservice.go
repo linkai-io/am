@@ -28,10 +28,18 @@ type BigDataService struct {
 
 	DeleteCTSubdomainsFn      func(ctx context.Context, userContext am.UserContext, etld string) error
 	DeleteCTSubdomainsInvoked bool
+
+	GetETLDsFn      func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error)
+	GetETLDSInvoked bool
 }
 
 func (s *BigDataService) Init(config []byte) error {
 	return nil
+}
+
+func (s *BigDataService) GetETLDs(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+	s.GetETLDSInvoked = true
+	return s.GetETLDsFn(ctx, userContext)
 }
 
 func (s *BigDataService) GetCT(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {

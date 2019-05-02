@@ -38,7 +38,7 @@ func (m *GetCTRequest) Reset()         { *m = GetCTRequest{} }
 func (m *GetCTRequest) String() string { return proto.CompactTextString(m) }
 func (*GetCTRequest) ProtoMessage()    {}
 func (*GetCTRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{0}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{0}
 }
 func (m *GetCTRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -93,7 +93,7 @@ func (m *GetCTResponse) Reset()         { *m = GetCTResponse{} }
 func (m *GetCTResponse) String() string { return proto.CompactTextString(m) }
 func (*GetCTResponse) ProtoMessage()    {}
 func (*GetCTResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{1}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{1}
 }
 func (m *GetCTResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -136,6 +136,100 @@ func (m *GetCTResponse) GetRecords() map[string]*prototypes.CTRecord {
 	return nil
 }
 
+type GetETLDsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GetETLDsRequest) Reset()         { *m = GetETLDsRequest{} }
+func (m *GetETLDsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetETLDsRequest) ProtoMessage()    {}
+func (*GetETLDsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{2}
+}
+func (m *GetETLDsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetETLDsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetETLDsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetETLDsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetETLDsRequest.Merge(dst, src)
+}
+func (m *GetETLDsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetETLDsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetETLDsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetETLDsRequest proto.InternalMessageInfo
+
+func (m *GetETLDsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type GetETLDsResponse struct {
+	ETLDs                []*prototypes.CTETLD `protobuf:"bytes,1,rep,name=ETLDs" json:"ETLDs,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *GetETLDsResponse) Reset()         { *m = GetETLDsResponse{} }
+func (m *GetETLDsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetETLDsResponse) ProtoMessage()    {}
+func (*GetETLDsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{3}
+}
+func (m *GetETLDsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetETLDsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetETLDsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetETLDsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetETLDsResponse.Merge(dst, src)
+}
+func (m *GetETLDsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetETLDsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetETLDsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetETLDsResponse proto.InternalMessageInfo
+
+func (m *GetETLDsResponse) GetETLDs() []*prototypes.CTETLD {
+	if m != nil {
+		return m.ETLDs
+	}
+	return nil
+}
+
 type AddCTRequest struct {
 	UserContext          *prototypes.UserContext         `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	ETLD                 string                          `protobuf:"bytes,2,opt,name=ETLD,proto3" json:"ETLD,omitempty"`
@@ -150,7 +244,7 @@ func (m *AddCTRequest) Reset()         { *m = AddCTRequest{} }
 func (m *AddCTRequest) String() string { return proto.CompactTextString(m) }
 func (*AddCTRequest) ProtoMessage()    {}
 func (*AddCTRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{2}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{4}
 }
 func (m *AddCTRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -217,7 +311,7 @@ func (m *CTAddedResponse) Reset()         { *m = CTAddedResponse{} }
 func (m *CTAddedResponse) String() string { return proto.CompactTextString(m) }
 func (*CTAddedResponse) ProtoMessage()    {}
 func (*CTAddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{3}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{5}
 }
 func (m *CTAddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -258,7 +352,7 @@ func (m *DeleteCTRequest) Reset()         { *m = DeleteCTRequest{} }
 func (m *DeleteCTRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteCTRequest) ProtoMessage()    {}
 func (*DeleteCTRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{4}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{6}
 }
 func (m *DeleteCTRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -311,7 +405,7 @@ func (m *CTDeletedResponse) Reset()         { *m = CTDeletedResponse{} }
 func (m *CTDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*CTDeletedResponse) ProtoMessage()    {}
 func (*CTDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{5}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{7}
 }
 func (m *CTDeletedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -352,7 +446,7 @@ func (m *GetCTSubdomainsRequest) Reset()         { *m = GetCTSubdomainsRequest{}
 func (m *GetCTSubdomainsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetCTSubdomainsRequest) ProtoMessage()    {}
 func (*GetCTSubdomainsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{6}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{8}
 }
 func (m *GetCTSubdomainsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -407,7 +501,7 @@ func (m *GetCTSubdomainsResponse) Reset()         { *m = GetCTSubdomainsResponse
 func (m *GetCTSubdomainsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetCTSubdomainsResponse) ProtoMessage()    {}
 func (*GetCTSubdomainsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{7}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{9}
 }
 func (m *GetCTSubdomainsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -464,7 +558,7 @@ func (m *AddCTSubdomainsRequest) Reset()         { *m = AddCTSubdomainsRequest{}
 func (m *AddCTSubdomainsRequest) String() string { return proto.CompactTextString(m) }
 func (*AddCTSubdomainsRequest) ProtoMessage()    {}
 func (*AddCTSubdomainsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{8}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{10}
 }
 func (m *AddCTSubdomainsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -531,7 +625,7 @@ func (m *CTSubdomainsAddedResponse) Reset()         { *m = CTSubdomainsAddedResp
 func (m *CTSubdomainsAddedResponse) String() string { return proto.CompactTextString(m) }
 func (*CTSubdomainsAddedResponse) ProtoMessage()    {}
 func (*CTSubdomainsAddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{9}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{11}
 }
 func (m *CTSubdomainsAddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -572,7 +666,7 @@ func (m *DeleteCTSubdomainsRequest) Reset()         { *m = DeleteCTSubdomainsReq
 func (m *DeleteCTSubdomainsRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteCTSubdomainsRequest) ProtoMessage()    {}
 func (*DeleteCTSubdomainsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{10}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{12}
 }
 func (m *DeleteCTSubdomainsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -625,7 +719,7 @@ func (m *CTSubdomainsDeletedResponse) Reset()         { *m = CTSubdomainsDeleted
 func (m *CTSubdomainsDeletedResponse) String() string { return proto.CompactTextString(m) }
 func (*CTSubdomainsDeletedResponse) ProtoMessage()    {}
 func (*CTSubdomainsDeletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bigdataservicer_ea8b46e5ebe47f57, []int{11}
+	return fileDescriptor_bigdataservicer_cca470d2698ba431, []int{13}
 }
 func (m *CTSubdomainsDeletedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -658,6 +752,8 @@ func init() {
 	proto.RegisterType((*GetCTRequest)(nil), "bigdata.GetCTRequest")
 	proto.RegisterType((*GetCTResponse)(nil), "bigdata.GetCTResponse")
 	proto.RegisterMapType((map[string]*prototypes.CTRecord)(nil), "bigdata.GetCTResponse.RecordsEntry")
+	proto.RegisterType((*GetETLDsRequest)(nil), "bigdata.GetETLDsRequest")
+	proto.RegisterType((*GetETLDsResponse)(nil), "bigdata.GetETLDsResponse")
 	proto.RegisterType((*AddCTRequest)(nil), "bigdata.AddCTRequest")
 	proto.RegisterMapType((map[string]*prototypes.CTRecord)(nil), "bigdata.AddCTRequest.RecordsEntry")
 	proto.RegisterType((*CTAddedResponse)(nil), "bigdata.CTAddedResponse")
@@ -688,6 +784,7 @@ type BigDataClient interface {
 	GetCT(ctx context.Context, in *GetCTRequest, opts ...grpc.CallOption) (*GetCTResponse, error)
 	AddCT(ctx context.Context, in *AddCTRequest, opts ...grpc.CallOption) (*CTAddedResponse, error)
 	DeleteCT(ctx context.Context, in *DeleteCTRequest, opts ...grpc.CallOption) (*CTDeletedResponse, error)
+	GetETLDs(ctx context.Context, in *GetETLDsRequest, opts ...grpc.CallOption) (*GetETLDsResponse, error)
 	GetCTSubdomains(ctx context.Context, in *GetCTSubdomainsRequest, opts ...grpc.CallOption) (*GetCTSubdomainsResponse, error)
 	AddCTSubdomains(ctx context.Context, in *AddCTSubdomainsRequest, opts ...grpc.CallOption) (*CTSubdomainsAddedResponse, error)
 	DeleteCTSubdomains(ctx context.Context, in *DeleteCTSubdomainsRequest, opts ...grpc.CallOption) (*CTSubdomainsDeletedResponse, error)
@@ -728,6 +825,15 @@ func (c *bigDataClient) DeleteCT(ctx context.Context, in *DeleteCTRequest, opts 
 	return out, nil
 }
 
+func (c *bigDataClient) GetETLDs(ctx context.Context, in *GetETLDsRequest, opts ...grpc.CallOption) (*GetETLDsResponse, error) {
+	out := new(GetETLDsResponse)
+	err := c.cc.Invoke(ctx, "/bigdata.BigData/GetETLDs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bigDataClient) GetCTSubdomains(ctx context.Context, in *GetCTSubdomainsRequest, opts ...grpc.CallOption) (*GetCTSubdomainsResponse, error) {
 	out := new(GetCTSubdomainsResponse)
 	err := c.cc.Invoke(ctx, "/bigdata.BigData/GetCTSubdomains", in, out, opts...)
@@ -760,6 +866,7 @@ type BigDataServer interface {
 	GetCT(context.Context, *GetCTRequest) (*GetCTResponse, error)
 	AddCT(context.Context, *AddCTRequest) (*CTAddedResponse, error)
 	DeleteCT(context.Context, *DeleteCTRequest) (*CTDeletedResponse, error)
+	GetETLDs(context.Context, *GetETLDsRequest) (*GetETLDsResponse, error)
 	GetCTSubdomains(context.Context, *GetCTSubdomainsRequest) (*GetCTSubdomainsResponse, error)
 	AddCTSubdomains(context.Context, *AddCTSubdomainsRequest) (*CTSubdomainsAddedResponse, error)
 	DeleteCTSubdomains(context.Context, *DeleteCTSubdomainsRequest) (*CTSubdomainsDeletedResponse, error)
@@ -819,6 +926,24 @@ func _BigData_DeleteCT_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BigDataServer).DeleteCT(ctx, req.(*DeleteCTRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BigData_GetETLDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetETLDsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BigDataServer).GetETLDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bigdata.BigData/GetETLDs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BigDataServer).GetETLDs(ctx, req.(*GetETLDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -892,6 +1017,10 @@ var _BigData_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteCT",
 			Handler:    _BigData_DeleteCT_Handler,
+		},
+		{
+			MethodName: "GetETLDs",
+			Handler:    _BigData_GetETLDs_Handler,
 		},
 		{
 			MethodName: "GetCTSubdomains",
@@ -1001,6 +1130,70 @@ func (m *GetCTResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *GetETLDsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetETLDsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n3, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetETLDsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetETLDsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.ETLDs) > 0 {
+		for _, msg := range m.ETLDs {
+			dAtA[i] = 0xa
+			i++
+			i = encodeVarintBigdataservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
 func (m *AddCTRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1020,11 +1213,11 @@ func (m *AddCTRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n3, err := m.UserContext.MarshalTo(dAtA[i:])
+		n4, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n4
 	}
 	if len(m.ETLD) > 0 {
 		dAtA[i] = 0x12
@@ -1057,11 +1250,11 @@ func (m *AddCTRequest) MarshalTo(dAtA []byte) (int, error) {
 				dAtA[i] = 0x12
 				i++
 				i = encodeVarintBigdataservicer(dAtA, i, uint64(v.Size()))
-				n4, err := v.MarshalTo(dAtA[i:])
+				n5, err := v.MarshalTo(dAtA[i:])
 				if err != nil {
 					return 0, err
 				}
-				i += n4
+				i += n5
 			}
 		}
 	}
@@ -1111,11 +1304,11 @@ func (m *DeleteCTRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n5, err := m.UserContext.MarshalTo(dAtA[i:])
+		n6, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n5
+		i += n6
 	}
 	if len(m.ETLD) > 0 {
 		dAtA[i] = 0x12
@@ -1169,11 +1362,11 @@ func (m *GetCTSubdomainsRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n6, err := m.UserContext.MarshalTo(dAtA[i:])
+		n7, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n6
+		i += n7
 	}
 	if len(m.ETLD) > 0 {
 		dAtA[i] = 0x12
@@ -1227,11 +1420,11 @@ func (m *GetCTSubdomainsResponse) MarshalTo(dAtA []byte) (int, error) {
 				dAtA[i] = 0x12
 				i++
 				i = encodeVarintBigdataservicer(dAtA, i, uint64(v.Size()))
-				n7, err := v.MarshalTo(dAtA[i:])
+				n8, err := v.MarshalTo(dAtA[i:])
 				if err != nil {
 					return 0, err
 				}
-				i += n7
+				i += n8
 			}
 		}
 	}
@@ -1260,11 +1453,11 @@ func (m *AddCTSubdomainsRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n8, err := m.UserContext.MarshalTo(dAtA[i:])
+		n9, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n8
+		i += n9
 	}
 	if len(m.ETLD) > 0 {
 		dAtA[i] = 0x12
@@ -1297,11 +1490,11 @@ func (m *AddCTSubdomainsRequest) MarshalTo(dAtA []byte) (int, error) {
 				dAtA[i] = 0x12
 				i++
 				i = encodeVarintBigdataservicer(dAtA, i, uint64(v.Size()))
-				n9, err := v.MarshalTo(dAtA[i:])
+				n10, err := v.MarshalTo(dAtA[i:])
 				if err != nil {
 					return 0, err
 				}
-				i += n9
+				i += n10
 			}
 		}
 	}
@@ -1351,11 +1544,11 @@ func (m *DeleteCTSubdomainsRequest) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintBigdataservicer(dAtA, i, uint64(m.UserContext.Size()))
-		n10, err := m.UserContext.MarshalTo(dAtA[i:])
+		n11, err := m.UserContext.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n10
+		i += n11
 	}
 	if len(m.ETLD) > 0 {
 		dAtA[i] = 0x12
@@ -1439,6 +1632,40 @@ func (m *GetCTResponse) Size() (n int) {
 			}
 			mapEntrySize := 1 + len(k) + sovBigdataservicer(uint64(len(k))) + l
 			n += mapEntrySize + 1 + sovBigdataservicer(uint64(mapEntrySize))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetETLDsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovBigdataservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetETLDsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.ETLDs) > 0 {
+		for _, e := range m.ETLDs {
+			l = e.Size()
+			n += 1 + l + sovBigdataservicer(uint64(l))
 		}
 	}
 	if m.XXX_unrecognized != nil {
@@ -1951,6 +2178,172 @@ func (m *GetCTResponse) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Records[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBigdataservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBigdataservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetETLDsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBigdataservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetETLDsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetETLDsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBigdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBigdataservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipBigdataservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthBigdataservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetETLDsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowBigdataservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetETLDsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetETLDsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ETLDs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowBigdataservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthBigdataservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ETLDs = append(m.ETLDs, &prototypes.CTETLD{})
+			if err := m.ETLDs[len(m.ETLDs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3326,46 +3719,49 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("bigdata/bigdataservicer.proto", fileDescriptor_bigdataservicer_ea8b46e5ebe47f57)
+	proto.RegisterFile("bigdata/bigdataservicer.proto", fileDescriptor_bigdataservicer_cca470d2698ba431)
 }
 
-var fileDescriptor_bigdataservicer_ea8b46e5ebe47f57 = []byte{
-	// 590 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xc1, 0x8e, 0x12, 0x4d,
-	0x10, 0xfe, 0x07, 0x96, 0x1f, 0x29, 0x30, 0xb8, 0x65, 0x16, 0x61, 0xd6, 0x65, 0xc9, 0xe8, 0x81,
-	0x83, 0xdb, 0x24, 0x98, 0x98, 0x8d, 0xd1, 0x64, 0x77, 0x01, 0xd7, 0x83, 0x17, 0xc7, 0x59, 0x0f,
-	0xc6, 0x68, 0x06, 0xa6, 0x83, 0x93, 0x05, 0x06, 0xa7, 0x7b, 0x36, 0xf2, 0x0e, 0x3e, 0x80, 0xaf,
-	0xe0, 0x5b, 0x78, 0x34, 0xf1, 0xe2, 0x23, 0x18, 0x7c, 0x06, 0xef, 0x86, 0x1e, 0x66, 0xe9, 0xe9,
-	0x01, 0xb9, 0xc0, 0x69, 0x7a, 0xaa, 0xbb, 0xbe, 0xaa, 0xaf, 0xea, 0xab, 0x6e, 0x38, 0xe8, 0xba,
-	0x7d, 0xc7, 0xe6, 0x76, 0x63, 0xfe, 0x65, 0xd4, 0xbf, 0x72, 0x7b, 0xd4, 0x27, 0x63, 0xdf, 0xe3,
-	0x1e, 0x66, 0xe7, 0x66, 0x7d, 0x4f, 0xfc, 0xf3, 0xc9, 0x98, 0xb2, 0x46, 0xc0, 0xa2, 0x7d, 0xbd,
-	0x22, 0x99, 0x7b, 0xdc, 0xa7, 0x3d, 0xcf, 0x77, 0xc2, 0x2d, 0xc3, 0x84, 0xc2, 0x39, 0xe5, 0x2d,
-	0xcb, 0xa4, 0x1f, 0x03, 0xca, 0x38, 0x12, 0xc8, 0x5f, 0x30, 0xea, 0xb7, 0xbc, 0x11, 0xa7, 0x9f,
-	0x78, 0x59, 0xab, 0x69, 0xf5, 0x7c, 0xb3, 0x40, 0x24, 0x9b, 0x29, 0x1f, 0x40, 0x84, 0x9d, 0x8e,
-	0xf5, 0xa2, 0x5d, 0x4e, 0xd5, 0xb4, 0x7a, 0xce, 0x14, 0x6b, 0xe3, 0xab, 0x06, 0x37, 0xe7, 0xa0,
-	0x6c, 0xec, 0x8d, 0x18, 0x9d, 0x9d, 0xb2, 0xdc, 0x21, 0x15, 0x70, 0x69, 0x53, 0xac, 0xf1, 0x29,
-	0x64, 0xc3, 0x4c, 0x58, 0x39, 0x55, 0x4b, 0xd7, 0xf3, 0xcd, 0x7b, 0x64, 0x4e, 0x83, 0xc4, 0x9c,
-	0x89, 0x19, 0x9e, 0xea, 0x8c, 0xb8, 0x3f, 0x31, 0x23, 0x1f, 0xbd, 0x03, 0x05, 0x79, 0x03, 0x6f,
-	0x41, 0xfa, 0x92, 0x4e, 0x44, 0x84, 0x9c, 0x39, 0x5b, 0xe2, 0x21, 0x64, 0xae, 0xec, 0x41, 0x40,
-	0x45, 0x6e, 0xf9, 0x66, 0x8e, 0xcc, 0x30, 0x67, 0x1e, 0x66, 0x68, 0x7f, 0x9c, 0x3a, 0xd6, 0x8c,
-	0x3f, 0x1a, 0x14, 0x4e, 0x1d, 0x67, 0xa3, 0x05, 0xc0, 0xbb, 0x90, 0x7b, 0x19, 0x50, 0x7f, 0x22,
-	0x38, 0xa7, 0x05, 0xe7, 0x85, 0x01, 0x9f, 0x2c, 0x88, 0xef, 0x08, 0xe2, 0xc6, 0x35, 0x71, 0x39,
-	0x93, 0xed, 0xf2, 0xde, 0x85, 0x62, 0xcb, 0x3a, 0x75, 0x1c, 0xea, 0x44, 0x75, 0x36, 0x2e, 0xa0,
-	0xd8, 0xa6, 0x03, 0xca, 0xe9, 0x66, 0xd5, 0x70, 0x1b, 0x76, 0x5b, 0x56, 0x08, 0xbc, 0x88, 0xf5,
-	0x16, 0x4a, 0xa2, 0xc9, 0xaf, 0x82, 0xae, 0xe3, 0x0d, 0x6d, 0x77, 0xc4, 0x36, 0x19, 0xf2, 0x9b,
-	0x06, 0x77, 0x12, 0xf0, 0xff, 0x90, 0xe2, 0xb9, 0x2a, 0xc5, 0xa3, 0xb8, 0x14, 0x93, 0x30, 0x2b,
-	0x9a, 0xf3, 0x7c, 0x6d, 0x73, 0x8c, 0x78, 0x73, 0x0a, 0x44, 0x42, 0x97, 0xfb, 0xf3, 0x39, 0x05,
-	0x25, 0xa1, 0x86, 0xad, 0x54, 0x68, 0x8d, 0x42, 0x9f, 0xa9, 0x0a, 0x7d, 0x10, 0x57, 0x68, 0x22,
-	0xa7, 0xad, 0x97, 0x63, 0x1f, 0x2a, 0x72, 0xd8, 0xb8, 0x70, 0xdf, 0x43, 0x25, 0x12, 0xee, 0x76,
-	0xf4, 0x74, 0x00, 0xfb, 0x32, 0xb4, 0x22, 0xe6, 0xe6, 0x8f, 0x34, 0x64, 0xcf, 0xdc, 0x7e, 0xdb,
-	0xe6, 0x36, 0x3e, 0x82, 0x8c, 0x90, 0x0c, 0xee, 0xa9, 0xb7, 0x99, 0x48, 0x47, 0x2f, 0x2d, 0xbf,
-	0xe4, 0xf0, 0x18, 0x32, 0xa2, 0xb4, 0x92, 0x9f, 0x7c, 0x19, 0xe8, 0xe5, 0x6b, 0xb3, 0x32, 0xb6,
-	0x78, 0x02, 0x37, 0x22, 0xf6, 0xb8, 0x38, 0xa5, 0x4c, 0xb2, 0xae, 0x4b, 0xfe, 0x4a, 0xfe, 0x68,
-	0x41, 0x51, 0x91, 0x39, 0x1e, 0xae, 0x1e, 0x80, 0x10, 0xaf, 0xb6, 0x6e, 0x42, 0xf0, 0x35, 0x14,
-	0x15, 0xb1, 0x48, 0xa8, 0xcb, 0x65, 0xa4, 0x1b, 0x52, 0x96, 0x2b, 0xba, 0x8d, 0xef, 0x00, 0x93,
-	0xdd, 0x46, 0x23, 0xc1, 0x3c, 0x89, 0x7e, 0x7f, 0x29, 0xba, 0x52, 0x8d, 0xb3, 0x93, 0xef, 0xd3,
-	0xaa, 0xf6, 0x73, 0x5a, 0xd5, 0x7e, 0x4d, 0xab, 0xda, 0x97, 0xdf, 0xd5, 0xff, 0xde, 0x90, 0xbe,
-	0xcb, 0x3f, 0x04, 0x5d, 0xd2, 0xf3, 0x86, 0x8d, 0x81, 0x3b, 0xba, 0xb4, 0xdd, 0x23, 0xd7, 0x6b,
-	0xd8, 0xc3, 0x86, 0x78, 0x42, 0x7b, 0xf3, 0xc7, 0x98, 0x45, 0x8f, 0x73, 0xf7, 0x7f, 0x61, 0x7f,
-	0xf8, 0x37, 0x00, 0x00, 0xff, 0xff, 0xf5, 0xd4, 0x5b, 0xa0, 0xb6, 0x07, 0x00, 0x00,
+var fileDescriptor_bigdataservicer_cca470d2698ba431 = []byte{
+	// 638 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xd1, 0x8e, 0xd2, 0x40,
+	0x14, 0x75, 0x60, 0x91, 0xe5, 0x82, 0x61, 0x77, 0xcc, 0x22, 0x74, 0x85, 0x25, 0xd5, 0x07, 0x1e,
+	0xdc, 0x21, 0x62, 0x62, 0x36, 0x46, 0xe3, 0xb2, 0x80, 0xf8, 0xe0, 0x8b, 0xb5, 0xeb, 0x83, 0x31,
+	0x9a, 0x42, 0x27, 0xd8, 0x2c, 0x50, 0xec, 0x4c, 0x37, 0xf2, 0x0f, 0xfb, 0x01, 0xfe, 0x82, 0x7f,
+	0xe1, 0xa3, 0x8f, 0x7e, 0x82, 0xc1, 0x6f, 0xf0, 0xdd, 0x74, 0xda, 0x2e, 0x43, 0x0b, 0x92, 0x18,
+	0x78, 0xa2, 0x3d, 0x33, 0xf7, 0xcc, 0xbd, 0x67, 0xce, 0xbd, 0x14, 0xca, 0x3d, 0x6b, 0x60, 0x1a,
+	0xdc, 0xa8, 0x07, 0xbf, 0x8c, 0x3a, 0x97, 0x56, 0x9f, 0x3a, 0x64, 0xe2, 0xd8, 0xdc, 0xc6, 0xe9,
+	0x00, 0x56, 0x0e, 0xc4, 0x3b, 0x9f, 0x4e, 0x28, 0xab, 0xbb, 0x2c, 0x5c, 0x57, 0x4a, 0x12, 0xdc,
+	0xe7, 0x0e, 0xed, 0xdb, 0x8e, 0xe9, 0x2f, 0xa9, 0x1a, 0xe4, 0xba, 0x94, 0xb7, 0x74, 0x8d, 0x7e,
+	0x76, 0x29, 0xe3, 0x98, 0x40, 0xf6, 0x9c, 0x51, 0xa7, 0x65, 0x8f, 0x39, 0xfd, 0xc2, 0x8b, 0xa8,
+	0x8a, 0x6a, 0xd9, 0x46, 0x8e, 0x48, 0x98, 0x26, 0x6f, 0xc0, 0x18, 0x76, 0x3a, 0xfa, 0xab, 0x76,
+	0x31, 0x51, 0x45, 0xb5, 0x8c, 0x26, 0x9e, 0xd5, 0x6f, 0x08, 0x6e, 0x05, 0xa4, 0x6c, 0x62, 0x8f,
+	0x19, 0xf5, 0x76, 0xe9, 0xd6, 0x88, 0x0a, 0xba, 0xa4, 0x26, 0x9e, 0xf1, 0x33, 0x48, 0xfb, 0x99,
+	0xb0, 0x62, 0xa2, 0x9a, 0xac, 0x65, 0x1b, 0xf7, 0x48, 0x50, 0x06, 0x59, 0x08, 0x26, 0x9a, 0xbf,
+	0xab, 0x33, 0xe6, 0xce, 0x54, 0x0b, 0x63, 0x94, 0x0e, 0xe4, 0xe4, 0x05, 0xbc, 0x07, 0xc9, 0x0b,
+	0x3a, 0x15, 0x27, 0x64, 0x34, 0xef, 0x11, 0x1f, 0x41, 0xea, 0xd2, 0x18, 0xba, 0x54, 0xe4, 0x96,
+	0x6d, 0x64, 0x88, 0xc7, 0xe9, 0x45, 0x68, 0x3e, 0xfe, 0x24, 0x71, 0x82, 0xd4, 0x26, 0xe4, 0xbb,
+	0x94, 0x7b, 0x69, 0xb3, 0xff, 0x94, 0x40, 0x7d, 0x08, 0x7b, 0x73, 0x8a, 0xa0, 0xe0, 0x32, 0xa4,
+	0x04, 0x50, 0x44, 0xa2, 0xb4, 0x34, 0x69, 0xe9, 0xde, 0xbb, 0xe6, 0xa3, 0xea, 0x1f, 0x04, 0xb9,
+	0xa6, 0x69, 0x6e, 0x54, 0x76, 0x7c, 0x17, 0x32, 0xaf, 0x5d, 0xea, 0x4c, 0x85, 0xd2, 0x49, 0xa1,
+	0xf4, 0x1c, 0xc0, 0x4f, 0xe7, 0x72, 0xef, 0x88, 0x9c, 0xd4, 0x6b, 0xb9, 0xe5, 0x4c, 0xb6, 0xab,
+	0xf6, 0x3e, 0xe4, 0x5b, 0x7a, 0xd3, 0x34, 0xa9, 0x19, 0x2a, 0xa5, 0x9e, 0x43, 0xbe, 0x4d, 0x87,
+	0x94, 0xd3, 0xcd, 0x7a, 0xf0, 0x36, 0xec, 0xb7, 0x74, 0x9f, 0x78, 0x7e, 0xd6, 0x7b, 0x28, 0x08,
+	0x6b, 0xbd, 0x71, 0x7b, 0xa6, 0x3d, 0x32, 0xac, 0x31, 0xdb, 0xe4, 0x91, 0xdf, 0x11, 0xdc, 0x89,
+	0xd1, 0xff, 0xa3, 0x01, 0xba, 0xd1, 0x06, 0x38, 0x5e, 0x6c, 0x80, 0x38, 0xcd, 0x8a, 0xcb, 0x79,
+	0xb9, 0xf6, 0x72, 0xd4, 0xc5, 0xcb, 0xc9, 0x11, 0x89, 0x5d, 0xbe, 0x9f, 0xab, 0x04, 0x14, 0x84,
+	0x1b, 0xb6, 0xa2, 0xd0, 0x1a, 0x87, 0xbe, 0x88, 0x3a, 0xf4, 0xc1, 0xa2, 0x43, 0x63, 0x39, 0x6d,
+	0x5d, 0x8e, 0x43, 0x28, 0xc9, 0xc7, 0x2e, 0x1a, 0xf7, 0x23, 0x94, 0x42, 0xe3, 0x6e, 0xc7, 0x4f,
+	0x65, 0x38, 0x94, 0xa9, 0x23, 0x66, 0x6e, 0x5c, 0xed, 0x40, 0xfa, 0xcc, 0x1a, 0xb4, 0x0d, 0x6e,
+	0xe0, 0xc7, 0x90, 0x12, 0x96, 0xc1, 0x07, 0xd1, 0x19, 0x2a, 0xd2, 0x51, 0x0a, 0xcb, 0x47, 0x2b,
+	0x3e, 0x81, 0x94, 0x90, 0x56, 0x8a, 0x93, 0x87, 0x81, 0x52, 0xbc, 0x86, 0x23, 0x6d, 0x8b, 0x4f,
+	0x61, 0x37, 0xac, 0x1e, 0xcf, 0x77, 0x45, 0x3a, 0x59, 0x51, 0xa4, 0xf8, 0x48, 0xfe, 0xf8, 0x39,
+	0xec, 0x86, 0x63, 0x53, 0x62, 0x88, 0x0c, 0x63, 0xa5, 0xb4, 0x64, 0x25, 0x20, 0xd0, 0xc5, 0xe8,
+	0x96, 0x25, 0xc2, 0x47, 0xab, 0x3b, 0xc8, 0xa7, 0xab, 0xae, 0x6b, 0x31, 0xfc, 0x16, 0xf2, 0x11,
+	0xb7, 0x49, 0xac, 0xcb, 0x7d, 0xa8, 0xa8, 0x52, 0x99, 0x2b, 0xec, 0x82, 0x3f, 0x00, 0x8e, 0xdb,
+	0x05, 0xab, 0x31, 0xe9, 0xe2, 0xec, 0xf7, 0x97, 0xb2, 0x47, 0xe4, 0x3c, 0x3b, 0xfd, 0x31, 0xab,
+	0xa0, 0x9f, 0xb3, 0x0a, 0xfa, 0x35, 0xab, 0xa0, 0xaf, 0xbf, 0x2b, 0x37, 0xde, 0x91, 0x81, 0xc5,
+	0x3f, 0xb9, 0x3d, 0xd2, 0xb7, 0x47, 0xf5, 0xa1, 0x35, 0xbe, 0x30, 0xac, 0x63, 0xcb, 0xae, 0x1b,
+	0xa3, 0xba, 0xf8, 0xe7, 0xef, 0x07, 0xdf, 0x10, 0x2c, 0xfc, 0xa6, 0xe8, 0xdd, 0x14, 0xf8, 0xa3,
+	0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x68, 0x4f, 0x74, 0x6f, 0x6d, 0x08, 0x00, 0x00,
 }

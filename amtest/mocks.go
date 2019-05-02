@@ -6,6 +6,8 @@ import (
 	"log"
 	"sync"
 
+	"github.com/linkai-io/am/pkg/parsers"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/mock"
 	"github.com/linkai-io/am/pkg/convert"
@@ -56,6 +58,7 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 	}
 	return addrClient
 }
+
 func MockScanGroupService(orgID, groupID int) *mock.ScanGroupService {
 	sgClient := &mock.ScanGroupService{}
 	sgClient.GetFn = func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroup, error) {
@@ -231,6 +234,28 @@ func MockNSState() *mock.NSState {
 		return false, nil
 	}
 	return mockState
+}
+func MockCertListener() *mock.CertListener {
+	l := &mock.CertListener{}
+	etlds := make(map[string]struct{})
+	l.InitFn = func(closeCh chan struct{}) error {
+		return nil
+	}
+
+	l.AddETLDFn = func(etld string) {
+		etlds[etld] = struct{}{}
+	}
+
+	l.HasETLDFn = func(domain string) (string, bool) {
+		etld, err := parsers.GetETLD(domain)
+		if err != nil {
+			return "", false
+		}
+		_, exists := etlds[etld]
+		return etld, exists
+	}
+
+	return l
 }
 
 func MockBigDataState() *mock.BigDataState {
