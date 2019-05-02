@@ -41,7 +41,6 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 func (c *Client) GetETLDs(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
 	var resp *service.GetETLDsResponse
 	var err error
-	var emptyTS time.Time
 
 	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
 	defer cancel()

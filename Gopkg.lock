@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:e2785d9dc421e1adb6011ac011acdc4d68ac221123baa69c55d023f90d6924af"
+  digest = "1:31cc5faa639ba448d9fa9ea527c61e63d3c02b41c10ad9a397b1941e4255b68f"
   name = "cloud.google.com/go"
   packages = [
     "bigquery",
@@ -15,8 +15,8 @@
     "internal/version",
   ]
   pruneopts = "UT"
-  revision = "fcb9a2d5f791d07be64506ab54434de65989d370"
-  version = "v0.37.4"
+  revision = "8c41231e01b2085512d98153bcffb847ff9b4b9f"
+  version = "v0.38.0"
 
 [[projects]]
   digest = "1:14a90eb1290bd0aa42848afa9ee2c9ce247abdb63c2cf614331670119760962f"
@@ -28,11 +28,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2210176f5644b328fb429f7d59b2944e598b22fda4b5071e09d6dcad001cdc37"
+  digest = "1:7a9140c806333a78122763d08ec6c0d7358c7fff1df8cfbb01881c5dc46e24e5"
   name = "github.com/armon/go-metrics"
   packages = ["."]
   pruneopts = "UT"
-  revision = "2801d9688273d5b516966851b9a0863b9e6b0652"
+  revision = "ec5e00d3c878b2a97bbe0884ef45ffd1b4f669f5"
 
 [[projects]]
   digest = "1:b28b250b648609be14e0fa4a220b9b991ccaf7b1226781fd9d6e4dd6f4e086fd"
@@ -51,7 +51,7 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:aa6152766fb9db3732615748d08646eedf93477d132e0f18afa670beac67aa02"
+  digest = "1:fa96f0592cfc861c965a40090f5ae7802059f0547193c60d769568867b3e3440"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "26af3c32ec16138888e2b1c1fdc2ea66b99b0ef3"
-  version = "v1.19.20"
+  revision = "6da73e9d95fc247fc64d0de87cf33655ed615e3f"
+  version = "v1.19.22"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -170,6 +170,14 @@
   pruneopts = "UT"
   revision = "beaecbbdd8af86aa3acf14180d53828ce69400b2"
   version = "v2.0.4"
+
+[[projects]]
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:9537873f2fc92467f451178506405fae087efc624d8d92644042209a03a2bfa0"
@@ -261,12 +269,12 @@
   revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
-  digest = "1:2b4b4b2e5544c2a11a486c1b631357aa2ddf766e50c1b2483cf809da2c511234"
+  digest = "1:3a3bc3c022d600ed4aced1d220d92c80bf3e42ff5acf95b59839f7af9ac53346"
   name = "github.com/miekg/dns"
   packages = ["."]
   pruneopts = "UT"
-  revision = "73601d4aed9d844322611759d7f3619110b7c88e"
-  version = "v1.1.8"
+  revision = "8aa92d4e02c501ba21e26fb92cf2fb9f23f56917"
+  version = "v1.1.9"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
@@ -401,7 +409,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7da7ed0d676623e1350910788fffbb6bec55f784aba311d91b6cdfda4dd63ec1"
+  digest = "1:cafce1e6d8bdb67264db299b361bdec5fbf8ba6753c6296a996ee88afc6cc5dc"
   name = "golang.org/x/net"
   packages = [
     "bpf",
@@ -423,7 +431,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "4829fb13d2c62012c17688fa7f629f371014946d"
+  revision = "9ce7a6920f093fc0b908c4a5f66ae049110f417e"
 
 [[projects]]
   branch = "master"
@@ -585,6 +593,7 @@
     "github.com/golang/protobuf/proto",
     "github.com/gomodule/redigo/redis",
     "github.com/google/uuid",
+    "github.com/gorilla/websocket",
     "github.com/hashicorp/consul/api",
     "github.com/jackc/pgx",
     "github.com/jackc/pgx/pgtype",
