@@ -241,6 +241,44 @@ func (s *Service) DeleteCT(ctx context.Context, userContext am.UserContext, etld
 	return tx.Commit()
 }
 
+func (s *Service) GetETLDs(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNBigData, "read") {
+		log.Warn().Int("UserID", userContext.GetUserID()).Msg("user not authorized")
+		return nil, am.ErrUserNotAuthorized
+	}
+
+	logger := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	logger.Info().Msg("processing GetETLDs request")
+
+	rows, err := s.pool.QueryEx(ctx, "getETLDs", &pgx.QueryExOptions{})
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return nil, v
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	records := make([]*am.CTETLD, 0)
+	for rows.Next() {
+		r := &am.CTETLD{}
+		var queryTime time.Time
+		err := rows.Scan(&r.ETLD_ID, &r.ETLD, &queryTime)
+		if err != nil {
+			logger.Warn().Err(err).Msg("failed to extract record")
+			continue
+		}
+		r.QueryTimestamp = queryTime.UnixNano()
+		records = append(records, r)
+	}
+
+	return records, err
+}
+
 // GetCTSubdomains returns subdomains extracted from certificate transparency's common name field of certificates for the specified etld.
 func (s *Service) GetCTSubdomains(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
 	var emptyTS time.Time

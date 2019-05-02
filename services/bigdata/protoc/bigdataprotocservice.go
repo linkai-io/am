@@ -54,6 +54,17 @@ func (s *BigDataProtocService) DeleteCT(ctx context.Context, in *bigdata.DeleteC
 	return &bigdata.CTDeletedResponse{}, nil
 }
 
+func (s *BigDataProtocService) GetETLDs(ctx context.Context, in *bigdata.GetETLDsRequest) (*bigdata.GetETLDsResponse, error) {
+	s.reporter.Increment(1)
+	records, err := s.bds.GetETLDs(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bigdata.GetETLDsResponse{ETLDs: convert.DomainToCTETLDs(records)}, nil
+}
+
 func (s *BigDataProtocService) GetCTSubdomains(ctx context.Context, in *bigdata.GetCTSubdomainsRequest) (*bigdata.GetCTSubdomainsResponse, error) {
 	s.reporter.Increment(1)
 	ts, records, err := s.bds.GetCTSubdomains(ctx, convert.UserContextToDomain(in.UserContext), in.ETLD)

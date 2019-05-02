@@ -56,8 +56,11 @@ var queryMap = map[string]string{
 	"insertSubDomainsQuery": `insert into am.certificate_queries_subdomains (etld, query_timestamp) values ($1, $2) on conflict
 	(etld) do update set query_timestamp=EXCLUDED.query_timestamp returning etld_id`,
 
+	"getETLDs": `select etld_id, etld, query_timestamp from am.certificate_queries_subdomains`,
+
 	"deleteQuery": "delete from am.certificate_queries where etld=$1",
-	"deleteETLD":  "delete from am.certificates where etld=$1",
+
+	"deleteETLD": "delete from am.certificates where etld=$1",
 
 	"deleteSubdomains": "delete from am.certificate_queries_subdomains where etld=$1",
 }

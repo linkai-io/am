@@ -38,6 +38,31 @@ func (c *Client) Init(config []byte) error {
 func (c *Client) SetTimeout(timeout time.Duration) {
 	c.defaultTimeout = timeout
 }
+func (c *Client) GetETLDs(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+	var resp *service.GetETLDsResponse
+	var err error
+	var emptyTS time.Time
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	in := &service.GetETLDsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetETLDs(ctxDeadline, in)
+
+		return errors.Wrap(retryErr, "unable to get ct etlds from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return nil, err
+	}
+	return convert.CTETLDsToDomain(resp.ETLDs), nil
+}
 
 func (c *Client) GetCT(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
 	var resp *service.GetCTResponse

@@ -131,6 +131,17 @@ func TestAddGetSubdomains(t *testing.T) {
 			t.Fatalf("subdomain in original input was ")
 		}
 	}
+
+	// test getting etlds
+	etlds, err := service.GetETLDs(ctx, userContext)
+	if err != nil {
+		t.Fatalf("error getting etlds: %v\n", err)
+	}
+
+	for _, etld := range etlds {
+		t.Logf("%#v\n", etld)
+	}
+
 }
 
 func TestAddGetCT(t *testing.T) {

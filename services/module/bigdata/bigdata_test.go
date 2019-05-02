@@ -16,7 +16,14 @@ import (
 func TestBigDataSubdomainsFirstRun(t *testing.T) {
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
+
 	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
 		return time.Now(), nil, nil
 	}
@@ -33,7 +40,7 @@ func TestBigDataSubdomainsFirstRun(t *testing.T) {
 		return res, nil
 	}
 
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.linkai.io")
@@ -51,12 +58,23 @@ func TestBigDataSubdomainsFirstRun(t *testing.T) {
 		t.Fatalf("failed to find at least 1 new addresses in big data, got %d\n", len(newAddrs))
 	}
 
+	if l.AddETLDInvoked == false {
+		t.Fatal("AddETLDInvoked should have been invoked")
+	}
+
 }
 
 func TestBigDataSubdomainsRerun(t *testing.T) {
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
+
 	bds.GetCTSubdomainsFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTSubdomain, error) {
 		return time.Now(), nil, nil
 	}
@@ -73,7 +91,7 @@ func TestBigDataSubdomainsRerun(t *testing.T) {
 		return res, nil
 	}
 
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.linkai.io")
@@ -107,6 +125,10 @@ func TestBigDataSubdomainsRerun(t *testing.T) {
 	if bq.QuerySubdomainsInvoked == true {
 		t.Fatalf("re-run should not have invoked query subdomains")
 	}
+
+	if l.AddETLDInvoked == false {
+		t.Fatal("AddETLDInvoked should have been invoked")
+	}
 }
 
 func TestBigDataFirstRun(t *testing.T) {
@@ -114,7 +136,14 @@ func TestBigDataFirstRun(t *testing.T) {
 	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
+
 	bds.GetCTFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
 		return time.Now(), nil, nil
 	}
@@ -127,7 +156,7 @@ func TestBigDataFirstRun(t *testing.T) {
 	bq.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
 		return amtest.BuildCTRecords(etld, time.Now().UnixNano(), 1), nil
 	}
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.example.com")
@@ -145,6 +174,10 @@ func TestBigDataFirstRun(t *testing.T) {
 		t.Fatalf("failed to find 2 new addresses in big data, got %d\n", len(newAddrs))
 	}
 
+	if l.AddETLDInvoked == false {
+		t.Fatal("AddETLDInvoked should have been invoked")
+	}
+
 }
 
 func TestBigDataRerun(t *testing.T) {
@@ -152,7 +185,13 @@ func TestBigDataRerun(t *testing.T) {
 	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
 
 	// sets lastQueryTime to 1 day ago
 	bds.GetCTFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
@@ -168,7 +207,7 @@ func TestBigDataRerun(t *testing.T) {
 	bq.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
 		return amtest.BuildCTRecords(etld, time.Now().UnixNano(), 2), nil
 	}
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.example.com")
@@ -188,7 +227,13 @@ func TestBigDataNoNewRecords(t *testing.T) {
 	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
 
 	// sets lastQueryTime to 1 day ago
 	bds.GetCTFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
@@ -204,7 +249,7 @@ func TestBigDataNoNewRecords(t *testing.T) {
 	bq.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
 		return amtest.BuildCTRecords(etld, time.Now().UnixNano(), 1), nil
 	}
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.example.com")
@@ -228,7 +273,13 @@ func TestBigDataCacheTime(t *testing.T) {
 	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
 
 	// sets lastQueryTime to 1 day ago
 	bds.GetCTFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
@@ -244,7 +295,7 @@ func TestBigDataCacheTime(t *testing.T) {
 	bq.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
 		return amtest.BuildCTRecords(etld, time.Now().UnixNano(), 1), nil
 	}
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.example.com")
@@ -268,7 +319,13 @@ func TestBigDataDoCTTime(t *testing.T) {
 	t.Skip()
 	dc := dnsclient.New([]string{"1.1.1.1:53"}, 2)
 	st := amtest.MockBigDataState()
+	l := amtest.MockCertListener()
 	bds := &mock.BigDataService{}
+	bds.GetETLDsFn = func(ctx context.Context, userContext am.UserContext) ([]*am.CTETLD, error) {
+		etlds := make([]*am.CTETLD, 1)
+		etlds[0] = &am.CTETLD{ETLD: "linkai.io", ETLD_ID: 1, QueryTimestamp: time.Now().UnixNano()}
+		return etlds, nil
+	}
 
 	// sets lastQueryTime to 1 day ago
 	bds.GetCTFn = func(ctx context.Context, userContext am.UserContext, etld string) (time.Time, map[string]*am.CTRecord, error) {
@@ -284,7 +341,7 @@ func TestBigDataDoCTTime(t *testing.T) {
 	bq.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
 		return amtest.BuildCTRecords(etld, time.Now().UnixNano(), 1), nil
 	}
-	bd := New(dc, st, bds, bq)
+	bd := New(dc, st, bds, bq, l)
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	address := testBuildAddress("1.1.1.1", "blah.example.com")
