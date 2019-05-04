@@ -186,7 +186,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 			}
 
 			// the diff takes care of random csrf/nonce values and remove them from urls
-			webData.LoadURL = w.diff.DiffPatchURL(webData.LoadURL, loadDiffURL) // any params or paths that are different will be removed
+			webData.URL = w.diff.DiffPatchURL(webData.URL, loadDiffURL) // any params or paths that are different will be removed
 			diffHash, _ := w.diff.DiffHash(ctx, webData.SerializedDOM, loadDiffDom)
 			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData, diffHash)
 			if err != nil {
