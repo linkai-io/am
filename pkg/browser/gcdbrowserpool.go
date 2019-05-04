@@ -3,6 +3,7 @@ package browser
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -185,16 +186,16 @@ func (b *GCDBrowserPool) closeAndCreateBrowser(browser *gcd.Gcd, doneCh chan str
 	close(doneCh)
 }
 
-func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupAddress, scheme, port string) (string, error) {
+func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupAddress, scheme, port string) (string, string, error) {
 	var browser *gcd.Gcd
 
 	if atomic.LoadInt32(&b.closing) == 1 {
-		return "", ErrBrowserClosing
+		return "", "", ErrBrowserClosing
 	}
 
 	// if nil, do not return browser
 	if browser = b.Acquire(ctx); browser == nil {
-		return "", errors.New("browser acquisition failed during Load")
+		return "", "", errors.New("browser acquisition failed during Load")
 	}
 	logger := log.With().Str("HostAddress", address.HostAddress).Str("port", port).Str("call", "LoadForDiff").Logger()
 	ctx = logger.WithContext(ctx)
@@ -204,7 +205,7 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get first tab")
 		b.Return(ctx, browser)
-		return "", err
+		return "", "", err
 	}
 
 	defer b.Return(ctx, browser)
@@ -221,14 +222,14 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	if err := tab.LoadPage(ctx, url); err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("loading page")
 		if err == ErrNavigationTimedOut {
-			return "", err
+			return "", "", err
 		}
 		if chromeErr, ok := err.(*gcdmessage.ChromeApiTimeoutErr); ok {
-			return "", errors.Wrap(chromeErr, "failed to load page due to timeout")
+			return "", "", errors.Wrap(chromeErr, "failed to load page due to timeout")
 		}
 
 		if errors.Cause(err) == ErrNavigating {
-			return "", err
+			return "", "", err
 		}
 	}
 
@@ -240,8 +241,9 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
 	dom := tab.SerializeDOM()
+	loadURL := tab.GetURL(ctx)
 	log.Ctx(ctx).Info().Msg("closed browser")
-	return dom, nil
+	return loadURL, dom, nil
 }
 
 // Load an address of scheme and port, returning an image, the dom, all text based responses or an error.
@@ -359,6 +361,18 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	log.Ctx(ctx).Info().Msg("closed browser")
 	return webData, nil
+}
+
+func (b *GCDBrowserPool) cleanURL(responseURL string) string {
+	u, err := url.Parse(responseURL)
+	if err != nil {
+		return responseURL
+	}
+	v := u.Query()
+	v.Del("nonce")
+	v.Del("csrf")
+	v.Del("CSRF")
+	return u.String()
 }
 
 // Close all browsers and return. TODO: make this not terrible.

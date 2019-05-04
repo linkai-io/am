@@ -168,11 +168,12 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 			webData := &am.WebData{}
 			loadDiffDom := ""
+			loadDiffURL := ""
 
 			retryErr := retrier.RetryAttempts(func() error {
 				var err error
 				log.Ctx(ctx).Info().Int32("port", port).Str("scheme", scheme).Msg("calling load")
-				loadDiffDom, err = w.browsers.LoadForDiff(ctx, address, scheme, portStr)
+				loadDiffURL, loadDiffDom, err = w.browsers.LoadForDiff(ctx, address, scheme, portStr)
 				if err != nil {
 					return err
 				}
@@ -184,6 +185,8 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
+			// the diff takes care of random csrf/nonce values and remove them from urls
+			webData.LoadURL = w.diff.DiffPatchURL(webData.LoadURL, loadDiffURL) // any params or paths that are different will be removed
 			diffHash, _ := w.diff.DiffHash(ctx, webData.SerializedDOM, loadDiffDom)
 			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData, diffHash)
 			if err != nil {

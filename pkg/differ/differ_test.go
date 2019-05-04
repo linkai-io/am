@@ -8,6 +8,26 @@ import (
 	"github.com/linkai-io/am/pkg/differ"
 )
 
+func TestDiffURL(t *testing.T) {
+	expected := "https://google.com/blah/q?asdf="
+	u1 := "https://google.com/blah/q?asdf=asdf"
+	u2 := "https://google.com/blah/q?asdf=blah2"
+	d := differ.New()
+	result := d.DiffPatchURL(u1, u2)
+	if result != expected {
+		t.Fatalf("error expected %s got %s", expected, result)
+	}
+
+	expected = "https://google.com//q?asdf="
+	u1 = "https://google.com/blah/q?asdf=asdf"
+	u2 = "https://google.com/asdf/q?asdf=blah2"
+	d = differ.New()
+	result = d.DiffPatchURL(u1, u2)
+	if result != expected {
+		t.Fatalf("error expected %s got %s", expected, result)
+	}
+}
+
 func TestDiffMicrosoft1(t *testing.T) {
 	f1, err := ioutil.ReadFile("testdata/dom1.html")
 	if err != nil {

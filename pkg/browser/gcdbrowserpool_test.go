@@ -94,14 +94,14 @@ func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
 		IPAddress:   "93.184.216.34",
 	}
 
-	dom, err := b.LoadForDiff(ctx, address, "http", "80")
+	loadDiffURL, dom, err := b.LoadForDiff(ctx, address, "http", "80")
 	if err != nil {
 		t.Fatalf("error during load: %v\n", err)
 	}
 	ioutil.WriteFile("testdata/dom1.html", []byte(dom), 0600)
 	t.Logf("%s\n", convert.HashData([]byte(dom)))
 
-	dom2, err2 := b.LoadForDiff(ctx, address, "http", "80")
+	loadDiffURL2, dom2, err2 := b.LoadForDiff(ctx, address, "http", "80")
 	if err2 != nil {
 		t.Fatalf("error during load: %v\n", err)
 	}
@@ -112,6 +112,45 @@ func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
 	if !same {
 		t.Fatalf("error diff hash failed")
 	}
+	diffURL := d.DiffPatch(loadDiffURL, loadDiffURL2, 4)
+	t.Logf("%#v\n", diffURL)
+	t.Logf("%s\n", hash)
+}
+
+func TestGCDBrowserPoolLoadURLForDiff(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "showcase.nccgroup.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	loadDiffURL, dom, err := b.LoadForDiff(ctx, address, "http", "80")
+	if err != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/dom1.html", []byte(dom), 0600)
+	t.Logf("%s\n", convert.HashData([]byte(dom)))
+
+	loadDiffURL2, dom2, err2 := b.LoadForDiff(ctx, address, "http", "80")
+	if err2 != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/dom2.html", []byte(dom2), 0600)
+
+	d := differ.New()
+	hash, same := d.DiffHash(ctx, dom, dom2)
+	if !same {
+		t.Fatalf("error diff hash failed")
+	}
+	diffURL := d.DiffPatch(loadDiffURL, loadDiffURL2, 1)
+	t.Logf("%#v\n", diffURL)
 	t.Logf("%s\n", hash)
 }
 

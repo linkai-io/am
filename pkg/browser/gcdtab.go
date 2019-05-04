@@ -110,7 +110,7 @@ func (t *Tab) GetURL(ctx context.Context) string {
 	if err != nil || len(entries) == 0 {
 		return ""
 	}
-	return entries[0].Url
+	return entries[len(entries)-1].Url
 }
 
 // WaitReady waits for the page to load, DOM to be stable, and no network traffic in progress

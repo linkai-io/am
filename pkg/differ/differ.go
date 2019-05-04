@@ -31,8 +31,8 @@ func (d *Diff) DiffHash(ctx context.Context, text1, text2 string) (string, bool)
 	dom2, scripts2 := d.domParse(text2)
 	dom1 += parseScript(scripts1)
 	dom2 += parseScript(scripts2)
-	result1 := d.diffPatch(dom1, dom2)
-	result2 := d.diffPatch(dom2, dom1)
+	result1 := d.DiffPatch(dom1, dom2, 20)
+	result2 := d.DiffPatch(dom2, dom1, 20)
 	hash1 := convert.HashData([]byte(result1))
 	hash2 := convert.HashData([]byte(result2))
 	same := hash1 == hash2
@@ -40,35 +40,55 @@ func (d *Diff) DiffHash(ctx context.Context, text1, text2 string) (string, bool)
 	return hash1, same
 }
 
-func (d *Diff) diffPatch(dom1, dom2 string) string {
-	diff := d.dmp.DiffMain(dom1, dom2, true)
+// DiffPatch takes the diff of two inputs, and only keeps text that is equal and the length of the text is > length
+func (d *Diff) DiffPatch(in1, in2 string, length int) string {
+	diff := d.dmp.DiffMain(in1, in2, true)
 	result := ""
 	for _, d := range diff {
-		if d.Type == diffmatchpatch.DiffEqual && len(d.Text) > 20 {
+		if d.Type == diffmatchpatch.DiffEqual && len(d.Text) > length {
 			result += d.Text
 		}
 	}
 	return result
 }
 
-/*
-log.Info().Str("hash1", hash1).Str("hash2", hash2).Msg("comparing hash")
-	same := hash1 == hash2
-	if !same {
-		log.Warn().Msg("hashes did not match, doing diffpatch")
-		d.compareJS(scripts1, scripts2)
-		log.Info().Msg("diffpatch 1")
-		result1 := d.diffPatch(dom1, dom2)
-		//fmt.Printf("RESULT1: %s\n", result1)
-		log.Info().Msg("diffpatch 2")
-		result2 := d.diffPatch(dom2, dom1)
-		//fmt.Printf("RESULT2: %s\n", result2)
-		hash1 = convert.HashData([]byte(result1))
-		hash2 = convert.HashData([]byte(result2))
-		same = hash1 == hash2
-		log.Info().Str("hash1", hash1).Str("hash2", hash2).Msg("comparing hash v2")
+// DiffPatchURL takes in two urls and patches (removes) any differences between them
+func (d *Diff) DiffPatchURL(in1, in2 string) string {
+	if in1 == in2 {
+		return in1
 	}
-*/
+
+	u1, err1 := url.Parse(in1)
+	if err1 != nil {
+		log.Warn().Err(err1).Str("url", in1).Msg("failed to parse url")
+		return in1
+	}
+
+	u2, err2 := url.Parse(in2)
+	if err2 != nil {
+		log.Warn().Err(err2).Str("url", in2).Msg("failed to parse url")
+		return in1
+	}
+
+	if u1.Path != u2.Path {
+		log.Warn().Str("path1", u1.Path).Str("path2", u2.Path).Msg("paths of url did not match")
+		return d.DiffPatch(in1, in2, 1)
+	}
+
+	// iterate over query value (keys) and compare in1 with in2 url query parameters.
+	// if they don't match, set it to an empty string and re-encode the query back to the rawquery
+	for k := range u1.Query() {
+		q := u1.Query()
+		// Note this does not handle if params have multiple values but that should be rare
+		if u1.Query().Get(k) != u2.Query().Get(k) {
+			log.Info().Str("param", q.Get(k)).Str("param", u2.Query().Get(k)).Msg("param of url did not match")
+			q.Set(k, "")
+			u1.RawQuery = q.Encode()
+		}
+	}
+	return u1.String()
+}
+
 func parseScript(scripts []string) string {
 	toSort := make([]string, len(scripts))
 	for i := range scripts {
