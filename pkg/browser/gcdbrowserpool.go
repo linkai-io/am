@@ -296,7 +296,7 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 			return nil, errors.Wrap(chromeErr, "failed to load page due to timeout")
 		}
 
-		if errors.Cause(err) == ErrNavigating {
+		if errors.Cause(err) == ErrNavigating || errors.Cause(err) == ErrTabCrashed {
 			return nil, err
 		}
 	}

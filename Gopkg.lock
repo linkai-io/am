@@ -51,7 +51,7 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:fa96f0592cfc861c965a40090f5ae7802059f0547193c60d769568867b3e3440"
+  digest = "1:4ac921879be093ad647387a84297fce31febede6db764874455f05f88cdf16ec"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "6da73e9d95fc247fc64d0de87cf33655ed615e3f"
-  version = "v1.19.22"
+  revision = "86dc5d0ebe9f30ac9e939da21c240a98519343f2"
+  version = "v1.19.24"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -231,7 +231,7 @@
   version = "v0.8.3"
 
 [[projects]]
-  digest = "1:6a5edb6e9ad91f22d33e01739bbabea324fed674c40bc4f7d60adb48235e8b48"
+  digest = "1:5b44dd580eb13905a19fc6a289136c389fb5a14f03d6754a67c325553d08f2a6"
   name = "github.com/jackc/pgx"
   packages = [
     ".",
@@ -242,8 +242,8 @@
     "pgtype",
   ]
   pruneopts = "UT"
-  revision = "c59c9cac59ab95eceb0c12ff338923c62f411ea2"
-  version = "v3.3.0"
+  revision = "8faa4453fc7051d1076053f8854077753ab912f2"
+  version = "v3.4.0"
 
 [[projects]]
   digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
@@ -360,7 +360,7 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:e6ba33f5f00c55d36fb579355e53cbd994386f3ea0b5bf495c0f540526a4ef45"
+  digest = "1:1aa9095818a4d92f3682b427bd62e58c6c9885eb0701d6b9ed5a8814b969c58d"
   name = "github.com/wirepair/gcd"
   packages = [
     ".",
@@ -368,8 +368,8 @@
     "gcdmessage",
   ]
   pruneopts = "UT"
-  revision = "2f7807e117ff2d25c3c702d6eef0155ba9d1a556"
-  version = "v1.0.5"
+  revision = "44bb7d51f34e1a82ad6868dcad7ff21222c80c96"
+  version = "v1.0.6"
 
 [[projects]]
   digest = "1:6a0fd720abef071f9c9821249e2a7ee87a2e90fe7e45cef8fe413e6b5287363a"
@@ -398,11 +398,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d5891c5bca9c62e5d394ca26491d2b710a1dc08cedeb0ca8f9ac4c3305120b02"
+  digest = "1:b8fa1ff0fc20983395978b3f771bb10438accbfe19326b02e236c1d4bf1c91b2"
   name = "golang.org/x/crypto"
   packages = [
     "ed25519",
     "ed25519/internal/edwards25519",
+    "pbkdf2",
   ]
   pruneopts = "UT"
   revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
@@ -431,7 +432,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "9ce7a6920f093fc0b908c4a5f66ae049110f417e"
+  revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
 
 [[projects]]
   branch = "master"
@@ -449,18 +450,20 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dcd2e9de31e20e01b156288ce4fc239498564295bdbb59d8aaf591af94778162"
+  digest = "1:1ddfda089b8a15d92242412aabc1107b8c7a87c609c09c5b441c81dbcca0ab79"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d89cdac9e8725f2aefce25fcbfef41134c9ad412"
+  revision = "a43fa875dd822b81eb6d2ad538bc1f4caba169bd"
 
 [[projects]]
-  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
+  digest = "1:5f1559c4cee44069f81517430ebba19589869f3d4d4648213a4d5ddd199b11d8"
   name = "golang.org/x/text"
   packages = [
+    "cases",
     "collate",
     "collate/build",
+    "internal",
     "internal/colltab",
     "internal/gen",
     "internal/language",
@@ -469,12 +472,15 @@
     "internal/triegen",
     "internal/ucd",
     "language",
+    "runes",
     "secure/bidirule",
+    "secure/precis",
     "transform",
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
     "unicode/rangetable",
+    "width",
   ]
   pruneopts = "UT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
@@ -527,7 +533,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "357c62f0e4bbba7e6cc403ae09edcf3e2b9028fe"
+  revision = "54afdca5d873f7b529e2ce3def1a99df16feda90"
 
 [[projects]]
   digest = "1:2ea0c49f26db77b4b50ea6ab010b681295a5cc4a263647141359c3988559654b"

@@ -177,7 +177,12 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				if err != nil {
 					return err
 				}
-				webData, err = w.browsers.Load(ctx, address, scheme, portStr)
+
+				// Retry load 2 times (in the event of tabs crashing etc)
+				err = retrier.RetryAttempts(func() error {
+					webData, err = w.browsers.Load(ctx, address, scheme, portStr)
+					return err
+				}, 2)
 				return err
 			}, retryAttempts)
 
@@ -186,7 +191,9 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 			}
 
 			// the diff takes care of random csrf/nonce values and remove them from urls
+			log.Ctx(ctx).Info().Str("diffURL", loadDiffURL).Str("webData.URL", webData.URL).Msg("patching diff urls")
 			webData.URL = w.diff.DiffPatchURL(webData.URL, loadDiffURL) // any params or paths that are different will be removed
+			log.Ctx(ctx).Info().Str("webData.URL", webData.URL).Msg("patched url")
 			diffHash, _ := w.diff.DiffHash(ctx, webData.SerializedDOM, loadDiffDom)
 			hosts, err := w.processWebData(ctx, userContext, nsCfg, address, webData, diffHash)
 			if err != nil {

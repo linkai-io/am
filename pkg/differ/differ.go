@@ -2,7 +2,6 @@ package differ
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"path/filepath"
 	"sort"
@@ -81,9 +80,9 @@ func (d *Diff) DiffPatchURL(in1, in2 string) string {
 		q := u1.Query()
 		// Note this does not handle if params have multiple values but that should be rare
 		if u1.Query().Get(k) != u2.Query().Get(k) {
-			log.Info().Str("param", q.Get(k)).Str("param", u2.Query().Get(k)).Msg("param of url did not match")
 			q.Set(k, "")
 			u1.RawQuery = q.Encode()
+			log.Info().Str("param", q.Get(k)).Str("param", u2.Query().Get(k)).Str("raw_query", u1.RawQuery).Msg("param of url did not match")
 		}
 	}
 	return u1.String()
@@ -94,7 +93,7 @@ func parseScript(scripts []string) string {
 	for i := range scripts {
 		url, err := url.Parse(scripts[i])
 		if err != nil {
-			fmt.Printf("%s not a url\n", scripts[i])
+			log.Info().Msgf("%s not a url\n", scripts[i])
 			continue
 		}
 		_, fileName := filepath.Split(url.Path)
@@ -115,22 +114,22 @@ func (d *Diff) compareJS(scripts1, scripts2 []string) bool {
 		}
 		u, err := url.Parse(scripts1[i])
 		if err != nil {
-			fmt.Printf("%s not a url\n", scripts1[i])
+			log.Info().Msgf("%s not a url\n", scripts1[i])
 		}
 
 		u2, err2 := url.Parse(scripts2[i])
 		if err2 != nil {
-			fmt.Printf("%s not a url\n", scripts2[i])
+			log.Info().Msgf("%s not a url\n", scripts2[i])
 		}
-		fmt.Printf("host: %s %s\n", u.Host, u2.Host)
+		log.Info().Msgf("host: %s %s\n", u.Host, u2.Host)
 		if u.Host != u2.Host {
-			fmt.Printf("NOT EQUAL HOST\n")
+			log.Info().Msgf("NOT EQUAL HOST\n")
 		}
 		_, file1 := filepath.Split(u.Path)
 		_, file2 := filepath.Split(u2.Path)
-		fmt.Printf("uri: [%s] [%s]\n", file1, file2)
+		log.Info().Msgf("uri: [%s] [%s]\n", file1, file2)
 		if file1 != file2 {
-			fmt.Printf("NOT EQUAL PATH\n")
+			log.Info().Msgf("NOT EQUAL PATH\n")
 		}
 	}
 	return true

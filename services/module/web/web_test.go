@@ -241,10 +241,10 @@ func TestCoTAnalyze(t *testing.T) {
 	addr := &am.ScanGroupAddress{
 		OrgID:           1,
 		GroupID:         1,
-		HostAddress:     "veracode.com",
+		HostAddress:     "nl.nccgroup.com",
 		IPAddress:       "104.17.6.6",
 		ConfidenceScore: 100,
-		AddressHash:     convert.HashAddress("104.17.6.6", "veracode.com"),
+		AddressHash:     convert.HashAddress("104.17.6.6", "nl.nccgroup.com"),
 	}
 
 	_, newAddrs, err := w.Analyze(ctx, userContext, addr)

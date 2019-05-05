@@ -267,6 +267,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 	})
 
 	t.t.Subscribe("Network.loadingFinished", func(target *gcd.ChromeTarget, payload []byte) {
+		//log.Info().Msgf("loadingFinished DATA: %#v\n", string(payload))
 		message := &gcdapi.NetworkLoadingFinishedEvent{}
 		if err := json.Unmarshal(payload, message); err != nil {
 			return
@@ -437,6 +438,7 @@ func (t *Tab) subscribeBrowserEvents(ctx context.Context) {
 	})
 
 	t.t.Subscribe("Inspector.targetCrashed", func(target *gcd.ChromeTarget, payload []byte) {
+		log.Ctx(ctx).Warn().Msgf("tab crashed: %s", string(payload))
 		select {
 		case t.crashedCh <- "crashed":
 		case <-t.exitCh:
