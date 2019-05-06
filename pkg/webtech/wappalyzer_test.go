@@ -92,7 +92,7 @@ func TestWappalyzerInject(t *testing.T) {
 	}
 
 	address := &am.ScanGroupAddress{
-		HostAddress: "example.com",
+		HostAddress: "angularjs.org",
 		IPAddress:   "93.184.216.34",
 	}
 
@@ -107,8 +107,8 @@ func TestWappalyzerInject(t *testing.T) {
 	tab := browser.NewTab(ctx, ta, address)
 	defer tab.Close()
 
-	if err := tab.LoadPage(ctx, "https://angularjs.org/"); err != nil {
-		t.Fatalf("error loading page:%v\n", err)
+	if err := tab.LoadPage(ctx, "https://angularjs.org/"); err != nil && err != browser.ErrTimedOut {
+		t.Fatalf("error loading page: %v\n", err)
 	}
 	start := time.Now()
 	result, err := tab.InjectJS(w.JSToInject())
@@ -146,7 +146,7 @@ func TestWappalyzerDraftInject(t *testing.T) {
 	}
 
 	address := &am.ScanGroupAddress{
-		HostAddress: "example.com",
+		HostAddress: "mt.draftkings.com",
 		IPAddress:   "93.184.216.34",
 	}
 
@@ -161,8 +161,8 @@ func TestWappalyzerDraftInject(t *testing.T) {
 	tab := browser.NewTab(ctx, ta, address)
 	defer tab.Close()
 
-	if err := tab.LoadPage(ctx, "http://mt.draftkings.com/"); err != nil {
-		t.Fatalf("error loading page:%v\n", err)
+	if err := tab.LoadPage(ctx, "http://mt.draftkings.com/"); err != nil && err != browser.ErrTimedOut {
+		t.Fatalf("error loading page:%#v\n", err)
 	}
 	start := time.Now()
 	result, err := tab.InjectJS(w.JSToInject())

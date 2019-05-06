@@ -178,11 +178,11 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 					return err
 				}
 
-				// Retry load 2 times (in the event of tabs crashing etc)
+				// Retry load 3 times (in the event of tabs crashing etc)
 				err = retrier.RetryAttempts(func() error {
 					webData, err = w.browsers.Load(ctx, address, scheme, portStr)
 					return err
-				}, 2)
+				}, 3)
 				return err
 			}, retryAttempts)
 

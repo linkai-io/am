@@ -49,6 +49,10 @@ func init() {
 
 // main starts the WebModuleService
 func main() {
+	browserCount := 5
+	if appConfig.Env == "prod" {
+		browserCount = 8
+	}
 	var err error
 
 	zerolog.TimeFieldFormat = ""
@@ -77,7 +81,7 @@ func main() {
 
 	leaser := browser.NewSocketLeaser()
 	ctx := context.Background()
-	browsers := browser.NewGCDBrowserPool(5, leaser, wapp)
+	browsers := browser.NewGCDBrowserPool(browserCount, leaser, wapp)
 	if err := browsers.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing browsers")
 	}

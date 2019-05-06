@@ -3,7 +3,6 @@ package browser
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -84,7 +83,7 @@ func NewGCDBrowserPool(maxBrowsers int, leaser LeaserService, techDetect webtech
 	b := &GCDBrowserPool{}
 	b.detector = techDetect
 	b.maxBrowsers = maxBrowsers
-	b.browserTimeout = time.Second * 30
+	b.browserTimeout = time.Second * 45
 	b.leaser = leaser
 	b.browsers = make(chan *gcd.Gcd, b.maxBrowsers)
 	return b
@@ -361,18 +360,6 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	log.Ctx(ctx).Info().Msg("closed browser")
 	return webData, nil
-}
-
-func (b *GCDBrowserPool) cleanURL(responseURL string) string {
-	u, err := url.Parse(responseURL)
-	if err != nil {
-		return responseURL
-	}
-	v := u.Query()
-	v.Del("nonce")
-	v.Del("csrf")
-	v.Del("CSRF")
-	return u.String()
 }
 
 // Close all browsers and return. TODO: make this not terrible.

@@ -192,6 +192,46 @@ func TestGCDBrowserPoolTLS(t *testing.T) {
 	}
 }
 
+//
+func TestGCDBrowserPoolCrash(t *testing.T) {
+	t.Skip("test takes too long")
+	ctx := context.Background()
+	b := NewGCDBrowserPool(1, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	address := &am.ScanGroupAddress{
+		//HostAddress: "example.com",
+		HostAddress: "nl.nccgroup.com",
+		IPAddress:   "93.184.216.34",
+		//IPAddress: "192.168.62.130",
+		//HostAddress: "www.veracode.com",
+		//IPAddress:   "104.17.7.6",
+	}
+
+	d, err := b.Load(timeoutCtx, address, "https", "443")
+	if err != nil {
+		t.Fatalf("error loading: %v\n", err)
+	}
+
+	t.Logf("responses: %d\n", len(d.Responses))
+	for _, r := range d.Responses {
+		//t.Logf("RESPONSE: %#v\n", r)
+		if r.WebCertificate != nil {
+			t.Logf("%#v\n", r.WebCertificate)
+		}
+	}
+
+	if len(d.Responses) == 0 {
+		t.Fatalf("we did not properly intercept and replace host with ip")
+	}
+}
+
 func TestGCDBrowserPoolClosedPort(t *testing.T) {
 	ctx := context.Background()
 	b := NewGCDBrowserPool(1, leaser, amtest.MockWebDetector())

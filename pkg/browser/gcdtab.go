@@ -73,7 +73,7 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	}
 
 	log.Ctx(ctx).Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
-	err = t.WaitReady(ctx, time.Second*3)
+	err = t.WaitReady(ctx, time.Second*9)
 	log.Ctx(ctx).Info().Msg("wait ready returned")
 	return err
 }
@@ -118,7 +118,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	ticker := time.NewTicker(150 * time.Millisecond)
 	defer ticker.Stop()
 
-	navTimer := time.After(30 * time.Second)
+	navTimer := time.After(45 * time.Second)
 	log.Ctx(ctx).Info().Msg("waiting for nav to complete")
 	// wait navigation to complete.
 	select {
@@ -257,12 +257,13 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 			return
 		}
 
-		// ignore data urls
-		if strings.HasPrefix(p.Response.Url, "data") {
+		// ignore file/data urls
+		if strings.HasPrefix(p.Response.Url, "data") || strings.HasPrefix(p.Response.Url, "file") {
 			return
 		}
 
 		response := t.buildResponse(address, port, message)
+		log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("adding response")
 		t.container.Add(response)
 	})
 
