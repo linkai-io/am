@@ -130,6 +130,10 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 		p = p.Where(sq.Eq{"wb.url_request_timestamp": time.Unix(0, val)})
 	}
 
+	if val, ok := filter.Filters.Int64("response_timestamp"); ok && val != 0 {
+		p = p.Where(sq.Eq{"wb.response_timestamp": time.Unix(0, val)})
+	}
+
 	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
 		p = p.Where(sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)})
 	}
@@ -188,6 +192,10 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 
 	if val, ok := filter.Filters.String("server_type"); ok && val != "" {
 		p = p.Where(sq.Eq{"headers->>'server'": val})
+	}
+
+	if val, ok := filter.Filters.String("url"); ok && val != "" {
+		p = p.Where(sq.Eq{"url": val})
 	}
 
 	return p
