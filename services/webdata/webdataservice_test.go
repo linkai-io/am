@@ -513,6 +513,27 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error getting responses: %#v\n", err)
 	}
+
+	// test server type filter
+	filter = &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddString("server_type", "Apache 1.0.1")
+
+	_, resp, err := service.GetResponses(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	t.Logf("APACHE 1.0.1\n")
+	for _, rp := range resp {
+		t.Logf("%#v", rp)
+	}
+
 }
 
 func TestGetURLList(t *testing.T) {
@@ -588,6 +609,24 @@ func TestGetURLList(t *testing.T) {
 		t.Fatalf("last series of URLs should all have request timestamp of day - 1 got %d %d", requestDay, time.Now().Day()-1)
 	}
 
+	// test url list single query via url_request_timestamp
+	filter = &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddInt64("url_request_timestamp", urlLists[0].URLRequestTimestamp)
+	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+
+	if len(urlLists) != 1 {
+		t.Fatalf("expected 1 urllists got: %d\n", len(urlLists))
+	}
+
 	// test after request time
 	filter = &am.WebResponseFilter{
 		OrgID:   org.OrgID,
@@ -604,6 +643,7 @@ func TestGetURLList(t *testing.T) {
 	if len(urlLists) != 2 {
 		t.Fatalf("expected 2 urllists got: %d\n", len(urlLists))
 	}
+
 }
 
 func TestDeletePopulateWeb(t *testing.T) {

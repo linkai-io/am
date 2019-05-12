@@ -126,6 +126,14 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 		}
 	}
 
+	if val, ok := filter.Filters.Int64("url_request_timestamp"); ok && val != 0 {
+		p = p.Where(sq.Eq{"wb.url_request_timestamp": time.Unix(0, val)})
+	}
+
+	if val, ok := filter.Filters.Int64("response_timestamp"); ok && val != 0 {
+		p = p.Where(sq.Eq{"wb.response_timestamp": time.Unix(0, val)})
+	}
+
 	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
 		p = p.Where(sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)})
 	}
@@ -181,6 +189,15 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 			p = p.Where(sq.Like{"wb.load_host_address": fmt.Sprintf("%s%%", val)})
 		}
 	}
+
+	if val, ok := filter.Filters.String("server_type"); ok && val != "" {
+		p = p.Where(sq.Eq{"headers->>'server'": val})
+	}
+
+	if val, ok := filter.Filters.String("url"); ok && val != "" {
+		p = p.Where(sq.Eq{"url": val})
+	}
+
 	return p
 }
 
@@ -248,6 +265,9 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 		p = p.FromSelect(sub, "latest").Join("am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp").
 			Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
 	} else {
+		if val, ok := filter.Filters.Int64("url_request_timestamp"); ok && val != 0 {
+			p = p.Where(sq.Eq{"wb.url_request_timestamp": time.Unix(0, val)})
+		}
 		p = p.From("am.web_responses as wb").Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
 	}
 
