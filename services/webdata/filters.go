@@ -305,3 +305,24 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	return withSql, pArgs, nil
 	//return p.PlaceholderFormat(sq.Dollar).ToSql()
 }
+
+func buildDomainDependencies(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
+	if filter.Start == 0 {
+		filter.Start = time.Now().Add(time.Hour).UnixNano()
+	}
+	p := sq.Select().
+		Columns("wb.organization_id", "wb.scan_group_id", "wb.load_host_address", "wb.host_address", "max(wb.url_request_timestamp)")
+
+	p = p.From("am.web_responses as wb").Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
+
+	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
+		p = p.Where(sq.Or{sq.Eq{"wb.url_request_timestamp": "1970-01-01 00:00:00+00"}, sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)}})
+	}
+
+	p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)}).
+		GroupBy("wb.organization_id", "wb.scan_group_id", "wb.load_host_address", "wb.host_address").
+		OrderBy("max(wb.url_request_timestamp) desc").
+		Limit(uint64(filter.Limit))
+
+	return p.PlaceholderFormat(sq.Dollar).ToSql()
+}

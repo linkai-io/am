@@ -646,6 +646,51 @@ func TestGetURLList(t *testing.T) {
 
 }
 
+func TestGetDomainDependency(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("domaindep", "domaindep", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34")
+
+	for i, web := range webData {
+		t.Logf("%d: %d\n", i, len(web.Responses))
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	filter := &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddInt64("after_request_time", time.Now().Add(time.Hour*-(7*24)).UnixNano())
+	oid, domains, err := service.GetDomainDependency(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+
+	if oid != org.OrgID {
+		t.Fatalf("oid %v did not equal orgID: %v\n", oid, org.OrgID)
+	}
+	for _, d := range domains.Links {
+		t.Logf("%#v\n", d)
+	}
+
+	for _, d := range domains.Nodes {
+		t.Logf("%#v\n", d)
+	}
+}
+
 func TestDeletePopulateWeb(t *testing.T) {
 	t.Skip("uncomment to populate data")
 	db := amtest.InitDB(env, t)

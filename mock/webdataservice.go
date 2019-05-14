@@ -25,6 +25,9 @@ type WebDataService struct {
 	GetURLListFn      func(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error)
 	GetURLListInvoked bool
 
+	GetDomainDependencyFn      func(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, *am.WebDomainDependency, error)
+	GetDomainDependencyInvoked bool
+
 	OrgStatsFn      func(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupWebDataStats, error)
 	OrgStatsInvoked bool
 
@@ -59,6 +62,11 @@ func (s *WebDataService) GetSnapshots(ctx context.Context, userContext am.UserCo
 func (s *WebDataService) GetURLList(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.URLListResponse, error) {
 	s.GetURLListInvoked = true
 	return s.GetURLListFn(ctx, userContext, filter)
+}
+
+func (s *WebDataService) GetDomainDependency(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, *am.WebDomainDependency, error) {
+	s.GetDomainDependencyInvoked = true
+	return s.GetDomainDependencyFn(ctx, userContext, filter)
 }
 
 func (c *WebDataService) OrgStats(ctx context.Context, userContext am.UserContext) (int, []*am.ScanGroupWebDataStats, error) {
