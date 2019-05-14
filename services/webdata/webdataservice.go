@@ -210,7 +210,7 @@ func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, fi
 		return 0, nil, ErrFilterMissingGroupID
 	}
 
-	getQuery, args, err = buildURLListFilterQuery2(userContext, filter)
+	getQuery, args, err = buildURLListFilterQuery(userContext, filter)
 	if err != nil {
 		return 0, nil, err
 	}

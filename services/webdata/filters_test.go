@@ -18,7 +18,7 @@ func TestURLQuery2(t *testing.T) {
 		Limit:   1000,
 	}
 	filter.Filters.AddInt64("after_request_time", time.Now().Add(time.Hour-(24*7)).UnixNano())
-	query, args, err := buildURLListFilterQuery2(userContext, filter)
+	query, args, err := buildURLListFilterQuery(userContext, filter)
 	if err != nil {
 		t.Fatalf("error: %#v\n", err)
 	}

@@ -251,51 +251,6 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	if filter.Start == 0 {
 		filter.Start = time.Now().Add(time.Hour).UnixNano()
 	}
-
-	p := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "load_host_address", "load_ip_address").
-		Column("array_agg(wb.url) as urls").
-		Column("array_agg(wb.raw_body_link) as raw_body_links").
-		Column("array_agg(wb.response_id) as response_ids").
-		Column("array_agg((select mime_type from am.web_mime_type where mime_type_id=wb.mime_type_id)) as mime_types")
-
-	if latestOnly {
-		sub := sq.Select("url").Column(sq.Alias(sq.Expr("max(url_request_timestamp)"), "url_request_timestamp")).
-			From("am.web_responses").
-			GroupBy("url")
-		p = p.FromSelect(sub, "latest").Join("am.web_responses as wb on wb.url=latest.url and wb.url_request_timestamp=latest.url_request_timestamp").
-			Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
-	} else {
-		if val, ok := filter.Filters.Int64("url_request_timestamp"); ok && val != 0 {
-			p = p.Where(sq.Eq{"wb.url_request_timestamp": time.Unix(0, val)})
-		}
-		p = p.From("am.web_responses as wb").Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
-	}
-
-	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
-		p = p.Where(sq.Or{sq.Eq{"wb.url_request_timestamp": "1970-01-01 00:00:00+00"}, sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)}})
-	} else {
-		log.Info().Msgf("%v %v\n", val, ok)
-	}
-
-	p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)})
-
-	if latestOnly {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp desc")
-	} else {
-		p = p.GroupBy("wb.organization_id", "wb.scan_group_id", "load_host_address", "load_ip_address", "wb.url_request_timestamp").OrderBy("wb.url_request_timestamp desc")
-	}
-
-	p = p.Limit(uint64(filter.Limit))
-	return p.PlaceholderFormat(sq.Dollar).ToSql()
-}
-
-func buildURLListFilterQuery2(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
-	var latestOnly bool
-	latestOnly, _ = filter.Filters.Bool("latest_only")
-	// start high since we are using timestamp as index for start/limit
-	if filter.Start == 0 {
-		filter.Start = time.Now().Add(time.Hour).UnixNano()
-	}
 	p := sq.Select().
 		Columns("wb.organization_id", "wb.scan_group_id", "wb.url_request_timestamp", "load_host_address", "load_ip_address").
 		Column("wb.url").
