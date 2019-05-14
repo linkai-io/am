@@ -304,40 +304,36 @@ func (s *Service) GetDomainDependency(ctx context.Context, userContext am.UserCo
 	uniqueNodes := make(map[string]struct{}, 0)
 	uniqueLinks := make(map[string]struct{}, 0)
 	for i := 0; rows.Next(); i++ {
-		link := &am.WebDomainLink{}
+		var source string
+		var target string
 		var lastIndex time.Time
 
-		// HACK HACK HACK just check links as our limit, lastIndex will be available to caller to restart
-		if len(uniqueLinks) > filter.Limit {
-			break
-		}
-
-		if err := rows.Scan(&dep.OrgID, &dep.GroupID, &link.Source, &link.Target, &lastIndex); err != nil {
+		if err := rows.Scan(&dep.OrgID, &dep.GroupID, &source, &target, &lastIndex); err != nil {
 			return 0, nil, err
 		}
 
 		// set last index
 		dep.LastIndex = lastIndex.UnixNano()
 
-		if _, ok := uniqueNodes[link.Source]; !ok {
-			uniqueNodes[link.Source] = struct{}{}
-			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: link.Source, Origin: 1})
-		}
-
-		if _, ok := uniqueNodes[link.Target]; !ok {
-			uniqueNodes[link.Target] = struct{}{}
-			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: link.Target, Origin: 0})
-		}
-
-		if _, ok := uniqueLinks[link.Source+link.Target]; !ok {
-			uniqueNodes[link.Source+link.Target] = struct{}{}
-			dep.Links = append(dep.Links, link)
-		}
-
 		if dep.OrgID != userContext.GetOrgID() {
+			serviceLog.Error().Int("dep.OrgID", dep.OrgID).Msg("org id mismatch")
 			return 0, nil, am.ErrOrgIDMismatch
 		}
 
+		if _, ok := uniqueNodes[source]; !ok {
+			uniqueNodes[source] = struct{}{}
+			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: source, Origin: 1})
+		}
+
+		if _, ok := uniqueNodes[target]; !ok {
+			uniqueNodes[target] = struct{}{}
+			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: target, Origin: 0})
+		}
+
+		if _, ok := uniqueLinks[source+target]; !ok {
+			uniqueLinks[source+target] = struct{}{}
+			dep.Links = append(dep.Links, &am.WebDomainLink{Source: source, Target: target})
+		}
 	}
 
 	return userContext.GetOrgID(), dep, err

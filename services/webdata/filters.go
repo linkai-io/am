@@ -316,7 +316,7 @@ func buildDomainDependencies(userContext am.UserContext, filter *am.WebResponseF
 	p = p.From("am.web_responses as wb").Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
 
 	if val, ok := filter.Filters.Int64("after_request_time"); ok && val != 0 {
-		p = p.Where(sq.Or{sq.Eq{"wb.url_request_timestamp": "1970-01-01 00:00:00+00"}, sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)}})
+		p = p.Where(sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)})
 	}
 
 	p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)}).
