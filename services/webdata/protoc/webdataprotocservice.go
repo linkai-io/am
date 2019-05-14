@@ -74,6 +74,17 @@ func (s *WebDataProtocService) GetURLList(ctx context.Context, in *webdata.GetUR
 	return &webdata.GetURLListResponse{OrgID: int32(oid), URLList: convert.DomainToURLLists(urls)}, nil
 }
 
+func (s *WebDataProtocService) GetDomainDependency(ctx context.Context, in *webdata.GetDomainDependencyRequest) (*webdata.GetDomainDependencyResponse, error) {
+	s.reporter.Increment(1)
+	oid, deps, err := s.wds.GetDomainDependency(ctx, convert.UserContextToDomain(in.UserContext), convert.WebResponseFilterToDomain(in.Filter))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	return &webdata.GetDomainDependencyResponse{OrgID: int32(oid), Dependency: convert.DomainToWebDomainDependency(deps)}, nil
+}
+
 func (s *WebDataProtocService) OrgStats(ctx context.Context, in *webdata.OrgStatsRequest) (*webdata.OrgStatsResponse, error) {
 	s.reporter.Increment(1)
 	oid, orgStats, err := s.wds.OrgStats(ctx, convert.UserContextToDomain(in.UserContext))

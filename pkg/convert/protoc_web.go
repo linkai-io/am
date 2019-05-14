@@ -5,6 +5,58 @@ import (
 	"github.com/linkai-io/am/protocservices/prototypes"
 )
 
+func DomainToWebDomainDependency(in *am.WebDomainDependency) *prototypes.WebDomainDependency {
+	nodes := make([]*prototypes.WebDomainNode, 0)
+	links := make([]*prototypes.WebDomainLink, 0)
+	if in.Nodes != nil {
+		nodes = make([]*prototypes.WebDomainNode, len(in.Nodes))
+		for i, node := range in.Nodes {
+			nodes[i] = &prototypes.WebDomainNode{ID: node.ID, Origin: node.Origin}
+		}
+	}
+	if in.Links != nil {
+		links = make([]*prototypes.WebDomainLink, len(in.Links))
+		for i, link := range in.Links {
+			links[i] = &prototypes.WebDomainLink{Source: link.Source, Target: link.Target}
+		}
+	}
+
+	return &prototypes.WebDomainDependency{
+		Status:    in.Status,
+		OrgID:     int32(in.OrgID),
+		GroupID:   int32(in.GroupID),
+		LastIndex: in.LastIndex,
+		Nodes:     nodes,
+		Links:     links,
+	}
+}
+
+func WebDomainDependencyToDomain(in *prototypes.WebDomainDependency) *am.WebDomainDependency {
+	nodes := make([]*am.WebDomainNode, 0)
+	links := make([]*am.WebDomainLink, 0)
+	if in.Nodes != nil {
+		nodes = make([]*am.WebDomainNode, len(in.Nodes))
+		for i, node := range in.Nodes {
+			nodes[i] = &am.WebDomainNode{ID: node.ID, Origin: node.Origin}
+		}
+	}
+	if in.Links != nil {
+		links = make([]*am.WebDomainLink, len(in.Links))
+		for i, link := range in.Links {
+			links[i] = &am.WebDomainLink{Source: link.Source, Target: link.Target}
+		}
+	}
+
+	return &am.WebDomainDependency{
+		Status:    in.Status,
+		OrgID:     int(in.OrgID),
+		GroupID:   int(in.GroupID),
+		LastIndex: in.LastIndex,
+		Nodes:     nodes,
+		Links:     links,
+	}
+}
+
 func DomainToScanGroupWebDataStats(in *am.ScanGroupWebDataStats) *prototypes.ScanGroupWebDataStats {
 	return &prototypes.ScanGroupWebDataStats{
 		OrgID:               int32(in.OrgID),

@@ -64,6 +64,25 @@ type URLListResponse struct {
 	URLs                []*URLData `json:"urls"`
 }
 
+type WebDomainNode struct {
+	ID     string `json:"id"`
+	Origin int32  `json:"origin"`
+}
+
+type WebDomainLink struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+}
+
+type WebDomainDependency struct {
+	Status    string           `json:"status,omitempty"`
+	OrgID     int              `json:"organization_id,omitempty"`
+	GroupID   int              `json:"group_id,omitempty"`
+	LastIndex int64            `json:"last_index"`
+	Nodes     []*WebDomainNode `json:"nodes"`
+	Links     []*WebDomainLink `json:"links"`
+}
+
 // HTTPResponse represents a captured network response
 type HTTPResponse struct {
 	ResponseID          int64             `json:"response_id,omitempty"`
@@ -194,4 +213,5 @@ type WebDataService interface {
 	GetResponses(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, []*HTTPResponse, error)
 	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)
 	GetSnapshots(ctx context.Context, userContext UserContext, filter *WebSnapshotFilter) (int, []*WebSnapshot, error)
+	GetDomainDependency(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, *WebDomainDependency, error)
 }

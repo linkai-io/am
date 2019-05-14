@@ -261,6 +261,84 @@ func (s *Service) GetURLList(ctx context.Context, userContext am.UserContext, fi
 	return userContext.GetOrgID(), urlLists, err
 }
 
+// GetDomainDependency returns the load host and domains
+func (s *Service) GetDomainDependency(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, *am.WebDomainDependency, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	var getQuery string
+	var rows *pgx.Rows
+	var args []interface{}
+	var err error
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	getQuery, args, err = buildDomainDependencies(userContext, filter)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	serviceLog.Info().Str("query", getQuery).Msg("executing domain query")
+	log.Info().Msgf("ARGS: %#v\n", args)
+	rows, err = s.pool.Query(getQuery, args...)
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	dep := &am.WebDomainDependency{}
+	uniqueNodes := make(map[string]struct{}, 0)
+	uniqueLinks := make(map[string]struct{}, 0)
+	for i := 0; rows.Next(); i++ {
+		var source string
+		var target string
+		var lastIndex time.Time
+
+		if err := rows.Scan(&dep.OrgID, &dep.GroupID, &source, &target, &lastIndex); err != nil {
+			return 0, nil, err
+		}
+
+		// set last index
+		dep.LastIndex = lastIndex.UnixNano()
+
+		if dep.OrgID != userContext.GetOrgID() {
+			serviceLog.Error().Int("dep.OrgID", dep.OrgID).Msg("org id mismatch")
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		if _, ok := uniqueNodes[source]; !ok {
+			uniqueNodes[source] = struct{}{}
+			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: source, Origin: 1})
+		}
+
+		if _, ok := uniqueNodes[target]; !ok {
+			uniqueNodes[target] = struct{}{}
+			dep.Nodes = append(dep.Nodes, &am.WebDomainNode{ID: target, Origin: 0})
+		}
+
+		if _, ok := uniqueLinks[source+target]; !ok {
+			uniqueLinks[source+target] = struct{}{}
+			dep.Links = append(dep.Links, &am.WebDomainLink{Source: source, Target: target})
+		}
+	}
+
+	return userContext.GetOrgID(), dep, err
+}
+
 // GetResponses that match the provided filter.
 func (s *Service) GetResponses(ctx context.Context, userContext am.UserContext, filter *am.WebResponseFilter) (int, []*am.HTTPResponse, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNWebDataResponses, "read") {
