@@ -656,7 +656,7 @@ func TestGetDomainDependency(t *testing.T) {
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34", 100)
 
 	for i, web := range webData {
 		t.Logf("%d: %d\n", i, len(web.Responses))
@@ -705,10 +705,10 @@ func TestPopulateWeb(t *testing.T) {
 
 	ctx := context.Background()
 	service, org := initOrg("populatetest", "populatetest", t)
-	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+	//defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
-	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
+	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34", 20000)
 
 	for i, web := range webData {
 		t.Logf("%d: %d\n", i, len(web.Responses))
