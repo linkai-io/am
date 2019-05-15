@@ -173,6 +173,10 @@ func RunAggregates(db *pgx.ConnPool, t *testing.T) {
 		}
 		t.Logf("%s - %d %d\n", agg, start, end)
 	}
+
+	if _, err := db.Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY am.webdata_server_counts_mv"); err != nil {
+		t.Fatalf("failed to run aggregation functions")
+	}
 }
 
 func CreateModuleConfig() *am.ModuleConfiguration {
