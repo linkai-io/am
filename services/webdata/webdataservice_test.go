@@ -108,7 +108,7 @@ func TestOrgStats(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	service, org := initOrg("webdatagetresponsesadvfilter", "webdatagetresponsesadvfilter", t)
+	service, org := initOrg("webdataorgstats", "webdataorgstats", t)
 	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
@@ -120,6 +120,7 @@ func TestOrgStats(t *testing.T) {
 			t.Fatalf("failed: %v\n", err)
 		}
 	}
+	amtest.RunAggregates(org.DB, t)
 	oid, stats, err := service.OrgStats(ctx, org.UserContext)
 	if err != nil {
 		t.Fatalf("error getting stats: %v\n", err)
@@ -140,9 +141,10 @@ func TestOrgStats(t *testing.T) {
 	if stats[0].GroupID != org.GroupID && stats[0].OrgID != org.OrgID {
 		t.Fatalf("org/group not set")
 	}
-
-	if stats[0].UniqueWebServers != 100 {
-		t.Fatalf("expected 100 unique servers")
+	// we only expect 60 not 100 because we do wb.url_request_time > now()-'7 days'::interval
+	// so some of the responses are not included
+	if stats[0].UniqueWebServers != 60 {
+		t.Fatalf("expected 60 unique servers got: %d\n", stats[0].UniqueWebServers)
 	}
 
 	for i, serverType := range stats[0].ServerTypes {
