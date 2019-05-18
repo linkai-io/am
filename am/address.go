@@ -7,6 +7,36 @@ const (
 	AddressServiceKey  = "addressservice"
 )
 
+const (
+	FilterIgnored                = "ignored"
+	FilterWildcard               = "wildcard"
+	FilterHosted                 = "hosted"
+	FilterAfterScannedTime       = "after_scanned_time"
+	FilterBeforeScannedTime      = "before_scanned_time"
+	FilterAfterSeenTime          = "after_seen_time"
+	FilterBeforeSeenTime         = "before_seen_time"
+	FilterAfterDiscoveredTime    = "after_discovered_time"
+	FilterBeforeDiscoveredTime   = "before_discovered_time"
+	FilterAboveConfidence        = "above_confidence"
+	FilterBelowConfidence        = "below_confidence"
+	FilterEqualsConfidence       = "equals_confidence"
+	FilterAboveUserConfidence    = "above_user_confidence"
+	FilterBelowUserConfidence    = "below_user_confidence"
+	FilterEqualsUserConfidence   = "equals_user_confidence"
+	FilterEqualsNSRecord         = "ns_record"
+	FilterNotNSRecord            = "not_ns_record"
+	FilterIPAddress              = "ip_address"
+	FilterNotIPAddress           = "not_ip_address"
+	FilterHostAddress            = "host_address"
+	FilterNotHostAddress         = "not_host_address"
+	FilterEndsHostAddress        = "ends_host_address"
+	FilterNotEndsHostAddress     = "not_ends_host_address"
+	FilterStartsHostAddress      = "starts_host_address"
+	FilterNotStartsHostAddress   = "not_starts_host_address"
+	FilterContainsHostAddress    = "contains_host_address"
+	FilterNotContainsHostAddress = "not_contains_host_address"
+)
+
 /*
 (1, 'input_list'),
     (2, 'manual'),
