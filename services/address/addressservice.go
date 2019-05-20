@@ -181,7 +181,7 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 
 	var startHost string
 	var ok bool
-	if startHost, ok = filter.Filters.String("start_host"); !ok {
+	if startHost, ok = filter.Filters.String(am.FilterStartsHostAddress); !ok {
 		startHost = ""
 	}
 

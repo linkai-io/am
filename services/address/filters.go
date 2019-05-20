@@ -17,85 +17,208 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		Where(sq.Eq{"sga.scan_group_id": filter.GroupID}).
 		Where(sq.Eq{"sga.deleted": false})
 
-	if val, ok := filter.Filters.Bool("ignored"); ok {
+	if val, ok := filter.Filters.Bool(am.FilterIgnored); ok {
 		p = p.Where(sq.Eq{"sga.ignored": val})
 	}
 
-	if val, ok := filter.Filters.Bool("wildcard"); ok {
+	if val, ok := filter.Filters.Bool(am.FilterWildcard); ok {
 		p = p.Where(sq.Eq{"sga.is_wildcard_zone": val})
 	}
 
-	if val, ok := filter.Filters.Bool("hosted"); ok {
+	if val, ok := filter.Filters.Bool(am.FilterHosted); ok {
 		p = p.Where(sq.Eq{"sga.is_hosted_service": val})
 	}
 
-	if val, ok := filter.Filters.Int64("after_scanned_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterAfterScannedTime); ok && val != 0 {
 		p = p.Where(sq.Gt{"sga.last_scanned_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Int64("before_scanned_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterBeforeScannedTime); ok && val != 0 {
 		p = p.Where(sq.Lt{"sga.last_scanned_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Int64("after_seen_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterAfterSeenTime); ok && val != 0 {
 		p = p.Where(sq.Gt{"sga.last_seen_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Int64("before_seen_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterBeforeSeenTime); ok && val != 0 {
 		p = p.Where(sq.Lt{"sga.last_seen_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Int64("after_discovered_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterAfterDiscoveredTime); ok && val != 0 {
 		p = p.Where(sq.Gt{"sga.discovered_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Int64("before_discovered_time"); ok && val != 0 {
+	if val, ok := filter.Filters.Int64(am.FilterBeforeDiscoveredTime); ok && val != 0 {
 		p = p.Where(sq.Lt{"sga.discovered_timestamp": time.Unix(0, val)})
 	}
 
-	if val, ok := filter.Filters.Float32("above_confidence"); ok && val != 0 {
+	if val, ok := filter.Filters.Float32(am.FilterAboveConfidence); ok && val != 0 {
 		p = p.Where(sq.Gt{"sga.confidence_score": val})
 	}
 
-	if val, ok := filter.Filters.Float32("below_confidence"); ok && val != 0 {
+	if val, ok := filter.Filters.Float32(am.FilterBelowConfidence); ok && val != 0 {
 		p = p.Where(sq.Lt{"sga.confidence_score": val})
 	}
 
-	if val, ok := filter.Filters.Float32("above_user_confidence"); ok && val != 0 {
+	if val, ok := filter.Filters.Float32(am.FilterEqualsConfidence); ok && val != 0 {
+		p = p.Where(sq.Eq{"sga.confidence_score": val})
+	}
+
+	if val, ok := filter.Filters.Float32(am.FilterAboveUserConfidence); ok && val != 0 {
 		p = p.Where(sq.Gt{"sga.user_confidence_score": val})
 	}
 
-	if val, ok := filter.Filters.Float32("below_user_confidence"); ok && val != 0 {
+	if val, ok := filter.Filters.Float32(am.FilterBelowUserConfidence); ok && val != 0 {
 		p = p.Where(sq.Lt{"sga.user_confidence_score": val})
 	}
 
-	if vals, ok := filter.Filters.Int32s("ns_record"); ok && len(vals) > 0 {
-		for _, val := range vals {
-			p = p.Where(sq.Eq{"sga.ns_record": val})
+	if val, ok := filter.Filters.Float32(am.FilterEqualsUserConfidence); ok && val != 0 {
+		p = p.Where(sq.Eq{"sga.user_confidence_score": val})
+	}
+
+	if vals, ok := filter.Filters.Int32s(am.FilterEqualsNSRecord); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Eq{"sga.ns_record": vals[0]})
+		} else {
+			var equals sq.Or
+			for _, val := range vals {
+				equals = append(equals, sq.Eq{"sga.ns_record": val})
+			}
+			p = p.Where(equals)
 		}
 	}
 
-	if vals, ok := filter.Filters.Strings("ip_address"); ok && len(vals) > 0 {
-		for _, val := range vals {
-			p = p.Where(sq.Eq{"sga.ip_address": val})
+	if vals, ok := filter.Filters.Int32s(am.FilterNotNSRecord); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotEq{"sga.ns_record": vals[0]})
+		} else {
+			var notEquals sq.And
+			for _, val := range vals {
+				notEquals = append(notEquals, sq.NotEq{"sga.ns_record": val})
+			}
+			p = p.Where(notEquals)
 		}
 	}
 
-	if vals, ok := filter.Filters.Strings("host_address"); ok && len(vals) > 0 {
-		for _, val := range vals {
-			p = p.Where(sq.Eq{"sga.host_address": val})
+	if vals, ok := filter.Filters.Strings(am.FilterIPAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Eq{"sga.ip_address": vals[0]})
+		} else {
+			var equals sq.Or
+			for _, val := range vals {
+				equals = append(equals, sq.Eq{"sga.ip_address": val})
+			}
+			p = p.Where(equals)
 		}
 	}
 
-	if vals, ok := filter.Filters.Strings("ends_host_address"); ok && len(vals) > 0 {
-		for _, val := range vals {
-			p = p.Where(sq.Like{"sga.host_address": fmt.Sprintf("%%%s", val)})
+	if vals, ok := filter.Filters.Strings(am.FilterNotIPAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotEq{"sga.ip_address": vals[0]})
+		} else {
+			var notEquals sq.And
+			for _, val := range vals {
+				notEquals = append(notEquals, sq.NotEq{"sga.ip_address": val})
+			}
+			p = p.Where(notEquals)
 		}
 	}
 
-	if vals, ok := filter.Filters.Strings("starts_host_address"); ok && len(vals) > 0 {
-		for _, val := range vals {
-			p = p.Where(sq.Like{"sga.host_address": fmt.Sprintf("%s%%", val)})
+	if vals, ok := filter.Filters.Strings(am.FilterHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Eq{"sga.host_address": vals[0]})
+		} else {
+			var equals sq.Or
+			for _, val := range vals {
+				equals = append(equals, sq.Eq{"sga.host_address": val})
+			}
+			p = p.Where(equals)
+		}
+
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterNotHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotEq{"sga.host_address": vals[0]})
+		} else {
+			var notEquals sq.And
+			for _, val := range vals {
+				notEquals = append(notEquals, sq.NotEq{"sga.host_address": val})
+			}
+			p = p.Where(notEquals)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterEndsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Like{"sga.host_address": fmt.Sprintf("%%%s", vals[0])})
+		} else {
+			var like sq.Or
+			for _, val := range vals {
+				like = append(like, sq.Like{"sga.host_address": fmt.Sprintf("%%%s", val)})
+			}
+			p = p.Where(like)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterNotEndsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s", vals[0])})
+		} else {
+			var notLike sq.And
+			for _, val := range vals {
+				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s", val)})
+			}
+			p = p.Where(notLike)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterStartsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Like{"sga.host_address": fmt.Sprintf("%s%%", vals[0])})
+		} else {
+			var like sq.Or
+			for _, val := range vals {
+				like = append(like, sq.Like{"sga.host_address": fmt.Sprintf("%s%%", val)})
+			}
+			p = p.Where(like)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterNotStartsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%s%%", vals[0])})
+		} else {
+			var notLike sq.And
+			for _, val := range vals {
+				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%s%%", val)})
+			}
+			p = p.Where(notLike)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterContainsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Like{"sga.host_address": fmt.Sprintf("%%%s%%", vals[0])})
+		} else {
+			var like sq.Or
+			for _, val := range vals {
+				like = append(like, sq.Like{"sga.host_address": fmt.Sprintf("%%%s%%", val)})
+			}
+			p = p.Where(like)
+		}
+	}
+
+	if vals, ok := filter.Filters.Strings(am.FilterNotContainsHostAddress); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s%%", vals[0])})
+		} else {
+			var notLike sq.And
+			for _, val := range vals {
+				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s%%", val)})
+			}
+			p = p.Where(notLike)
 		}
 	}
 
