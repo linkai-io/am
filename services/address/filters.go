@@ -93,7 +93,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotEq{"sga.ns_record": vals[0]})
 		} else {
-			var notEquals sq.Or
+			var notEquals sq.And
 			for _, val := range vals {
 				notEquals = append(notEquals, sq.NotEq{"sga.ns_record": val})
 			}
@@ -117,7 +117,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotEq{"sga.ip_address": vals[0]})
 		} else {
-			var notEquals sq.Or
+			var notEquals sq.And
 			for _, val := range vals {
 				notEquals = append(notEquals, sq.NotEq{"sga.ip_address": val})
 			}
@@ -142,7 +142,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotEq{"sga.host_address": vals[0]})
 		} else {
-			var notEquals sq.Or
+			var notEquals sq.And
 			for _, val := range vals {
 				notEquals = append(notEquals, sq.NotEq{"sga.host_address": val})
 			}
@@ -166,7 +166,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s", vals[0])})
 		} else {
-			var notLike sq.Or
+			var notLike sq.And
 			for _, val := range vals {
 				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s", val)})
 			}
@@ -190,7 +190,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%s%%", vals[0])})
 		} else {
-			var notLike sq.Or
+			var notLike sq.And
 			for _, val := range vals {
 				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%s%%", val)})
 			}
@@ -214,7 +214,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		if len(vals) == 1 {
 			p = p.Where(sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s%%", vals[0])})
 		} else {
-			var notLike sq.Or
+			var notLike sq.And
 			for _, val := range vals {
 				notLike = append(notLike, sq.NotLike{"sga.host_address": fmt.Sprintf("%%%s%%", val)})
 			}
