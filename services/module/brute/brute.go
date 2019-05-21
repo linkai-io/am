@@ -19,6 +19,7 @@ import (
 
 const (
 	oneHour     = 60 * 60
+	threeHours  = oneHour * 3
 	fiveMinutes = 60 * 5
 )
 
@@ -120,7 +121,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, bmc *am.BruteModuleConfig, add
 		return bruteRecords
 	}
 
-	shouldBrute, err := b.st.DoBruteDomain(ctx, address.OrgID, address.GroupID, oneHour, address.HostAddress)
+	shouldBrute, err := b.st.DoBruteDomain(ctx, address.OrgID, address.GroupID, threeHours, address.HostAddress)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("unable to check do brute force domain")
 		return bruteRecords
@@ -144,7 +145,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, bmc *am.BruteModuleConfig, add
 		return bruteRecords
 	}
 
-	count, canBrute, err := b.st.DoBruteETLD(ctx, address.OrgID, address.GroupID, fiveMinutes, int(bmc.RequestsPerSecond), etld)
+	count, canBrute, err := b.st.DoBruteETLD(ctx, address.OrgID, address.GroupID, fiveMinutes, int(bmc.RequestsPerSecond)-2, etld)
 	if err != nil {
 		log.Ctx(ctx).Warn().Msg("unable to check state if max etld's being tested")
 		return bruteRecords
