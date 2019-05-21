@@ -35,6 +35,7 @@ import (
 const (
 	tenMinutes    = 600
 	thirtyMinutes = tenMinutes * 3
+	sixtyMinutes  = tenMinutes * 6
 )
 
 // AppConfig represents values taken from environment variables
@@ -287,7 +288,7 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 		return nsClient
 	case am.BruteModule:
 		bruteClient := module.New()
-		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: thirtyMinutes}
+		cfg := &module.Config{ModuleType: am.BruteModule, Timeout: sixtyMinutes}
 		data, _ := json.Marshal(cfg)
 
 		err := retrier.RetryUntil(func() error {
