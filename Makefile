@@ -119,13 +119,13 @@ deploymodules:
 
 
 deploynsmoduleservice:
-	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service nsmoduleservice
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service nsmoduleservice-replica
 
 deploybrutemoduleservice:
-	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service brutemoduleservice
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service brutemoduleservice-replica
 
 deploybigdatamoduleservice:
-	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service bigdatamoduleservice	
+	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service bigdatamoduleservice-replica
 
 deployorgservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service orgservice
