@@ -396,6 +396,11 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 		return false, nil, errors.Wrap(err, "failed to analyze using ns module")
 	}
 
+	// before bothering to send this to all the modules, do a confidence check
+	if !s.confident(ctx, address) {
+		return false, updatedAddress, nil
+	}
+
 	log.Ctx(ctx).Info().Str("address_hash", updatedAddress.AddressHash).Msg("brute forcing")
 	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.moduleClients[am.BruteModule], scanGroupID, updatedAddress)
 	if err != nil {
@@ -460,6 +465,19 @@ func (s *Service) moduleAnalysis(ctx context.Context, userContext am.UserContext
 		}
 	}
 	return updatedAddress, nil
+}
+
+func (s *Service) confident(ctx context.Context, address *am.ScanGroupAddress) bool {
+
+	if address.UserConfidenceScore > 75 {
+		return true
+	}
+
+	if address.ConfidenceScore < 75 {
+		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
+		return false
+	}
+	return true
 }
 
 func (s *Service) IncActiveGroups() {
