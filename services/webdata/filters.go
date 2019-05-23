@@ -108,9 +108,9 @@ func buildSnapshotQueryWithDomainDep(userContext am.UserContext, filter *am.WebS
 		Where(sq.Eq{"host_address": domain})
 
 	if val, ok := filter.Filters.Int64(am.FilterWebAfterURLRequestTime); ok && val != 0 {
-		with = with.Where(sq.GtOrEq{"uts": time.Unix(0, val)})
+		with = with.Where(sq.GtOrEq{"wr.url_request_timestamp": time.Unix(0, val)})
 	}
-	with = with.GroupBy("uts").OrderBy("uts desc")
+	with = with.GroupBy("wr.url_request_timestamp").OrderBy("wr.url_request_timestamp desc")
 
 	agg := sq.Select().Columns(strings.Split(snapshotColumnsList, ",")...).
 		Columns(strings.Split(techColumnsList, ",")...).
