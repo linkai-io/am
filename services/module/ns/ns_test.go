@@ -19,45 +19,50 @@ func TestNS_Analyze(t *testing.T) {
 
 	tests := []*am.ScanGroupAddress{
 		&am.ScanGroupAddress{
-			AddressID:    1,
-			OrgID:        1,
-			GroupID:      1,
-			HostAddress:  "linkai.io",
-			IPAddress:    "",
-			DiscoveredBy: "input_list",
+			AddressID:       1,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 100,
+			HostAddress:     "linkai.io",
+			IPAddress:       "",
+			DiscoveredBy:    "input_list",
 		},
 		&am.ScanGroupAddress{
-			AddressID:    2,
-			OrgID:        1,
-			GroupID:      1,
-			HostAddress:  "",
-			IPAddress:    "13.35.67.123",
-			DiscoveredBy: "input_list",
+			AddressID:       2,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 100,
+			HostAddress:     "",
+			IPAddress:       "13.35.67.123",
+			DiscoveredBy:    "input_list",
 		},
 		&am.ScanGroupAddress{
-			AddressID:    3,
-			OrgID:        1,
-			GroupID:      1,
-			HostAddress:  "linkai.io",
-			IPAddress:    "13.35.67.123",
-			AddressHash:  convert.HashAddress("13.35.67.123", "linkai.io"),
-			DiscoveredBy: "input_list",
+			AddressID:       3,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 100,
+			HostAddress:     "linkai.io",
+			IPAddress:       "13.35.67.123",
+			AddressHash:     convert.HashAddress("13.35.67.123", "linkai.io"),
+			DiscoveredBy:    "input_list",
 		},
 		&am.ScanGroupAddress{
-			AddressID:    4,
-			OrgID:        1,
-			GroupID:      1,
-			HostAddress:  "zonetransfer.me",
-			IPAddress:    "",
-			DiscoveredBy: "input_list",
+			AddressID:       4,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 100,
+			HostAddress:     "zonetransfer.me",
+			IPAddress:       "",
+			DiscoveredBy:    "input_list",
 		},
 		&am.ScanGroupAddress{
-			AddressID:    5,
-			OrgID:        1,
-			GroupID:      1,
-			HostAddress:  "example.com",
-			IPAddress:    "",
-			DiscoveredBy: "input_list",
+			AddressID:       5,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 100,
+			HostAddress:     "example.com",
+			IPAddress:       "",
+			DiscoveredBy:    "input_list",
 		},
 	}
 	state := amtest.MockNSState()
@@ -102,13 +107,14 @@ func TestLinkaiHashBug(t *testing.T) {
 	ctx := context.Background()
 
 	addr := &am.ScanGroupAddress{
-		AddressID:    3,
-		OrgID:        1,
-		GroupID:      1,
-		HostAddress:  "linkai.io",
-		IPAddress:    "13.35.67.123",
-		AddressHash:  convert.HashAddress("13.35.67.123", "linkai.io"),
-		DiscoveredBy: "input_list",
+		AddressID:       3,
+		OrgID:           1,
+		GroupID:         1,
+		HostAddress:     "linkai.io",
+		IPAddress:       "13.35.67.123",
+		ConfidenceScore: 100,
+		AddressHash:     convert.HashAddress("13.35.67.123", "linkai.io"),
+		DiscoveredBy:    "input_list",
 	}
 
 	hash := addr.AddressHash
@@ -123,6 +129,50 @@ func TestLinkaiHashBug(t *testing.T) {
 
 	t.Logf("hash now: %s\n", r.AddressHash)
 }
+
+func TestDontAnalyzeZoneLowConfidence(t *testing.T) {
+	tests := []*am.ScanGroupAddress{
+		&am.ScanGroupAddress{
+			AddressID:       4,
+			OrgID:           1,
+			GroupID:         1,
+			ConfidenceScore: 0,
+			HostAddress:     "zonetransfer.me",
+			IPAddress:       "",
+			DiscoveredBy:    "input_list",
+		},
+	}
+	state := amtest.MockNSState()
+	dc := dnsclient.New([]string{dnsServer}, 3)
+	eventClient := amtest.MockEventService()
+
+	ns := ns.New(eventClient, dc, state)
+	ns.Init(nil)
+	userContext := amtest.CreateUserContext(1, 1)
+	ctx := context.Background()
+
+	for _, tt := range tests {
+		hash := tt.AddressHash
+		t.Logf("%d %s\n", tt.AddressID, tt.AddressHash)
+		if tt.AddressID == 3 {
+			t.Logf("three")
+		}
+		r, _, err := ns.Analyze(ctx, userContext, tt)
+		if err != nil {
+			t.Fatalf("error: %#v\n", err)
+		}
+		if hash != "" {
+			if hash != r.AddressHash {
+				t.Fatalf("hash was changed from %s to %s\n", hash, r.AddressHash)
+			}
+		}
+		t.Logf("hash now: %s\n", r.AddressHash)
+	}
+	if eventClient.AddInvoked {
+		t.Fatalf("error zonetransfer.me should have NOT invoke eventClient Add when confidence is 0")
+	}
+}
+
 func TestNetflixInput(t *testing.T) {
 	orgID := 1
 	groupID := 1

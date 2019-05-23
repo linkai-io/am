@@ -267,7 +267,7 @@ func TestGetMultiSnapshots(t *testing.T) {
 			Start:   lastIndex,
 			Limit:   1,
 		}
-		t.Logf("queryingg with %d\n", lastIndex)
+		t.Logf("querying with %d\n", lastIndex)
 		_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
 		if err != nil {
 			t.Fatalf("error getting snapshots: %#v\n", err)
@@ -342,6 +342,133 @@ func TestGetSnapshotsEmptyTech(t *testing.T) {
 	}
 	if snapshots[0].LoadURL != "http://example.com/" {
 		t.Fatalf("expected LoadURL: http://example.com/ got %s\n", snapshots[0].LoadURL)
+	}
+	t.Logf("%#v\n", snapshots[0])
+}
+
+func TestGetSnapshotsWithTech(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetsnapshotswithtech", "webdatagetsnapshotswithtech", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := amtest.CreateWebData(address, "example.com", "93.184.216.34")
+	//webData.DetectedTech = nil
+
+	_, err := service.Add(ctx, org.UserContext, webData)
+	if err != nil {
+		t.Fatalf("failed: %v\n", err)
+	}
+
+	filter := &am.WebSnapshotFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   time.Now().UnixNano(),
+		Limit:   1000,
+	}
+
+	filter.Filters.AddString(am.FilterWebTechType, "jquery")
+	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 1 {
+		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
+	}
+
+	if snapshots[0].HostAddress != "example.com" {
+		t.Fatalf("expected address id host address to be set")
+	}
+
+	if snapshots[0].IPAddress != "93.184.216.34" {
+		t.Fatalf("expected address id ip address to be set")
+	}
+
+	if snapshots[0].URL != "http://example.com/" {
+		t.Fatalf("expected URL: http://example.com/ got %s\n", snapshots[0].URL)
+	}
+	if snapshots[0].LoadURL != "http://example.com/" {
+		t.Fatalf("expected LoadURL: http://example.com/ got %s\n", snapshots[0].LoadURL)
+	}
+	// while it seems like this should be 2, 3dCart is returned 2x, one for CMS, one for ECommerce
+	if len(snapshots[0].TechNames) != 3 {
+		t.Fatalf("expected three tech names got %d\n", len(snapshots[0].TechNames))
+	}
+
+	found := false
+	for _, tech := range snapshots[0].TechNames {
+		if tech == "jQuery" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("failed to find jquery in results")
+	}
+	t.Logf("%#v\n", snapshots[0])
+}
+
+func TestGetSnapshotsWithDomain(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webdatagetsnapshotswithdomain", "webdatagetsnapshotswithdomain", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := amtest.CreateMultiWebData(address, "example.com", "93.184.216.34")
+
+	for _, data := range webData {
+		_, err := service.Add(ctx, org.UserContext, data)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	filter := &am.WebSnapshotFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   time.Now().UnixNano(),
+		Limit:   1000,
+	}
+
+	filter.Filters.AddString(am.FilterWebDependentHostAddress, "example.com")
+	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 10 {
+		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
+	}
+
+	// while it seems like this should be 2, 3dCart is returned 2x, one for CMS, one for ECommerce
+	if len(snapshots[0].TechNames) != 3 {
+		t.Logf("%#v\n", snapshots[0])
+		for _, tech := range snapshots[0].TechNames {
+			t.Logf("%s\n", tech)
+		}
+		t.Fatalf("expected three tech names got %d\n", len(snapshots[0].TechNames))
+	}
+
+	found := false
+	for _, tech := range snapshots[0].TechNames {
+		if tech == "jQuery" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("failed to find jquery in results")
 	}
 	t.Logf("%#v\n", snapshots[0])
 }
@@ -453,10 +580,10 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddInt64("after_request_time", 0)
-	filter.Filters.AddString("header_names", "content-type")
-	filter.Filters.AddString("not_header_names", "x-content-type")
-	filter.Filters.AddString("mime_type", "text/html")
+	filter.Filters.AddInt64(am.FilterWebAfterURLRequestTime, 0)
+	filter.Filters.AddString(am.FilterWebHeaderNames, "content-type")
+	filter.Filters.AddString(am.FilterWebNotHeaderNames, "x-content-type")
+	filter.Filters.AddString(am.FilterWebMimeType, "text/html")
 
 	_, responses, err := service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
@@ -479,7 +606,7 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		t.Fatalf("expected URLRequestTimestamp to be set (from webdata) got 0")
 	}
 
-	filter.Filters.AddBool("latest_only", true)
+	filter.Filters.AddBool(am.FilterWebLatestOnly, true)
 	_, responses, err = service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting responses again: %#v\n", err)
@@ -506,10 +633,10 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddString("header_names", "' or 1=1--")
-	filter.Filters.AddString("not_header_names", "' or 1=1--")
-	filter.Filters.AddString("mime_type", "' or 1=1--")
-	filter.Filters.AddString("starts_host_address", "' or 1=1--")
+	filter.Filters.AddString(am.FilterWebHeaderNames, "' or 1=1--")
+	filter.Filters.AddString(am.FilterWebNotHeaderNames, "' or 1=1--")
+	filter.Filters.AddString(am.FilterWebMimeType, "' or 1=1--")
+	filter.Filters.AddString(am.FilterWebStartsHostAddress, "' or 1=1--")
 
 	_, _, err = service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
@@ -524,14 +651,13 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddString("server_type", "Apache 1.0.1")
+	filter.Filters.AddString(am.FilterWebEqualsServerType, "Apache 1.0.1")
 
 	_, resp, err := service.GetResponses(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting responses: %#v\n", err)
 	}
 
-	t.Logf("APACHE 1.0.1\n")
 	for _, rp := range resp {
 		t.Logf("%#v", rp)
 	}
@@ -589,7 +715,7 @@ func TestGetURLList(t *testing.T) {
 		}
 	}
 
-	filter.Filters.AddBool("latest_only", true)
+	filter.Filters.AddBool(am.FilterWebLatestOnly, true)
 	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)
@@ -619,7 +745,7 @@ func TestGetURLList(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddInt64("url_request_timestamp", urlLists[0].URLRequestTimestamp)
+	filter.Filters.AddInt64(am.FilterWebEqualsURLRequestTime, urlLists[0].URLRequestTimestamp)
 	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)
@@ -637,7 +763,7 @@ func TestGetURLList(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddInt64("after_request_time", time.Now().Add(time.Hour*-72).UnixNano())
+	filter.Filters.AddInt64(am.FilterWebAfterURLRequestTime, time.Now().Add(time.Hour*-72).UnixNano())
 	oid, urlLists, err = service.GetURLList(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)
@@ -675,7 +801,7 @@ func TestGetDomainDependency(t *testing.T) {
 		Start:   0,
 		Limit:   1000,
 	}
-	filter.Filters.AddInt64("after_request_time", time.Now().Add(time.Hour*-(7*24)).UnixNano())
+	filter.Filters.AddInt64(am.FilterWebAfterURLRequestTime, time.Now().Add(time.Hour*-(7*24)).UnixNano())
 	oid, domains, err := service.GetDomainDependency(ctx, org.UserContext, filter)
 	if err != nil {
 		t.Fatalf("error getting url list: %v\n", err)

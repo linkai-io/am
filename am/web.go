@@ -12,6 +12,38 @@ const (
 	WebDataServiceKey     = "webdataservice"
 )
 
+const (
+	FilterDeleted                  = "deleted"
+	FilterWebTechType              = "tech_type"
+	FilterWebDependentHostAddress  = "dependent_host_address"
+	FilterWebEqualsHostAddress     = "host_address"
+	FilterWebAfterResponseTime     = "after_response_time"
+	FilterWebBeforeResponseTime    = "before_response_time"
+	FilterWebLatestOnly            = "latest_only"
+	FilterWebMimeType              = "mime_type"
+	FilterWebHeaderNames           = "header_names"
+	FilterWebNotHeaderNames        = "not_header_names"
+	FilterWebHeaderPairNames       = "header_pair_names"
+	FilterWebHeaderPairValues      = "header_pair_values"
+	FilterWebAfterURLRequestTime   = "after_request_time"
+	FilterWebBeforeURLRequestTime  = "before_request_time"
+	FilterWebEqualsURLRequestTime  = "url_request_timestamp"
+	FilterWebEqualsResponseTime    = "response_timestamp"
+	FilterWebEqualsIPAddress       = "ip_address"
+	FilterWebEndsHostAddress       = "ends_host_address"
+	FilterWebStartsHostAddress     = "starts_host_address"
+	FilterWebEqualsLoadIPAddress   = "load_ip_address"
+	FilterWebEqualsLoadHostAddress = "load_host_address"
+	FilterWebEndsLoadHostAddress   = "ends_load_host_address"
+	FilterWebStartsLoadHostAddress = "starts_load_host_address"
+	FilterWebEqualsServerType      = "server_type"
+	FilterWebEqualsURL             = "url"
+	FilterWebAfterValidTo          = "after_valid_to"
+	FilterWebBeforeValidTo         = "before_valid_to"
+	FilterWebAfterValidFrom        = "after_valid_from"
+	FilterWebBeforeValidFrom       = "before_valid_from"
+)
+
 type WebTech struct {
 	Matched  string `json:"matched"`
 	Version  string `json:"version"`

@@ -160,6 +160,10 @@ func (ns *NS) shouldAnalyze(address *am.ScanGroupAddress) bool {
 // analyzeZone looks up various supporting records for a zone (mx/ns/axfr)
 func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, zone string, address *am.ScanGroupAddress) []*am.ScanGroupAddress {
 	nsData := make([]*am.ScanGroupAddress, 0)
+	if address.ConfidenceScore < 75 {
+		log.Ctx(ctx).Info().Msg("not analyzing zone as confidence is too low")
+		return nsData
+	}
 
 	log.Ctx(ctx).Info().Msg("will analyze mx")
 	r, err := ns.dc.LookupMX(ctx, zone)

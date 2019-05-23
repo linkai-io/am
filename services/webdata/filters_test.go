@@ -25,3 +25,21 @@ func TestURLQuery2(t *testing.T) {
 	t.Logf("query: %s\n", query)
 	t.Logf("%#v\n", args)
 }
+
+func TestSnapshotWithTech(t *testing.T) {
+	userContext := amtest.CreateUserContext(1, 1)
+	filter := &am.WebSnapshotFilter{
+		OrgID:   userContext.GetOrgID(),
+		GroupID: 2,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddString("tech_type", "jquery")
+	query, args, err := buildSnapshotQuery(userContext, filter)
+	if err != nil {
+		t.Fatalf("error: %#v\n", err)
+	}
+	t.Logf("query: %s\n", query)
+	t.Logf("%#v\n", args)
+}

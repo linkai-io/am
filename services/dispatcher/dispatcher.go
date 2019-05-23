@@ -468,7 +468,6 @@ func (s *Service) moduleAnalysis(ctx context.Context, userContext am.UserContext
 }
 
 func (s *Service) confident(ctx context.Context, address *am.ScanGroupAddress) bool {
-
 	if address.UserConfidenceScore > 75 {
 		return true
 	}
