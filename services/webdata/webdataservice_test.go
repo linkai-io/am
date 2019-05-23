@@ -412,6 +412,43 @@ func TestGetSnapshotsWithTech(t *testing.T) {
 		t.Fatalf("failed to find jquery in results")
 	}
 	t.Logf("%#v\n", snapshots[0])
+
+	filter.Filters.AddString(am.FilterWebTechTypeVersion, "1.1.11")
+	_, snapshots, err = service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 1 {
+		t.Fatalf("expected 1 snapshot got: %d\n", len(snapshots))
+	}
+	if len(snapshots[0].TechNames) != 3 {
+		t.Fatalf("expected three tech names got %d\n", len(snapshots[0].TechNames))
+	}
+
+	found = false
+	for _, tech := range snapshots[0].TechNames {
+		if tech == "jQuery" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("failed to find jquery in results")
+	}
+
+	// try not match
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString(am.FilterWebTechType, "jquery")
+	filter.Filters.AddString(am.FilterWebTechTypeVersion, "1.1.12")
+	_, snapshots, err = service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting snapshots: %#v\n", err)
+	}
+
+	if len(snapshots) != 0 {
+		t.Fatalf("expected 0 snapshot got: %d\n", len(snapshots))
+	}
 }
 
 func TestGetSnapshotsWithDomain(t *testing.T) {

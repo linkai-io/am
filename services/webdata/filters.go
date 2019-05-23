@@ -62,7 +62,13 @@ func buildSnapshotQueryWithTechType(userContext am.UserContext, filter *am.WebSn
 		Join("am.web_techtypes as wtt on wt.techtype_id=wtt.techtype_id").
 		Where(sq.Eq{"organization_id": filter.OrgID}).
 		Where(sq.Eq{"scan_group_id": filter.GroupID}).
-		Where(sq.Eq{"lower(wtt.techname)": techName})
+		Where(sq.Eq{"lower(wtt.techname)": strings.ToLower(techName)})
+
+	if val, ok := filter.Filters.String(am.FilterWebTechTypeVersion); ok && val != "" {
+		if val != "all" {
+			with = with.Where(sq.Eq{"lower(wt.version)": strings.ToLower(val)})
+		}
+	}
 
 	agg := sq.Select().Columns(strings.Split(snapshotColumnsList, ",")...).
 		Columns(strings.Split(techColumnsList, ",")...).

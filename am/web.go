@@ -15,6 +15,7 @@ const (
 const (
 	FilterDeleted                  = "deleted"
 	FilterWebTechType              = "tech_type"
+	FilterWebTechTypeVersion       = "tech_type_version"
 	FilterWebDependentHostAddress  = "dependent_host_address"
 	FilterWebEqualsHostAddress     = "host_address"
 	FilterWebAfterResponseTime     = "after_response_time"
