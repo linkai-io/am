@@ -246,13 +246,8 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		defer cancel()
 
 		p := message.Params
-		url := p.Response.Url
 
-		if strings.HasPrefix(p.Response.Url, "data") {
-			url = "(dataurl)"
-		}
-
-		log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
+		//log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
 		if err := t.container.WaitFor(timeoutCtx, p.RequestId); err != nil {
 			return
 		}
