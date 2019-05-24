@@ -216,7 +216,7 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	defer tab.Close()
 	url := b.buildURL(tab, address, scheme, port)
 
-	log.Ctx(ctx).Info().Msg("loading url")
+	//log.Ctx(ctx).Info().Msg("loading url")
 
 	if err := tab.LoadPage(ctx, url); err != nil {
 		log.Ctx(ctx).Warn().Err(err).Msg("loading page")
@@ -233,9 +233,9 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	}
 
 	// not necessary, but to make sure 'timing' is as close to possible as the actual Load to capture, keep for now
-	log.Ctx(ctx).Info().Str("url", url).Msg("taking screenshot")
+	//log.Ctx(ctx).Info().Str("url", url).Msg("taking screenshot")
 	_, err = tab.TakeScreenshot(ctx)
-	log.Ctx(ctx).Info().Str("url", url).Msg("screenshot taken")
+	//log.Ctx(ctx).Info().Str("url", url).Msg("screenshot taken")
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to take screenshot")
 	}
@@ -281,8 +281,6 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	url := b.buildURL(tab, address, scheme, port)
 
-	//logger = log.Ctx(ctx).With().Str("url", url).Logger()
-	//ctx = logger.WithContext(ctx)
 	log.Ctx(ctx).Info().Msg("loading url")
 
 	start := time.Now().UnixNano()
