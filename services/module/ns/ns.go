@@ -170,6 +170,9 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 	if err == nil {
 		for _, host := range r.Hosts {
 			newAddress := module.NewAddressFromDNS(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
+			if newAddress == nil {
+				continue
+			}
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -178,6 +181,9 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 	if err == nil {
 		for _, host := range r.Hosts {
 			newAddress := module.NewAddressFromDNS(address, "", parsers.FQDNTrim(host), am.DiscoveryNSQueryOther, uint(r.RecordType))
+			if newAddress == nil {
+				continue
+			}
 			nsData = append(nsData, newAddress)
 		}
 	}
@@ -218,11 +224,17 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 			if len(r.Hosts) == 1 {
 				for _, ip := range r.IPs {
 					newAddress := module.NewAddressFromDNS(address, ip, parsers.FQDNTrim(r.Hosts[0]), am.DiscoveryNSAXFR, uint(r.RecordType))
+					if newAddress == nil {
+						continue
+					}
 					nsData = append(nsData, newAddress)
 				}
 			} else if len(r.IPs) == 1 {
 				for _, host := range r.Hosts {
 					newAddress := module.NewAddressFromDNS(address, r.IPs[0], parsers.FQDNTrim(host), am.DiscoveryNSAXFR, uint(r.RecordType))
+					if newAddress == nil {
+						continue
+					}
 					nsData = append(nsData, newAddress)
 				}
 			}
@@ -289,6 +301,9 @@ func (ns *NS) analyzeIP(ctx context.Context, address *am.ScanGroupAddress) []*am
 		// or we got a new hostname when attempting to resolve this ip.
 		// Copy details from original address into the new address
 		newAddress := module.NewAddressFromDNS(address, address.IPAddress, parsers.FQDNTrim(host), am.DiscoveryNSQueryIPToName, uint(r.RecordType))
+		if newAddress == nil {
+			continue
+		}
 		newAddress.ConfidenceScore = module.CalculateConfidence(ctx, address, newAddress)
 		nsData = append(nsData, newAddress)
 	}
@@ -335,6 +350,9 @@ func (ns *NS) analyzeHost(ctx context.Context, address *am.ScanGroupAddress) []*
 				log.Ctx(ctx).Info().Str("ip", ip).Str("IPAddress", address.IPAddress).Str("address_hash", address.AddressHash).Msg("address analysis complete")
 			} else {
 				newAddress := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(rr.RecordType))
+				if newAddress == nil {
+					continue
+				}
 				newAddress.ConfidenceScore = module.CalculateConfidence(ctx, address, newAddress)
 				nsData = append(nsData, newAddress)
 			}
