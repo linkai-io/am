@@ -145,7 +145,7 @@ func (b *Bruter) bruteDomain(ctx context.Context, bmc *am.BruteModuleConfig, add
 		return bruteRecords
 	}
 
-	count, canBrute, err := b.st.DoBruteETLD(ctx, address.OrgID, address.GroupID, fiveMinutes, int(bmc.RequestsPerSecond)-2, etld)
+	count, canBrute, err := b.st.DoBruteETLD(ctx, address.OrgID, address.GroupID, fiveMinutes, int(bmc.RequestsPerSecond), etld)
 	if err != nil {
 		log.Ctx(ctx).Warn().Msg("unable to check state if max etld's being tested")
 		return bruteRecords

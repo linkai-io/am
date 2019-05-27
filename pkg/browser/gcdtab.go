@@ -59,7 +59,7 @@ func (t *Tab) Close() {
 // LoadPage capture network traffic and take screen shot of DOM and image
 func (t *Tab) LoadPage(ctx context.Context, url string) error {
 	navParams := &gcdapi.PageNavigateParams{Url: url, TransitionType: "typed"}
-	log.Ctx(ctx).Info().Msg("navigating")
+	//log.Ctx(ctx).Info().Msg("navigating")
 	_, _, errText, err := t.t.Page.NavigateWithParams(navParams)
 	if err != nil {
 		log.Ctx(ctx).Warn().Err(err).Str("host_address", t.address.HostAddress).
@@ -72,9 +72,9 @@ func (t *Tab) LoadPage(ctx context.Context, url string) error {
 		return errors.Wrap(ErrNavigating, errText)
 	}
 
-	log.Ctx(ctx).Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
+	//log.Ctx(ctx).Info().Str("url", url).Str("err_text", errText).Msg("navigating complete")
 	err = t.WaitReady(ctx, time.Second*9)
-	log.Ctx(ctx).Info().Msg("wait ready returned")
+	//log.Ctx(ctx).Info().Msg("wait ready returned")
 	return err
 }
 
@@ -119,7 +119,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	defer ticker.Stop()
 
 	navTimer := time.After(45 * time.Second)
-	log.Ctx(ctx).Info().Msg("waiting for nav to complete")
+	//log.Ctx(ctx).Info().Msg("waiting for nav to complete")
 	// wait navigation to complete.
 	select {
 	case <-navTimer:
@@ -136,7 +136,7 @@ func (t *Tab) WaitReady(ctx context.Context, stableAfter time.Duration) error {
 	stableTimer := time.After(5 * time.Second)
 
 	// wait for DOM & network stability
-	log.Ctx(ctx).Info().Msg("waiting for DOM & network stability")
+	//log.Ctx(ctx).Info().Msg("waiting for DOM & network stability")
 	for {
 		select {
 		case reason := <-t.crashedCh:
@@ -246,13 +246,8 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		defer cancel()
 
 		p := message.Params
-		url := p.Response.Url
 
-		if strings.HasPrefix(p.Response.Url, "data") {
-			url = "(dataurl)"
-		}
-
-		log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
+		//log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("waiting")
 		if err := t.container.WaitFor(timeoutCtx, p.RequestId); err != nil {
 			return
 		}
@@ -263,7 +258,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		}
 
 		response := t.buildResponse(address, port, message)
-		log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("adding response")
+		//log.Ctx(ctx).Info().Str("request_id", p.RequestId).Str("url", url).Msg("adding response")
 		t.container.Add(response)
 	})
 
@@ -273,7 +268,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		if err := json.Unmarshal(payload, message); err != nil {
 			return
 		}
-		log.Ctx(ctx).Info().Str("request_id", message.Params.RequestId).Msg("finished")
+		//log.Ctx(ctx).Info().Str("request_id", message.Params.RequestId).Msg("finished")
 		t.container.BodyReady(message.Params.RequestId)
 	})
 }
@@ -409,7 +404,7 @@ func (t *Tab) encodeResponseBody(p *gcdapi.NetworkResponseReceivedEvent) string 
 
 func (t *Tab) domUpdated(ctx context.Context) func(target *gcd.ChromeTarget, payload []byte) {
 	return func(target *gcd.ChromeTarget, payload []byte) {
-		log.Ctx(ctx).Info().Msg("dom updated")
+		//log.Ctx(ctx).Info().Msg("dom updated")
 		t.lastNodeChangeTimeVal.Store(time.Now())
 	}
 }

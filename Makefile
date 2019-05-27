@@ -1,7 +1,7 @@
 ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice eventservice
 BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice eventservice
 MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
-APP_ENV = prod
+APP_ENV = dev
 build:
 	go build -v ./...
 
@@ -114,7 +114,7 @@ deploybackend:
 	$(foreach var,$(BACKEND_SERVICES),aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service $(var);)
 
 deploymodules:
-	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var);)
+	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var)-replica;)
 
 
 

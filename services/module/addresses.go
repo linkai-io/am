@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/linkai-io/am/pkg/cache"
@@ -14,8 +15,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// NewAddress creates a new address from this address, copying over the necessary details.
+// NewAddressFromDNS creates a new address from this address, copying over the necessary details.
 func NewAddressFromDNS(address *am.ScanGroupAddress, ip, host, discoveredBy string, recordType uint) *am.ScanGroupAddress {
+	host = strings.ToLower(host)
+	if strings.HasPrefix(host, "*.") {
+		host = host[2:]
+		if host == "" {
+			return nil
+		}
+	}
+
 	newAddress := &am.ScanGroupAddress{
 		OrgID:           address.OrgID,
 		GroupID:         address.GroupID,
@@ -132,6 +141,9 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 		for _, rr := range result.R {
 			for _, ip := range rr.IPs {
 				newAddress := NewAddressFromDNS(data.Address, ip, result.Hostname, data.DiscoveryMethod, uint(rr.RecordType))
+				if newAddress == nil {
+					continue
+				}
 				newAddress.ConfidenceScore = CalculateConfidence(ctx, data.Address, newAddress)
 				newRecords[newAddress.AddressHash] = newAddress
 				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Str("newAddress.AddressHash", newAddress.AddressHash).Str("hash", convert.HashAddress(ip, result.Hostname)).Msg("found new record")
