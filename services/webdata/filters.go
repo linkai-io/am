@@ -105,7 +105,7 @@ func buildSnapshotQueryWithTechType(userContext am.UserContext, filter *am.WebSn
 }
 
 func buildSnapshotQueryWithDomainDep(userContext am.UserContext, filter *am.WebSnapshotFilter, domain string) (string, []interface{}, error) {
-	// get snapshots that match techname first
+	// get snapshots that match url_request_timestamp from our web_responses first
 
 	with := sq.Select().Columns("wr.url_request_timestamp as uts").
 		From("am.web_responses as wr").
@@ -217,7 +217,6 @@ func webResponseFilterClauses(p sq.SelectBuilder, userContext am.UserContext, fi
 	if nameValues, ok := filter.Filters.Strings(am.FilterWebHeaderPairNames); ok && len(nameValues) > 0 {
 		if headerValues, ok := filter.Filters.Strings(am.FilterWebHeaderPairValues); ok && len(headerValues) == len(nameValues) {
 			for i := 0; i < len(nameValues); i++ {
-				log.Info().Msg("ADDING HEADER")
 				p = p.Where("headers->>"+sq.Placeholders(1)+"="+sq.Placeholders(1), nameValues[i], headerValues[i])
 			}
 		}
