@@ -1,5 +1,7 @@
 package address
 
+import "fmt"
+
 const (
 	sharedColumns = `sga.organization_id, 
 		sga.address_id, 
@@ -19,6 +21,10 @@ const (
 		sga.found_from,
 		sga.ns_record,
 		sga.address_hash`
+
+	defaultColumns = `address_id, organization_id, scan_group_id, host_address, ip_address, 
+		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
+		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp, deleted`
 )
 
 var queryMap = map[string]string{
@@ -79,11 +85,11 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
 
-	"archiveHosts": `with move as (
+	"archiveHosts": fmt.Sprintf(`with move as (
 			delete from am.scan_group_addresses where 
-			organization_id=$1 and scan_group_id=$2 and discovery_id not in [1,2] and last_seen_timestamp < $3 returning *
+			organization_id=$1 and scan_group_id=$2 and discovery_id not in (1,2) and last_seen_timestamp < $3 returning %s,now() as archived_timestamp
 		) 
-		insert into am.scan_group_addresses select * from move`,
+		insert into am.scan_group_addresses_archive select %s from move`, defaultColumns, defaultColumns),
 }
 
 var (

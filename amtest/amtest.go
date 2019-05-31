@@ -363,7 +363,7 @@ func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) i
 	orgID := GetOrgID(p, orgName, t)
 	userID := GetUserId(p, orgID, orgName, t)
 	//organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration
-	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, time.Now(), userID, time.Now(), userID, "s3://bucket/blah", nil).Scan(&groupID)
+	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, time.Now(), userID, time.Now(), userID, "s3://bucket/blah", CreateModuleConfig()).Scan(&groupID)
 	if err != nil {
 		t.Fatalf("error creating scan group: %s\n", err)
 	}

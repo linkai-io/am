@@ -544,12 +544,21 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 	// run query against addresses
 	// we don't want to archive input_list addresses (maybe NS/MX???)
 
-	tx, err = s.pool.BeginEx(ctx, nil)
+	tx, err := s.pool.BeginEx(ctx, nil)
 	if err != nil {
 		return 0, 0, err
 	}
 	defer tx.Rollback() // safe to call as no-op on success
 
+	_, err = tx.ExecEx(ctx, "archiveHosts", &pgx.QueryExOptions{}, userContext.GetOrgID(), group.GroupID, archiveBefore)
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, 0, errors.Wrap(v, "failed to archive addresses")
+		}
+		return 0, 0, err
+	}
+
+	err = tx.Commit()
 	// report how many were archived
 	return userContext.GetOrgID(), 0, am.ErrScanGroupNotExists
 }
