@@ -525,6 +525,31 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "update") {
 		return 0, 0, am.ErrUserNotAuthorized
 	}
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("call", "AddressService.Archive").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
 
+	// double check group pause time
+	days := time.Hour * time.Duration(24*group.ArchiveAfterDays)
+	archiveBefore := archiveTime.Add(-days)
+	pauseTime := time.Unix(0, group.LastPausedTime)
+	// if the group has been paused we should archive records that match before pausedTime - days
+	if pauseTime.After(archiveBefore) {
+		archiveBefore = pauseTime.Add(-days)
+	}
+	serviceLog.Info().Time("archive_before", archiveBefore).Msg("Archiving records that match filter before")
+	// run query against addresses
+	// we don't want to archive input_list addresses (maybe NS/MX???)
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	// report how many were archived
 	return userContext.GetOrgID(), 0, am.ErrScanGroupNotExists
 }

@@ -78,6 +78,12 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			and top.host_address > $3 group by top.organization_id, top.scan_group_id, top.host_address order by top.host_address limit $4;`,
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
+
+	"archiveHosts": `with move as (
+			delete from am.scan_group_addresses where 
+			organization_id=$1 and scan_group_id=$2 and discovery_id not in [1,2] and last_seen_timestamp < $3 returning *
+		) 
+		insert into am.scan_group_addresses select * from move`
 }
 
 var (

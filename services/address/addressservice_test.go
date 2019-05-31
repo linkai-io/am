@@ -1160,3 +1160,20 @@ func TestPopulateData(t *testing.T) {
 		t.Fatalf("error adding addresses: %v\n", err)
 	}
 }
+
+func TestArchive(t *testing.T) {
+
+	days := time.Hour * time.Duration(24*5)
+	t.Logf("now: %s\n", time.Now())
+	archiveBefore := time.Now().Add(-days)
+	t.Logf("archive records before: %s\n", archiveBefore)
+	lastPausedTime := time.Now().Add(time.Hour * -time.Duration((24 * 2)))
+	t.Logf("pause time: %s\n", lastPausedTime)
+	pauseTime := lastPausedTime
+	if pauseTime.After(archiveBefore) {
+		t.Logf("group has been paused after our archival time, %s was after %s", pauseTime, archiveBefore)
+		t.Logf("adding days to lastPaused time archiveBefore now: %s\n", pauseTime.Add(-days))
+	} else {
+		t.Logf("%s was not after %s", pauseTime, archiveBefore)
+	}
+}
