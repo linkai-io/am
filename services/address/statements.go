@@ -83,7 +83,7 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			delete from am.scan_group_addresses where 
 			organization_id=$1 and scan_group_id=$2 and discovery_id not in [1,2] and last_seen_timestamp < $3 returning *
 		) 
-		insert into am.scan_group_addresses select * from move`
+		insert into am.scan_group_addresses select * from move`,
 }
 
 var (
