@@ -259,6 +259,10 @@ func TestCompareScanGroup(group1, group2 *am.ScanGroup, t *testing.T) {
 	if string(group1.OriginalInputS3URL) != string(group2.OriginalInputS3URL) {
 		t.Fatalf("OriginalInput by was different, %s and %s\n", string(group1.OriginalInputS3URL), string(group2.OriginalInputS3URL))
 	}
+
+	if group1.ArchiveAfterDays != group2.ArchiveAfterDays {
+		t.Fatalf("ArchiveAfterDays by was different, %v and %v\n", group1.ArchiveAfterDays, group2.ArchiveAfterDays)
+	}
 }
 
 func TestCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {

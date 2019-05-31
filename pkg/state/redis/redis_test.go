@@ -147,6 +147,8 @@ func TestGetGroup(t *testing.T) {
 		CreationTime:         now,
 		ModifiedTime:         now,
 		ModuleConfigurations: amtest.CreateModuleConfig(),
+		ArchiveAfterDays:     5,
+		LastPausedTime:       100,
 	}
 	userContext := amtest.CreateUserContext(1, 1)
 	ctx := context.Background()
@@ -162,6 +164,14 @@ func TestGetGroup(t *testing.T) {
 
 	if returned.ModuleConfigurations == nil {
 		t.Fatalf("error module configurations was nil\n")
+	}
+
+	if returned.ArchiveAfterDays != 5 {
+		t.Fatalf("archive after days was not updated")
+	}
+
+	if returned.LastPausedTime != 100 {
+		t.Fatalf("LastPausedTime was not updated")
 	}
 
 	amtest.TestCompareScanGroup(sg, returned, t)

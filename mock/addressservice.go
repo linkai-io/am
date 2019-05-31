@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"github.com/linkai-io/am/am"
 )
@@ -33,6 +34,9 @@ type AddressService struct {
 
 	GroupStatsFn      func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupAddressStats, error)
 	GroupStatsInvoked bool
+
+	ArchiveFn      func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error)
+	ArchiveInvoked bool
 }
 
 func (c *AddressService) Init(config []byte) error {
@@ -77,4 +81,9 @@ func (c *AddressService) OrgStats(ctx context.Context, userContext am.UserContex
 func (c *AddressService) GroupStats(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroupAddressStats, error) {
 	c.GroupStatsInvoked = true
 	return c.GroupStatsFn(ctx, userContext, groupID)
+}
+
+func (c *AddressService) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
+	c.ArchiveInvoked = true
+	return c.ArchiveFn(ctx, userContext, group, archiveTime)
 }

@@ -94,10 +94,12 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 	serviceLog.Info().Msg("Retrieving scan group by id")
 	var createTime time.Time
 	var modifyTime time.Time
+	var pausedTime time.Time
+
 	//organization_id, scan_group_id, scan_group_name, creation_time, created_by, original_input
 	err = s.pool.QueryRow("scanGroupByID", userContext.GetOrgID(), groupID).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID,
-		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
+		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted, &pausedTime, &group.ArchiveAfterDays,
 	)
 
 	if err != nil {
@@ -113,6 +115,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, groupID i
 
 	group.CreationTime = createTime.UnixNano()
 	group.ModifiedTime = modifyTime.UnixNano()
+	group.LastPausedTime = pausedTime.UnixNano()
 
 	return group.OrgID, group, err
 }
@@ -134,13 +137,15 @@ func (s *Service) GetByName(ctx context.Context, userContext am.UserContext, gro
 
 	var createTime time.Time
 	var modifyTime time.Time
+	var pausedTime time.Time
 
 	err = s.pool.QueryRow("scanGroupByName", userContext.GetOrgID(), groupName).Scan(
 		&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID,
-		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted,
+		&group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted, &pausedTime, &group.ArchiveAfterDays,
 	)
 	group.CreationTime = createTime.UnixNano()
 	group.ModifiedTime = modifyTime.UnixNano()
+	group.LastPausedTime = pausedTime.UnixNano()
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -188,13 +193,18 @@ func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, gro
 	for rows.Next() {
 		var createTime time.Time
 		var modifyTime time.Time
+		var pausedTime time.Time
 
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy,
+			&group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL,
+			&group.ModuleConfigurations, &group.Paused, &group.Deleted, &pausedTime, &group.ArchiveAfterDays); err != nil {
 			return nil, err
 		}
 		group.CreationTime = createTime.UnixNano()
 		group.ModifiedTime = modifyTime.UnixNano()
+		group.LastPausedTime = pausedTime.UnixNano()
+
 		groups = append(groups, group)
 	}
 
@@ -223,8 +233,12 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 	for rows.Next() {
 		var createTime time.Time
 		var modifyTime time.Time
+		var pausedTime time.Time
+
 		group := &am.ScanGroup{}
-		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy, &group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL, &group.ModuleConfigurations, &group.Paused, &group.Deleted); err != nil {
+		if err := rows.Scan(&group.OrgID, &group.GroupID, &group.GroupName, &createTime, &group.CreatedBy,
+			&group.CreatedByID, &modifyTime, &group.ModifiedBy, &group.ModifiedByID, &group.OriginalInputS3URL,
+			&group.ModuleConfigurations, &group.Paused, &group.Deleted, &pausedTime, &group.ArchiveAfterDays); err != nil {
 			return 0, nil, err
 		}
 
@@ -234,6 +248,7 @@ func (s *Service) Groups(ctx context.Context, userContext am.UserContext) (oid i
 
 		group.CreationTime = createTime.UnixNano()
 		group.ModifiedTime = modifyTime.UnixNano()
+		group.LastPausedTime = pausedTime.UnixNano()
 
 		groups = append(groups, group)
 	}
@@ -262,10 +277,13 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, newGro
 		return 0, 0, am.ErrScanGroupExists
 	}
 
+	if newGroup.ArchiveAfterDays == 0 {
+		newGroup.ArchiveAfterDays = am.DefaultArchiveDays
+	}
 	// creates and sets oid/gid
 	err = s.pool.QueryRow("createScanGroup", userContext.GetOrgID(), newGroup.GroupName, time.Unix(0, newGroup.CreationTime),
 		newGroup.CreatedByID, time.Unix(0, newGroup.ModifiedTime), newGroup.ModifiedByID, newGroup.OriginalInputS3URL,
-		newGroup.ModuleConfigurations).Scan(&oid, &gid)
+		newGroup.ModuleConfigurations, newGroup.ArchiveAfterDays).Scan(&oid, &gid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -286,9 +304,12 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 		Str("TraceID", userContext.GetTraceID()).Logger()
 
 	serviceLog.Info().Msg("Updating Scan group")
-
-	err = s.pool.QueryRow("updateScanGroup", group.GroupName, time.Unix(0, group.ModifiedTime), group.ModifiedByID, group.ModuleConfigurations, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
+	if group.ArchiveAfterDays == 0 {
+		group.ArchiveAfterDays = am.DefaultArchiveDays
+	}
+	err = s.pool.QueryRow("updateScanGroup", group.GroupName, time.Unix(0, group.ModifiedTime), group.ModifiedByID, group.ModuleConfigurations, group.ArchiveAfterDays, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
+		serviceLog.Error().Err(err).Msgf("Updating Scan group failed %s", queryMap["updateScanGroup"])
 		return 0, 0, err
 	}
 
@@ -385,7 +406,7 @@ func (s *Service) Resume(ctx context.Context, userContext am.UserContext, groupI
 	return oid, gid, err
 }
 
-// Update statics of the scan group (how many are active, size of batching being analyzed etc)
+// UpdateStats statics of the scan group (how many are active, size of batching being analyzed etc)
 func (s *Service) UpdateStats(ctx context.Context, userContext am.UserContext, stats *am.GroupStats) (oid int, err error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNScanGroupGroups, "update") {
 		return 0, am.ErrUserNotAuthorized

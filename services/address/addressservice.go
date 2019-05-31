@@ -519,3 +519,12 @@ func (s *Service) GroupStats(ctx context.Context, userContext am.UserContext, gr
 	}
 	return userContext.GetOrgID(), nil, am.ErrScanGroupNotExists
 }
+
+// Archive records for a group.
+func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (oid int, count int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "update") {
+		return 0, 0, am.ErrUserNotAuthorized
+	}
+
+	return userContext.GetOrgID(), 0, am.ErrScanGroupNotExists
+}

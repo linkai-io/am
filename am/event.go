@@ -12,6 +12,8 @@ var (
 	EventMaxHostPricing       int32 = 2
 	EventNewHost              int32 = 10
 	EventNewRecord            int32 = 11
+	EventNewOpenPort          int32 = 12
+	EventClosedPort           int32 = 13
 	EventNewWebsite           int32 = 100
 	EventWebHTMLUpdated       int32 = 101
 	EventWebTechChanged       int32 = 102
@@ -26,6 +28,8 @@ var EventTypes = map[int32]string{
 	2:   "maximum number of hostnames reached for pricing plan",
 	10:  "new hostname",
 	11:  "new record",
+	12:  "new port open",
+	13:  "port closed",
 	100: "new website detected",
 	101: "website's html updated",
 	102: "website's technology changed",

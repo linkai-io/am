@@ -10,6 +10,11 @@ const (
 	ScanGroupServiceKey  = "scangroupservice"
 )
 
+// Default number of days for a scan group to have records automatically archived to archive tables
+const (
+	DefaultArchiveDays = 7
+)
+
 type GroupStatus int
 
 var (
@@ -47,6 +52,8 @@ type ScanGroup struct {
 	ModuleConfigurations *ModuleConfiguration `json:"module_configurations" redis:"-"`
 	Paused               bool                 `json:"paused"`
 	Deleted              bool                 `json:"deleted"`
+	LastPausedTime       int64                `json:"last_paused_timestamp"`
+	ArchiveAfterDays     int32                `json:"archive_after_days"`
 }
 
 // ScanGroupFilter for returning only select values from the AllGroups service method

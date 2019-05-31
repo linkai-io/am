@@ -289,3 +289,29 @@ func (c *Client) Ignore(ctx context.Context, userContext am.UserContext, groupID
 
 	return int(resp.GetOrgID()), nil
 }
+
+func (c *Client) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (oid int, count int, err error) {
+	var resp *service.AddressesArchivedResponse
+	oid = userContext.GetOrgID()
+
+	in := &service.ArchiveAddressesRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		ScanGroup:   convert.DomainToScanGroup(group),
+		ArchiveTime: archiveTime.UnixNano(),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.Archive(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get address archive from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(resp.GetOrgID()), int(resp.Count), nil
+}

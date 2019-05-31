@@ -1,6 +1,9 @@
 package am
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 const (
 	RNAddressAddresses = "lrn:service:address:feature:addresses"
@@ -141,4 +144,5 @@ type AddressService interface {
 	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64) (oid int, err error)
 	Ignore(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error)
+	Archive(ctx context.Context, userContext UserContext, group *ScanGroup, archiveTime time.Time) (int, int, error)
 }
