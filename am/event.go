@@ -7,6 +7,10 @@ const (
 	EventServiceKey = "eventservice"
 )
 
+const (
+	FilterEventGroupID = "group_id"
+)
+
 var (
 	EventInitialGroupComplete int32 = 1
 	EventMaxHostPricing       int32 = 2
