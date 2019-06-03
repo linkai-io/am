@@ -543,13 +543,14 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 	serviceLog.Info().Time("archive_before", archiveBefore).Msg("Archiving records that match filter before")
 	// run query against addresses
 	// we don't want to archive input_list addresses (maybe NS/MX???)
-
 	tx, err := s.pool.BeginEx(ctx, nil)
 	if err != nil {
 		return 0, 0, err
 	}
 	defer tx.Rollback() // safe to call as no-op on success
 
+	log.Info().Msgf("QUERY: %s\n", queryMap["archiveHosts"])
+	log.Info().Msgf("ARGS: %v %v %v\n", userContext.GetOrgID(), group.GroupID, archiveBefore)
 	_, err = tx.ExecEx(ctx, "archiveHosts", &pgx.QueryExOptions{}, userContext.GetOrgID(), group.GroupID, archiveBefore)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
@@ -560,5 +561,5 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 
 	err = tx.Commit()
 	// report how many were archived
-	return userContext.GetOrgID(), 0, am.ErrScanGroupNotExists
+	return userContext.GetOrgID(), 0, err
 }

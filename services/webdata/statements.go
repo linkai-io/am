@@ -1,5 +1,15 @@
 package webdata
 
+import (
+	"fmt"
+	"strings"
+)
+
+func prefix(columns, prefixKey string) string {
+	cols := strings.Split(columns, ", ")
+	return prefixKey + "." + strings.Join(cols, ", "+prefixKey+".")
+}
+
 var (
 	responseColumns = `wb.response_id,
 		organization_id,
@@ -72,8 +82,11 @@ var (
 		json_agg(wt.matched_text) as matched_text, 
 		json_agg(wtt.icon) as icon, 
 		json_agg(wtt.website) as website`
-)
 
+	defaultTechColumns     = `tech_id, organization_id, scan_group_id, snapshot_id, techtype_id, matched_text, match_location, version`
+	defaultResponseColumns = `response_id, organization_id, scan_group_id, is_document, scheme, ip_address, host_address, response_port, requested_port, url, headers, status, status_text_id, mime_type_id, raw_body_hash, raw_body_link, deleted, response_timestamp, url_request_timestamp, address_hash, load_host_address, load_ip_address`
+	defaultSnapshotColumns = `snapshot_id, organization_id, scan_group_id, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted, response_timestamp, url, address_hash, host_address, ip_address, scheme, response_port, requested_port, load_url, url_request_timestamp`
+)
 var queryMap = map[string]string{
 	"serverCounts": `select scan_group_id, server, cnt from am.webdata_server_counts_mv where organization_id=$1 order by cnt desc`,
 
@@ -103,6 +116,31 @@ var queryMap = map[string]string{
 			matched_text=EXCLUDED.matched_text,
 			match_location=EXCLUDED.match_location,
 			version=EXCLUDED.version`,
+
+	"archiveWeb": fmt.Sprintf(`with archive_time as (
+		select now() as archived_timestamp
+	),
+	snaps as (
+		select snapshot_id,url_request_timestamp from am.web_snapshots where
+		organization_id=$1 and scan_group_id=$2 and url_request_timestamp < $3
+	),
+	delete_tech as (
+		delete from am.web_technologies as wt using snaps as s where organization_id=$1 and scan_group_id=$2 and wt.snapshot_id=s.snapshot_id returning %s
+	),
+	insert_tech as (
+		insert into am.web_technologies_archive select %s,archive_time.archived_timestamp from delete_tech,archive_time
+	),
+	delete_resp as (
+		delete from am.web_responses where organization_id=$1 and scan_group_id=$2 and url_request_timestamp < $3 returning %s
+	),
+	insert_resp as (
+		insert into am.web_responses_archive select %s,archive_time.archived_timestamp from delete_resp,archive_time
+	),
+	delete_snaps as (
+		delete from am.web_snapshots where organization_id=$1 and scan_group_id=$2 and url_request_timestamp < $3 returning %s
+	)
+	insert into am.web_snapshots_archive select %s,archive_time.archived_timestamp from delete_snaps,archive_time
+	`, prefix(defaultTechColumns, "wt"), defaultTechColumns, defaultResponseColumns, defaultResponseColumns, defaultSnapshotColumns, defaultSnapshotColumns),
 }
 
 var (

@@ -32,6 +32,7 @@ var queryMap = map[string]string{
 			where sga.discovered_timestamp >= $3 and 
 			organization_id=$4 and 
 			scan_group_id=$5 group by sga.host_address`,
+
 	"newWebsites": `select ws.url,ws.response_port from
 		(select min(response_timestamp) as response_timestamp, url, response_port from am.web_snapshots 
 			where organization_id=$1 and scan_group_id=$2 and 
@@ -41,6 +42,7 @@ var queryMap = map[string]string{
 			where ws.response_timestamp >= $3 and
 			organization_id=$4 and
 			scan_group_id=$5 group by ws.url, ws.response_port`,
+			
 	"webHashChanged": `select 
 		wf.response_timestamp, 
 		wf.url, 

@@ -25,6 +25,9 @@ const (
 	defaultColumns = `address_id, organization_id, scan_group_id, host_address, ip_address, 
 		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
 		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp, deleted`
+
+	defaultPortColumns = `port_id, organization_id, scan_group_id, host_address, ip_address, address_hash,
+	port_data, scanned_timestamp, previous_scanned_timestamp`
 )
 
 var queryMap = map[string]string{
@@ -85,11 +88,21 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
 
-	"archiveHosts": fmt.Sprintf(`with move as (
-			delete from am.scan_group_addresses where 
-			organization_id=$1 and scan_group_id=$2 and discovery_id not in (1,2) and last_seen_timestamp < $3 returning %s,now() as archived_timestamp
-		) 
-		insert into am.scan_group_addresses_archive select %s from move`, defaultColumns, defaultColumns),
+	"archiveHosts": fmt.Sprintf(`with archive_time as (
+		select now() as archived_timestamp
+	),
+	delete_ports as (
+		delete from am.scan_group_addresses_ports where 
+		organization_id=$1 and scan_group_id=$2 and scanned_timestamp < $3 returning %s
+	),
+	insert_ports as ( 
+		insert into am.scan_group_addresses_ports_archive select %s,archive_time.archived_timestamp from delete_ports,archive_time
+	),	
+	delete_hosts as (
+		delete from am.scan_group_addresses where 
+		organization_id=$1 and scan_group_id=$2 and discovery_id not in (1,2) and last_seen_timestamp < $3 returning %s
+	) 
+	insert into am.scan_group_addresses_archive select %s,archive_time.archived_timestamp from delete_hosts,archive_time`, defaultPortColumns, defaultPortColumns, defaultColumns, defaultColumns),
 }
 
 var (

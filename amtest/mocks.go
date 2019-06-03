@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/linkai-io/am/pkg/parsers"
 
@@ -277,6 +278,22 @@ func MockBigDataState() *mock.BigDataState {
 		return false, nil
 	}
 	return mockState
+}
+
+func MockBigQueryClient() *mock.BigQuerier {
+	client := &mock.BigQuerier{}
+	client.InitFn = func(config, credentials []byte) error {
+		return nil
+	}
+
+	client.QueryETLDFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTRecord, error) {
+		return make(map[string]*am.CTRecord), nil
+	}
+
+	client.QuerySubdomainsFn = func(ctx context.Context, from time.Time, etld string) (map[string]*am.CTSubdomain, error) {
+		return make(map[string]*am.CTSubdomain), nil
+	}
+	return client
 }
 
 func MockWebDetector() *mock.Detector {

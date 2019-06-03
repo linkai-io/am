@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
-	"io/ioutil"
+	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -147,7 +149,19 @@ func main() {
 
 	userContext, groupID := prepGroup(db, orgService, addressService, scangroupService)
 	// Run pipeline
-	dispatcher.PushAddresses(ctx, userContext, groupID)
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Printf("waiting for user input...")
+	for {
+		scanner.Scan()
+		input := strings.Replace(scanner.Text(), "\n", "", -1)
+		fmt.Printf("[%s]", input)
+		if input == "g" {
+			dispatcher.PushAddresses(ctx, userContext, groupID)
+		} else {
+			fmt.Printf("exiting loop")
+			break
+		}
+	}
 	<-c
 }
 
@@ -158,14 +172,21 @@ func prepGroup(db *pgx.ConnPool, orgService am.OrganizationService, addressServi
 
 	if !createOrg {
 		log.Info().Msg("not creating group, returning data")
-		orgID := amtest.GetOrgID(db, orgName, t)
-		userID := amtest.GetUserId(db, orgID, orgName+"email@email.com", t)
-		userContext := amtest.CreateUserContext(orgID, userID)
-		_, group, err := scangroupService.GetByName(ctx, userContext, orgName+"group")
+		orgID, _, err := orgService.Get(ctx, &am.UserContextData{OrgID: 1, UserID: 1}, orgName)
 		if err != nil {
-			log.Fatal().Err(err).Msg("failed to get group by name")
+			log.Fatal().Err(err).Msg("failed to get org")
 		}
-		return userContext, group.GroupID
+		groups, err := scangroupService.AllGroups(ctx, &am.UserContextData{OrgID: 1, UserID: 1}, &am.ScanGroupFilter{Filters: &am.FilterType{}})
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to get groups")
+		}
+		if len(groups) == 0 {
+			log.Fatal().Err(err).Msg("failed to get groups 0 returned")
+		}
+
+		userContext := amtest.CreateUserContext(orgID, groups[0].CreatedByID)
+
+		return userContext, groups[0].GroupID
 	}
 	log.Info().Msg("Creating group")
 	orgID, userID, _, _, err := orgService.Create(ctx, &am.UserContextData{OrgID: 1, UserID: 1}, amtest.CreateOrgInstance(orgName), "asdfasdf")
@@ -271,11 +292,11 @@ func createBigData() am.ModuleService {
 		OrgID:   1,
 		UserID:  1,
 	}
-
-	bqCredentials, err := ioutil.ReadFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to get bigquery credentials")
-	}
+	/*
+		bqCredentials, err := ioutil.ReadFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+		if err != nil {
+			log.Fatal().Err(err).Msg("unable to get bigquery credentials")
+		}*/
 
 	state := initializers.State(appConfig)
 	dc := dnsclient.New(dnsServers, 3)
@@ -287,7 +308,8 @@ func createBigData() am.ModuleService {
 		log.Fatal().Err(err).Msg("failed to init bigdata service")
 	}
 
-	bqClient := initializers.BigQueryClient(&bqConfig, bqCredentials)
+	bqClient := amtest.MockBigQueryClient()
+	//bqClient := initializers.BigQueryClient(&bqConfig, bqCredentials)
 
 	closeCh := make(chan struct{})
 	certListener := initializeCertStream(systemContext, bdService, closeCh)
@@ -344,12 +366,10 @@ func createWeb(webDataService am.WebDataService) am.ModuleService {
 	}
 
 	leaser := browser.NewLocalLeaser()
-	ctx := context.Background()
 	browsers := browser.NewGCDBrowserPool(5, leaser, wapp)
 	if err := browsers.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing browsers")
 	}
-	defer browsers.Close(ctx)
 	webModule := web.New(browsers, webDataService, dc, state, store)
 	if err := webModule.Init(); err != nil {
 		log.Fatal().Err(err).Msg("failed to init web module service")

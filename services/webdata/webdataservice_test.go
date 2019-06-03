@@ -53,7 +53,7 @@ func initOrg(orgName, groupName string, t *testing.T) (*webdata.Service, *OrgDat
 	}
 
 	orgData.DB = amtest.InitDB(env, t)
-
+	amtest.DeleteOrg(orgData.DB, orgName, t)
 	amtest.CreateOrg(orgData.DB, orgName, t)
 	orgData.OrgID = amtest.GetOrgID(orgData.DB, orgName, t)
 	orgData.GroupID = amtest.CreateScanGroup(orgData.DB, orgName, groupName, t)
@@ -853,6 +853,121 @@ func TestGetDomainDependency(t *testing.T) {
 
 	for _, d := range domains.Nodes {
 		t.Logf("%#v\n", d)
+	}
+}
+
+func TestArchive(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+	service, org := initOrg("webarchive", "webarchive", t)
+	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+
+	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
+	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34", 100)
+
+	for i, web := range webData {
+		t.Logf("%d: %d\n", i, len(web.Responses))
+		_, err := service.Add(ctx, org.UserContext, web)
+		if err != nil {
+			t.Fatalf("failed: %v\n", err)
+		}
+	}
+
+	filter := &am.WebSnapshotFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	filter.Filters.AddInt64(am.FilterWebBeforeURLRequestTime, time.Now().Add(time.Hour*-(5*24)).UnixNano())
+	_, snapshots, err := service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	snapLen := len(snapshots)
+	t.Logf("snapshot len: %d\n", snapLen)
+	if snapLen != 6 {
+		t.Fatalf("expected 6 snapshots to archive, got %d\n", snapLen)
+	}
+
+	respFilter := &am.WebResponseFilter{
+		OrgID:   org.OrgID,
+		GroupID: org.GroupID,
+		Filters: &am.FilterType{},
+		Start:   0,
+		Limit:   1000,
+	}
+	respFilter.Filters.AddInt64(am.FilterWebBeforeURLRequestTime, time.Now().Add(time.Hour*-(5*24)).UnixNano())
+	_, responses, err := service.GetResponses(ctx, org.UserContext, respFilter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	respLen := len(responses)
+	if respLen != 60 {
+		t.Fatalf("expecetd 60 responses to archive, got %d\n", snapLen)
+	}
+
+	group := &am.ScanGroup{
+		OrgID:                org.OrgID,
+		GroupID:              org.GroupID,
+		GroupName:            org.GroupName,
+		CreationTime:         time.Now().UnixNano(),
+		CreatedBy:            "test",
+		CreatedByID:          org.UserContext.GetUserID(),
+		ModifiedBy:           "test",
+		ModifiedByID:         org.UserContext.GetUserID(),
+		ModifiedTime:         time.Now().UnixNano(),
+		OriginalInputS3URL:   "s3://empty",
+		ModuleConfigurations: amtest.CreateModuleConfig(),
+		Paused:               false,
+		Deleted:              false,
+		LastPausedTime:       0,
+		ArchiveAfterDays:     5,
+	}
+
+	if _, _, err := service.Archive(ctx, org.UserContext, group, time.Now()); err != nil {
+		t.Fatalf("error during archival: %#v\n", err)
+	}
+
+	_, snapshots, err = service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	if len(snapshots) != 0 {
+		t.Fatalf("expected 0 snapshots, got %d\n", len(snapshots))
+	}
+
+	_, responses, err = service.GetResponses(ctx, org.UserContext, respFilter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	if len(responses) != 0 {
+		t.Fatalf("expected 0 responses, got %d\n", len(responses))
+	}
+
+	filter.Filters = &am.FilterType{}
+	_, snapshots, err = service.GetSnapshots(ctx, org.UserContext, filter)
+	if err != nil {
+		t.Fatalf("error getting url list: %v\n", err)
+	}
+	if len(snapshots) != 4 {
+		t.Fatalf("expected 4 snapshots to not be archived, got %d\n", len(snapshots))
+	}
+
+	respFilter.Filters = &am.FilterType{}
+	_, responses, err = service.GetResponses(ctx, org.UserContext, respFilter)
+	if err != nil {
+		t.Fatalf("error getting responses: %#v\n", err)
+	}
+
+	if len(responses) != 40 {
+		t.Fatalf("expected 40 responses to not be archived, got %d\n", len(responses))
 	}
 }
 

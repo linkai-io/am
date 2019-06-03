@@ -44,6 +44,10 @@ func buildSnapshotQuery(userContext am.UserContext, filter *am.WebSnapshotFilter
 		p = p.Where(sq.GtOrEq{"response_timestamp": time.Unix(0, val)})
 	}
 
+	if val, ok := filter.Filters.Int64(am.FilterWebBeforeURLRequestTime); ok && val != 0 {
+		p = p.Where(sq.LtOrEq{"url_request_timestamp": time.Unix(0, val)})
+	}
+
 	if val, ok := filter.Filters.String(am.FilterWebEqualsHostAddress); ok && val != "" {
 		p = p.Where(sq.Eq{"host_address": val})
 	}
