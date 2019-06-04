@@ -20,7 +20,7 @@ var (
 	EventClosedPort           int32 = 13
 	EventNewWebsite           int32 = 100
 	EventWebHTMLUpdated       int32 = 101
-	EventWebTechChanged       int32 = 102
+	EventNewWebTech           int32 = 102
 	EventWebJSChanged         int32 = 103
 	EventCertExpiring         int32 = 150
 	EventCertExpired          int32 = 151
@@ -36,7 +36,7 @@ var EventTypes = map[int32]string{
 	13:  "port closed",
 	100: "new website detected",
 	101: "website's html updated",
-	102: "website's technology changed",
+	102: "website's technology changed or updated",
 	103: "website's javascript changed",
 	150: "certificate expiring",
 	151: "certificate expired",

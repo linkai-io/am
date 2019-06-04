@@ -925,7 +925,7 @@ func TestArchive(t *testing.T) {
 
 	amtest.CreateOrg(db, orgName, t)
 	orgID := amtest.GetOrgID(db, orgName, t)
-	//defer amtest.DeleteOrg(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
 
 	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
 	userContext := amtest.CreateUserContext(orgID, 1)

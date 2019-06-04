@@ -404,6 +404,14 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	}
 
 	defer tx.Rollback() // safe to call as no-op on success
+	newTechnologies, err := s.newTech(ctx, userContext, tx, startTime, groupID)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather new tech events")
+	} else if newTechnologies != nil {
+		events = append(events, newTechnologies)
+	}
+	serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
+
 	newHosts, err := s.newHostnames(ctx, userContext, tx, startTime, groupID)
 	if err != nil {
 		serviceLog.Error().Err(err).Msg("failed to gather new hosts events")
@@ -418,17 +426,29 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	} else if newWebsites != nil {
 		events = append(events, newWebsites)
 	}
+	serviceLog.Info().Msgf("new newWebsites: %#v\n", newWebsites)
 	// diff websites
 
 	// test web tech
 
 	// check certificates
 	expiringCerts, err := s.expiringCerts(ctx, userContext, tx, startTime, groupID)
+	serviceLog.Info().Msgf("expiring certs: %#v\n", expiringCerts)
 	if err != nil {
 		serviceLog.Error().Err(err).Msg("failed to gather new certificate expiration events")
 	} else if expiringCerts != nil {
 		events = append(events, expiringCerts)
 	}
+	/*
+		newTechnologies, err := s.newTech(ctx, userContext, tx, startTime, groupID)
+		if err != nil {
+			serviceLog.Error().Err(err).Msg("failed to gather new tech events")
+		} else if newTechnologies != nil {
+			events = append(events, newTechnologies)
+		}
+		serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
+	*/
+
 	if err := tx.Commit(); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, "failed to notify complete")
@@ -480,7 +500,7 @@ func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext,
 func (s *Service) newWebsites(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
 	oid := userContext.GetOrgID()
 	// check new hostnames
-	rows, err := tx.Query("newWebsites", oid, groupID, time.Unix(0, startTime), oid, groupID)
+	rows, err := tx.Query("newWebsites", oid, groupID, time.Unix(0, startTime))
 	if err != nil {
 		return nil, err
 	}
@@ -510,10 +530,60 @@ func (s *Service) newWebsites(ctx context.Context, userContext am.UserContext, t
 	return e, nil
 }
 
+func (s *Service) newTech(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
+	oid := userContext.GetOrgID()
+	// check new hostnames
+	rows, err := tx.Query("newTechnologies", oid, groupID, time.Unix(0, startTime))
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("error getting new tech")
+		return nil, err
+	}
+	techPorts := make([]string, 0)
+	//techData := make(map[string]map[string][]string)
+	for i := 0; rows.Next(); i++ {
+		var url []byte
+		var port int
+		var techname string
+		var version string
+		if err := rows.Scan(&url, &port, &techname, &version); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new technology event")
+			continue
+		}
+		log.Ctx(ctx).Info().Msgf("%s %d %s %s\n", string(url), port, techname, version)
+		/*
+			if _, ok := techData[techname]; !ok {
+				techData[techname] = make(map[string][]string)
+				techData[techname][version] = make([]string, 0)
+			}
+
+			if _, ok := techData[techname][version]; !ok {
+				techData[techname][version] = make([]string, 0)
+			}
+
+			techData[techname][version] = append(techData[techname][version], string(url))
+			techData[techname][version] = append(techData[techname][version], fmt.Sprintf("%d", port))
+		*/
+		techPorts = append(techPorts, []string{string(url), fmt.Sprintf("%d", port), techname, version}...)
+	}
+	// no new technologies this round
+	if len(techPorts) == 0 {
+		return nil, nil
+	}
+
+	e := &am.Event{
+		OrgID:          oid,
+		GroupID:        groupID,
+		TypeID:         am.EventNewWebTech,
+		EventTimestamp: time.Now().UnixNano(),
+		Data:           techPorts,
+	}
+	return e, nil
+}
+
 func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {
 	oid := userContext.GetOrgID()
 	// check new hostnames
-	rows, err := tx.Query("newHostnames", oid, groupID, time.Unix(0, startTime), oid, groupID)
+	rows, err := tx.Query("newHostnames", oid, groupID, time.Unix(0, startTime))
 	if err != nil {
 		return nil, err
 	}

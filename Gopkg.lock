@@ -43,15 +43,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:88c7b3cac28d066269e32daae492d47f9a955ba28570feb5cace0278f0dc3dca"
+  digest = "1:be429fdaaae4ef0c73582fcc05908ce7c1ac2aff4346825415cb5fbc15d14152"
   name = "github.com/aws/aws-lambda-go"
   packages = ["events"]
   pruneopts = "UT"
-  revision = "08d251dc58f204411d79012fd6f1beefb7107fea"
-  version = "v1.10.0"
+  revision = "4c210d7623089d36b6bb6febf5a5e553bf73fbfb"
+  version = "v1.11.1"
 
 [[projects]]
-  digest = "1:a69342fcb80def3e39ffcf36e197961594cdb9becc227236ed04a7d0be9eb558"
+  digest = "1:122c10acab36c96ddb348748d4bac19b97c4be5244f19c972ac9e082d132e6ad"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "43d801a05e0735a9069534588ec469235347e6c6"
-  version = "v1.19.36"
+  revision = "742c1495174cefd893992396b014bd6b7c91a293"
+  version = "v1.19.42"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -180,12 +180,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:909c6473fd4087c25f4a2c0891f2d80e90cd8e326e77d01f9de590f0da0229e7"
+  digest = "1:3db4f016af6ec500e79f6987c6ad284143b21effd504a2a8462be6c41b8198f5"
   name = "github.com/hashicorp/consul"
   packages = ["api"]
   pruneopts = "UT"
-  revision = "34eff659dcc5503b6eb117733c9f7def63f01bad"
-  version = "v1.5.0"
+  revision = "40cec98468b829e5cdaacb0629b3e23a028db688"
+  version = "v1.5.1"
 
 [[projects]]
   digest = "1:af105c7c5dc0b4ae41991f122cae860b9600f7d226072c2a83127048c991660c"
@@ -269,12 +269,12 @@
   revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
-  digest = "1:2c94f9293f5e811de26d526b51d9b3c7a0145c9b2ff68f70ad08c49630270889"
+  digest = "1:bb576d748d34ebc8f2598cd29cd00b0d8dd959c54bfbbc2cef2feb5f8a235846"
   name = "github.com/miekg/dns"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a2c73fb86d62c6fc8391d163814396a338cbcedf"
-  version = "v1.1.12"
+  revision = "d16ecb693e3f8d524769fefce2192a4c92207ff9"
+  version = "v1.1.13"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
@@ -372,7 +372,7 @@
   version = "v1.0.6"
 
 [[projects]]
-  digest = "1:6a0fd720abef071f9c9821249e2a7ee87a2e90fe7e45cef8fe413e6b5287363a"
+  digest = "1:74055050ea547bb04600be79cc501965cb3de8988018262f2ca430f0a0b48ec3"
   name = "go.opencensus.io"
   packages = [
     ".",
@@ -393,8 +393,8 @@
     "trace/tracestate",
   ]
   pruneopts = "UT"
-  revision = "df6e2001952312404b06f5f6f03fcb4aec1648e5"
-  version = "v0.21.0"
+  revision = "9c377598961b706d1542bd2d84d538b5094d596e"
+  version = "v0.22.0"
 
 [[projects]]
   branch = "master"
@@ -406,11 +406,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+  revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
 
 [[projects]]
   branch = "master"
-  digest = "1:0144d97e2187106d439807609b2202f965d992bb699ff92e657c619ec2f2ade6"
+  digest = "1:8dd8c09e6ab6a356f8c07c713aae436809a54916f4342f9d4d035ebc5a75e24e"
   name = "golang.org/x/net"
   packages = [
     "bpf",
@@ -432,11 +432,11 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "f3200d17e092c607f615320ecaad13d87ad9a2b3"
+  revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
 
 [[projects]]
   branch = "master"
-  digest = "1:85a6bd7dc73d56e1208ebf9a904516a92aec6e9a7cebff5fef2a1ab24c01a308"
+  digest = "1:31e33f76456ccf54819ab4a646cf01271d1a99d7712ab84bf1a9e7b61cd2031b"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -446,18 +446,18 @@
     "jwt",
   ]
   pruneopts = "UT"
-  revision = "950ef44c6e079baf075030377d90bf0c7e4b7b7a"
+  revision = "0f29369cfe4552d0e4bcddc57cc75f4d7e672a33"
 
 [[projects]]
   branch = "master"
-  digest = "1:76a8f15384d51164875fe295559d2e5a8180d67312bb040d0509b5b1114c0267"
+  digest = "1:e456eadc3fc18795bdaf836c3a8f25d678cfdd52a5164cf1d3a64ffe23b8df1a"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
+  revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
 
 [[projects]]
   digest = "1:5f1559c4cee44069f81517430ebba19589869f3d4d4648213a4d5ddd199b11d8"
@@ -536,7 +536,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "c2c4e71fbf6989c3e46a18d65cb88c288f8a3a55"
+  revision = "fb225487d10142b5bcc35abfc6cb9a0609614976"
 
 [[projects]]
   digest = "1:fb14eea3295593eafee101f514dfdf68c9fdc36516ddebdc5785ce295409a251"

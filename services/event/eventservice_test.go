@@ -66,6 +66,7 @@ func TestAddGet(t *testing.T) {
 	groupOne := "eventaddgetgroup1"
 	orgTwo := "eventaddget2"
 	groupTwo := "eventaddgetgroup2"
+	groupThree := "eventaddgetgroup3"
 
 	auth := amtest.MockEmptyAuthorizer()
 
@@ -91,6 +92,8 @@ func TestAddGet(t *testing.T) {
 
 	groupOneID := amtest.CreateScanGroup(db, orgOne, groupOne, t)
 	groupTwoID := amtest.CreateScanGroup(db, orgTwo, groupTwo, t)
+	groupThreeID := amtest.CreateScanGroup(db, orgTwo, groupThree, t)
+
 	userOneContext := amtest.CreateUserContext(orgOneID, userOneID)
 	userTwoContext := amtest.CreateUserContext(orgTwoID, userTwoID)
 
@@ -177,6 +180,35 @@ func TestAddGet(t *testing.T) {
 	for _, e := range returned {
 		t.Logf("%#v\n", e)
 	}
+
+	eventsThree := makeEvents(orgTwoID, groupThreeID, now)
+	if err := service.Add(ctx, userTwoContext, eventsThree); err != nil {
+		t.Fatalf("error adding events new 2: %v\n", err)
+	}
+	returned, err = service.Get(ctx, userTwoContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events: %v\n", err)
+	}
+	// should get 6 since we didn't filter on group
+	if len(returned) != 6 {
+		t.Fatalf("expected 6 results got %v\n", len(returned))
+	}
+	for _, e := range returned {
+		t.Logf("%#v\n", e)
+	}
+	groupFilter := &am.FilterType{}
+	groupFilter.AddInt32(am.FilterEventGroupID, int32(groupThreeID))
+	returned, err = service.Get(ctx, userTwoContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: groupFilter})
+	if err != nil {
+		t.Fatalf("error getting events: %v\n", err)
+	}
+	// should get 3 since we filtered on group
+	if len(returned) != 3 {
+		t.Fatalf("expected 3 results got %v\n", len(returned))
+	}
+	for _, e := range returned {
+		t.Logf("%#v\n", e)
+	}
 }
 
 func makeEvents(orgID, groupID int, now time.Time) []*am.Event {
@@ -257,6 +289,17 @@ func TestNotifyComplete(t *testing.T) {
 		}
 	}
 
+	// only this host should be found, since multiwebdata will create hosts that will exist < end of start scan time.
+	newWebHost := amtest.CreateWebData(addr, "new.website.com", "1.1.1.1")
+	newWebHost.DetectedTech = map[string]*am.WebTech{"AngularJS": &am.WebTech{
+		Matched:  "1.5.3",
+		Version:  "1.5.3",
+		Location: "script",
+	}}
+	if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
+		t.Fatalf("error adding single new host webdata for notify complete")
+	}
+
 	settings := &am.UserEventSettings{
 		WeeklyReportSendDay: 0,
 		ShouldWeeklyEmail:   true,
@@ -284,6 +327,11 @@ func TestNotifyComplete(t *testing.T) {
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
+			&am.EventSubscriptions{
+				TypeID:              am.EventNewWebTech,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
 		},
 	}
 
@@ -293,7 +341,7 @@ func TestNotifyComplete(t *testing.T) {
 
 	err := service.NotifyComplete(ctx, userContext, now.UnixNano(), groupID)
 	if err != nil {
-		t.Fatalf("error notifying complete")
+		t.Fatalf("error notifying complete %#v", err)
 	}
 
 	returned, err := service.Get(ctx, userContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
@@ -301,12 +349,34 @@ func TestNotifyComplete(t *testing.T) {
 		t.Fatalf("error getting events: %v\n", err)
 	}
 
-	// should only get 1 since those are what we subscribed to
-	if len(returned) != 3 {
-		t.Fatalf("expected 1 results got %v\n", len(returned))
+	if len(returned) != 4 {
+		t.Fatalf("expected 4 results got %v\n", len(returned))
 	}
+
+	newSiteFound := false
+	newTechFound := false
 	for _, e := range returned {
 		t.Logf("%#v\n", e)
+		if e.TypeID == am.EventNewWebsite {
+			newSiteFound = true
+			if e.Data[0] != "http://new.website.com/" && e.Data[1] != "80" {
+				t.Fatalf("expected data to equal our new website, got %#v\n", e.Data)
+			}
+		}
+		if e.TypeID == am.EventNewWebTech {
+			newTechFound = true
+			if e.Data[2] != "AngularJS" {
+				t.Fatalf("expected data to equal our new AngularJS, got %#v\n", e.Data)
+			}
+		}
+	}
+
+	if !newTechFound {
+		t.Fatalf("failed to find new tech event")
+	}
+
+	if !newSiteFound {
+		t.Fatalf("failed to find new site event")
 	}
 
 	notificationIDs := make([]int64, len(returned)-1)

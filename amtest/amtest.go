@@ -588,6 +588,7 @@ func CreateMultiWebDataWithSub(address *am.ScanGroupAddress, host, ip string, to
 				ResponsePort:        80,
 				RequestedPort:       80,
 				SerializedDOMHash:   fmt.Sprintf("1234%d", i),
+				LoadURL:             fmt.Sprintf("http://%d.%s/", urlIndex, host),
 				SerializedDOMLink:   "s3:/1/2/3/4",
 				ResponseTimestamp:   time.Now().UnixNano(),
 				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),
