@@ -60,6 +60,18 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 	return addrClient
 }
 
+func MockWebDataService(orgID, groupID int) *mock.WebDataService {
+	webClient := &mock.WebDataService{}
+	webClient.InitFn = func(config []byte) error {
+		return nil
+	}
+
+	webClient.ArchiveFn = func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
+		return orgID, 0, nil
+	}
+	return webClient
+}
+
 func MockScanGroupService(orgID, groupID int) *mock.ScanGroupService {
 	sgClient := &mock.ScanGroupService{}
 	sgClient.GetFn = func(ctx context.Context, userContext am.UserContext, groupID int) (int, *am.ScanGroup, error) {

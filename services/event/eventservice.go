@@ -404,13 +404,6 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	}
 
 	defer tx.Rollback() // safe to call as no-op on success
-	newTechnologies, err := s.newTech(ctx, userContext, tx, startTime, groupID)
-	if err != nil {
-		serviceLog.Error().Err(err).Msg("failed to gather new tech events")
-	} else if newTechnologies != nil {
-		events = append(events, newTechnologies)
-	}
-	serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
 
 	newHosts, err := s.newHostnames(ctx, userContext, tx, startTime, groupID)
 	if err != nil {
@@ -430,6 +423,13 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	// diff websites
 
 	// test web tech
+	newTechnologies, err := s.newTech(ctx, userContext, tx, startTime, groupID)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather new tech events")
+	} else if newTechnologies != nil {
+		events = append(events, newTechnologies)
+	}
+	serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
 
 	// check certificates
 	expiringCerts, err := s.expiringCerts(ctx, userContext, tx, startTime, groupID)
@@ -439,15 +439,6 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	} else if expiringCerts != nil {
 		events = append(events, expiringCerts)
 	}
-	/*
-		newTechnologies, err := s.newTech(ctx, userContext, tx, startTime, groupID)
-		if err != nil {
-			serviceLog.Error().Err(err).Msg("failed to gather new tech events")
-		} else if newTechnologies != nil {
-			events = append(events, newTechnologies)
-		}
-		serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
-	*/
 
 	if err := tx.Commit(); err != nil {
 		if v, ok := err.(pgx.PgError); ok {

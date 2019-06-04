@@ -469,6 +469,17 @@ func TestPopulate(t *testing.T) {
 			}
 		}
 
+		// only this host should be found, since multiwebdata will create hosts that will exist < end of start scan time.
+		newWebHost := amtest.CreateWebData(addr, "new.website.com", "1.1.1.1")
+		newWebHost.DetectedTech = map[string]*am.WebTech{"AngularJS": &am.WebTech{
+			Matched:  "1.5.3",
+			Version:  "1.5.3",
+			Location: "script",
+		}}
+		if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
+			t.Fatalf("error adding single new host webdata for notify complete")
+		}
+
 		settings := &am.UserEventSettings{
 			WeeklyReportSendDay: 0,
 			ShouldWeeklyEmail:   true,
@@ -493,6 +504,11 @@ func TestPopulate(t *testing.T) {
 				},
 				&am.EventSubscriptions{
 					TypeID:              am.EventCertExpiring,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventNewWebTech,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
