@@ -176,9 +176,11 @@ func (s *Service) startGroup(details *pushDetails) {
 	}
 
 	// archive old data
+	archiveStart := time.Now()
 	if err := s.archive(ctx, details.userContext, details.scanGroupID); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to archive old data")
 	}
+	log.Ctx(ctx).Info().Float64("archive_time_seconds", time.Now().Sub(archiveStart).Seconds()).Msg("Archival process complete")
 
 	s.stopGroup(ctx, details.userContext, details.scanGroupID)
 	s.DecActiveGroups()

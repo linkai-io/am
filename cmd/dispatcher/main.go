@@ -58,10 +58,12 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
+	timeout := time.Minute * 30
+
 	state := initializers.State(&appConfig)
 	sgClient := initializers.SGClient()
-	addrClient := initializers.AddrClient()
-	webClient := initializers.WebDataClient()
+	addrClient := initializers.AddrClientWithTimeout(timeout)
+	webClient := initializers.WebDataClientWithTimeout(timeout)
 	eventClient := initializers.EventClient()
 	modules := initializers.Modules(state)
 
