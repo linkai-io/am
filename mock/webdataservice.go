@@ -85,5 +85,5 @@ func (c *WebDataService) GroupStats(ctx context.Context, userContext am.UserCont
 
 func (c *WebDataService) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
 	c.ArchiveInvoked = true
-	return c.Archive(ctx, userContext, group, archiveTime)
+	return c.ArchiveFn(ctx, userContext, group, archiveTime)
 }

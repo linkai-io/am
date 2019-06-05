@@ -87,6 +87,10 @@ func main() {
 		return orgID, nil
 	}
 
+	webdataClient.ArchiveFn = func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
+		return orgID, 0, nil
+	}
+
 	webModule := web.New(browsers, webdataClient, dc, webstate, webstorage)
 	if err := webModule.Init(); err != nil {
 		log.Fatalf("failed to init web module: %v\n", err)
@@ -97,7 +101,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	disState := mockDispatcherState(wg)
 
-	dispatcher := dispatcher.New(sgClient, eventClient, addrClient, modules, disState)
+	dispatcher := dispatcher.New(sgClient, eventClient, addrClient, webdataClient, modules, disState)
 	dispatcher.Init(nil)
 
 	userContext := amtest.CreateUserContext(orgID, userID)
@@ -122,6 +126,10 @@ func mockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 	addrClient.UpdateFn = func(ctx context.Context, userContext am.UserContext, addrs map[string]*am.ScanGroupAddress) (int, int, error) {
 		log.Printf("adding %d addresses\n", len(addrs))
 		return orgID, len(addrs), nil
+	}
+
+	addrClient.ArchiveFn = func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
+		return orgID, 0, nil
 	}
 	return addrClient
 }

@@ -736,7 +736,7 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 
 // Archive records for a group.
 func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (oid int, count int, err error) {
-	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "update") {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "update") {
 		return 0, 0, am.ErrUserNotAuthorized
 	}
 

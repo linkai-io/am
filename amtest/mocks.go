@@ -57,6 +57,11 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 		log.Printf("adding %d addresses\n", len(addrs))
 		return orgID, len(addrs), nil
 	}
+
+	addrClient.ArchiveFn = func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
+		return orgID, 0, nil
+	}
+
 	return addrClient
 }
 

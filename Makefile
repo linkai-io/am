@@ -1,7 +1,7 @@
 ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice eventservice
 BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice eventservice
 MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
-APP_ENV = prod
+APP_ENV = dev
 build:
 	go build -v ./...
 
@@ -162,4 +162,4 @@ test:
 	go test ./... -cover
 
 infratest:
-	INFRA_TESTS=yes go test ./... -cover
+	INFRA_TESTS=yes go test ./... -cover -v

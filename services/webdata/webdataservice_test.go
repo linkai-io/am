@@ -863,7 +863,7 @@ func TestArchive(t *testing.T) {
 
 	ctx := context.Background()
 	service, org := initOrg("webarchive", "webarchive", t)
-	defer amtest.DeleteOrg(org.DB, org.OrgName, t)
+	//defer amtest.DeleteOrg(org.DB, org.OrgName, t)
 
 	address := amtest.CreateScanGroupAddress(org.DB, org.OrgID, org.GroupID, t)
 	webData := amtest.CreateMultiWebDataWithSub(address, "example.com", "93.184.216.34", 100)
