@@ -452,26 +452,46 @@ func buildURLListFilterQuery(userContext am.UserContext, filter *am.WebResponseF
 	withSql := fmt.Sprintf("WITH resp AS (%s) %s", pSql, aggSql)
 	//withArgs := append(pArgs, aggArgs)
 	return withSql, pArgs, nil
-	//return p.PlaceholderFormat(sq.Dollar).ToSql()
 }
 
 func buildDomainDependencies(userContext am.UserContext, filter *am.WebResponseFilter) (string, []interface{}, error) {
 	if filter.Start == 0 {
 		filter.Start = time.Now().Add(time.Hour).UnixNano()
 	}
-	p := sq.Select().
-		Columns("wb.organization_id", "wb.scan_group_id", "wb.load_host_address", "wb.host_address", "max(wb.url_request_timestamp)")
 
-	p = p.From("am.web_responses as wb").Where(sq.Eq{"wb.organization_id": filter.OrgID}).Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
+	// start high since we are using timestamp as index for start/limit
+	if filter.Start == 0 {
+		filter.Start = time.Now().Add(time.Hour).UnixNano()
+	}
+	with := sq.Select().Columns("wb.organization_id", "wb.scan_group_id", "wb.load_host_address", "wb.host_address", "wb.url_request_timestamp").
+		From("am.web_responses as wb").
+		Where(sq.Eq{"wb.organization_id": filter.OrgID}).
+		Where(sq.Eq{"wb.scan_group_id": filter.GroupID})
 
 	if val, ok := filter.Filters.Int64(am.FilterWebAfterURLRequestTime); ok && val != 0 {
-		p = p.Where(sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)})
+		with = with.Where(sq.Gt{"wb.url_request_timestamp": time.Unix(0, val)})
 	}
 
-	p = p.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)}).
-		GroupBy("wb.organization_id", "wb.scan_group_id", "wb.load_host_address", "wb.host_address").
-		OrderBy("max(wb.url_request_timestamp) desc").
+	with = with.Where(sq.Lt{"wb.url_request_timestamp": time.Unix(0, filter.Start)}).OrderBy("wb.url_request_timestamp desc")
+
+	p := sq.Select().Columns("resp.organization_id", "resp.scan_group_id", "resp.load_host_address", "resp.host_address", "max(resp.url_request_timestamp)").
+		From("resp").
+		GroupBy("resp.organization_id", "resp.scan_group_id", "resp.load_host_address", "resp.host_address").
+		OrderBy("max(resp.url_request_timestamp) desc").
 		Limit(uint64(filter.Limit))
 
-	return p.PlaceholderFormat(sq.Dollar).ToSql()
+	withSql, withArgs, err := with.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return "", nil, err
+	}
+	pSql, pArgs, err := p.ToSql()
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Hack because sq doesn't support WITH queries, .Prefix will prefix subqueries :<
+	// TODO: this won't allow parameters in the aggSql (since the placeholder count would be different)
+	finalSql, err := sq.Dollar.ReplacePlaceholders(fmt.Sprintf("WITH resp AS (%s) %s", withSql, pSql))
+	finalArgs := append(withArgs, pArgs...)
+	return finalSql, finalArgs, err
 }
