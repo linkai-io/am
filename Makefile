@@ -1,13 +1,14 @@
 ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice eventservice
 BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice eventservice
 MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
-APP_ENV = prod
+APP_ENV = dev
 build:
 	go build -v ./...
 
 protoc:
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/filtertype.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/user.proto
+	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/group.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/org.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/address.proto
 	protoc -I ../protorepo/protocservices/ --gofast_out=plugins=grpc:$$GOPATH/src ../protorepo/protocservices/prototypes/web.proto
@@ -161,4 +162,4 @@ test:
 	go test ./... -cover
 
 infratest:
-	INFRA_TESTS=yes go test ./... -cover
+	INFRA_TESTS=yes go test ./... -cover -v

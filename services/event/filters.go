@@ -49,7 +49,7 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.EventFilter) (st
 	p = p.Where(sq.Eq{"events.organization_id": userContext.GetOrgID()}).
 		Where(sq.Gt{"events.notification_id": filter.Start})
 
-	if val, ok := filter.Filters.Int32("group_id"); ok {
+	if val, ok := filter.Filters.Int32(am.FilterEventGroupID); ok {
 		p = p.Where(sq.Eq{"events.scan_group_id": val})
 	}
 

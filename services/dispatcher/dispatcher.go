@@ -49,6 +49,7 @@ type Service struct {
 	eventClient      am.EventService                    // used for notifying completion of scan groups
 	sgClient         am.ScanGroupService                // scangroup service connection
 	addressClient    am.AddressService                  // address service connection
+	webClient        am.WebDataService                  // webdata service connection
 	moduleClients    map[am.ModuleType]am.ModuleService // map of module service connections
 	state            state.Stater                       // state connection
 	pushCh           chan *pushDetails                  // channel for pushing groups
@@ -59,7 +60,7 @@ type Service struct {
 }
 
 // New for dispatching groups to be analyzed to the modules
-func New(sgClient am.ScanGroupService, eventClient am.EventService, addrClient am.AddressService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
+func New(sgClient am.ScanGroupService, eventClient am.EventService, addrClient am.AddressService, webClient am.WebDataService, modClients map[am.ModuleType]am.ModuleService, stater state.Stater) *Service {
 	return &Service{
 		defaultDuration: time.Duration(-30) * time.Minute,
 		groupCache:      cache.NewScanGroupSubscriber(context.Background(), stater),
@@ -67,6 +68,7 @@ func New(sgClient am.ScanGroupService, eventClient am.EventService, addrClient a
 		sgClient:        sgClient,
 		eventClient:     eventClient,
 		addressClient:   addrClient,
+		webClient:       webClient,
 		moduleClients:   modClients,
 		pushCh:          make(chan *pushDetails),
 		closeCh:         make(chan struct{}),
@@ -172,8 +174,36 @@ func (s *Service) startGroup(details *pushDetails) {
 	if err := s.eventClient.NotifyComplete(ctx, details.userContext, start.UnixNano(), details.scanGroupID); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to notify scan group complete")
 	}
+
+	// archive old data
+	archiveStart := time.Now()
+	if err := s.archive(ctx, details.userContext, details.scanGroupID); err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to archive old data")
+	}
+	log.Ctx(ctx).Info().Float64("archive_time_seconds", time.Now().Sub(archiveStart).Seconds()).Msg("Archival process complete")
+
 	s.stopGroup(ctx, details.userContext, details.scanGroupID)
 	s.DecActiveGroups()
+}
+
+func (s *Service) archive(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
+	var archiveErr error
+	_, group, err := s.sgClient.Get(ctx, userContext, scanGroupID)
+	if err != nil {
+		return err
+	}
+
+	archiveTime := time.Now()
+	if _, _, err = s.addressClient.Archive(ctx, userContext, group, archiveTime); err != nil {
+		archiveErr = err
+	}
+	// continue anyways if there's an error after addrclient.Archive
+
+	if _, _, err = s.webClient.Archive(ctx, userContext, group, archiveTime); err != nil {
+		archiveErr = err
+	}
+
+	return archiveErr
 }
 
 func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, scanGroupID int) {
@@ -196,7 +226,7 @@ func (s *Service) stopGroup(ctx context.Context, userContext am.UserContext, sca
 }
 
 // runGroup sets up the scan group batcher to push results to the address service, and extracts all
-// addresses that haven't been run for defaultDuration time (5 min). Those addresses are pushed
+// addresses that haven't been run for defaultDuration time (30 min for enterprise, 3h for medium, 12 for small). Those addresses are pushed
 // on to the cache state. After all addresses have been pushed, analyzeAddresses begins.
 func (s *Service) runGroup(ctx context.Context, details *pushDetails, start time.Time) {
 

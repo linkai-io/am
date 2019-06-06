@@ -363,7 +363,7 @@ func CreateScanGroup(p *pgx.ConnPool, orgName, groupName string, t *testing.T) i
 	orgID := GetOrgID(p, orgName, t)
 	userID := GetUserId(p, orgID, orgName, t)
 	//organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input, configuration
-	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, time.Now(), userID, time.Now(), userID, "s3://bucket/blah", nil).Scan(&groupID)
+	err := p.QueryRow(CreateScanGroupStmt, orgID, groupName, time.Now(), userID, time.Now(), userID, "s3://bucket/blah", CreateModuleConfig()).Scan(&groupID)
 	if err != nil {
 		t.Fatalf("error creating scan group: %s\n", err)
 	}
@@ -588,6 +588,7 @@ func CreateMultiWebDataWithSub(address *am.ScanGroupAddress, host, ip string, to
 				ResponsePort:        80,
 				RequestedPort:       80,
 				SerializedDOMHash:   fmt.Sprintf("1234%d", i),
+				LoadURL:             fmt.Sprintf("http://%d.%s/", urlIndex, host),
 				SerializedDOMLink:   "s3:/1/2/3/4",
 				ResponseTimestamp:   time.Now().UnixNano(),
 				URLRequestTimestamp: time.Now().Add(time.Hour * -time.Duration(groupIdx*24)).UnixNano(),

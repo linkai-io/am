@@ -2,6 +2,7 @@ package am
 
 import (
 	"context"
+	"time"
 )
 
 const (
@@ -247,4 +248,5 @@ type WebDataService interface {
 	GetCertificates(ctx context.Context, userContext UserContext, filter *WebCertificateFilter) (int, []*WebCertificate, error)
 	GetSnapshots(ctx context.Context, userContext UserContext, filter *WebSnapshotFilter) (int, []*WebSnapshot, error)
 	GetDomainDependency(ctx context.Context, userContext UserContext, filter *WebResponseFilter) (int, *WebDomainDependency, error)
+	Archive(ctx context.Context, userContext UserContext, group *ScanGroup, archiveTime time.Time) (int, int, error)
 }

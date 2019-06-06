@@ -19,11 +19,12 @@ func TestPushAddresses(t *testing.T) {
 	eventClient := amtest.MockEventService()
 	addrs := amtest.GenerateAddrs(1, 1, 1)
 	addrClient := amtest.MockAddressService(1, addrs)
+	webClient := amtest.MockWebDataService(1, 1)
 	modClients := mockModules(t)
 	wg := &sync.WaitGroup{}
 	groups := mockGroups(1, groupCount, t)
 	state := amtest.MockDispatcherState(wg, groups)
-	d := dispatcher.New(sgClient, eventClient, addrClient, modClients, state)
+	d := dispatcher.New(sgClient, eventClient, addrClient, webClient, modClients, state)
 	if err := d.Init(nil); err != nil {
 		t.Fatalf("error initializing dispatcher")
 	}

@@ -62,7 +62,7 @@
 
 [[constraint]]
   name = "github.com/jackc/pgx"
-  version = "3.3.0"
+  version = "3.4.0"
 
 [[constraint]]
   name = "github.com/miekg/dns"

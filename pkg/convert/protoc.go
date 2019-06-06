@@ -3,7 +3,6 @@ package convert
 import (
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/protocservices/prototypes"
-	"github.com/linkai-io/am/protocservices/scangroup"
 )
 
 // DomainToUser convert domain user type to protobuf user type
@@ -21,6 +20,7 @@ func DomainToUser(in *am.User) *prototypes.User {
 		Deleted:                    in.Deleted,
 		AgreementAccepted:          in.AgreementAccepted,
 		AgreementAcceptedTimestamp: in.AgreementAcceptedTimestamp,
+		LastLoginTimestamp:         in.LastLoginTimestamp,
 	}
 }
 
@@ -39,6 +39,7 @@ func UserToDomain(in *prototypes.User) *am.User {
 		Deleted:                    in.Deleted,
 		AgreementAccepted:          in.AgreementAccepted,
 		AgreementAcceptedTimestamp: in.AgreementAcceptedTimestamp,
+		LastLoginTimestamp:         in.LastLoginTimestamp,
 	}
 }
 
@@ -266,7 +267,7 @@ func DomainToAddressFilter(in *am.ScanGroupAddressFilter) *prototypes.AddressFil
 }
 
 // ModuleToDomain converts protoc ModuleConfiguration to am.ModuleConfiguration
-func ModuleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
+func ModuleToDomain(in *prototypes.ModuleConfiguration) *am.ModuleConfiguration {
 	return &am.ModuleConfiguration{
 		NSModule: &am.NSModuleConfig{
 			RequestsPerSecond: in.NSConfig.RequestsPerSecond,
@@ -293,35 +294,35 @@ func ModuleToDomain(in *scangroup.ModuleConfiguration) *am.ModuleConfiguration {
 	}
 }
 
-func DomainToModule(in *am.ModuleConfiguration) *scangroup.ModuleConfiguration {
-	return &scangroup.ModuleConfiguration{
-		NSConfig: &scangroup.NSModuleConfig{
+func DomainToModule(in *am.ModuleConfiguration) *prototypes.ModuleConfiguration {
+	return &prototypes.ModuleConfiguration{
+		NSConfig: &prototypes.NSModuleConfig{
 			RequestsPerSecond: in.NSModule.RequestsPerSecond,
 		},
-		BruteConfig: &scangroup.BruteModuleConfig{
+		BruteConfig: &prototypes.BruteModuleConfig{
 			RequestsPerSecond: in.BruteModule.RequestsPerSecond,
 			CustomSubNames:    in.BruteModule.CustomSubNames,
 			MaxDepth:          in.BruteModule.MaxDepth,
 		},
-		PortConfig: &scangroup.PortModuleConfig{
+		PortConfig: &prototypes.PortModuleConfig{
 			RequestsPerSecond: in.PortModule.RequestsPerSecond,
 			CustomPorts:       in.PortModule.CustomPorts,
 		},
-		WebModuleConfig: &scangroup.WebModuleConfig{
+		WebModuleConfig: &prototypes.WebModuleConfig{
 			RequestsPerSecond:     in.WebModule.RequestsPerSecond,
 			TakeScreenShots:       in.WebModule.TakeScreenShots,
 			MaxLinks:              in.WebModule.MaxLinks,
 			ExtractJS:             in.WebModule.ExtractJS,
 			FingerprintFrameworks: in.WebModule.FingerprintFrameworks,
 		},
-		KeywordModuleConfig: &scangroup.KeywordModuleConfig{
+		KeywordModuleConfig: &prototypes.KeywordModuleConfig{
 			Keywords: in.KeywordModule.Keywords,
 		},
 	}
 }
 
 // ScanGroupToDomain convert protoc group to domain type ScanGroup
-func ScanGroupToDomain(in *scangroup.Group) *am.ScanGroup {
+func ScanGroupToDomain(in *prototypes.Group) *am.ScanGroup {
 	return &am.ScanGroup{
 		OrgID:                int(in.OrgID),
 		GroupID:              int(in.GroupID),
@@ -336,12 +337,14 @@ func ScanGroupToDomain(in *scangroup.Group) *am.ScanGroup {
 		ModuleConfigurations: ModuleToDomain(in.ModuleConfiguration),
 		Paused:               in.Paused,
 		Deleted:              in.Deleted,
+		LastPausedTime:       in.LastPausedTime,
+		ArchiveAfterDays:     in.ArchiveAfterDays,
 	}
 }
 
 // DomainToScanGroup convert domain type SdcanGroup to protoc Group
-func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
-	return &scangroup.Group{
+func DomainToScanGroup(in *am.ScanGroup) *prototypes.Group {
+	return &prototypes.Group{
 		OrgID:               int32(in.OrgID),
 		GroupID:             int32(in.GroupID),
 		GroupName:           in.GroupName,
@@ -355,23 +358,25 @@ func DomainToScanGroup(in *am.ScanGroup) *scangroup.Group {
 		ModuleConfiguration: DomainToModule(in.ModuleConfigurations),
 		Paused:              in.Paused,
 		Deleted:             in.Deleted,
+		LastPausedTime:      in.LastPausedTime,
+		ArchiveAfterDays:    in.ArchiveAfterDays,
 	}
 }
 
-func DomainToScanGroupFilter(in *am.ScanGroupFilter) *scangroup.ScanGroupFilter {
-	return &scangroup.ScanGroupFilter{
+func DomainToScanGroupFilter(in *am.ScanGroupFilter) *prototypes.ScanGroupFilter {
+	return &prototypes.ScanGroupFilter{
 		Filters: DomainToFilterTypes(in.Filters),
 	}
 }
 
-func ScanGroupFilterToDomain(in *scangroup.ScanGroupFilter) *am.ScanGroupFilter {
+func ScanGroupFilterToDomain(in *prototypes.ScanGroupFilter) *am.ScanGroupFilter {
 	return &am.ScanGroupFilter{
 		Filters: FilterTypesToDomain(in.Filters),
 	}
 }
 
-func DomainToGroupStats(in *am.GroupStats) *scangroup.GroupStats {
-	return &scangroup.GroupStats{
+func DomainToGroupStats(in *am.GroupStats) *prototypes.GroupStats {
+	return &prototypes.GroupStats{
 		OrgID:           int32(in.OrgID),
 		GroupID:         int32(in.GroupID),
 		ActiveAddresses: in.ActiveAddresses,
@@ -382,15 +387,15 @@ func DomainToGroupStats(in *am.GroupStats) *scangroup.GroupStats {
 	}
 }
 
-func DomainToGroupsStats(in map[int]*am.GroupStats) map[int32]*scangroup.GroupStats {
-	stats := make(map[int32]*scangroup.GroupStats, len(in))
+func DomainToGroupsStats(in map[int]*am.GroupStats) map[int32]*prototypes.GroupStats {
+	stats := make(map[int32]*prototypes.GroupStats, len(in))
 	for groupID, stat := range in {
 		stats[int32(groupID)] = DomainToGroupStats(stat)
 	}
 	return stats
 }
 
-func GroupStatsToDomain(in *scangroup.GroupStats) *am.GroupStats {
+func GroupStatsToDomain(in *prototypes.GroupStats) *am.GroupStats {
 	return &am.GroupStats{
 		OrgID:           int(in.OrgID),
 		GroupID:         int(in.GroupID),
@@ -402,7 +407,7 @@ func GroupStatsToDomain(in *scangroup.GroupStats) *am.GroupStats {
 	}
 }
 
-func GroupsStatsToDomain(in map[int32]*scangroup.GroupStats) map[int]*am.GroupStats {
+func GroupsStatsToDomain(in map[int32]*prototypes.GroupStats) map[int]*am.GroupStats {
 	stats := make(map[int]*am.GroupStats, len(in))
 	for groupID, stat := range in {
 		stats[int(groupID)] = GroupStatsToDomain(stat)

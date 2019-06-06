@@ -2,6 +2,7 @@ package protoc
 
 import (
 	"errors"
+	"time"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/convert"
@@ -137,4 +138,14 @@ func (s *AddressProtocService) GroupStats(ctx context.Context, in *address.Group
 		return nil, err
 	}
 	return &address.GroupStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupAddressStats(groupStats)}, nil
+}
+
+func (s *AddressProtocService) Archive(ctx context.Context, in *address.ArchiveAddressesRequest) (*address.AddressesArchivedResponse, error) {
+	s.reporter.Increment(1)
+	oid, count, err := s.as.Archive(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.ScanGroup), time.Unix(0, in.ArchiveTime))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.AddressesArchivedResponse{OrgID: int32(oid), Count: int32(count)}, nil
 }

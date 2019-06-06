@@ -131,7 +131,7 @@ func State(appConfig *AppConfig) *redis.State {
 	}
 
 	err = retrier.RetryUntil(func() error {
-		log.Info().Str("addr", addr).Msg("attempting to connect to redis")
+		log.Info().Str("addr", addr).Str("service", appConfig.ServiceKey).Msg("attempting to connect to redis")
 		return redisState.Init(addr, pass)
 	}, time.Minute*1, time.Second*3)
 
@@ -197,6 +197,20 @@ func AddrClient() am.AddressService {
 	return addrClient
 }
 
+// AddrClientWithTimeout connects to the address service with specified timeout for all calls
+func AddrClientWithTimeout(timeout time.Duration) am.AddressService {
+	addrClient := address.New()
+	addrClient.SetTimeout(timeout)
+	err := retrier.RetryUntil(func() error {
+		return addrClient.Init(nil)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to address server")
+	}
+	return addrClient
+}
+
 // EventClient connects to the address service
 func EventClient() am.EventService {
 	eventClient := event.New()
@@ -228,6 +242,21 @@ func CoordClient() am.CoordinatorService {
 // WebDataClient connects to the webdata service
 func WebDataClient() am.WebDataService {
 	webDataClient := webdata.New()
+
+	err := retrier.RetryUntil(func() error {
+		return webDataClient.Init(nil)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting to webdata server")
+	}
+	return webDataClient
+}
+
+// WebDataClient connects to the webdata service with specified timeout for all calls
+func WebDataClientWithTimeout(timeout time.Duration) am.WebDataService {
+	webDataClient := webdata.New()
+	webDataClient.SetTimeout(timeout)
 
 	err := retrier.RetryUntil(func() error {
 		return webDataClient.Init(nil)

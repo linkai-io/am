@@ -144,12 +144,14 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 	user = &am.User{}
 	var createTime time.Time
 	var agreeTime time.Time
-	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime)
+	var lastLogin time.Time
+	err = row.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID, &createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime, &lastLogin)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
 	user.CreationTime = createTime.UnixNano()
 	user.AgreementAcceptedTimestamp = agreeTime.UnixNano()
+	user.LastLoginTimestamp = lastLogin.UnixNano()
 	return user.OrgID, user, err
 }
 
@@ -197,11 +199,12 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	for i := 0; rows.Next(); i++ {
 		var createTime time.Time
 		var agreeTime time.Time
+		var lastLogin time.Time
 
 		user := &am.User{}
 
 		if err := rows.Scan(&user.OrgID, &user.UserID, &user.UserCID, &user.UserEmail, &user.FirstName, &user.LastName, &user.StatusID,
-			&createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime); err != nil {
+			&createTime, &user.Deleted, &user.AgreementAccepted, &agreeTime, &lastLogin); err != nil {
 			return 0, nil, err
 		}
 
@@ -210,6 +213,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 		}
 		user.CreationTime = createTime.UnixNano()
 		user.AgreementAcceptedTimestamp = agreeTime.UnixNano()
+		user.LastLoginTimestamp = lastLogin.UnixNano()
 		users = append(users, user)
 	}
 
@@ -323,7 +327,12 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, user *
 		userStatusID = user.StatusID
 	}
 
-	row := tx.QueryRow("userUpdate", userCID, email, fname, lname, userStatusID, userContext.GetOrgID(), userID)
+	lastLogin := current.LastLoginTimestamp
+	if user.LastLoginTimestamp != 0 && user.LastLoginTimestamp != current.LastLoginTimestamp {
+		lastLogin = user.LastLoginTimestamp
+	}
+
+	row := tx.QueryRow("userUpdate", userCID, email, fname, lname, userStatusID, time.Unix(0, lastLogin), userContext.GetOrgID(), userID)
 	if err := row.Scan(&oid, &uid); err != nil {
 		return 0, 0, err
 	}

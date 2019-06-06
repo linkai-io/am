@@ -906,6 +906,114 @@ func TestGetAddressFilters(t *testing.T) {
 	}
 }
 
+func TestArchive(t *testing.T) {
+	ctx := context.Background()
+
+	orgName := "addressarchive"
+	groupName := "addressarchive"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	//defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	addresses := make(map[string]*am.ScanGroupAddress, 0)
+	now := time.Now()
+	for i := 0; i < 100; i++ {
+		host := fmt.Sprintf("%d.example.com", i)
+		ip := fmt.Sprintf("192.168.1.%d", i)
+
+		a := &am.ScanGroupAddress{
+			OrgID:               orgID,
+			GroupID:             groupID,
+			HostAddress:         host,
+			IPAddress:           ip,
+			AddressHash:         convert.HashAddress(ip, host),
+			DiscoveryTime:       now.Add(time.Hour * time.Duration(-i*2)).UnixNano(),
+			DiscoveredBy:        "ns_query_ip_to_name",
+			LastScannedTime:     now.Add(time.Hour * time.Duration(-i)).UnixNano(),
+			LastSeenTime:        now.Add(time.Hour * time.Duration(-i*2)).UnixNano(),
+			ConfidenceScore:     float32(i),
+			UserConfidenceScore: float32(i),
+			IsSOA:               false,
+			IsWildcardZone:      false,
+			IsHostedService:     false,
+			Ignored:             false,
+			NSRecord:            int32(i),
+		}
+
+		addresses[a.AddressHash] = a
+	}
+
+	_, _, err := service.Update(ctx, userContext, addresses)
+	if err != nil {
+		t.Fatalf("error adding addresses: %v\n", err)
+	}
+	filter := &am.ScanGroupAddressFilter{
+		OrgID:   orgID,
+		GroupID: groupID,
+		Start:   0,
+		Limit:   100,
+		Filters: &am.FilterType{},
+	}
+	filter.Filters.AddInt64(am.FilterBeforeSeenTime, time.Now().Add(time.Hour*-(24*5)).UnixNano())
+
+	_, returned, err := service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses %v\n", err)
+	}
+
+	t.Logf("COUNT: %d\n", len(returned))
+	if len(returned) == 0 {
+		t.Fatalf("no addreses to archive")
+	}
+
+	group := &am.ScanGroup{
+		OrgID:                orgID,
+		GroupID:              groupID,
+		GroupName:            groupName,
+		CreationTime:         time.Now().UnixNano(),
+		CreatedBy:            "test",
+		CreatedByID:          userContext.GetUserID(),
+		ModifiedBy:           "test",
+		ModifiedByID:         userContext.GetUserID(),
+		ModifiedTime:         time.Now().UnixNano(),
+		OriginalInputS3URL:   "s3://empty",
+		ModuleConfigurations: amtest.CreateModuleConfig(),
+		Paused:               false,
+		Deleted:              false,
+		LastPausedTime:       0,
+		ArchiveAfterDays:     5,
+	}
+
+	_, _, err = service.Archive(ctx, userContext, group, time.Now())
+	if err != nil {
+		t.Fatalf("error archiving addresses: %v\n", err)
+	}
+
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses after archive %v\n", err)
+	}
+
+	if len(returned) != 0 {
+		t.Fatalf("expected 0 after archive, got: %d\n", len(returned))
+	}
+}
+
 func TestOrgStats(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")

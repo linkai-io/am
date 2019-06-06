@@ -2,6 +2,7 @@ package protoc
 
 import (
 	"context"
+	"time"
 
 	"github.com/linkai-io/am/pkg/convert"
 	"github.com/linkai-io/am/pkg/metrics/load"
@@ -103,4 +104,14 @@ func (s *WebDataProtocService) GroupStats(ctx context.Context, in *webdata.Group
 		return nil, err
 	}
 	return &webdata.GroupStatsResponse{OrgID: int32(oid), GroupStats: convert.DomainToScanGroupWebDataStats(groupStats)}, nil
+}
+
+func (s *WebDataProtocService) Archive(ctx context.Context, in *webdata.ArchiveWebRequest) (*webdata.WebArchivedResponse, error) {
+	s.reporter.Increment(1)
+	oid, count, err := s.wds.Archive(ctx, convert.UserContextToDomain(in.UserContext), convert.ScanGroupToDomain(in.ScanGroup), time.Unix(0, in.ArchiveTime))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &webdata.WebArchivedResponse{OrgID: int32(oid), Count: int32(count)}, nil
 }

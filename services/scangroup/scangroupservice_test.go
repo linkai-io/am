@@ -138,6 +138,7 @@ func TestCreate(t *testing.T) {
 	returned.ModifiedTime = time.Now().UnixNano()
 	returned.GroupName = "modified group"
 	returned.ModuleConfigurations = &am.ModuleConfiguration{NSModule: &am.NSModuleConfig{RequestsPerSecond: 50}}
+	returned.ArchiveAfterDays = 3
 	t.Logf("%#v\n", returned)
 
 	_, ugid, err := service.Update(ctx, userContext, returned)
@@ -165,6 +166,10 @@ func TestCreate(t *testing.T) {
 
 	if mod.ModuleConfigurations == nil || mod.ModuleConfigurations.NSModule == nil || mod.ModuleConfigurations.NSModule.RequestsPerSecond != 50 {
 		t.Fatalf("module configurations was not returned properly: %#v\n", mod.ModuleConfigurations)
+	}
+
+	if mod.ArchiveAfterDays != 3 {
+		t.Fatalf("archive after days failed to update %v", mod.ArchiveAfterDays)
 	}
 }
 
@@ -464,6 +469,11 @@ func TestPauseResume(t *testing.T) {
 		t.Fatalf("scan group was not paused: %v\n", paused.Paused)
 	}
 
+	pausedTime := paused.LastPausedTime
+	if pausedTime < time.Now().Add(time.Second*5).UnixNano() && pausedTime > time.Now().Add(time.Hour).UnixNano() {
+		t.Fatalf("last paused time was not updated %s", time.Unix(0, pausedTime))
+	}
+
 	_, gid, err = service.Resume(ctx, userContext, gid)
 	if err != nil {
 		t.Fatalf("error resuming group: %s\n", err)
@@ -477,6 +487,7 @@ func TestPauseResume(t *testing.T) {
 	if resumed.Paused == true {
 		t.Fatalf("scan group was not resumed: %v\n", resumed.Paused)
 	}
+
 }
 
 func TestGroupStats(t *testing.T) {
@@ -617,6 +628,7 @@ func testCreateNewGroup(orgID, userID int, groupName string) *am.ScanGroup {
 		ModifiedByID:         userID,
 		ModuleConfigurations: &am.ModuleConfiguration{},
 		OriginalInputS3URL:   "s3://blah/bucket",
+		ArchiveAfterDays:     5,
 	}
 
 	return group

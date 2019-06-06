@@ -58,13 +58,16 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
 
+	timeout := time.Minute * 30
+
 	state := initializers.State(&appConfig)
 	sgClient := initializers.SGClient()
-	addrClient := initializers.AddrClient()
+	addrClient := initializers.AddrClientWithTimeout(timeout)
+	webClient := initializers.WebDataClientWithTimeout(timeout)
 	eventClient := initializers.EventClient()
 	modules := initializers.Modules(state)
 
-	service := dispatcher.New(sgClient, eventClient, addrClient, modules, state)
+	service := dispatcher.New(sgClient, eventClient, addrClient, webClient, modules, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

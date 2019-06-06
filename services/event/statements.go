@@ -21,26 +21,50 @@ var queryMap = map[string]string{
 		should_weekly_email=EXCLUDED.should_weekly_email,
 		should_daily_email=EXCLUDED.should_daily_email`, sharedSettingColumns),
 
-	"newHostnames": `select sga.host_address from 
-		(select min(discovered_timestamp) as discovered_timestamp, host_address from am.scan_group_addresses 
-			where organization_id=$1 and scan_group_id=$2 and 
-			(confidence_score=100 or user_confidence_score=100) and
+	"newHostnames": `select latest.host_address from am.scan_group_addresses as latest 
+		where organization_id=$1 and scan_group_id=$2 and (confidence_score=100 or user_confidence_score=100) and
+		deleted=false and
+		ignored=false and discovered_timestamp >= $3
+		and not exists (
+		select sga.host_address from am.scan_group_addresses as sga
+			where sga.discovered_timestamp <= $3 and
+			organization_id=$1 and scan_group_id=$2 and (confidence_score=100 or user_confidence_score=100) and
 			deleted=false and
-			ignored=false
-			group by host_address) as uniq
-		join am.scan_group_addresses as sga on sga.discovered_timestamp=uniq.discovered_timestamp 
-			where sga.discovered_timestamp >= $3 and 
-			organization_id=$4 and 
-			scan_group_id=$5 group by sga.host_address`,
-	"newWebsites": `select ws.url,ws.response_port from
-		(select min(response_timestamp) as response_timestamp, url, response_port from am.web_snapshots 
-			where organization_id=$1 and scan_group_id=$2 and 
-			deleted=false
-			group by url,response_port) as uniq
-		join am.web_snapshots as ws on ws.response_timestamp=uniq.response_timestamp
-			where ws.response_timestamp >= $3 and
-			organization_id=$4 and
-			scan_group_id=$5 group by ws.url, ws.response_port`,
+			ignored=false group by sga.host_address
+		)
+		group by latest.host_address`,
+
+	"newWebsites": `select latest.load_url, latest.response_port from am.web_snapshots as latest
+		where deleted=false and organization_id=$1 and scan_group_id=$2	and url_request_timestamp >= $3
+		and not exists (
+			select load_url, response_port from am.web_snapshots as ws 
+			where ws.url_request_timestamp <= $3 and ws.organization_id=$1 and ws.scan_group_id=$2 and 
+			latest.load_url=ws.load_url and latest.response_port=ws.response_port 
+			group by ws.load_url, ws.response_port
+		)
+		group by latest.load_url,latest.response_port;`,
+
+	"newTechnologies": `with prev_tech as (
+		select ws.load_url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
+		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
+		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
+		where ws.organization_id=$1 and ws.scan_group_id=$2 
+		and	ws.url_request_timestamp <= $3 
+		group by ws.load_url, ws.response_port, wtt.techname, t.version
+	),
+	new_tech as (
+		select ws.load_url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
+		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
+		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
+		where ws.organization_id=$1 and ws.scan_group_id=$2
+		and ws.url_request_timestamp > $3 
+		group by ws.load_url, ws.response_port, wtt.techname, t.version
+	)
+	select new_tech.load_url, new_tech.response_port, new_tech.techname, new_tech.version from new_tech where not exists (
+		select prev_tech.load_url, prev_tech.techname,prev_tech.version from prev_tech where 
+		new_tech.load_url=prev_tech.load_url and new_tech.response_port=prev_tech.response_port and new_tech.techname=prev_tech.techname and new_tech.version=prev_tech.version
+	)`,
+
 	"webHashChanged": `select 
 		wf.response_timestamp, 
 		wf.url, 

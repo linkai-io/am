@@ -556,7 +556,6 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, webData *
 		logger.Warn().Err(err).Msg("failed to insert snapshot, serialized dom and detected tech")
 	}
 
-	logger.Info().Int64("url_request_timestamp", webData.URLRequestTimestamp).Msg("adding responses for webData")
 	orgID, err := s.addResponses(ctx, userContext, logger, webData)
 	if err != nil {
 		return 0, err
@@ -732,4 +731,48 @@ func (s *Service) buildRows(logger zerolog.Logger, webData *am.WebData) ([][]int
 	}
 
 	return responseRows, certificateRows
+}
+
+// Archive records for a group.
+func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (oid int, count int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNWebData, "update") {
+		return 0, 0, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("call", "WebDataService.Archive").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	// double check group pause time
+	days := time.Hour * time.Duration(24*group.ArchiveAfterDays)
+	archiveBefore := archiveTime.Add(-days)
+	pauseTime := time.Unix(0, group.LastPausedTime)
+	// if the group has been paused we should archive records that match before pausedTime - days
+	if pauseTime.After(archiveBefore) {
+		archiveBefore = pauseTime.Add(-days)
+	}
+	serviceLog.Info().Time("archive_before", archiveBefore).Msg("Archiving records that match filter before")
+	// run query against addresses
+	tx, err := s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	log.Info().Msgf("QUERY: %s\n", queryMap["archiveWeb"])
+	log.Info().Msgf("ARGS: %v %v %v\n", userContext.GetOrgID(), group.GroupID, archiveBefore)
+	_, err = tx.ExecEx(ctx, "archiveWeb", &pgx.QueryExOptions{}, userContext.GetOrgID(), group.GroupID, archiveBefore)
+	if err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, 0, errors.Wrap(v, "failed to archive address ports")
+		}
+		return 0, 0, err
+	}
+
+	err = tx.Commit()
+	// report how many were archived
+	return userContext.GetOrgID(), 0, err
 }

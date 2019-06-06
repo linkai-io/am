@@ -32,6 +32,7 @@ type User struct {
 	Deleted                    bool   `json:"deleted"`
 	AgreementAccepted          bool   `json:"agreement_accepted"`
 	AgreementAcceptedTimestamp int64  `json:"agreement_accepted_timestamp"`
+	LastLoginTimestamp         int64  `json:"last_login_timestamp"`
 }
 
 // UserContext interface for passing contextual data about a request for tracking & auth
