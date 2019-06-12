@@ -72,7 +72,7 @@ var (
 		snapshot_link,
 		deleted,
 		load_url,
-		url_request_timestamp`
+		url_request_timestamp`  // does not include 'updated' field at end
 
 	// do json_agg as opposed to array_agg so nulls aren't horrible to deal with
 	techColumns = `json_agg(wtt.category) as category, 
@@ -103,12 +103,14 @@ var queryMap = map[string]string{
 			and organization_id=$1
 			group by scan_group_id`,
 
-	"insertSnapshot": `insert into am.web_snapshots (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, 
-			requested_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted, load_url, url_request_timestamp)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, $14, $15) 
+	"insertSnapshot": `insert into am.web_snapshots as ws (organization_id, scan_group_id, address_hash, host_address, ip_address, scheme, response_port, 
+			requested_port, url, response_timestamp, serialized_dom_hash, serialized_dom_link, snapshot_link, deleted, load_url, url_request_timestamp, updated)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false, $14, $15, false) 
 		on conflict (organization_id, scan_group_id, address_hash, serialized_dom_hash, response_port) do update set
 			response_timestamp=EXCLUDED.response_timestamp,
-			url_request_timestamp=EXCLUDED.url_request_timestamp
+			previous_url_timestamp=ws.url_request_timestamp,
+			url_request_timestamp=EXCLUDED.url_request_timestamp,
+			updated=true
 			returning snapshot_id`,
 
 	"insertWebTech": `insert into am.web_technologies (snapshot_id, organization_id, scan_group_id, techtype_id, matched_text, match_location, version)
@@ -137,9 +139,9 @@ var queryMap = map[string]string{
 		insert into am.web_responses_archive select %s,archive_time.archived_timestamp from delete_resp,archive_time
 	),
 	delete_snaps as (
-		delete from am.web_snapshots where organization_id=$1 and scan_group_id=$2 and url_request_timestamp < $3 returning %s
+		delete from am.web_snapshots where organization_id=$1 and scan_group_id=$2 and url_request_timestamp < $3 returning %s,previous_url_timestamp, updated
 	)
-	insert into am.web_snapshots_archive select %s,archive_time.archived_timestamp from delete_snaps,archive_time
+	insert into am.web_snapshots_archive select %s,archive_time.archived_timestamp,previous_url_timestamp, updated from delete_snaps,archive_time
 	`, prefix(defaultTechColumns, "wt"), defaultTechColumns, defaultResponseColumns, defaultResponseColumns, defaultSnapshotColumns, defaultSnapshotColumns),
 }
 
