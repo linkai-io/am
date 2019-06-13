@@ -35,10 +35,14 @@ var queryMap = map[string]string{
 		group by latest.host_address`,
 
 	"newWebsites": `select latest.load_url, latest.response_port from am.web_snapshots as latest
-		where deleted=false and organization_id=$1 and scan_group_id=$2	and url_request_timestamp >= $3
+		where deleted=false and 
+		updated=false and 
+		organization_id=$1 and 
+		scan_group_id=$2 and 
+		url_request_timestamp >= $3
 		and not exists (
 			select load_url, response_port from am.web_snapshots as ws 
-			where ws.url_request_timestamp <= $3 and ws.organization_id=$1 and ws.scan_group_id=$2 and 
+			where ws.url_request_timestamp < $3 and ws.organization_id=$1 and ws.scan_group_id=$2 and 
 			latest.load_url=ws.load_url and latest.response_port=ws.response_port 
 			group by ws.load_url, ws.response_port
 		)
@@ -49,7 +53,7 @@ var queryMap = map[string]string{
 		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
 		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
 		where ws.organization_id=$1 and ws.scan_group_id=$2 
-		and	ws.url_request_timestamp <= $3 
+		and	ws.url_request_timestamp < $3 
 		group by ws.load_url, ws.response_port, wtt.techname, t.version
 	),
 	new_tech as (
@@ -57,13 +61,21 @@ var queryMap = map[string]string{
 		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
 		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
 		where ws.organization_id=$1 and ws.scan_group_id=$2
-		and ws.url_request_timestamp > $3 
+		and ws.url_request_timestamp >= $3 
+		and t.updated<>true
 		group by ws.load_url, ws.response_port, wtt.techname, t.version
 	)
 	select new_tech.load_url, new_tech.response_port, new_tech.techname, new_tech.version from new_tech where not exists (
 		select prev_tech.load_url, prev_tech.techname,prev_tech.version from prev_tech where 
 		new_tech.load_url=prev_tech.load_url and new_tech.response_port=prev_tech.response_port and new_tech.techname=prev_tech.techname and new_tech.version=prev_tech.version
 	)`,
+
+	"checkCertExpiration": `select subject_name, port, valid_to from am.web_certificates 
+		where (TIMESTAMPTZ 'epoch' + valid_to * '1 second'::interval) 
+		between now() and now() + interval '30 days'
+		and organization_id=$1
+		and scan_group_id=$2
+		and response_timestamp>=$3`,
 
 	"webHashChanged": `select 
 		wf.response_timestamp, 
@@ -84,12 +96,6 @@ var queryMap = map[string]string{
 				scan_group_id=$2
 			order by host_address,response_port,response_timestamp desc) as wf
 		where row_number<=1;`,
-	"checkCertExpiration": `select subject_name, port, valid_to from am.web_certificates 
-		where (TIMESTAMPTZ 'epoch' + valid_to * '1 second'::interval) 
-		between now() and now() + interval '30 days'
-		and organization_id=$1
-		and scan_group_id=$2
-		and response_timestamp>=$3`,
 }
 
 var (
