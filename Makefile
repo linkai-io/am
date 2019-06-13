@@ -162,4 +162,4 @@ test:
 	go test ./... -cover
 
 infratest:
-	INFRA_TESTS=yes go test ./... -cover -v
+	INFRA_TESTS=yes go test ./... -cover

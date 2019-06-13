@@ -399,6 +399,50 @@ func TestNotifyComplete(t *testing.T) {
 	if len(returned) != 1 {
 		t.Fatalf("error events returned after mark read should be 1 got: %d\n", len(returned))
 	}
+
+	if err := service.MarkRead(ctx, userContext, []int64{returned[0].NotificationID}); err != nil {
+		t.Fatalf("error marking notifications as read: %v\n", err)
+	}
+
+	returned, err = service.Get(ctx, userContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events after mark read: %v\n", err)
+	}
+
+	if len(returned) != 0 {
+		t.Fatalf("error events returned after mark read should be 0 got: %d\n", len(returned))
+	}
+
+	// Test re-adding the same 'new' host from before, changing nothing so we should no longer have any new events
+	now = time.Now() // update time
+	newWebHost = amtest.CreateWebData(addr, "new.website.com", "1.1.1.1")
+	newWebHost.DetectedTech = map[string]*am.WebTech{"AngularJS": &am.WebTech{
+		Matched:  "1.5.3",
+		Version:  "1.5.3",
+		Location: "script",
+	}}
+	if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
+		t.Fatalf("error adding single new host webdata for notify complete")
+	}
+
+	err = service.NotifyComplete(ctx, userContext, now.UnixNano(), groupID)
+	if err != nil {
+		t.Fatalf("error notifying complete %#v", err)
+	}
+
+	certonly, err := service.Get(ctx, userContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events: %v\n", err)
+	}
+
+	if len(certonly) != 1 {
+		t.Fatalf("expected 1 results got %v\n", len(certonly))
+	}
+
+	if certonly[0].TypeID != am.EventCertExpiring {
+		t.Fatalf("expecting 1 event of cert expiring (%d), got %d\n", am.EventCertExpired, certonly[0].TypeID)
+	}
+
 }
 
 func TestDeletePopulated(t *testing.T) {

@@ -113,11 +113,12 @@ var queryMap = map[string]string{
 			updated=true
 			returning snapshot_id`,
 
-	"insertWebTech": `insert into am.web_technologies (snapshot_id, organization_id, scan_group_id, techtype_id, matched_text, match_location, version)
-		(select $1, $2, $3, techtype_id, $4, $5, $6 from am.web_techtypes where techname=$7) on conflict (snapshot_id,techtype_id,match_location) do update set
+	"insertWebTech": `insert into am.web_technologies as wt (snapshot_id, organization_id, scan_group_id, techtype_id, matched_text, match_location, version, updated)
+		(select $1, $2, $3, techtype_id, $4, $5, $6, false from am.web_techtypes where techname=$7) on conflict (snapshot_id,techtype_id,match_location) do update set
 			matched_text=EXCLUDED.matched_text,
 			match_location=EXCLUDED.match_location,
-			version=EXCLUDED.version`,
+			version=EXCLUDED.version,
+			updated=true`,
 
 	"archiveWeb": fmt.Sprintf(`with archive_time as (
 		select now() as archived_timestamp
