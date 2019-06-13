@@ -419,7 +419,6 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	} else if newWebsites != nil {
 		events = append(events, newWebsites)
 	}
-	serviceLog.Info().Msgf("new newWebsites: %#v\n", newWebsites)
 	// diff websites
 
 	// test web tech
@@ -429,7 +428,6 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	} else if newTechnologies != nil {
 		events = append(events, newTechnologies)
 	}
-	serviceLog.Info().Msgf("new technologies: %#v\n", newTechnologies)
 
 	// check certificates
 	expiringCerts, err := s.expiringCerts(ctx, userContext, tx, startTime, groupID)
