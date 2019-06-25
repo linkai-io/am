@@ -3,6 +3,8 @@ package portscan
 import (
 	"context"
 
+	"github.com/linkai-io/am/pkg/cache"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/services/module"
@@ -19,29 +21,47 @@ const (
 // PortScanner will port scan all 100% confidence hosts (and if ip only, IPs)
 type PortScanner struct {
 	dc          *dnsclient.Client
+	groupCache  *cache.ScanGroupCache
 	exitContext context.Context
 	cancel      context.CancelFunc
 }
 
-// New brute force module
+// New port scanner module
 func New(dc *dnsclient.Client) *PortScanner {
 	ctx, cancel := context.WithCancel(context.Background())
-	b := &PortScanner{exitContext: ctx, cancel: cancel}
-	b.dc = dc
-	return b
+	return &PortScanner{exitContext: ctx, cancel: cancel, dc: dc, groupCache: cache.NewScanGroupCache()}
 }
 
-// Init the brute forcer with the initial input subdomain list
+// Init the port scanner
 func (p *PortScanner) Init(config []byte) error {
 
 	return nil
 }
 
-// Analyze will attempt port scan
-func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
-	ctx = module.DefaultLogger(ctx, userContext, address)
+// AddGroup on start of a group analysis (before any addresses come in)
+func (p *PortScanner) AddGroup(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
+	key := p.groupCache.MakeGroupKey(group.OrgID, group.GroupID)
+	p.groupCache.Put(key, group)
+	return nil
+}
 
-	return address, nil
+// RemoveGroup on end of group analysis
+func (p *PortScanner) RemoveGroup(ctx context.Context, userContext am.UserContext, orgID, groupID int) error {
+	key := p.groupCache.MakeGroupKey(orgID, groupID)
+	p.groupCache.Clear(key)
+	return nil
+}
+
+// Analyze will attempt port scan
+func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, *am.PortResults, error) {
+	ctx = module.DefaultLogger(ctx, userContext, address)
+	var group *am.ScanGroup
+
+	if group = p.groupCache.GetByIDs(address.OrgID, address.GroupID); group == nil {
+		log.Ctx(ctx).Warn().Err(am.ErrScanGroupNotExists).Msg("unable to find group id in cache, returning")
+		return nil, nil, am.ErrScanGroupNotExists
+	}
+	return address, nil, nil
 }
 
 // shouldAnalyze determines if we should analyze the specific address or not. Updates address.IsWildcardZone

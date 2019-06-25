@@ -176,6 +176,72 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 	}
 }
 
+func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
+	ports := &am.Ports{Current: &am.PortData{}, Previous: &am.PortData{}}
+	if in.Ports != nil && in.Ports.Current != nil {
+		ports.Current = &am.PortData{
+			IPAddress:  in.Ports.Current.IPAddress,
+			TCPPorts:   in.Ports.Current.TCPPorts,
+			UDPPorts:   in.Ports.Current.UDPPorts,
+			TCPBanners: in.Ports.Current.TCPBanners,
+			UDPBanners: in.Ports.Current.UDPBanners,
+		}
+	}
+
+	if in.Ports != nil && in.Ports.Previous != nil {
+		ports.Previous = &am.PortData{
+			IPAddress:  in.Ports.Previous.IPAddress,
+			TCPPorts:   in.Ports.Previous.TCPPorts,
+			UDPPorts:   in.Ports.Previous.UDPPorts,
+			TCPBanners: in.Ports.Previous.TCPBanners,
+			UDPBanners: in.Ports.Previous.UDPBanners,
+		}
+	}
+
+	return &am.PortResults{
+		PortID:                   in.PortID,
+		OrgID:                    int(in.OrgID),
+		GroupID:                  int(in.GroupID),
+		HostAddress:              in.HostAddress,
+		Ports:                    ports,
+		ScannedTimestamp:         0,
+		PreviousScannedTimestamp: 0,
+	}
+}
+
+func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
+	ports := &prototypes.Ports{Current: &prototypes.PortData{}, Previous: &prototypes.PortData{}}
+	if in.Ports != nil && in.Ports.Current != nil {
+		ports.Current = &prototypes.PortData{
+			IPAddress:  in.Ports.Current.IPAddress,
+			TCPPorts:   in.Ports.Current.TCPPorts,
+			UDPPorts:   in.Ports.Current.UDPPorts,
+			TCPBanners: in.Ports.Current.TCPBanners,
+			UDPBanners: in.Ports.Current.UDPBanners,
+		}
+	}
+
+	if in.Ports != nil && in.Ports.Previous != nil {
+		ports.Previous = &prototypes.PortData{
+			IPAddress:  in.Ports.Previous.IPAddress,
+			TCPPorts:   in.Ports.Previous.TCPPorts,
+			UDPPorts:   in.Ports.Previous.UDPPorts,
+			TCPBanners: in.Ports.Previous.TCPBanners,
+			UDPBanners: in.Ports.Previous.UDPBanners,
+		}
+	}
+
+	return &prototypes.PortResults{
+		PortID:                   in.PortID,
+		OrgID:                    int32(in.OrgID),
+		GroupID:                  int32(in.GroupID),
+		HostAddress:              in.HostAddress,
+		Ports:                    ports,
+		ScannedTimestamp:         0,
+		PreviousScannedTimestamp: 0,
+	}
+}
+
 func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 	return &am.ScanGroupAddress{
 		AddressID:           in.AddressID,
@@ -197,6 +263,8 @@ func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 		NSRecord:            in.NSRecord,
 		AddressHash:         in.AddressHash,
 		Deleted:             in.Deleted,
+		PortScanEnabled:     in.PortScanEnabled,
+		PortScanOverrideTLD: in.PortScanOverrideTLD,
 	}
 }
 
@@ -221,6 +289,8 @@ func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
 		FoundFrom:           in.FoundFrom,
 		NSRecord:            in.NSRecord,
 		AddressHash:         in.AddressHash,
+		PortScanEnabled:     in.PortScanEnabled,
+		PortScanOverrideTLD: in.PortScanOverrideTLD,
 	}
 }
 
