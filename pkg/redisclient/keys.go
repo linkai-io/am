@@ -76,12 +76,41 @@ func (r *RedisKeys) BigDataZone(zone string) string {
 	return r.configFmt + ":module:bigdata:zones:" + zone
 }
 
+// PortZone key for determining if we should do a port scan for this hostname/ip
+func (r *RedisKeys) PortZone(zone string) string {
+	return r.configFmt + ":module:port:zones:" + zone
+}
+
 func (r *RedisKeys) PortConfig() string {
 	return r.configFmt + ":module:port:config"
 }
 
 func (r *RedisKeys) PortConfigPorts() string {
 	return r.PortConfig() + ":custom_ports"
+}
+
+func (r *RedisKeys) PortConfigTCPPorts() string {
+	return r.PortConfig() + ":tcp_ports"
+}
+
+func (r *RedisKeys) PortConfigUDPPorts() string {
+	return r.PortConfig() + ":udp_ports"
+}
+
+func (r *RedisKeys) PortConfigAllowedTLDs() string {
+	return r.PortConfig() + ":allowed_tlds"
+}
+
+func (r *RedisKeys) PortConfigAllowedHosts() string {
+	return r.PortConfig() + ":allowed_hosts"
+}
+
+func (r *RedisKeys) PortConfigDisallowedTLDs() string {
+	return r.PortConfig() + ":disallowed_tlds"
+}
+
+func (r *RedisKeys) PortConfigDisallowedHosts() string {
+	return r.PortConfig() + ":disallowed_hosts"
 }
 
 func (r *RedisKeys) WebConfig() string {

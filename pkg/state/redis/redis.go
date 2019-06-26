@@ -138,6 +138,84 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 		}
 	}
 
+	// put tcp ports
+	if len(port.TCPPorts) != 0 {
+		portArgs := make([]interface{}, len(port.TCPPorts)+1)
+		portArgs[0] = keys.PortConfigTCPPorts()
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = port.TCPPorts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	// put udp ports
+	if len(port.UDPPorts) != 0 {
+		portArgs := make([]interface{}, len(port.UDPPorts)+1)
+		portArgs[0] = keys.PortConfigUDPPorts()
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = port.UDPPorts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	// put allowed TLDs
+	if len(port.AllowedTLDs) != 0 {
+		args := make([]interface{}, len(port.AllowedTLDs)+1)
+		args[0] = keys.PortConfigAllowedTLDs()
+		for i := 1; i < len(args); i++ {
+			args[i] = port.AllowedTLDs[i-1]
+		}
+
+		if err := conn.Send("LPUSH", args...); err != nil {
+			return err
+		}
+	}
+
+	// put allowed hosts
+	if len(port.AllowedHosts) != 0 {
+		args := make([]interface{}, len(port.AllowedHosts)+1)
+		args[0] = keys.PortConfigAllowedHosts()
+		for i := 1; i < len(args); i++ {
+			args[i] = port.AllowedHosts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", args...); err != nil {
+			return err
+		}
+	}
+
+	// put disallowed TLDs
+	if len(port.DisallowedTLDs) != 0 {
+		args := make([]interface{}, len(port.DisallowedTLDs)+1)
+		args[0] = keys.PortConfigDisallowedTLDs()
+		for i := 1; i < len(args); i++ {
+			args[i] = port.DisallowedTLDs[i-1]
+		}
+
+		if err := conn.Send("LPUSH", args...); err != nil {
+			return err
+		}
+	}
+
+	// put disallowed hosts
+	if len(port.DisallowedHosts) != 0 {
+		args := make([]interface{}, len(port.DisallowedHosts)+1)
+		args[0] = keys.PortConfigDisallowedHosts()
+		for i := 1; i < len(args); i++ {
+			args[i] = port.DisallowedHosts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", args...); err != nil {
+			return err
+		}
+	}
+
 	// put web config
 	web := group.ModuleConfigurations.WebModule
 	if err := conn.Send("HMSET", redis.Args{keys.WebConfig()}.AddFlat(web)...); err != nil {
@@ -248,6 +326,50 @@ func (s *State) getModules(keys *redisclient.RedisKeys, conn redis.Conn) (*am.Mo
 	for i := 0; i < len(ports); i++ {
 		port.CustomPorts[i] = int32(ports[i])
 	}
+
+	tcpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortConfigTCPPorts(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+
+	port.TCPPorts = make([]int32, len(tcpPorts))
+	for i := 0; i < len(tcpPorts); i++ {
+		port.TCPPorts[i] = int32(tcpPorts[i])
+	}
+
+	udpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortConfigUDPPorts(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+
+	port.UDPPorts = make([]int32, len(udpPorts))
+	for i := 0; i < len(udpPorts); i++ {
+		port.UDPPorts[i] = int32(udpPorts[i])
+	}
+
+	allowedTLDs, err := redis.Strings(conn.Do("LRANGE", keys.PortConfigAllowedTLDs(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	port.AllowedTLDs = allowedTLDs
+
+	allowedHosts, err := redis.Strings(conn.Do("LRANGE", keys.PortConfigAllowedHosts(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	port.AllowedHosts = allowedHosts
+
+	disallowedTLDs, err := redis.Strings(conn.Do("LRANGE", keys.PortConfigDisallowedTLDs(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	port.DisallowedTLDs = disallowedTLDs
+
+	disallowedHosts, err := redis.Strings(conn.Do("LRANGE", keys.PortConfigDisallowedHosts(), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	port.DisallowedHosts = disallowedHosts
 
 	// Web Module
 	value, err = redis.Values(conn.Do("HGETALL", keys.WebConfig()))
@@ -614,6 +736,14 @@ func (s *State) DoCTDomain(ctx context.Context, orgID, scanGroupID int, expireSe
 	// create redis keys for this org/group
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.BigDataZone(zone), zone)
+}
+
+// DoPortZone org:group:":module:port:zones:<zonename> sets the zone as already being checked or, if it already exists
+// return that we shouldn't port scan this zone.
+func (s *State) DoPortZone(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+	// create redis keys for this org/group
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.PortZone(zone), zone)
 }
 
 // Sets and checks if a value exists in a key. If it already exists, we don't need to do whatever 'key's work is, as

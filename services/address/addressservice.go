@@ -72,6 +72,7 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
+			log.Error().Err(err).Str("key", k).Msg("failed to init key")
 			return err
 		}
 	}
@@ -197,7 +198,6 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 	for i := 0; rows.Next(); i++ {
 		h := &am.ScanGroupHostList{}
 		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs); err != nil {
-
 			return 0, nil, err
 		}
 
@@ -562,4 +562,47 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 	err = tx.Commit()
 	// report how many were archived
 	return userContext.GetOrgID(), 0, err
+}
+
+// UpdateHostPorts saves new port scan results
+func (s *Service) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "update") {
+		return 0, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("call", "AddressService.UpdateHostPorts").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	tx, err := s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if address != nil {
+		a := address
+		// TODO: FIX HERE ARGUMENT ORDER INCORRECT.
+		if _, err := tx.ExecEx(ctx, "insertPortHost", &pgx.QueryExOptions{}, int32(a.OrgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
+			time.Unix(0, a.DiscoveryTime), a.DiscoveredBy, time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime), a.ConfidenceScore, a.UserConfidenceScore,
+			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash); err != nil {
+			if v, ok := err.(pgx.PgError); ok {
+				return 0, errors.Wrap(v, "failed to insert host from portscan")
+			}
+			return 0, err
+		}
+	}
+
+	portResults.Ports.Previous = &am.PortData{} // nil it out so we don't add garbage to the table
+	if _, err := tx.ExecEx(ctx, "updateHostPorts", &pgx.QueryExOptions{}, userContext.GetOrgID(), portResults.GroupID, portResults.HostAddress, portResults.Ports, time.Unix(0, portResults.ScannedTimestamp)); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to insert ports")
+		}
+		return 0, err
+	}
+	err = tx.Commit()
+	return oid, err
 }

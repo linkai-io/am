@@ -12,7 +12,7 @@ type PortData struct {
 
 type Ports struct {
 	Current  *PortData `json:"current"`
-	Previous *PortData `json:"previous"`
+	Previous *PortData `json:"previous,omitempty"`
 }
 
 type PortResults struct {

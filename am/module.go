@@ -76,8 +76,15 @@ type BruteModuleConfig struct {
 
 // PortModuleConfig for simple port scanning module
 type PortModuleConfig struct {
-	RequestsPerSecond int32   `json:"requests_per_second"`
-	CustomPorts       []int32 `json:"custom_ports" redis:"-"`
+	RequestsPerSecond int32    `json:"requests_per_second"`
+	PortScanEnabled   bool     `json:"port_scan_enabled"`
+	CustomPorts       []int32  `json:"custom_ports" redis:"-"`
+	TCPPorts          []int32  `json:"tcp_ports" redis:"-"`
+	UDPPorts          []int32  `json:"udp_ports" redis:"-"`
+	AllowedTLDs       []string `json:"allowed_tlds" redis:"-"`
+	AllowedHosts      []string `json:"allowed_hosts" redis:"-"`
+	DisallowedTLDs    []string `json:"disallowed_tlds" redis:"-"`
+	DisallowedHosts   []string `json:"disallowed_hosts" redis:"-"`
 }
 
 // WebModuleConfig for web related analysis module

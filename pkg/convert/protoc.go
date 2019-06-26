@@ -121,6 +121,7 @@ func DomainToOrganization(in *am.Organization) *prototypes.Org {
 		LimitHostsReached:          in.LimitHostsReached,
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
+		PortScanEnabled:            in.PortScanEnabled,
 	}
 }
 
@@ -156,6 +157,7 @@ func OrganizationToDomain(in *prototypes.Org) *am.Organization {
 		LimitHostsReached:          in.LimitHostsReached,
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
+		PortScanEnabled:            in.PortScanEnabled,
 	}
 }
 
@@ -263,8 +265,6 @@ func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 		NSRecord:            in.NSRecord,
 		AddressHash:         in.AddressHash,
 		Deleted:             in.Deleted,
-		PortScanEnabled:     in.PortScanEnabled,
-		PortScanOverrideTLD: in.PortScanOverrideTLD,
 	}
 }
 
@@ -289,8 +289,6 @@ func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
 		FoundFrom:           in.FoundFrom,
 		NSRecord:            in.NSRecord,
 		AddressHash:         in.AddressHash,
-		PortScanEnabled:     in.PortScanEnabled,
-		PortScanOverrideTLD: in.PortScanOverrideTLD,
 	}
 }
 
@@ -349,7 +347,14 @@ func ModuleToDomain(in *prototypes.ModuleConfiguration) *am.ModuleConfiguration 
 		},
 		PortModule: &am.PortModuleConfig{
 			RequestsPerSecond: in.PortConfig.RequestsPerSecond,
+			PortScanEnabled:   in.PortConfig.PortScanEnabled,
 			CustomPorts:       in.PortConfig.CustomPorts,
+			TCPPorts:          in.PortConfig.TCPPorts,
+			UDPPorts:          in.PortConfig.UDPPorts,
+			AllowedTLDs:       in.PortConfig.AllowedTLDs,
+			AllowedHosts:      in.PortConfig.AllowedHosts,
+			DisallowedTLDs:    in.PortConfig.DisallowedTLDs,
+			DisallowedHosts:   in.PortConfig.DisallowedHosts,
 		},
 		WebModule: &am.WebModuleConfig{
 			RequestsPerSecond:     in.WebModuleConfig.RequestsPerSecond,
@@ -376,7 +381,14 @@ func DomainToModule(in *am.ModuleConfiguration) *prototypes.ModuleConfiguration 
 		},
 		PortConfig: &prototypes.PortModuleConfig{
 			RequestsPerSecond: in.PortModule.RequestsPerSecond,
+			PortScanEnabled:   in.PortModule.PortScanEnabled,
 			CustomPorts:       in.PortModule.CustomPorts,
+			TCPPorts:          in.PortModule.TCPPorts,
+			UDPPorts:          in.PortModule.UDPPorts,
+			AllowedTLDs:       in.PortModule.AllowedTLDs,
+			AllowedHosts:      in.PortModule.AllowedHosts,
+			DisallowedTLDs:    in.PortModule.DisallowedTLDs,
+			DisallowedHosts:   in.PortModule.DisallowedHosts,
 		},
 		WebModuleConfig: &prototypes.WebModuleConfig{
 			RequestsPerSecond:     in.WebModule.RequestsPerSecond,

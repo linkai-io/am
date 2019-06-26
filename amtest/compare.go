@@ -294,8 +294,36 @@ func TestCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {
 		t.Fatalf("KeywordModule expected %v got %v\n", e.KeywordModule.Keywords, r.KeywordModule.Keywords)
 	}
 
+	if e.PortModule.PortScanEnabled != r.PortModule.PortScanEnabled {
+		t.Fatalf("PortModule.PortScanEnabled expected %v got %v\n", e.PortModule.PortScanEnabled, r.PortModule.PortScanEnabled)
+	}
+
 	if !SortEqualInt32(e.PortModule.CustomPorts, r.PortModule.CustomPorts, t) {
 		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomPorts, r.PortModule.CustomPorts)
+	}
+
+	if !SortEqualInt32(e.PortModule.TCPPorts, r.PortModule.TCPPorts, t) {
+		t.Fatalf("PortModule.TCPPorts expected %v got %v\n", e.PortModule.TCPPorts, r.PortModule.TCPPorts)
+	}
+
+	if !SortEqualInt32(e.PortModule.UDPPorts, r.PortModule.UDPPorts, t) {
+		t.Fatalf("PortModule.UDPPorts expected %v got %v\n", e.PortModule.UDPPorts, r.PortModule.UDPPorts)
+	}
+
+	if !SortEqualString(e.PortModule.AllowedTLDs, r.PortModule.AllowedTLDs, t) {
+		t.Fatalf("PortModule.AllowedTLDs expected %v got %v\n", e.PortModule.AllowedTLDs, r.PortModule.AllowedTLDs)
+	}
+
+	if !SortEqualString(e.PortModule.AllowedHosts, r.PortModule.AllowedHosts, t) {
+		t.Fatalf("PortModule.AllowedHosts expected %v got %v\n", e.PortModule.AllowedHosts, r.PortModule.AllowedHosts)
+	}
+
+	if !SortEqualString(e.PortModule.DisallowedTLDs, r.PortModule.DisallowedTLDs, t) {
+		t.Fatalf("PortModule.DisallowedTLDs expected %v got %v\n", e.PortModule.DisallowedTLDs, r.PortModule.DisallowedTLDs)
+	}
+
+	if !SortEqualString(e.PortModule.DisallowedHosts, r.PortModule.DisallowedHosts, t) {
+		t.Fatalf("PortModule.DisallowedHosts expected %v got %v\n", e.PortModule.DisallowedHosts, r.PortModule.DisallowedHosts)
 	}
 
 	if e.WebModule.ExtractJS != r.WebModule.ExtractJS {

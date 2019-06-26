@@ -1268,3 +1268,101 @@ func TestPopulateData(t *testing.T) {
 		t.Fatalf("error adding addresses: %v\n", err)
 	}
 }
+
+func TestUpdateHostPorts(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "updatehostports"
+	groupName := "updatehostportsgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+	amtest.DeleteOrg(db, orgName, t)
+
+	amtest.CreateSmallOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	now := time.Now().UnixNano()
+
+	ip := "192.168.1.1"
+	host := "1.example.com"
+	hash := convert.HashAddress(ip, host)
+	address := &am.ScanGroupAddress{
+		OrgID:               orgID,
+		GroupID:             groupID,
+		HostAddress:         host,
+		IPAddress:           ip,
+		AddressHash:         hash,
+		DiscoveryTime:       now,
+		DiscoveredBy:        "input_list",
+		LastScannedTime:     0,
+		LastSeenTime:        0,
+		ConfidenceScore:     100,
+		UserConfidenceScore: 0.0,
+		IsSOA:               false,
+		IsWildcardZone:      false,
+		IsHostedService:     false,
+		Ignored:             false,
+	}
+
+	portResults := &am.PortResults{
+		OrgID:       orgID,
+		GroupID:     groupID,
+		HostAddress: host,
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  ip,
+				TCPPorts:   []int32{21, 22},
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+			Previous: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   nil,
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         time.Now().Add(-time.Hour).UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
+	portResults.ScannedTimestamp = time.Now().UnixNano()
+	portResults.Ports.Current.TCPPorts = []int32{22}
+	portResults.Ports.Current.UDPPorts = []int32{500}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
+	portResults.ScannedTimestamp = time.Now().UnixNano()
+	portResults.Ports.Current.TCPPorts = []int32{21}
+	portResults.Ports.Current.UDPPorts = []int32{500, 1194}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
+}

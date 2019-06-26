@@ -209,6 +209,32 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 	return int(resp.GetOrgID()), int(resp.GetCount()), nil
 }
 
+func (c *Client) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+	var resp *service.UpdateHostPortsResponse
+
+	in := &service.UpdateHostPortsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Address:     convert.DomainToAddress(address),
+		PortResult:  convert.DomainToPortResults(portResults),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.UpdateHostPorts(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update hostports from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(resp.GetOrgID()), nil
+}
+
 func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
 	var resp *service.CountAddressesResponse
 

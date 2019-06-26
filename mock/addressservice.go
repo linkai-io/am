@@ -37,6 +37,9 @@ type AddressService struct {
 
 	ArchiveFn      func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error)
 	ArchiveInvoked bool
+
+	UpdateHostPortsFn      func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error)
+	UpdateHostPortsInvoked bool
 }
 
 func (c *AddressService) Init(config []byte) error {
@@ -86,4 +89,9 @@ func (c *AddressService) GroupStats(ctx context.Context, userContext am.UserCont
 func (c *AddressService) Archive(ctx context.Context, userContext am.UserContext, group *am.ScanGroup, archiveTime time.Time) (int, int, error) {
 	c.ArchiveInvoked = true
 	return c.ArchiveFn(ctx, userContext, group, archiveTime)
+}
+
+func (c *AddressService) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+	c.UpdateHostPortsInvoked = true
+	return c.UpdateHostPortsFn(ctx, userContext, address, portResults)
 }

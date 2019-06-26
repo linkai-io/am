@@ -184,8 +184,25 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	customSubNames := []string{"sub1", "sub2"}
 	m.BruteModule = &am.BruteModuleConfig{CustomSubNames: customSubNames, RequestsPerSecond: 10, MaxDepth: 2}
 	customPorts := []int32{1, 2}
+	tcpPorts := []int32{21, 22, 23, 25, 53, 80, 135, 139, 443, 445, 1443, 1723, 3306, 3389, 5432, 5900, 6379, 8000, 8080, 8443, 8500, 9500, 27017}
+	udpPorts := []int32{500, 1194}
+	allowedTLDs := []string{"example.com"}
+	disallowedTLDs := []string{"blah.com"}
+	allowedHosts := []string{"scanme.blah.com"}
+	disallowedHosts := []string{"noportscan.example.com"}
+
 	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 10}
-	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 10, CustomPorts: customPorts}
+	m.PortModule = &am.PortModuleConfig{
+		RequestsPerSecond: 10,
+		PortScanEnabled:   false,
+		CustomPorts:       customPorts,
+		TCPPorts:          tcpPorts,
+		UDPPorts:          udpPorts,
+		AllowedTLDs:       allowedTLDs,
+		AllowedHosts:      allowedHosts,
+		DisallowedTLDs:    disallowedTLDs,
+		DisallowedHosts:   disallowedHosts,
+	}
 	m.WebModule = &am.WebModuleConfig{MaxLinks: 10, TakeScreenShots: true, ExtractJS: true, FingerprintFrameworks: true}
 	m.KeywordModule = &am.KeywordModuleConfig{Keywords: []string{"company"}}
 	return m

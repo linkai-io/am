@@ -149,3 +149,16 @@ func (s *AddressProtocService) Archive(ctx context.Context, in *address.ArchiveA
 	}
 	return &address.AddressesArchivedResponse{OrgID: int32(oid), Count: int32(count)}, nil
 }
+
+func (s *AddressProtocService) UpdateHostPorts(ctx context.Context, in *address.UpdateHostPortsRequest) (*address.UpdateHostPortsResponse, error) {
+	var oid int
+	var err error
+
+	s.reporter.Increment(1)
+	oid, err = s.as.UpdateHostPorts(ctx, convert.UserContextToDomain(in.UserContext), convert.AddressToDomain(in.Address), convert.PortResultsToDomain(in.PortResult))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.UpdateHostPortsResponse{OrgID: int32(oid)}, nil
+}

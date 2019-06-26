@@ -97,8 +97,6 @@ type ScanGroupAddress struct {
 	NSRecord            int32   `json:"ns_record"`
 	AddressHash         string  `json:"address_hash"`
 	Deleted             bool    `json:"deleted"`
-	PortScanEnabled     bool    `json:"port_scan_enabled"`
-	PortScanOverrideTLD bool    `json:"port_scan_override_tld"`
 }
 
 type ScanGroupHostList struct {
