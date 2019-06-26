@@ -51,7 +51,7 @@ func init() {
 func main() {
 	browserCount := 5
 	if appConfig.Env == "prod" {
-		browserCount = 8
+		browserCount = 12
 	}
 	var err error
 
