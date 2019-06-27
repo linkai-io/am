@@ -16,13 +16,13 @@ type Ports struct {
 }
 
 type PortResults struct {
-	PortID                   int64  `json:"port_id"`
-	OrgID                    int    `json:"org_id"`
-	GroupID                  int    `json:"group_id"`
-	HostAddress              string `json:"host_address"` // could be IP address if hostname is empty from ScanGroupAddress
-	Ports                    *Ports `json:"port_data"`
-	ScannedTimestamp         int64  `json:"scanned_timestamp"`
-	PreviousScannedTimestamp int64  `json:"previous_scanned_timestamp"`
+	PortID                   int64  `json:"port_id,omitempty"`
+	OrgID                    int    `json:"org_id,omitempty"`
+	GroupID                  int    `json:"group_id,omitempty"`
+	HostAddress              string `json:"host_address,omitempty"` // could be IP address if hostname is empty from ScanGroupAddress
+	Ports                    *Ports `json:"port_data,omitempty"`
+	ScannedTimestamp         int64  `json:"scanned_timestamp,omitempty"`
+	PreviousScannedTimestamp int64  `json:"previous_scanned_timestamp,omitempty"`
 }
 
 type PortScannerService interface {

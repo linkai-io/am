@@ -75,6 +75,8 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			top.host_address, 
 			array_agg(arr.ip_address) as addresses, 
 			array_agg(arr.address_id) as address_ids,
+			ports.scanned_timestamp,
+			ports.previous_scanned_timestamp,
 			ports.port_data 
 		from am.scan_group_addresses as top 
 			left join am.scan_group_addresses as arr on top.address_id=arr.address_id 
@@ -84,7 +86,9 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			and top.deleted=false
 			and top.ignored=false
 			and (top.confidence_score=100 or top.user_confidence_score=100)
-			and top.host_address > $3 group by top.organization_id, top.scan_group_id, top.host_address, ports.port_data order by top.host_address limit $4;`,
+			and top.host_address > $3 
+			group by top.organization_id, top.scan_group_id, top.host_address, ports.scanned_timestamp,
+			ports.previous_scanned_timestamp, ports.port_data order by top.host_address limit $4;`,
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
 
@@ -108,7 +112,7 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 	"insertPortHost": `insert into am.scan_group_addresses (organization_id, scan_group_id, host_address, ip_address, 
 		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
 		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp) 
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) on conflict do nothing;`,
+		values ($1, $2, $3, $4, (select discovery_id from am.scan_address_discovered_by where discovered_by=$5), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) on conflict do nothing;`,
 
 	"updateHostPorts": `insert into am.scan_group_addresses_ports (organization_id, scan_group_id, host_address, port_data, scanned_timestamp) 
 		values ($1, $2, $3, $4, $5) on conflict (organization_id, scan_group_id, host_address) do update set

@@ -123,10 +123,6 @@ func TestGetHostList(t *testing.T) {
 		t.Fatalf("error adding addreses: %s\n", err)
 	}
 
-	if count != 100 {
-		t.Fatalf("error expected count to be 100, got: %d\n", count)
-	}
-	// test invalid (missing groupID) filter first
 	filter := &am.ScanGroupAddressFilter{
 		Start:   0,
 		Limit:   10000,
@@ -135,6 +131,61 @@ func TestGetHostList(t *testing.T) {
 	}
 
 	oid, hosts, err := service.GetHostList(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting host list: %v\n", err)
+	}
+
+	if oid != userContext.GetOrgID() {
+		t.Fatalf("oid %v did not equal userContext id %v\n", oid, userContext.GetOrgID())
+	}
+
+	if count != 100 {
+		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host (multiple IPs) got %d\n", len(hosts))
+	}
+
+	if len(hosts[0].IPAddresses) != 100 {
+		t.Fatalf("expected 100 IP addresses for host got %d\n", len(hosts[0].IPAddresses))
+	}
+
+	if len(hosts[0].AddressIDs) != 100 {
+		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
+	}
+	t.Logf("%#v\n", hosts[0].Ports)
+
+	// test with port scan results
+	portResults := &am.PortResults{
+		OrgID:       orgID,
+		GroupID:     groupID,
+		HostAddress: "www.example.com",
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  "192.168.1.1",
+				TCPPorts:   []int32{21, 22},
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+			Previous: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   nil,
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         time.Now().Add(-time.Hour).UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+	if _, err := service.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+		t.Fatalf("error adding port scan results for hostlist test: %#v\n", err)
+	}
+	// test again with port scan results
+
+	oid, hosts, err = service.GetHostList(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("error getting host list: %v\n", err)
 	}
@@ -154,6 +205,16 @@ func TestGetHostList(t *testing.T) {
 	if len(hosts[0].AddressIDs) != 100 {
 		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
 	}
+
+	if hosts[0].Ports == nil || hosts[0].Ports.Ports == nil {
+		t.Fatalf("Expected results to return port data")
+	}
+
+	if hosts[0].Ports.ScannedTimestamp == 0 {
+		t.Fatalf("port scan timestamp was not set\n")
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, hosts[0].Ports.Ports.Current, t)
 
 }
 func TestAdd(t *testing.T) {

@@ -123,6 +123,60 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 }
 
+func TestComparePorts(e, r *am.PortResults, t *testing.T) {
+	testComparePorts(e, r, t)
+	TestComparePortData(e.Ports.Current, r.Ports.Current, t)
+
+}
+
+func TestComparePortsWithPrevious(e, r *am.PortResults, t *testing.T) {
+	testComparePorts(e, r, t)
+	TestComparePortData(e.Ports.Current, r.Ports.Current, t)
+	TestComparePortData(e.Ports.Previous, r.Ports.Previous, t)
+}
+
+func testComparePorts(e, r *am.PortResults, t *testing.T) {
+	if e.GroupID != r.GroupID {
+		t.Fatalf("port.GroupID expected %v got %v\n", e.GroupID, r.GroupID)
+	}
+	if e.OrgID != r.OrgID {
+		t.Fatalf("port.OrgID expected %v got %v\n", e.OrgID, r.OrgID)
+	}
+	if e.PreviousScannedTimestamp != r.PreviousScannedTimestamp {
+		t.Fatalf("port.PreviousScannedTimestamp expected %v got %v\n", e.PreviousScannedTimestamp, r.PreviousScannedTimestamp)
+	}
+
+	if e.ScannedTimestamp != r.ScannedTimestamp {
+		t.Fatalf("port.ScannedTimestamp expected %v got %v\n", e.ScannedTimestamp, r.ScannedTimestamp)
+	}
+
+	if e.HostAddress != r.HostAddress {
+		t.Fatalf("port.HostAddress expected %v got %v\n", e.HostAddress, r.HostAddress)
+	}
+}
+
+func TestComparePortData(e, r *am.PortData, t *testing.T) {
+	if e.IPAddress != r.IPAddress {
+		t.Fatalf("portdata.IPAddress expected %v got %v\n", e.IPAddress, r.IPAddress)
+	}
+
+	if !SortEqualInt32(e.TCPPorts, r.TCPPorts, t) {
+		t.Fatalf("portdata.TCPPorts expected %v got %v\n", e.TCPPorts, r.TCPPorts)
+	}
+
+	if !SortEqualInt32(e.UDPPorts, r.UDPPorts, t) {
+		t.Fatalf("portdata.UDPPorts expected %v got %v\n", e.UDPPorts, r.UDPPorts)
+	}
+
+	if !SortEqualString(e.TCPBanners, r.TCPBanners, t) {
+		t.Fatalf("portdata.TCPBanners expected %v got %v\n", e.TCPBanners, r.TCPBanners)
+	}
+
+	if !SortEqualString(e.UDPBanners, r.UDPBanners, t) {
+		t.Fatalf("portdata.UDPBanners expected %v got %v\n", e.UDPBanners, r.UDPBanners)
+	}
+}
+
 // TestCompareAddresses tests all addresses in both maps' details
 func TestCompareAddresses(expected, returned map[string]*am.ScanGroupAddress, t *testing.T) {
 

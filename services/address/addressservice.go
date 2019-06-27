@@ -197,14 +197,24 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 
 	for i := 0; rows.Next(); i++ {
 		h := &am.ScanGroupHostList{}
-		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs); err != nil {
+		h.Ports = &am.PortResults{}
+		// if there are no port scan results, these will be NULL so make ptr -> ptr
+		var portScanTime *time.Time
+		var portPrevScanTime *time.Time
+
+		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs, &portScanTime, &portPrevScanTime, &h.Ports.Ports); err != nil {
 			return 0, nil, err
 		}
 
 		if h.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
-
+		if portScanTime != nil {
+			h.Ports.ScannedTimestamp = portScanTime.UnixNano()
+		}
+		if portPrevScanTime != nil {
+			h.Ports.PreviousScannedTimestamp = portPrevScanTime.UnixNano()
+		}
 		hosts = append(hosts, h)
 	}
 
@@ -585,10 +595,11 @@ func (s *Service) UpdateHostPorts(ctx context.Context, userContext am.UserContex
 
 	if address != nil {
 		a := address
-		// TODO: FIX HERE ARGUMENT ORDER INCORRECT.
 		if _, err := tx.ExecEx(ctx, "insertPortHost", &pgx.QueryExOptions{}, int32(a.OrgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
-			time.Unix(0, a.DiscoveryTime), a.DiscoveredBy, time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime), a.ConfidenceScore, a.UserConfidenceScore,
-			a.IsSOA, a.IsWildcardZone, a.IsHostedService, a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash); err != nil {
+			a.DiscoveredBy, a.ConfidenceScore, a.UserConfidenceScore, a.IsSOA, a.IsWildcardZone, a.IsHostedService,
+			a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
+			time.Unix(0, a.DiscoveryTime), time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime),
+		); err != nil {
 			if v, ok := err.(pgx.PgError); ok {
 				return 0, errors.Wrap(v, "failed to insert host from portscan")
 			}
