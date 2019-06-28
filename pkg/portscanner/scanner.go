@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/linkai-io/am/pkg/retrier"
@@ -30,11 +31,13 @@ type portResult struct {
 }
 
 type Scanner struct {
-	device string
-	srcIP  string
-	srcMac net.HardwareAddr
-	dstMac net.HardwareAddr
-
+	device     string
+	srcIP      string
+	srcMac     string
+	dstMac     string
+	srcMacAddr net.HardwareAddr
+	dstMacAddr net.HardwareAddr
+	macLock    *sync.RWMutex
 	// settings
 	timeout time.Duration
 
@@ -49,13 +52,20 @@ type Scanner struct {
 
 // New returns a new scanner with a default timeout of 1 minute after send completion
 func New() *Scanner {
-	return &Scanner{timeout: time.Minute}
+	return &Scanner{timeout: time.Minute, macLock: &sync.RWMutex{}}
 }
 
 // NewWithMAC builds a new scanner with provided src/dst macs for routing with a default
 // timeout of 1 minute after send completion
-func NewWithMAC(srcMac, dstMac net.HardwareAddr, srcIP string) *Scanner {
-	return &Scanner{timeout: time.Minute, srcMac: srcMac, dstMac: dstMac, srcIP: srcIP}
+func NewWithMAC(srcMac, dstMac net.HardwareAddr, device, srcIP string) *Scanner {
+	return &Scanner{
+		device:     device,
+		srcIP:      srcIP,
+		srcMacAddr: srcMac,
+		dstMacAddr: dstMac,
+		macLock:    &sync.RWMutex{},
+		timeout:    time.Minute,
+	}
 }
 
 // SetTimeout for when to shutdown the pcap handle after send completes (default is 1 minute or if all ports respond)
@@ -64,39 +74,66 @@ func (s *Scanner) SetTimeout(timeout time.Duration) {
 }
 
 // Init the scanner with the provided device
-func (s *Scanner) Init(device string) error {
-	s.device = device
-	if device == "" {
-		return errors.New("error device must be specified if mac addresses are not set")
-	}
-
+func (s *Scanner) Init() error {
 	s.opts = gopacket.SerializeOptions{
 		FixLengths:       true,
 		ComputeChecksums: true,
 	}
 
-	if s.srcMac == nil || s.dstMac == nil {
-		return s.initDevice(device)
+	if s.srcMacAddr == nil || s.dstMacAddr == nil {
+		return s.initDevice()
 	}
 
 	return nil
 }
 
-// initDevice automatically detects src/dst mac addresses and source ip by sending an
-// icmp echo with a ttl of 1, listens for responses and extracts necessary information.
-func (s *Scanner) initDevice(device string) error {
+// initDevice automatically detects device and src/dst mac addresses and source ip by sending an
+// icmp echo with a ttl of 1 on all devices, and listens for responses and extracts necessary information.
+func (s *Scanner) initDevice() error {
+	var err error
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	ifaceNames, err := getInterfaces()
+	if err != nil {
+		return err
+	}
+
+	foundCh := make(chan struct{})
+	// Open devices
+	for _, iface := range ifaceNames {
+		if iface == "lo" {
+			continue
+		}
+		i := iface
+		go s.listenInterfaces(i, foundCh)
+	}
+
+	select {
+	case <-ctx.Done():
+		return errors.New("timeout waiting for interface detection")
+	case <-foundCh:
+	}
+
+	s.srcMacAddr, err = net.ParseMAC(s.srcMac)
+	if err != nil {
+		return err
+	}
+	s.dstMacAddr, err = net.ParseMAC(s.dstMac)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Scanner) listenInterfaces(iface string, foundCh chan struct{}) {
 	var err error
 	var snapshotLen int32 = 60
 	var promiscuous bool
 	var timeout = 2 * time.Second
 	var handle *pcap.Handle
-	var srcMac string
-	var dstMac string
-
-	// Open device
-	handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
+	handle, err = pcap.OpenLive(iface, snapshotLen, promiscuous, timeout)
 	if err != nil {
-		return err
+		return
 	}
 	defer handle.Close()
 
@@ -110,25 +147,19 @@ func (s *Scanner) initDevice(device string) error {
 			flow := packet.NetworkLayer().NetworkFlow()
 
 			if flow.Dst().String() == "1.1.1.1" {
-				srcMac = packet.LinkLayer().LinkFlow().Src().String()
-				dstMac = packet.LinkLayer().LinkFlow().Dst().String()
+				s.macLock.Lock()
+				s.srcMac = packet.LinkLayer().LinkFlow().Src().String()
+				s.dstMac = packet.LinkLayer().LinkFlow().Dst().String()
 				s.srcIP = packet.NetworkLayer().NetworkFlow().Src().String()
-				log.Info().Msgf("got src mac: %s (%s) and dst mac: %s", srcMac, s.srcIP, dstMac)
+				s.device = iface
+				log.Info().Msgf("got src mac: %s (%s) and dst mac: %s for iface: %s", s.srcMac, s.srcIP, s.dstMac, s.device)
+				s.macLock.Unlock()
 				break
 			}
 		}
 	}
 	handle.Close()
-
-	s.srcMac, err = net.ParseMAC(srcMac)
-	if err != nil {
-		return err
-	}
-	s.dstMac, err = net.ParseMAC(dstMac)
-	if err != nil {
-		return err
-	}
-	return nil
+	foundCh <- struct{}{}
 }
 
 // ScanIPv4 scans an IPv4 address
@@ -136,8 +167,8 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 	log.Info().Msgf("Scanning with smac: %v sip: %v dmac: %v target: %v", s.srcMac, s.srcIP, s.dstMac, targetIP)
 	// Construct all the network layers we need.
 	eth := layers.Ethernet{
-		SrcMAC:       s.srcMac,
-		DstMAC:       s.dstMac,
+		SrcMAC:       s.srcMacAddr,
+		DstMAC:       s.dstMacAddr,
 		EthernetType: layers.EthernetTypeIPv4,
 	}
 	ip4 := layers.IPv4{
@@ -283,6 +314,19 @@ func (s *Scanner) send(handle *pcap.Handle, l ...gopacket.SerializableLayer) err
 	return handle.WritePacketData(buf.Bytes())
 }
 
+func getInterfaces() ([]string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(ifaces))
+
+	for i, iface := range ifaces {
+		names[i] = iface.Name
+	}
+	return names, nil
+}
+
 // getFreePort asks the kernel for a free open port that is ready to use.
 func getFreePort() (int, error) {
 	var rawPort int
@@ -310,7 +354,8 @@ func getFreePort() (int, error) {
 func ipv4GetDstCheck() {
 	c, err := net.ListenPacket("ip4:1", "0.0.0.0") // ICMP for IPv4
 	if err != nil {
-		log.Fatal().Err(err).Msg("error during ipv4 get destination check")
+		log.Info().Err(err).Msg("error during ipv4 get destination check")
+		return
 	}
 	p := ipv4.NewPacketConn(c)
 	p.SetTTL(1)
@@ -325,13 +370,15 @@ func ipv4GetDstCheck() {
 
 	wb, err := wm.Marshal(nil)
 	if err != nil {
-		log.Fatal().Err(err).Msg("error during ipv4 get destination check marshal icmp message")
+		log.Info().Err(err).Msg("error during ipv4 get destination check marshal icmp message")
+		return
 	}
 
 	dst := net.IPAddr{IP: net.IP([]byte{1, 1, 1, 1})}
 	for i := 0; i < 5; i++ {
 		if _, err := p.WriteTo(wb, nil, &dst); err != nil {
-			log.Fatal().Err(err).Msg("error during ipv4 get destination check write")
+			log.Info().Err(err).Msg("error during ipv4 get destination check write")
+			return
 		}
 		time.Sleep(500 * time.Millisecond)
 	}

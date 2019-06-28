@@ -44,7 +44,7 @@ func TestPushAddresses(t *testing.T) {
 func mockGroups(orgID, num int, t *testing.T) []*am.ScanGroup {
 	groups := make([]*am.ScanGroup, num)
 	for i := 0; i < num; i++ {
-		groups[i] = amtest.BuildScanGroup(orgID, i)
+		groups[i] = amtest.CreateScanGroupOnly(orgID, i)
 	}
 	return groups
 }

@@ -2,8 +2,14 @@ package portscan
 
 import (
 	"context"
+	"errors"
+	"net"
+	"time"
+
+	"github.com/linkai-io/am/pkg/parsers"
 
 	"github.com/linkai-io/am/pkg/cache"
+	"github.com/linkai-io/am/pkg/portscanner"
 
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -24,18 +30,18 @@ type PortScanner struct {
 	groupCache  *cache.ScanGroupCache
 	exitContext context.Context
 	cancel      context.CancelFunc
+	scanner     portscanner.Executor
 }
 
 // New port scanner module
-func New(dc *dnsclient.Client) *PortScanner {
+func New(scanner portscanner.Executor, dc *dnsclient.Client) *PortScanner {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &PortScanner{exitContext: ctx, cancel: cancel, dc: dc, groupCache: cache.NewScanGroupCache()}
+	return &PortScanner{scanner: scanner, exitContext: ctx, cancel: cancel, dc: dc, groupCache: cache.NewScanGroupCache()}
 }
 
 // Init the port scanner
 func (p *PortScanner) Init(config []byte) error {
-
-	return nil
+	return p.scanner.Init(nil)
 }
 
 // AddGroup on start of a group analysis (before any addresses come in)
@@ -54,36 +60,106 @@ func (p *PortScanner) RemoveGroup(ctx context.Context, userContext am.UserContex
 
 // Analyze will attempt port scan
 func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, *am.PortResults, error) {
-	ctx = module.DefaultLogger(ctx, userContext, address)
+	var err error
 	var group *am.ScanGroup
 
+	ctx = module.DefaultLogger(ctx, userContext, address)
+
 	if group = p.groupCache.GetByIDs(address.OrgID, address.GroupID); group == nil {
-		log.Ctx(ctx).Warn().Err(am.ErrScanGroupNotExists).Msg("unable to find group id in cache, returning")
 		return nil, nil, am.ErrScanGroupNotExists
 	}
-	return address, nil, nil
+	if group.ModuleConfigurations == nil || group.ModuleConfigurations.PortModule == nil {
+		return nil, nil, am.ErrEmptyModuleConfig
+	}
+
+	cfg := group.ModuleConfigurations.PortModule
+
+	targetIP := address.IPAddress
+	hostAddress := address.HostAddress
+
+	if hostAddress == "" {
+		hostAddress = address.IPAddress
+	} else {
+		if address, err = p.getTargetIPv4(ctx, address); err != nil {
+			return nil, nil, err
+		}
+		targetIP = address.IPAddress
+	}
+
+	if targetIP == "" {
+		return nil, nil, am.ErrEmptyIP
+	}
+
+	if parsers.IsBannedIP(targetIP) {
+		return nil, nil, am.ErrBannedIP
+	}
+
+	log.Ctx(ctx).Info().Str("ip_address", targetIP).Msg("scanning now")
+	start := time.Now()
+	results, err := p.scanner.PortScan(ctx, targetIP, int(cfg.RequestsPerSecond), cfg.TCPPorts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	log.Ctx(ctx).Info().TimeDiff("scan_time", time.Now(), start).Msg("scan completed")
+	portResults := &am.PortResults{
+		OrgID:       address.OrgID,
+		GroupID:     address.GroupID,
+		HostAddress: hostAddress,
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress: targetIP,
+				TCPPorts:  results.Open,
+			},
+		},
+		ScannedTimestamp:         start.UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+	return address, portResults, nil
 }
 
-// shouldAnalyze determines if we should analyze the specific address or not. Updates address.IsWildcardZone
-// if tested.
-func (p *PortScanner) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) bool {
-	if address.HostAddress == "" || address.IsWildcardZone || address.IsHostedService {
-		return false
+// getTargetIPv4 grabs the first valid ipv4 address
+func (p *PortScanner) getTargetIPv4(ctx context.Context, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
+	log.Ctx(ctx).Info().Str("host_address", address.HostAddress).Msg("resolving")
+	results, err := p.dc.ResolveName(ctx, address.HostAddress)
+	if err != nil {
+		return nil, err
 	}
+	log.Ctx(ctx).Info().Msgf("Results: %#v %d", results, len(results))
 
-	switch uint16(address.NSRecord) {
-	case dns.TypeMX, dns.TypeNS, dns.TypeSRV:
-		return false
+	for _, result := range results {
+		log.Ctx(ctx).Info().Msgf("got result %#v", result)
+		// ipv4 for now :/
+		if result.RecordType == dns.TypeAAAA {
+			continue
+		}
+
+		// iterate once to see if the returned IP matches what our scangroup address is.
+		for _, ip := range result.IPs {
+			log.Ctx(ctx).Info().Msgf("IPS: %v", ip)
+			// if the IP isn't empty and matches the original scangroup address, just return that.
+			if ip != "" && ip == address.IPAddress {
+				log.Ctx(ctx).Info().Msg("ip address returned matches original scangroupaddress")
+				return address, nil
+			}
+		}
+
+		// all results are different ips, time to make a new address and return that instead
+		for _, ip := range result.IPs {
+
+			ipAddr := net.ParseIP(ip)
+			if ipAddr == nil {
+				continue
+			}
+			if ipAddr.To4() != nil {
+				if parsers.IsBannedIP(ip) {
+					continue
+				}
+				newAddr := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(result.RecordType))
+				log.Ctx(ctx).Info().Msg("new address returned and created")
+				return newAddr, nil
+			}
+		}
 	}
-
-	if address.UserConfidenceScore > 75 {
-		return true
-	}
-
-	if address.ConfidenceScore < 75 {
-		log.Ctx(ctx).Info().Float32("confidence", address.ConfidenceScore).Msg("score too low")
-		return false
-	}
-
-	return true
+	return nil, errors.New("no IPv4 addresses returned")
 }

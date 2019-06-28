@@ -129,6 +129,23 @@ func BuildSubdomainsForCT(etld string, count int) map[string]*am.CTSubdomain {
 	return records
 }
 
+func CreateAddressOnly(orgID, groupID int, ipAddress, hostAddress string, t *testing.T) *am.ScanGroupAddress {
+	return &am.ScanGroupAddress{
+		AddressID:           1,
+		OrgID:               orgID,
+		GroupID:             groupID,
+		HostAddress:         hostAddress,
+		IPAddress:           ipAddress,
+		AddressHash:         convert.HashAddress(ipAddress, hostAddress),
+		DiscoveryTime:       time.Now().UnixNano(),
+		DiscoveredBy:        "input_list",
+		LastScannedTime:     0,
+		LastSeenTime:        0,
+		ConfidenceScore:     100.0,
+		UserConfidenceScore: 0.0,
+	}
+}
+
 func AddrsFromInputFile(orgID, groupID int, addrFile io.Reader, t *testing.T) []*am.ScanGroupAddress {
 	in, err := inputlist.ParseList(addrFile, 10000)
 	if err != nil {
@@ -208,7 +225,7 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	return m
 }
 
-func BuildScanGroup(orgID, groupID int) *am.ScanGroup {
+func CreateScanGroupOnly(orgID, groupID int) *am.ScanGroup {
 	return &am.ScanGroup{
 		OrgID:                orgID,
 		GroupID:              groupID,

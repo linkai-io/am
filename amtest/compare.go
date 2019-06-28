@@ -126,7 +126,6 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 func TestComparePorts(e, r *am.PortResults, t *testing.T) {
 	testComparePorts(e, r, t)
 	TestComparePortData(e.Ports.Current, r.Ports.Current, t)
-
 }
 
 func TestComparePortsWithPrevious(e, r *am.PortResults, t *testing.T) {
