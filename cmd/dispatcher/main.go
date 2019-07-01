@@ -66,8 +66,9 @@ func main() {
 	webClient := initializers.WebDataClientWithTimeout(timeout)
 	eventClient := initializers.EventClient()
 	modules := initializers.Modules(state)
+	portModules := initializers.PortModules(state)
 
-	service := dispatcher.New(sgClient, eventClient, addrClient, webClient, modules, state)
+	service := dispatcher.New(sgClient, eventClient, addrClient, webClient, modules, portModules, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

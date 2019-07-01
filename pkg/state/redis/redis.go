@@ -277,7 +277,7 @@ func (s *State) GetGroup(ctx context.Context, orgID, scanGroupID int, wantModule
 func (s *State) getModules(keys *redisclient.RedisKeys, conn redis.Conn) (*am.ModuleConfiguration, error) {
 	ns := &am.NSModuleConfig{}
 	brute := &am.BruteModuleConfig{}
-	port := &am.PortModuleConfig{}
+	port := &am.PortScanModuleConfig{}
 	web := &am.WebModuleConfig{}
 	keyword := &am.KeywordModuleConfig{}
 
@@ -738,9 +738,9 @@ func (s *State) DoCTDomain(ctx context.Context, orgID, scanGroupID int, expireSe
 	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.BigDataZone(zone), zone)
 }
 
-// DoPortZone org:group:":module:port:zones:<zonename> sets the zone as already being checked or, if it already exists
+// DoPortScan org:group:":module:port:zones:<zonename> sets the zone as already being checked or, if it already exists
 // return that we shouldn't port scan this zone.
-func (s *State) DoPortZone(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
+func (s *State) DoPortScan(ctx context.Context, orgID, scanGroupID int, expireSeconds int, zone string) (bool, error) {
 	// create redis keys for this org/group
 	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
 	return s.do(ctx, orgID, scanGroupID, expireSeconds, keys.PortZone(zone), zone)

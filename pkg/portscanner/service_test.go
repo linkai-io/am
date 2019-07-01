@@ -12,6 +12,7 @@ import (
 func TestServiceWithClient(t *testing.T) {
 	serv := portscanner.NewService()
 	if err := serv.Init(nil); err != nil {
+		t.Skip("must run as root :|")
 		t.Fatalf("error building server: %v\n", err)
 	}
 

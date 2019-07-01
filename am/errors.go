@@ -32,6 +32,7 @@ var (
 	ErrEventCopyCount = errors.New("copy count of events did not match expected amount")
 
 	// Module related
-	ErrEmptyIP  = errors.New("ip address was empty")
-	ErrBannedIP = errors.New("ip address was found in banned list")
+	ErrEmptyIP                 = errors.New("ip address was empty")
+	ErrBannedIP                = errors.New("ip address was found in banned list")
+	ErrWithPortsNotImplemented = errors.New("AnalyzeWithPorts is not implemented for this module")
 )

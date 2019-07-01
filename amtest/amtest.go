@@ -209,7 +209,7 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	disallowedHosts := []string{"noportscan.example.com"}
 
 	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 10}
-	m.PortModule = &am.PortModuleConfig{
+	m.PortModule = &am.PortScanModuleConfig{
 		RequestsPerSecond: 10,
 		PortScanEnabled:   false,
 		CustomPorts:       customPorts,

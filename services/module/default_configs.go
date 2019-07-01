@@ -18,8 +18,8 @@ func DefaultWebConfig() *am.WebModuleConfig {
 	}
 }
 
-func DefaultPortConfig() *am.PortModuleConfig {
-	return &am.PortModuleConfig{
+func DefaultPortConfig() *am.PortScanModuleConfig {
+	return &am.PortScanModuleConfig{
 		RequestsPerSecond: 50,
 		CustomPorts:       []int32{80, 443},
 	}

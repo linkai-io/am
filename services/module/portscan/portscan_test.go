@@ -15,6 +15,7 @@ import (
 var testDNServer = []string{"1.1.1.1:53"}
 
 func TestInit(t *testing.T) {
+	t.Skip("disabled as requires root")
 	dnsClient := dnsclient.New(testDNServer, 2)
 	scanner := portscanner.NewLocalClient()
 	module := portscan.New(scanner, dnsClient)
@@ -30,6 +31,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestPortScan(t *testing.T) {
+	t.Skip("disabled as requires root")
 	ctx := context.Background()
 	userContext := amtest.CreateUserContext(1, 1)
 	group := amtest.CreateScanGroupOnly(1, 1)

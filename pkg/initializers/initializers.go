@@ -357,12 +357,54 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 	return nil
 }
 
+// PortModule initializes all modules that work with port scan results and connects to them
+func PortModule(state *redis.State, moduleType am.ModuleType) am.PortModuleService {
+	switch moduleType {
+	case am.WebModule:
+		webClient := module.NewPortClient()
+		cfg := &module.Config{ModuleType: am.WebModule, Timeout: tenMinutes}
+		data, _ := json.Marshal(cfg)
+
+		err := retrier.RetryUntil(func() error {
+			return webClient.Init(data)
+		}, time.Minute*1, time.Second*3)
+
+		if err != nil {
+			log.Fatal().Err(err).Msg("unable to connect to web module client")
+		}
+		return webClient
+	}
+	return nil
+}
+
+// PortScanModule connects directly with our port scanner service
+func PortScanModule(state *redis.State) am.PortScannerService {
+	portScan := module.NewPortScanClient()
+	cfg := &module.Config{ModuleType: am.PortScanModule, Timeout: thirtyMinutes}
+	data, _ := json.Marshal(cfg)
+
+	err := retrier.RetryUntil(func() error {
+		return portScan.Init(data)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to connect to portScan module client")
+	}
+	return portScan
+}
+
 // Modules initializes all modules and connects to them
 func Modules(state *redis.State) map[am.ModuleType]am.ModuleService {
 	modules := make(map[am.ModuleType]am.ModuleService)
 	modules[am.NSModule] = Module(state, am.NSModule)
 	modules[am.BruteModule] = Module(state, am.BruteModule)
-	modules[am.WebModule] = Module(state, am.WebModule)
+
 	modules[am.BigDataCTSubdomainModule] = Module(state, am.BigDataCTSubdomainModule)
 	return modules
+}
+
+func PortModules(state *redis.State) map[am.ModuleType]am.PortModuleService {
+	portModules := make(map[am.ModuleType]am.PortModuleService)
+	portModules[am.WebModule] = PortModule(state, am.WebModule)
+	return portModules
 }

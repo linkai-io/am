@@ -65,7 +65,7 @@ func generateJSON() {
 			CustomSubNames:    []string{"custom"},
 			MaxDepth:          2,
 		},
-		PortModule: &am.PortModuleConfig{
+		PortModule: &am.PortScanModuleConfig{
 			RequestsPerSecond: 50,
 			CustomPorts:       []int32{80, 443, 8080, 8443},
 		},

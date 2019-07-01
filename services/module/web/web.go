@@ -115,9 +115,9 @@ func (w *Web) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) b
 	return true
 }
 
-// Analyze will attempt to find additional domains by extracting hosts from a website as well
+// AnalyzeWithPorts will attempt to find additional domains by extracting hosts from a website as well
 // as capture any network traffic, save images, dom, and responses to s3/disk
-func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
+func (w *Web) AnalyzeWithPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, *am.Bag, error) {
 	portCfg := module.DefaultPortConfig()
 	nsCfg := module.DefaultNSConfig()
 	ctx = module.DefaultLogger(ctx, userContext, address)
@@ -126,7 +126,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 
 	if !w.shouldAnalyze(ctx, address) {
 		log.Ctx(ctx).Info().Msg("not analyzing")
-		return address, webRecords, nil
+		return address, webRecords, nil, nil
 	}
 
 	if group, err := w.groupCache.GetGroupByIDs(address.OrgID, address.GroupID); err != nil {
@@ -134,7 +134,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	} else {
 		if group.Paused || group.Deleted {
 			log.Ctx(ctx).Info().Msg("not analyzing since group was paused/deleted")
-			return address, webRecords, nil
+			return address, webRecords, nil, nil
 		}
 		portCfg = group.ModuleConfigurations.PortModule
 		nsCfg = group.ModuleConfigurations.NSModule
@@ -144,6 +144,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 	for _, port := range defaultPorts {
 		allPorts[port] = struct{}{}
 	}
+
 	for _, port := range portCfg.CustomPorts {
 		allPorts[port] = struct{}{}
 	}
@@ -205,7 +206,7 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 		}
 	}
 
-	return address, webRecords, nil
+	return address, webRecords, nil, nil
 }
 
 func (w *Web) processWebData(ctx context.Context, userContext am.UserContext, nsCfg *am.NSModuleConfig, address *am.ScanGroupAddress, webData *am.WebData, diffHash string) (map[string]*am.ScanGroupAddress, error) {
