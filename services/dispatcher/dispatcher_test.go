@@ -24,7 +24,18 @@ func TestPushAddresses(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	groups := mockGroups(1, groupCount, t)
 	state := amtest.MockDispatcherState(wg, groups)
-	d := dispatcher.New(sgClient, eventClient, addrClient, webClient, modClients, state)
+	portClient := amtest.MockPortScanService(1, 1, []int32{80, 443, 8080})
+
+	dependentServices := &dispatcher.DependentServices{
+		EventClient:    eventClient,
+		SgClient:       sgClient,
+		AddressClient:  addrClient,
+		WebClient:      webClient,
+		ModuleClients:  modClients,
+		PortScanClient: portClient,
+	}
+
+	d := dispatcher.New(dependentServices, state)
 	if err := d.Init(nil); err != nil {
 		t.Fatalf("error initializing dispatcher")
 	}
@@ -39,6 +50,13 @@ func TestPushAddresses(t *testing.T) {
 	}
 	wg.Wait()
 	defer d.Stop(ctx)
+	if portClient.AddGroupInvoked == false {
+		t.Fatalf("error add group was not invoked")
+	}
+
+	if portClient.RemoveGroupInvoked == false {
+		t.Fatalf("error remove group was not invoked")
+	}
 }
 
 func mockGroups(orgID, num int, t *testing.T) []*am.ScanGroup {

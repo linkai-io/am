@@ -44,7 +44,7 @@ func TestPut(t *testing.T) {
 	}
 
 	sg.ModuleConfigurations.BruteModule.CustomSubNames = []string{}
-	sg.ModuleConfigurations.PortModule.CustomPorts = []int32{}
+	sg.ModuleConfigurations.PortModule.CustomWebPorts = []int32{}
 	if err := r.Put(ctx, userContext, sg); err != nil {
 		t.Fatalf("error putting sg: %s\n", err)
 	}
@@ -130,6 +130,85 @@ func TestAddresses(t *testing.T) {
 	}
 }
 
+func TestPortsAndBanners(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	r := redis.New()
+	if err := r.Init("0.0.0.0:6379", "test132"); err != nil {
+		t.Fatalf("error connecting to redis: %s\n", err)
+	}
+
+	ctx := context.Background()
+	portResults := &am.PortResults{
+		PortID:      0,
+		OrgID:       0,
+		GroupID:     0,
+		HostAddress: "",
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   []int32{21, 22},
+				UDPPorts:   []int32{500},
+				TCPBanners: []string{"ftp", "ssh"},
+				UDPBanners: nil,
+			},
+			Previous: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   nil,
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         0,
+		PreviousScannedTimestamp: 0,
+	}
+	if err := r.PutPortResults(ctx, 1, 1, 10, "example.com", portResults); err != nil {
+		t.Fatalf("error putting ports: %#v\n", err)
+	}
+
+	results, err := r.GetPortResults(ctx, 1, 1, "example.com")
+	if err != nil {
+		t.Fatalf("error getting port results: %#v\n", err)
+	}
+	amtest.SortEqualInt32(portResults.Ports.Current.TCPPorts, results.Ports.Current.TCPPorts, t)
+	amtest.SortEqualInt32(portResults.Ports.Current.UDPPorts, results.Ports.Current.UDPPorts, t)
+
+	amtest.SortEqualString(portResults.Ports.Current.TCPBanners, results.Ports.Current.TCPBanners, t)
+	amtest.SortEqualString(portResults.Ports.Current.UDPBanners, results.Ports.Current.UDPBanners, t)
+
+	portResults.Ports.Current.TCPPorts = []int32{80, 443}
+	portResults.Ports.Current.UDPPorts = []int32{1194}
+	if err := r.PutPortResults(ctx, 1, 1, 1, "example.com", portResults); err != nil {
+		t.Fatalf("error putting ports: %#v\n", err)
+	}
+
+	results, err = r.GetPortResults(ctx, 1, 1, "example.com")
+	if err != nil {
+		t.Fatalf("error getting port results v2: %#v\n", err)
+	}
+
+	amtest.SortEqualInt32(portResults.Ports.Current.TCPPorts, results.Ports.Current.TCPPorts, t)
+	amtest.SortEqualInt32(portResults.Ports.Current.UDPPorts, results.Ports.Current.UDPPorts, t)
+
+	amtest.SortEqualString(portResults.Ports.Current.TCPBanners, results.Ports.Current.TCPBanners, t)
+	amtest.SortEqualString(portResults.Ports.Current.UDPBanners, results.Ports.Current.UDPBanners, t)
+
+	// test expiration
+	time.Sleep(time.Second * 2)
+	results, err = r.GetPortResults(ctx, 1, 1, "example.com")
+	if err != nil {
+		t.Fatalf("error getting port results v2: %#v\n", err)
+	}
+
+	if len(results.Ports.Current.TCPPorts) != 0 || len(results.Ports.Current.UDPPorts) != 0 ||
+		len(results.Ports.Current.TCPBanners) != 0 || len(results.Ports.Current.UDPBanners) != 0 {
+		t.Fatalf("ports should have been nil, got data back %v\n", results.Ports.Current.TCPPorts)
+	}
+}
+
 func TestGetGroup(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -183,7 +262,7 @@ func TestGetGroup(t *testing.T) {
 
 	// TEST EMPTY
 	sg.ModuleConfigurations.BruteModule.CustomSubNames = []string{}
-	sg.ModuleConfigurations.PortModule.CustomPorts = []int32{}
+	sg.ModuleConfigurations.PortModule.CustomWebPorts = []int32{}
 	if err := r.Put(ctx, userContext, sg); err != nil {
 		t.Fatalf("error putting sg: %s\n", err)
 	}

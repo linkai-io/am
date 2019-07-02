@@ -126,11 +126,11 @@ func (s *State) Put(ctx context.Context, userContext am.UserContext, group *am.S
 	}
 
 	// put port custom ports
-	if len(port.CustomPorts) != 0 {
-		portArgs := make([]interface{}, len(port.CustomPorts)+1)
+	if len(port.CustomWebPorts) != 0 {
+		portArgs := make([]interface{}, len(port.CustomWebPorts)+1)
 		portArgs[0] = keys.PortConfigPorts()
 		for i := 1; i < len(portArgs); i++ {
-			portArgs[i] = port.CustomPorts[i-1]
+			portArgs[i] = port.CustomWebPorts[i-1]
 		}
 
 		if err := conn.Send("LPUSH", portArgs...); err != nil {
@@ -322,9 +322,9 @@ func (s *State) getModules(keys *redisclient.RedisKeys, conn redis.Conn) (*am.Mo
 		return nil, err
 	}
 
-	port.CustomPorts = make([]int32, len(ports))
+	port.CustomWebPorts = make([]int32, len(ports))
 	for i := 0; i < len(ports); i++ {
-		port.CustomPorts[i] = int32(ports[i])
+		port.CustomWebPorts[i] = int32(ports[i])
 	}
 
 	tcpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortConfigTCPPorts(), 0, -1))
@@ -647,6 +647,149 @@ func (s *State) FilterNew(ctx context.Context, orgID, scanGroupID int, addresses
 // Subscribe to listen for group state updates
 func (s *State) Subscribe(ctx context.Context, onStartFn state.SubOnStart, onMessageFn state.SubOnMessage, channels ...string) error {
 	return s.rc.Subscribe(ctx, onStartFn, onMessageFn, channels...)
+}
+
+// PutPortResults current results only, tcp / udp ports and banners (ips and timestamps and previous results not stored)
+func (s *State) PutPortResults(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string, portResults *am.PortResults) error {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return err
+	}
+	defer s.rc.Return(conn)
+
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+
+	if err := conn.Send("MULTI"); err != nil {
+		return err
+	}
+
+	// remove old entries
+	if err := conn.Send("DEL", keys.PortResults(host, "tcp"), keys.PortBannerResults(host, "tcp"), keys.PortResults(host, "udp"), keys.PortBannerResults(host, "udp")); err != nil {
+		return err
+	}
+
+	// add tcp ports
+	tcpPorts := portResults.Ports.Current.TCPPorts
+	if tcpPorts != nil && len(tcpPorts) != 0 {
+		portArgs := make([]interface{}, len(tcpPorts)+1)
+		portArgs[0] = keys.PortResults(host, "tcp")
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = tcpPorts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	// add udp ports
+	udpPorts := portResults.Ports.Current.UDPPorts
+	if udpPorts != nil && len(udpPorts) != 0 {
+		portArgs := make([]interface{}, len(udpPorts)+1)
+		portArgs[0] = keys.PortResults(host, "udp")
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = udpPorts[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	tcpBanners := portResults.Ports.Current.TCPBanners
+	if tcpBanners != nil && len(tcpBanners) != 0 {
+		portArgs := make([]interface{}, len(tcpBanners)+1)
+		portArgs[0] = keys.PortBannerResults(host, "tcp")
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = tcpBanners[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	// add udp ports
+	udpBanners := portResults.Ports.Current.UDPBanners
+	if udpBanners != nil && len(udpBanners) != 0 {
+		portArgs := make([]interface{}, len(udpBanners)+1)
+		portArgs[0] = keys.PortBannerResults(host, "udp")
+		for i := 1; i < len(portArgs); i++ {
+			portArgs[i] = udpBanners[i-1]
+		}
+
+		if err := conn.Send("LPUSH", portArgs...); err != nil {
+			return err
+		}
+	}
+
+	if err := conn.Send("EXPIRE", keys.PortResults(host, "tcp"), expireSeconds); err != nil {
+		return err
+	}
+	if err := conn.Send("EXPIRE", keys.PortBannerResults(host, "tcp"), expireSeconds); err != nil {
+		return err
+	}
+	if err := conn.Send("EXPIRE", keys.PortResults(host, "udp"), expireSeconds); err != nil {
+		return err
+	}
+	if err := conn.Send("EXPIRE", keys.PortBannerResults(host, "udp"), expireSeconds); err != nil {
+		return err
+	}
+
+	if _, err := redis.Values(conn.Do("EXEC")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *State) GetPortResults(ctx context.Context, orgID, scanGroupID int, host string) (*am.PortResults, error) {
+	conn, err := s.rc.GetContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer s.rc.Return(conn)
+	keys := redisclient.NewRedisKeys(orgID, scanGroupID)
+
+	portResults := &am.PortResults{
+		Ports: &am.Ports{
+			Current: &am.PortData{},
+		},
+	}
+
+	tcpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortResults(host, "tcp"), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+
+	portResults.Ports.Current.TCPPorts = make([]int32, len(tcpPorts))
+	for i := 0; i < len(tcpPorts); i++ {
+		portResults.Ports.Current.TCPPorts[i] = int32(tcpPorts[i])
+	}
+
+	udpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortResults(host, "udp"), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+
+	portResults.Ports.Current.UDPPorts = make([]int32, len(udpPorts))
+	for i := 0; i < len(udpPorts); i++ {
+		portResults.Ports.Current.UDPPorts[i] = int32(udpPorts[i])
+	}
+
+	tcpBanners, err := redis.Strings(conn.Do("LRANGE", keys.PortBannerResults(host, "tcp"), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	portResults.Ports.Current.TCPBanners = tcpBanners
+
+	udpBanners, err := redis.Strings(conn.Do("LRANGE", keys.PortBannerResults(host, "udp"), 0, -1))
+	if err != nil {
+		return nil, err
+	}
+	portResults.Ports.Current.UDPBanners = udpBanners
+
+	return portResults, nil
 }
 
 // DoBruteETLD global method to rate limit how many ETLDs we will brute force concurrently.

@@ -2,6 +2,12 @@ package am
 
 import "context"
 
+// DefaultTCPPorts are the list of default ports for port scanning
+var DefaultTCPPorts = []int32{21, 22, 23, 25, 53, 80, 135, 139, 443, 445, 1443, 1723, 3306, 3389, 5432, 5900, 6379, 8000, 8080, 8443, 8500, 9500, 27017}
+
+// DefaultUDPPorts are the list of default udp ports for port scanning
+var DefaultUDPPorts = []int32{500, 1194}
+
 type PortData struct {
 	IPAddress  string   `json:"ip_address"`
 	TCPPorts   []int32  `json:"tcp_ports"`

@@ -348,7 +348,7 @@ func ModuleToDomain(in *prototypes.ModuleConfiguration) *am.ModuleConfiguration 
 		PortModule: &am.PortScanModuleConfig{
 			RequestsPerSecond: in.PortConfig.RequestsPerSecond,
 			PortScanEnabled:   in.PortConfig.PortScanEnabled,
-			CustomPorts:       in.PortConfig.CustomPorts,
+			CustomWebPorts:    in.PortConfig.CustomWebPorts,
 			TCPPorts:          in.PortConfig.TCPPorts,
 			UDPPorts:          in.PortConfig.UDPPorts,
 			AllowedTLDs:       in.PortConfig.AllowedTLDs,
@@ -382,7 +382,7 @@ func DomainToModule(in *am.ModuleConfiguration) *prototypes.ModuleConfiguration 
 		PortConfig: &prototypes.PortModuleConfig{
 			RequestsPerSecond: in.PortModule.RequestsPerSecond,
 			PortScanEnabled:   in.PortModule.PortScanEnabled,
-			CustomPorts:       in.PortModule.CustomPorts,
+			CustomWebPorts:    in.PortModule.CustomWebPorts,
 			TCPPorts:          in.PortModule.TCPPorts,
 			UDPPorts:          in.PortModule.UDPPorts,
 			AllowedTLDs:       in.PortModule.AllowedTLDs,

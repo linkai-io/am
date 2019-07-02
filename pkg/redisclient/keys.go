@@ -9,6 +9,7 @@ type RedisKeys struct {
 	statusFmt string
 	addrFmt   string
 	queueFmt  string
+	portFmt   string
 }
 
 func NewRedisKeys(orgID, groupID int) *RedisKeys {
@@ -16,6 +17,7 @@ func NewRedisKeys(orgID, groupID int) *RedisKeys {
 	r.configFmt = fmt.Sprintf("%d:%d:configuration", orgID, groupID)
 	r.addrFmt = fmt.Sprintf("%d:%d:address", orgID, groupID)
 	r.statusFmt = fmt.Sprintf("%d:%d:status", orgID, groupID)
+	r.portFmt = fmt.Sprintf("%d:%d:portscan", orgID, groupID)
 	return r
 }
 
@@ -127,6 +129,14 @@ func (r *RedisKeys) AddrWorkQueue() string {
 
 func (r *RedisKeys) AddrExistsHash() string {
 	return r.addrFmt + "_hash"
+}
+
+func (r *RedisKeys) PortResults(host, proto string) string {
+	return r.portFmt + ":" + host + ":" + proto
+}
+
+func (r *RedisKeys) PortBannerResults(host, proto string) string {
+	return r.portFmt + ":" + host + ":" + proto + ":banners"
 }
 
 // Addr returns the address key based on supplied addr id

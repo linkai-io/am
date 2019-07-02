@@ -351,8 +351,8 @@ func TestCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {
 		t.Fatalf("PortModule.PortScanEnabled expected %v got %v\n", e.PortModule.PortScanEnabled, r.PortModule.PortScanEnabled)
 	}
 
-	if !SortEqualInt32(e.PortModule.CustomPorts, r.PortModule.CustomPorts, t) {
-		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomPorts, r.PortModule.CustomPorts)
+	if !SortEqualInt32(e.PortModule.CustomWebPorts, r.PortModule.CustomWebPorts, t) {
+		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomWebPorts, r.PortModule.CustomWebPorts)
 	}
 
 	if !SortEqualInt32(e.PortModule.TCPPorts, r.PortModule.TCPPorts, t) {

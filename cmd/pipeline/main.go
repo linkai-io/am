@@ -101,7 +101,16 @@ func main() {
 	wg := &sync.WaitGroup{}
 	disState := mockDispatcherState(wg)
 
-	dispatcher := dispatcher.New(sgClient, eventClient, addrClient, webdataClient, modules, disState)
+	dependentServices := &dispatcher.DependentServices{
+		EventClient:    eventClient,
+		SgClient:       sgClient,
+		AddressClient:  addrClient,
+		WebClient:      webdataClient,
+		ModuleClients:  modules,
+		PortScanClient: nil,
+	}
+
+	dispatcher := dispatcher.New(dependentServices, disState)
 	dispatcher.Init(nil)
 
 	userContext := amtest.CreateUserContext(orgID, userID)

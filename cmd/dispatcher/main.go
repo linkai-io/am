@@ -61,14 +61,17 @@ func main() {
 	timeout := time.Minute * 30
 
 	state := initializers.State(&appConfig)
-	sgClient := initializers.SGClient()
-	addrClient := initializers.AddrClientWithTimeout(timeout)
-	webClient := initializers.WebDataClientWithTimeout(timeout)
-	eventClient := initializers.EventClient()
-	modules := initializers.Modules(state)
-	portModules := initializers.PortModules(state)
 
-	service := dispatcher.New(sgClient, eventClient, addrClient, webClient, modules, portModules, state)
+	dependentServices := &dispatcher.DependentServices{
+		EventClient:    initializers.EventClient(),
+		SgClient:       initializers.SGClient(),
+		AddressClient:  initializers.AddrClientWithTimeout(timeout),
+		WebClient:      initializers.WebDataClientWithTimeout(timeout),
+		ModuleClients:  initializers.Modules(state),
+		PortScanClient: initializers.PortScanModule(state),
+	}
+
+	service := dispatcher.New(dependentServices, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})
