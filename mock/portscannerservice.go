@@ -31,3 +31,4 @@ func (s *PortScannerService) Analyze(ctx context.Context, userContext am.UserCon
 	s.AnalyzeInvoked = true
 	return s.AnalyzeFn(ctx, userContext, address)
 }
+

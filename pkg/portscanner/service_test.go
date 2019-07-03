@@ -11,7 +11,7 @@ import (
 
 func TestServiceWithClient(t *testing.T) {
 	serv := portscanner.NewService()
-	if err := serv.Init(nil); err != nil {
+	if err := serv.Init("local"); err != nil {
 		t.Skip("must run as root :|")
 		t.Fatalf("error building server: %v\n", err)
 	}
@@ -25,7 +25,7 @@ func TestServiceWithClient(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond) // give time for socket creation
 
-	sclient := portscanner.NewSocketClient()
+	sclient := portscanner.NewSocketClient("local")
 	if err := sclient.Init(nil); err != nil {
 		t.Fatalf("error building client %v\n", err)
 	}

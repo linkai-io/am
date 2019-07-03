@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -21,12 +22,12 @@ type SocketClient struct {
 }
 
 // NewSocketClient builds a client to the socket server to issue port scan requests
-func NewSocketClient() *SocketClient {
+func NewSocketClient(env string) *SocketClient {
 	e := &SocketClient{}
 	e.executorClient = http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", SOCK)
+				return net.Dial("unix", fmt.Sprintf(SOCKFMT, env))
 			},
 		},
 	}

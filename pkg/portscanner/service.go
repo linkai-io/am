@@ -3,6 +3,7 @@ package portscanner
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -13,10 +14,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SOCK is the unix domain socket to bind to
-const SOCK = "/tmp/executor.sock"
+// SOCKFMT is the unix domain socket to bind to
+const SOCKFMT = "/opt/scanner/%s/executor.sock"
 
 type Service struct {
+	Env      string
+	Sock     string
 	listener net.Listener
 	srv      http.Server
 	scanner  *Scanner
@@ -26,9 +29,21 @@ func NewService() *Service {
 	return &Service{scanner: New()}
 }
 
-func (s *Service) Init(config []byte) error {
+func (s *Service) Init(env string) error {
 	if err := s.scanner.Init(); err != nil {
 		return err
+	}
+
+	if env == "" {
+		return errors.New("environment not specificed, must be dev/prod")
+	}
+
+	s.Env = env
+	s.Sock = fmt.Sprintf(SOCKFMT, s.Env)
+	s.srv = http.Server{
+		ReadTimeout:  time.Duration(time.Minute * 10),
+		WriteTimeout: time.Duration(time.Minute * 10),
+		IdleTimeout:  time.Duration(time.Minute * 30),
 	}
 	return nil
 }
@@ -36,11 +51,11 @@ func (s *Service) Init(config []byte) error {
 func (s *Service) Serve() error {
 	var err error
 	// Start Server
-	os.Remove(SOCK)
+	os.Remove(s.Sock)
 
-	s.listener, err = net.Listen("unix", SOCK)
-	// HACK HACK HACK TODO: put the users in proper group to share file via 770
-	if err := os.Chmod(SOCK, 0777); err != nil {
+	s.listener, err = net.Listen("unix", s.Sock)
+
+	if err := os.Chmod(s.Sock, 0770); err != nil {
 		log.Fatal().Err(err).Msg("failed to change mode on socket")
 	}
 

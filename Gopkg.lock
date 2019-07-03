@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:10b7e935b8f65dc69198301638a47d7c969d16e5149c9ab6393f2ece2efd34a3"
+  digest = "1:a9ac4c16cb0c7e6700a6e1cc4dff348487c43600f6e0ad58c0a75881f0134a34"
   name = "cloud.google.com/go"
   packages = [
     "bigquery",
@@ -15,8 +15,8 @@
     "internal/version",
   ]
   pruneopts = "UT"
-  revision = "457ea5c15ccf3b87db582c450e80101989da35f7"
-  version = "v0.40.0"
+  revision = "cf81fad90a1a1de334c4fc27e23eb9a4224b627a"
+  version = "v0.41.0"
 
 [[projects]]
   digest = "1:14a90eb1290bd0aa42848afa9ee2c9ce247abdb63c2cf614331670119760962f"
@@ -51,7 +51,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:1bc2372818f14caf244efdbf8a4df6b4057eae9ebddea342e99e02d7eb37a008"
+  digest = "1:b3ecde469a0b0eb27c257451407c512cd125c6e4e8a77ae89508cf60b064af7e"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "c71adb808b2e83f81381bee6f12be7e6ae4d3248"
-  version = "v1.20.10"
+  revision = "06512ecac9db8f44189277d87f426e6dc53cc86b"
+  version = "v1.20.14"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -192,12 +192,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:3db4f016af6ec500e79f6987c6ad284143b21effd504a2a8462be6c41b8198f5"
+  digest = "1:8b20ed6a6df0628913a69e4c1709537b2e26c7be4aca856bf52b431cf1ce6d90"
   name = "github.com/hashicorp/consul"
   packages = ["api"]
   pruneopts = "UT"
-  revision = "40cec98468b829e5cdaacb0629b3e23a028db688"
-  version = "v1.5.1"
+  revision = "a82e6a7fd33a0d05b9b871bcaf1d7595c9b8dedc"
+  version = "v1.5.2"
 
 [[projects]]
   digest = "1:af105c7c5dc0b4ae41991f122cae860b9600f7d226072c2a83127048c991660c"
@@ -243,7 +243,7 @@
   version = "v0.8.3"
 
 [[projects]]
-  digest = "1:5b44dd580eb13905a19fc6a289136c389fb5a14f03d6754a67c325553d08f2a6"
+  digest = "1:a7261255f31aa65e511b45cf7a36fda39dafb08914287506c93cb8c07afb9708"
   name = "github.com/jackc/pgx"
   packages = [
     ".",
@@ -254,8 +254,8 @@
     "pgtype",
   ]
   pruneopts = "UT"
-  revision = "8faa4453fc7051d1076053f8854077753ab912f2"
-  version = "v3.4.0"
+  revision = "a1d6202434aa40c3624688f6c2cacbc27eef5472"
+  version = "v3.5.0"
 
 [[projects]]
   digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
@@ -281,12 +281,12 @@
   revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
-  digest = "1:7c572c76f914b3d3f7d75ce752c3a6ac5ba03be1f775e4602a3f18d7b08ddbbb"
+  digest = "1:66def2f80d5127123c81ffa876242c12d3b7b06188f6645d79b3cc4acba637b3"
   name = "github.com/miekg/dns"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9cfcfb2209aecb663673bd44b11f71c215186b80"
-  version = "v1.1.14"
+  revision = "b13675009d59c97f3721247d9efa8914e1866a5b"
+  version = "v1.1.15"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
@@ -410,15 +410,17 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:5cdf4eb6946922ebe638b90e548e1a86085b778d9daf0889951b39f44e6bbe6c"
+  digest = "1:cd78578f1271cec3c0756ede60da35382b49e4efb1c96ab8604bc8fb2f9e79f6"
   name = "golang.org/x/crypto"
   packages = [
+    "acme",
+    "acme/autocert",
     "ed25519",
     "ed25519/internal/edwards25519",
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
@@ -445,7 +447,7 @@
     "websocket",
   ]
   pruneopts = "UT"
-  revision = "3b0461eec859c4b73bb64fdc8285971fd33e3938"
+  revision = "da137c7871d730100384dbcf36e6f8fa493aef5b"
 
 [[projects]]
   branch = "master"
@@ -557,10 +559,10 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "989357319d63150615221e52d4addd4b7933fd91"
+  revision = "710ae3a149df3775bfc2e9efb7f4fb97b186b233"
 
 [[projects]]
-  digest = "1:031d110b427d5e02fdb45c4f83fffa2421e502c46b4683a177d532ae88e79454"
+  digest = "1:cbb340eee6c5bef6dd29cfb621b88aaaf242c1d9b2d8d4ed8c184a64b23cb6b6"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -596,13 +598,14 @@
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
+    "serviceconfig",
     "stats",
     "status",
     "tap",
   ]
   pruneopts = "UT"
-  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
-  version = "v1.21.1"
+  revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
+  version = "v1.22.0"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -640,6 +643,8 @@
     "github.com/wirepair/gcd",
     "github.com/wirepair/gcd/gcdapi",
     "github.com/wirepair/gcd/gcdmessage",
+    "golang.org/x/crypto/acme",
+    "golang.org/x/crypto/acme/autocert",
     "golang.org/x/net/context",
     "golang.org/x/net/html",
     "golang.org/x/net/icmp",
@@ -650,6 +655,7 @@
     "google.golang.org/api/option",
     "google.golang.org/grpc",
     "google.golang.org/grpc/balancer/roundrobin",
+    "google.golang.org/grpc/credentials",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection",
