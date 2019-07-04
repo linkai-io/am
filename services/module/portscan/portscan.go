@@ -125,6 +125,11 @@ func (p *PortScanner) getTargetIPv4(ctx context.Context, address *am.ScanGroupAd
 	if err != nil {
 		return nil, err
 	}
+
+	if len(results) == 0 {
+		return nil, errors.New("unable to resolve address")
+	}
+
 	log.Ctx(ctx).Info().Msgf("Results: %#v %d", results, len(results))
 
 	for _, result := range results {
@@ -155,9 +160,10 @@ func (p *PortScanner) getTargetIPv4(ctx context.Context, address *am.ScanGroupAd
 				if parsers.IsBannedIP(ip) {
 					continue
 				}
-				newAddr := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(result.RecordType))
+				newAddress := module.NewAddressFromDNS(address, ip, address.HostAddress, am.DiscoveryNSQueryNameToIP, uint(result.RecordType))
+				newAddress.ConfidenceScore = module.CalculateConfidence(ctx, address, newAddress)
 				log.Ctx(ctx).Info().Msg("new address returned and created")
-				return newAddr, nil
+				return newAddress, nil
 			}
 		}
 	}

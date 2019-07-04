@@ -26,7 +26,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type AddGroupRequest struct {
+type PortScanAddGroupRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Group                *prototypes.Group       `protobuf:"bytes,2,opt,name=Group" json:"Group,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -34,18 +34,18 @@ type AddGroupRequest struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *AddGroupRequest) Reset()         { *m = AddGroupRequest{} }
-func (m *AddGroupRequest) String() string { return proto.CompactTextString(m) }
-func (*AddGroupRequest) ProtoMessage()    {}
-func (*AddGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{0}
+func (m *PortScanAddGroupRequest) Reset()         { *m = PortScanAddGroupRequest{} }
+func (m *PortScanAddGroupRequest) String() string { return proto.CompactTextString(m) }
+func (*PortScanAddGroupRequest) ProtoMessage()    {}
+func (*PortScanAddGroupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{0}
 }
-func (m *AddGroupRequest) XXX_Unmarshal(b []byte) error {
+func (m *PortScanAddGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AddGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanAddGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AddGroupRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanAddGroupRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -55,50 +55,50 @@ func (m *AddGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (dst *AddGroupRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddGroupRequest.Merge(dst, src)
+func (dst *PortScanAddGroupRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanAddGroupRequest.Merge(dst, src)
 }
-func (m *AddGroupRequest) XXX_Size() int {
+func (m *PortScanAddGroupRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *AddGroupRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_AddGroupRequest.DiscardUnknown(m)
+func (m *PortScanAddGroupRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanAddGroupRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AddGroupRequest proto.InternalMessageInfo
+var xxx_messageInfo_PortScanAddGroupRequest proto.InternalMessageInfo
 
-func (m *AddGroupRequest) GetUserContext() *prototypes.UserContext {
+func (m *PortScanAddGroupRequest) GetUserContext() *prototypes.UserContext {
 	if m != nil {
 		return m.UserContext
 	}
 	return nil
 }
 
-func (m *AddGroupRequest) GetGroup() *prototypes.Group {
+func (m *PortScanAddGroupRequest) GetGroup() *prototypes.Group {
 	if m != nil {
 		return m.Group
 	}
 	return nil
 }
 
-type GroupAddedResponse struct {
+type PortScanGroupAddedResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GroupAddedResponse) Reset()         { *m = GroupAddedResponse{} }
-func (m *GroupAddedResponse) String() string { return proto.CompactTextString(m) }
-func (*GroupAddedResponse) ProtoMessage()    {}
-func (*GroupAddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{1}
+func (m *PortScanGroupAddedResponse) Reset()         { *m = PortScanGroupAddedResponse{} }
+func (m *PortScanGroupAddedResponse) String() string { return proto.CompactTextString(m) }
+func (*PortScanGroupAddedResponse) ProtoMessage()    {}
+func (*PortScanGroupAddedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{1}
 }
-func (m *GroupAddedResponse) XXX_Unmarshal(b []byte) error {
+func (m *PortScanGroupAddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GroupAddedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanGroupAddedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GroupAddedResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanGroupAddedResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -108,19 +108,19 @@ func (m *GroupAddedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (dst *GroupAddedResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GroupAddedResponse.Merge(dst, src)
+func (dst *PortScanGroupAddedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanGroupAddedResponse.Merge(dst, src)
 }
-func (m *GroupAddedResponse) XXX_Size() int {
+func (m *PortScanGroupAddedResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GroupAddedResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GroupAddedResponse.DiscardUnknown(m)
+func (m *PortScanGroupAddedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanGroupAddedResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GroupAddedResponse proto.InternalMessageInfo
+var xxx_messageInfo_PortScanGroupAddedResponse proto.InternalMessageInfo
 
-type RemoveGroupRequest struct {
+type PortScanRemoveGroupRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	OrgID                int32                   `protobuf:"varint,2,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
 	GroupID              int32                   `protobuf:"varint,3,opt,name=GroupID,proto3" json:"GroupID,omitempty"`
@@ -129,18 +129,18 @@ type RemoveGroupRequest struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *RemoveGroupRequest) Reset()         { *m = RemoveGroupRequest{} }
-func (m *RemoveGroupRequest) String() string { return proto.CompactTextString(m) }
-func (*RemoveGroupRequest) ProtoMessage()    {}
-func (*RemoveGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{2}
+func (m *PortScanRemoveGroupRequest) Reset()         { *m = PortScanRemoveGroupRequest{} }
+func (m *PortScanRemoveGroupRequest) String() string { return proto.CompactTextString(m) }
+func (*PortScanRemoveGroupRequest) ProtoMessage()    {}
+func (*PortScanRemoveGroupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{2}
 }
-func (m *RemoveGroupRequest) XXX_Unmarshal(b []byte) error {
+func (m *PortScanRemoveGroupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RemoveGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanRemoveGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RemoveGroupRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanRemoveGroupRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -150,57 +150,57 @@ func (m *RemoveGroupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (dst *RemoveGroupRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RemoveGroupRequest.Merge(dst, src)
+func (dst *PortScanRemoveGroupRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanRemoveGroupRequest.Merge(dst, src)
 }
-func (m *RemoveGroupRequest) XXX_Size() int {
+func (m *PortScanRemoveGroupRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *RemoveGroupRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_RemoveGroupRequest.DiscardUnknown(m)
+func (m *PortScanRemoveGroupRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanRemoveGroupRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RemoveGroupRequest proto.InternalMessageInfo
+var xxx_messageInfo_PortScanRemoveGroupRequest proto.InternalMessageInfo
 
-func (m *RemoveGroupRequest) GetUserContext() *prototypes.UserContext {
+func (m *PortScanRemoveGroupRequest) GetUserContext() *prototypes.UserContext {
 	if m != nil {
 		return m.UserContext
 	}
 	return nil
 }
 
-func (m *RemoveGroupRequest) GetOrgID() int32 {
+func (m *PortScanRemoveGroupRequest) GetOrgID() int32 {
 	if m != nil {
 		return m.OrgID
 	}
 	return 0
 }
 
-func (m *RemoveGroupRequest) GetGroupID() int32 {
+func (m *PortScanRemoveGroupRequest) GetGroupID() int32 {
 	if m != nil {
 		return m.GroupID
 	}
 	return 0
 }
 
-type GroupRemovedResponse struct {
+type PortScanGroupRemovedResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GroupRemovedResponse) Reset()         { *m = GroupRemovedResponse{} }
-func (m *GroupRemovedResponse) String() string { return proto.CompactTextString(m) }
-func (*GroupRemovedResponse) ProtoMessage()    {}
-func (*GroupRemovedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{3}
+func (m *PortScanGroupRemovedResponse) Reset()         { *m = PortScanGroupRemovedResponse{} }
+func (m *PortScanGroupRemovedResponse) String() string { return proto.CompactTextString(m) }
+func (*PortScanGroupRemovedResponse) ProtoMessage()    {}
+func (*PortScanGroupRemovedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{3}
 }
-func (m *GroupRemovedResponse) XXX_Unmarshal(b []byte) error {
+func (m *PortScanGroupRemovedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GroupRemovedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanGroupRemovedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GroupRemovedResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanGroupRemovedResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -210,19 +210,19 @@ func (m *GroupRemovedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (dst *GroupRemovedResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GroupRemovedResponse.Merge(dst, src)
+func (dst *PortScanGroupRemovedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanGroupRemovedResponse.Merge(dst, src)
 }
-func (m *GroupRemovedResponse) XXX_Size() int {
+func (m *PortScanGroupRemovedResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GroupRemovedResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GroupRemovedResponse.DiscardUnknown(m)
+func (m *PortScanGroupRemovedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanGroupRemovedResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GroupRemovedResponse proto.InternalMessageInfo
+var xxx_messageInfo_PortScanGroupRemovedResponse proto.InternalMessageInfo
 
-type AnalyzeRequest struct {
+type PortScanAnalyzeRequest struct {
 	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
 	Address              *prototypes.AddressData `protobuf:"bytes,2,opt,name=Address" json:"Address,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -230,18 +230,18 @@ type AnalyzeRequest struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *AnalyzeRequest) Reset()         { *m = AnalyzeRequest{} }
-func (m *AnalyzeRequest) String() string { return proto.CompactTextString(m) }
-func (*AnalyzeRequest) ProtoMessage()    {}
-func (*AnalyzeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{4}
+func (m *PortScanAnalyzeRequest) Reset()         { *m = PortScanAnalyzeRequest{} }
+func (m *PortScanAnalyzeRequest) String() string { return proto.CompactTextString(m) }
+func (*PortScanAnalyzeRequest) ProtoMessage()    {}
+func (*PortScanAnalyzeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{4}
 }
-func (m *AnalyzeRequest) XXX_Unmarshal(b []byte) error {
+func (m *PortScanAnalyzeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AnalyzeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanAnalyzeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AnalyzeRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanAnalyzeRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -251,33 +251,33 @@ func (m *AnalyzeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (dst *AnalyzeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnalyzeRequest.Merge(dst, src)
+func (dst *PortScanAnalyzeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanAnalyzeRequest.Merge(dst, src)
 }
-func (m *AnalyzeRequest) XXX_Size() int {
+func (m *PortScanAnalyzeRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *AnalyzeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnalyzeRequest.DiscardUnknown(m)
+func (m *PortScanAnalyzeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanAnalyzeRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnalyzeRequest proto.InternalMessageInfo
+var xxx_messageInfo_PortScanAnalyzeRequest proto.InternalMessageInfo
 
-func (m *AnalyzeRequest) GetUserContext() *prototypes.UserContext {
+func (m *PortScanAnalyzeRequest) GetUserContext() *prototypes.UserContext {
 	if m != nil {
 		return m.UserContext
 	}
 	return nil
 }
 
-func (m *AnalyzeRequest) GetAddress() *prototypes.AddressData {
+func (m *PortScanAnalyzeRequest) GetAddress() *prototypes.AddressData {
 	if m != nil {
 		return m.Address
 	}
 	return nil
 }
 
-type AnalyzedResponse struct {
+type PortScanAnalyzedResponse struct {
 	Address              *prototypes.AddressData `protobuf:"bytes,1,opt,name=Address" json:"Address,omitempty"`
 	PortResult           *prototypes.PortResults `protobuf:"bytes,2,opt,name=PortResult" json:"PortResult,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -285,18 +285,18 @@ type AnalyzedResponse struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *AnalyzedResponse) Reset()         { *m = AnalyzedResponse{} }
-func (m *AnalyzedResponse) String() string { return proto.CompactTextString(m) }
-func (*AnalyzedResponse) ProtoMessage()    {}
-func (*AnalyzedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_portscanservicer_0dbd52f65a4f0ac1, []int{5}
+func (m *PortScanAnalyzedResponse) Reset()         { *m = PortScanAnalyzedResponse{} }
+func (m *PortScanAnalyzedResponse) String() string { return proto.CompactTextString(m) }
+func (*PortScanAnalyzedResponse) ProtoMessage()    {}
+func (*PortScanAnalyzedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_portscanservicer_a64fb7643aa1500f, []int{5}
 }
-func (m *AnalyzedResponse) XXX_Unmarshal(b []byte) error {
+func (m *PortScanAnalyzedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AnalyzedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PortScanAnalyzedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AnalyzedResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PortScanAnalyzedResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalTo(b)
@@ -306,26 +306,26 @@ func (m *AnalyzedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (dst *AnalyzedResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnalyzedResponse.Merge(dst, src)
+func (dst *PortScanAnalyzedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PortScanAnalyzedResponse.Merge(dst, src)
 }
-func (m *AnalyzedResponse) XXX_Size() int {
+func (m *PortScanAnalyzedResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *AnalyzedResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnalyzedResponse.DiscardUnknown(m)
+func (m *PortScanAnalyzedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PortScanAnalyzedResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnalyzedResponse proto.InternalMessageInfo
+var xxx_messageInfo_PortScanAnalyzedResponse proto.InternalMessageInfo
 
-func (m *AnalyzedResponse) GetAddress() *prototypes.AddressData {
+func (m *PortScanAnalyzedResponse) GetAddress() *prototypes.AddressData {
 	if m != nil {
 		return m.Address
 	}
 	return nil
 }
 
-func (m *AnalyzedResponse) GetPortResult() *prototypes.PortResults {
+func (m *PortScanAnalyzedResponse) GetPortResult() *prototypes.PortResults {
 	if m != nil {
 		return m.PortResult
 	}
@@ -333,12 +333,12 @@ func (m *AnalyzedResponse) GetPortResult() *prototypes.PortResults {
 }
 
 func init() {
-	proto.RegisterType((*AddGroupRequest)(nil), "module.AddGroupRequest")
-	proto.RegisterType((*GroupAddedResponse)(nil), "module.GroupAddedResponse")
-	proto.RegisterType((*RemoveGroupRequest)(nil), "module.RemoveGroupRequest")
-	proto.RegisterType((*GroupRemovedResponse)(nil), "module.GroupRemovedResponse")
-	proto.RegisterType((*AnalyzeRequest)(nil), "module.AnalyzeRequest")
-	proto.RegisterType((*AnalyzedResponse)(nil), "module.AnalyzedResponse")
+	proto.RegisterType((*PortScanAddGroupRequest)(nil), "module.PortScanAddGroupRequest")
+	proto.RegisterType((*PortScanGroupAddedResponse)(nil), "module.PortScanGroupAddedResponse")
+	proto.RegisterType((*PortScanRemoveGroupRequest)(nil), "module.PortScanRemoveGroupRequest")
+	proto.RegisterType((*PortScanGroupRemovedResponse)(nil), "module.PortScanGroupRemovedResponse")
+	proto.RegisterType((*PortScanAnalyzeRequest)(nil), "module.PortScanAnalyzeRequest")
+	proto.RegisterType((*PortScanAnalyzedResponse)(nil), "module.PortScanAnalyzedResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -353,9 +353,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PortScanModuleClient interface {
-	AddGroup(ctx context.Context, in *AddGroupRequest, opts ...grpc.CallOption) (*GroupAddedResponse, error)
-	RemoveGroup(ctx context.Context, in *RemoveGroupRequest, opts ...grpc.CallOption) (*GroupRemovedResponse, error)
-	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzedResponse, error)
+	AddGroup(ctx context.Context, in *PortScanAddGroupRequest, opts ...grpc.CallOption) (*PortScanGroupAddedResponse, error)
+	RemoveGroup(ctx context.Context, in *PortScanRemoveGroupRequest, opts ...grpc.CallOption) (*PortScanGroupRemovedResponse, error)
+	Analyze(ctx context.Context, in *PortScanAnalyzeRequest, opts ...grpc.CallOption) (*PortScanAnalyzedResponse, error)
 }
 
 type portScanModuleClient struct {
@@ -366,8 +366,8 @@ func NewPortScanModuleClient(cc *grpc.ClientConn) PortScanModuleClient {
 	return &portScanModuleClient{cc}
 }
 
-func (c *portScanModuleClient) AddGroup(ctx context.Context, in *AddGroupRequest, opts ...grpc.CallOption) (*GroupAddedResponse, error) {
-	out := new(GroupAddedResponse)
+func (c *portScanModuleClient) AddGroup(ctx context.Context, in *PortScanAddGroupRequest, opts ...grpc.CallOption) (*PortScanGroupAddedResponse, error) {
+	out := new(PortScanGroupAddedResponse)
 	err := c.cc.Invoke(ctx, "/module.PortScanModule/AddGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -375,8 +375,8 @@ func (c *portScanModuleClient) AddGroup(ctx context.Context, in *AddGroupRequest
 	return out, nil
 }
 
-func (c *portScanModuleClient) RemoveGroup(ctx context.Context, in *RemoveGroupRequest, opts ...grpc.CallOption) (*GroupRemovedResponse, error) {
-	out := new(GroupRemovedResponse)
+func (c *portScanModuleClient) RemoveGroup(ctx context.Context, in *PortScanRemoveGroupRequest, opts ...grpc.CallOption) (*PortScanGroupRemovedResponse, error) {
+	out := new(PortScanGroupRemovedResponse)
 	err := c.cc.Invoke(ctx, "/module.PortScanModule/RemoveGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -384,8 +384,8 @@ func (c *portScanModuleClient) RemoveGroup(ctx context.Context, in *RemoveGroupR
 	return out, nil
 }
 
-func (c *portScanModuleClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzedResponse, error) {
-	out := new(AnalyzedResponse)
+func (c *portScanModuleClient) Analyze(ctx context.Context, in *PortScanAnalyzeRequest, opts ...grpc.CallOption) (*PortScanAnalyzedResponse, error) {
+	out := new(PortScanAnalyzedResponse)
 	err := c.cc.Invoke(ctx, "/module.PortScanModule/Analyze", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -395,9 +395,9 @@ func (c *portScanModuleClient) Analyze(ctx context.Context, in *AnalyzeRequest, 
 
 // PortScanModuleServer is the server API for PortScanModule service.
 type PortScanModuleServer interface {
-	AddGroup(context.Context, *AddGroupRequest) (*GroupAddedResponse, error)
-	RemoveGroup(context.Context, *RemoveGroupRequest) (*GroupRemovedResponse, error)
-	Analyze(context.Context, *AnalyzeRequest) (*AnalyzedResponse, error)
+	AddGroup(context.Context, *PortScanAddGroupRequest) (*PortScanGroupAddedResponse, error)
+	RemoveGroup(context.Context, *PortScanRemoveGroupRequest) (*PortScanGroupRemovedResponse, error)
+	Analyze(context.Context, *PortScanAnalyzeRequest) (*PortScanAnalyzedResponse, error)
 }
 
 func RegisterPortScanModuleServer(s *grpc.Server, srv PortScanModuleServer) {
@@ -405,7 +405,7 @@ func RegisterPortScanModuleServer(s *grpc.Server, srv PortScanModuleServer) {
 }
 
 func _PortScanModule_AddGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddGroupRequest)
+	in := new(PortScanAddGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -417,13 +417,13 @@ func _PortScanModule_AddGroup_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/module.PortScanModule/AddGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PortScanModuleServer).AddGroup(ctx, req.(*AddGroupRequest))
+		return srv.(PortScanModuleServer).AddGroup(ctx, req.(*PortScanAddGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PortScanModule_RemoveGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveGroupRequest)
+	in := new(PortScanRemoveGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -435,13 +435,13 @@ func _PortScanModule_RemoveGroup_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/module.PortScanModule/RemoveGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PortScanModuleServer).RemoveGroup(ctx, req.(*RemoveGroupRequest))
+		return srv.(PortScanModuleServer).RemoveGroup(ctx, req.(*PortScanRemoveGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PortScanModule_Analyze_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AnalyzeRequest)
+	in := new(PortScanAnalyzeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -453,7 +453,7 @@ func _PortScanModule_Analyze_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/module.PortScanModule/Analyze",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PortScanModuleServer).Analyze(ctx, req.(*AnalyzeRequest))
+		return srv.(PortScanModuleServer).Analyze(ctx, req.(*PortScanAnalyzeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -479,7 +479,7 @@ var _PortScanModule_serviceDesc = grpc.ServiceDesc{
 	Metadata: "module/portscan/portscanservicer.proto",
 }
 
-func (m *AddGroupRequest) Marshal() (dAtA []byte, err error) {
+func (m *PortScanAddGroupRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -489,7 +489,7 @@ func (m *AddGroupRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AddGroupRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanAddGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -520,7 +520,7 @@ func (m *AddGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *GroupAddedResponse) Marshal() (dAtA []byte, err error) {
+func (m *PortScanGroupAddedResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -530,7 +530,7 @@ func (m *GroupAddedResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GroupAddedResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanGroupAddedResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -541,7 +541,7 @@ func (m *GroupAddedResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *RemoveGroupRequest) Marshal() (dAtA []byte, err error) {
+func (m *PortScanRemoveGroupRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -551,7 +551,7 @@ func (m *RemoveGroupRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RemoveGroupRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanRemoveGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -582,7 +582,7 @@ func (m *RemoveGroupRequest) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *GroupRemovedResponse) Marshal() (dAtA []byte, err error) {
+func (m *PortScanGroupRemovedResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -592,7 +592,7 @@ func (m *GroupRemovedResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GroupRemovedResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanGroupRemovedResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -603,7 +603,7 @@ func (m *GroupRemovedResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AnalyzeRequest) Marshal() (dAtA []byte, err error) {
+func (m *PortScanAnalyzeRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -613,7 +613,7 @@ func (m *AnalyzeRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AnalyzeRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanAnalyzeRequest) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -644,7 +644,7 @@ func (m *AnalyzeRequest) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AnalyzedResponse) Marshal() (dAtA []byte, err error) {
+func (m *PortScanAnalyzedResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalTo(dAtA)
@@ -654,7 +654,7 @@ func (m *AnalyzedResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AnalyzedResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *PortScanAnalyzedResponse) MarshalTo(dAtA []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -694,7 +694,7 @@ func encodeVarintPortscanservicer(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
-func (m *AddGroupRequest) Size() (n int) {
+func (m *PortScanAddGroupRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -714,7 +714,7 @@ func (m *AddGroupRequest) Size() (n int) {
 	return n
 }
 
-func (m *GroupAddedResponse) Size() (n int) {
+func (m *PortScanGroupAddedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -726,7 +726,7 @@ func (m *GroupAddedResponse) Size() (n int) {
 	return n
 }
 
-func (m *RemoveGroupRequest) Size() (n int) {
+func (m *PortScanRemoveGroupRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -748,7 +748,7 @@ func (m *RemoveGroupRequest) Size() (n int) {
 	return n
 }
 
-func (m *GroupRemovedResponse) Size() (n int) {
+func (m *PortScanGroupRemovedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -760,7 +760,7 @@ func (m *GroupRemovedResponse) Size() (n int) {
 	return n
 }
 
-func (m *AnalyzeRequest) Size() (n int) {
+func (m *PortScanAnalyzeRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -780,7 +780,7 @@ func (m *AnalyzeRequest) Size() (n int) {
 	return n
 }
 
-func (m *AnalyzedResponse) Size() (n int) {
+func (m *PortScanAnalyzedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -813,7 +813,7 @@ func sovPortscanservicer(x uint64) (n int) {
 func sozPortscanservicer(x uint64) (n int) {
 	return sovPortscanservicer(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *AddGroupRequest) Unmarshal(dAtA []byte) error {
+func (m *PortScanAddGroupRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -836,10 +836,10 @@ func (m *AddGroupRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AddGroupRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanAddGroupRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AddGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanAddGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -930,7 +930,7 @@ func (m *AddGroupRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GroupAddedResponse) Unmarshal(dAtA []byte) error {
+func (m *PortScanGroupAddedResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -953,10 +953,10 @@ func (m *GroupAddedResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GroupAddedResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanGroupAddedResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GroupAddedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanGroupAddedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -981,7 +981,7 @@ func (m *GroupAddedResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RemoveGroupRequest) Unmarshal(dAtA []byte) error {
+func (m *PortScanRemoveGroupRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1004,10 +1004,10 @@ func (m *RemoveGroupRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RemoveGroupRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanRemoveGroupRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RemoveGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanRemoveGroupRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1103,7 +1103,7 @@ func (m *RemoveGroupRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GroupRemovedResponse) Unmarshal(dAtA []byte) error {
+func (m *PortScanGroupRemovedResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1126,10 +1126,10 @@ func (m *GroupRemovedResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GroupRemovedResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanGroupRemovedResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GroupRemovedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanGroupRemovedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1154,7 +1154,7 @@ func (m *GroupRemovedResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AnalyzeRequest) Unmarshal(dAtA []byte) error {
+func (m *PortScanAnalyzeRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1177,10 +1177,10 @@ func (m *AnalyzeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AnalyzeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanAnalyzeRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AnalyzeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanAnalyzeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1271,7 +1271,7 @@ func (m *AnalyzeRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AnalyzedResponse) Unmarshal(dAtA []byte) error {
+func (m *PortScanAnalyzedResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1294,10 +1294,10 @@ func (m *AnalyzedResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AnalyzedResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: PortScanAnalyzedResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AnalyzedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PortScanAnalyzedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1494,36 +1494,36 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("module/portscan/portscanservicer.proto", fileDescriptor_portscanservicer_0dbd52f65a4f0ac1)
+	proto.RegisterFile("module/portscan/portscanservicer.proto", fileDescriptor_portscanservicer_a64fb7643aa1500f)
 }
 
-var fileDescriptor_portscanservicer_0dbd52f65a4f0ac1 = []byte{
-	// 424 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xc1, 0x8a, 0xd4, 0x40,
-	0x10, 0x35, 0xca, 0xcc, 0x48, 0xcd, 0xb2, 0x4a, 0x33, 0x8e, 0x31, 0x2c, 0x41, 0x72, 0x58, 0x3c,
-	0x68, 0x07, 0x56, 0xf0, 0xe2, 0x41, 0xa2, 0x03, 0xeb, 0x1e, 0x44, 0x69, 0xf1, 0xe2, 0x45, 0x7a,
-	0xd3, 0xc5, 0x4c, 0x30, 0x49, 0xc7, 0xee, 0xce, 0xe2, 0xfa, 0x25, 0x7e, 0x92, 0x47, 0x6f, 0x5e,
-	0x65, 0xfc, 0x11, 0x99, 0xee, 0x24, 0xdb, 0x9b, 0x05, 0x0f, 0xee, 0xad, 0xeb, 0xbd, 0xaa, 0x7a,
-	0x45, 0xbd, 0x6a, 0x38, 0xac, 0xa4, 0x68, 0x4b, 0x4c, 0x1b, 0xa9, 0x8c, 0xce, 0x79, 0x3d, 0x3c,
-	0x34, 0xaa, 0xb3, 0x22, 0x47, 0x45, 0x1b, 0x25, 0x8d, 0x24, 0x53, 0x97, 0x17, 0x85, 0x36, 0x34,
-	0xe7, 0x0d, 0xea, 0x94, 0x0b, 0xa1, 0x50, 0x6b, 0x97, 0x11, 0x2d, 0x3d, 0x66, 0xad, 0x64, 0xdb,
-	0x74, 0xf8, 0x3d, 0x0f, 0x6f, 0x75, 0xdf, 0x30, 0x7a, 0xe0, 0xc1, 0xbd, 0xa6, 0xa3, 0x92, 0x4f,
-	0x70, 0x27, 0x13, 0xe2, 0x78, 0xd7, 0x83, 0xe1, 0x97, 0x16, 0xb5, 0x21, 0x14, 0xe6, 0x1f, 0x34,
-	0xaa, 0x57, 0xb2, 0x36, 0xf8, 0xd5, 0x84, 0xc1, 0xc3, 0xe0, 0xd1, 0xfc, 0x68, 0x8f, 0x7a, 0x18,
-	0xf3, 0x13, 0xc8, 0x01, 0x4c, 0x6c, 0x7d, 0x78, 0xd3, 0x66, 0x4e, 0xa9, 0xeb, 0xe6, 0xc0, 0x64,
-	0x01, 0xc4, 0x3e, 0x32, 0x21, 0x50, 0x30, 0xd4, 0x8d, 0xac, 0x35, 0x26, 0x06, 0x08, 0xc3, 0x4a,
-	0x9e, 0xe1, 0xb5, 0x94, 0x17, 0x30, 0x79, 0xab, 0xd6, 0x27, 0x2b, 0xab, 0x3c, 0x61, 0x2e, 0x20,
-	0x21, 0xcc, 0x6c, 0xd7, 0x93, 0x55, 0x78, 0xcb, 0xe2, 0x7d, 0x98, 0x2c, 0x61, 0xd1, 0xe9, 0xed,
-	0xa4, 0x2f, 0xa6, 0xd9, 0xc0, 0x7e, 0x56, 0xf3, 0xf2, 0xfc, 0x1b, 0xfe, 0xef, 0x24, 0x87, 0x30,
-	0xcb, 0x9c, 0x43, 0xdd, 0x16, 0xf6, 0x68, 0x17, 0xaf, 0xb8, 0xe1, 0xac, 0x27, 0x93, 0x0d, 0xdc,
-	0xed, 0x94, 0x06, 0x75, 0xbf, 0x36, 0xf8, 0x47, 0x2d, 0x79, 0x0c, 0xf0, 0x4e, 0x2a, 0xc3, 0x50,
-	0xb7, 0xa5, 0x19, 0x64, 0x2e, 0x20, 0xcd, 0x3c, 0xfe, 0xe8, 0x57, 0x00, 0xfb, 0xbb, 0xf0, 0x7d,
-	0xce, 0xeb, 0x37, 0xf6, 0x9e, 0xc8, 0x0b, 0xb8, 0xdd, 0x7b, 0x4d, 0xee, 0x53, 0x77, 0x64, 0x74,
-	0xe4, 0x7e, 0x14, 0xf5, 0xc4, 0x55, 0xd7, 0xc8, 0x31, 0xcc, 0x3d, 0xd7, 0xc8, 0x90, 0x7a, 0xd5,
-	0xca, 0xe8, 0xe0, 0x52, 0x9b, 0xd1, 0xc2, 0xc9, 0x73, 0x98, 0x75, 0x6b, 0x20, 0xcb, 0x61, 0x90,
-	0x4b, 0x0e, 0x44, 0xe1, 0x08, 0x1f, 0x8a, 0x5f, 0xbe, 0xfe, 0xb1, 0x8d, 0x83, 0x9f, 0xdb, 0x38,
-	0xf8, 0xbd, 0x8d, 0x83, 0xef, 0x7f, 0xe2, 0x1b, 0x1f, 0x9f, 0xad, 0x0b, 0xb3, 0x69, 0x4f, 0x69,
-	0x2e, 0xab, 0xb4, 0x2c, 0xea, 0xcf, 0xbc, 0x78, 0x52, 0xc8, 0x94, 0x57, 0xa9, 0xbd, 0xf1, 0xbc,
-	0xfb, 0x5e, 0x3a, 0x1d, 0xfd, 0xbf, 0xd3, 0xa9, 0xe5, 0x9f, 0xfe, 0x0d, 0x00, 0x00, 0xff, 0xff,
-	0x90, 0x49, 0x8f, 0x64, 0x99, 0x03, 0x00, 0x00,
+var fileDescriptor_portscanservicer_a64fb7643aa1500f = []byte{
+	// 432 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xd1, 0x6a, 0xd4, 0x40,
+	0x14, 0x35, 0x95, 0xdd, 0x95, 0xbb, 0xc5, 0x87, 0x41, 0x6b, 0x0c, 0x4b, 0x2c, 0x41, 0x8a, 0x0f,
+	0x3a, 0x81, 0x0a, 0xbe, 0xaf, 0x2e, 0x68, 0x11, 0xa9, 0x8c, 0x88, 0xe0, 0xdb, 0x34, 0x73, 0x59,
+	0x83, 0x49, 0x26, 0xce, 0x4c, 0x8a, 0x15, 0xdf, 0xfd, 0x05, 0x3f, 0xc9, 0x47, 0x3f, 0x41, 0xd6,
+	0x1f, 0x91, 0xce, 0x24, 0xd9, 0x69, 0x62, 0x7d, 0xb0, 0x6f, 0xb9, 0xe7, 0xdc, 0x9c, 0x7b, 0x98,
+	0x73, 0x2f, 0x1c, 0x94, 0x52, 0x34, 0x05, 0xa6, 0xb5, 0x54, 0x46, 0x67, 0xbc, 0xea, 0x3f, 0x34,
+	0xaa, 0xd3, 0x3c, 0x43, 0x45, 0x6b, 0x25, 0x8d, 0x24, 0x53, 0xd7, 0x17, 0x85, 0xb6, 0x34, 0x67,
+	0x35, 0xea, 0x94, 0x0b, 0xa1, 0x50, 0x6b, 0xd7, 0x11, 0xed, 0x79, 0xcc, 0x5a, 0xc9, 0xa6, 0x6e,
+	0xf1, 0xdb, 0x1e, 0xde, 0xe8, 0x4e, 0x30, 0xba, 0xeb, 0xc1, 0xdd, 0x4c, 0x47, 0x25, 0x6b, 0xb8,
+	0xf3, 0x5a, 0x2a, 0xf3, 0x26, 0xe3, 0xd5, 0x52, 0x88, 0xe7, 0xe7, 0x5a, 0x0c, 0x3f, 0x35, 0xa8,
+	0x0d, 0xa1, 0x30, 0x7f, 0xab, 0x51, 0x3d, 0x93, 0x95, 0xc1, 0xcf, 0x26, 0x0c, 0xf6, 0x83, 0x07,
+	0xf3, 0xc3, 0x5d, 0xea, 0x61, 0xcc, 0x6f, 0x20, 0x0b, 0x98, 0xd8, 0xff, 0xc3, 0x1d, 0xdb, 0x39,
+	0xa5, 0x4e, 0xcd, 0x81, 0xc9, 0x02, 0xa2, 0x6e, 0x90, 0x05, 0x96, 0x42, 0xa0, 0x60, 0xa8, 0x6b,
+	0x59, 0x69, 0x4c, 0xbe, 0x6e, 0x59, 0x86, 0xa5, 0x3c, 0xc5, 0x2b, 0x39, 0xb9, 0x05, 0x93, 0x63,
+	0xb5, 0x3e, 0x5a, 0x59, 0x27, 0x13, 0xe6, 0x0a, 0x12, 0xc2, 0xcc, 0xaa, 0x1e, 0xad, 0xc2, 0xeb,
+	0x16, 0xef, 0xca, 0x24, 0x86, 0xc5, 0x05, 0x6f, 0xce, 0xc2, 0xd6, 0x5d, 0x0d, 0x7b, 0xfd, 0x23,
+	0x55, 0xbc, 0x38, 0xfb, 0x82, 0xff, 0xeb, 0xec, 0x00, 0x66, 0x4b, 0x97, 0x64, 0xfb, 0x4a, 0xbb,
+	0xb4, 0xad, 0x57, 0xdc, 0x70, 0xd6, 0x91, 0x49, 0x0d, 0xe1, 0x60, 0x62, 0xef, 0xc6, 0xd7, 0x08,
+	0xfe, 0xa1, 0x41, 0x1e, 0x02, 0x9c, 0x6b, 0x30, 0xd4, 0x4d, 0x61, 0xfa, 0x71, 0x5b, 0x48, 0x33,
+	0x8f, 0x3f, 0xfc, 0xb6, 0x03, 0x37, 0xbb, 0x91, 0xaf, 0xec, 0xfe, 0x91, 0x63, 0xb8, 0xd1, 0xed,
+	0x04, 0xb9, 0x47, 0xdd, 0x52, 0xd2, 0x4b, 0xb6, 0x25, 0x4a, 0x86, 0x0d, 0xe3, 0x94, 0xc9, 0x3b,
+	0x98, 0x7b, 0xe9, 0x92, 0xd1, 0x2f, 0xe3, 0xe8, 0xa3, 0xfb, 0x7f, 0x95, 0x1d, 0x04, 0x44, 0x5e,
+	0xc2, 0xac, 0x7d, 0x26, 0x12, 0x8f, 0x8c, 0x5e, 0x48, 0x2c, 0xda, 0xbf, 0x84, 0xef, 0xc5, 0x9e,
+	0xbe, 0xf8, 0xb1, 0x89, 0x83, 0x9f, 0x9b, 0x38, 0xf8, 0xb5, 0x89, 0x83, 0xef, 0xbf, 0xe3, 0x6b,
+	0xef, 0x9f, 0xac, 0x73, 0xf3, 0xa1, 0x39, 0xa1, 0x99, 0x2c, 0xd3, 0x22, 0xaf, 0x3e, 0xf2, 0xfc,
+	0x51, 0x2e, 0x53, 0x5e, 0xa6, 0xf6, 0x86, 0xb2, 0xf6, 0x7c, 0x75, 0x3a, 0xb8, 0xef, 0x93, 0xa9,
+	0xe5, 0x1f, 0xff, 0x09, 0x00, 0x00, 0xff, 0xff, 0x23, 0xf2, 0x3b, 0x56, 0xf9, 0x03, 0x00, 0x00,
 }

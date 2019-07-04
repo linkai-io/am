@@ -8,6 +8,8 @@ Type=simple
 User=portscanner
 Group=scanner
 LimitNOFILE=65000
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+Environment=APP_ENV=prod
 
 Restart=on-failure
 RestartSec=30
@@ -18,11 +20,6 @@ WorkingDirectory=/opt/scanner/
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
-EnvironmentFile=/etc/app-environment
-ExecStartPre=/bin/mkdir -p /var/log/portscanner
-ExecStartPre=/bin/chown syslog:adm /var/log/portscanner
-ExecStartPre=/bin/chmod 755 /var/log/portscanner
-ExecStartPre=setcap cap_net_raw,cap_net_admin=ep /opt/scanner/portscanner
 ExecStart=/opt/scanner/portscanner
 StandardOutput=syslog
 StandardError=syslog

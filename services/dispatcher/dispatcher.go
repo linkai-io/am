@@ -464,11 +464,13 @@ func (s *Service) analyzeAddress(ctx context.Context, userContext am.UserContext
 		return false, nil, errors.Wrap(err, "failed to analyze using brute module")
 	}
 
-	return false, updatedAddress, nil
+	return s.analyzeAddressPorts(ctx, userContext, scanGroupID, address, updatedAddress)
 }
 
+// analyzeAddressPorts determines if we should port scan, if we should runs the port scan.
+// the doPortScan method will add port results to our state system which the web module (or any other module) can then extract
+// prior to running it's analysis.
 func (s *Service) analyzeAddressPorts(ctx context.Context, userContext am.UserContext, scanGroupID int, address, updatedAddress *am.ScanGroupAddress) (bool, *am.ScanGroupAddress, error) {
-	var portAddress *am.ScanGroupAddress
 
 	group, err := s.groupCache.GetGroupByIDs(userContext.GetOrgID(), scanGroupID)
 	if err != nil {
@@ -476,14 +478,14 @@ func (s *Service) analyzeAddressPorts(ctx context.Context, userContext am.UserCo
 	}
 
 	if host, canScan := s.ShouldPortScan(ctx, userContext, group, address); canScan {
-		portAddress, err = s.doPortScan(ctx, userContext, host, address)
+		err = s.doPortScan(ctx, userContext, host, address)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to do port scan")
 		}
 	}
 
 	log.Ctx(ctx).Info().Str("address_hash", updatedAddress.AddressHash).Msg("analyzing web systems")
-	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.clientServices.ModuleClients[am.WebModule], scanGroupID, portAddress)
+	updatedAddress, err = s.moduleAnalysis(ctx, userContext, s.clientServices.ModuleClients[am.WebModule], scanGroupID, updatedAddress)
 	if err != nil {
 		return false, nil, errors.Wrap(err, "failed to analyze using web module")
 	}
@@ -533,81 +535,30 @@ func (s *Service) ShouldPortScan(ctx context.Context, userContext am.UserContext
 	return address.HostAddress, canScan
 }
 
-func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, host string, address *am.ScanGroupAddress) (*am.ScanGroupAddress, error) {
+// doPortScan runs a port scan against host (or ip) optionally returning a 'new' address. If new, it will be inserted along
+// with the port scan results into the db. If it's not new, we only add the port results. We also store the port results in
+// the state system so other modules can access it.
+func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, host string, address *am.ScanGroupAddress) error {
 	portAddress, portResults, err := s.clientServices.PortScanClient.Analyze(ctx, userContext, address)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to do port scan")
-		return nil, err
+		return err
 	}
 
 	if err := s.state.PutPortResults(ctx, userContext.GetOrgID(), address.GroupID, oneHour, host, portResults); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ignore the 'address' result from the portscanner if the host/ip matches what we are already working on
 	// so we don't have duplicates.
 	if portAddress.HostAddress == address.HostAddress && portAddress.IPAddress == address.IPAddress {
-		portAddress = nil // address client disregards address if nil
+		portAddress = nil // address client UpdateHostPorts disregards address if nil
 	}
 
 	if _, err := s.clientServices.AddressClient.UpdateHostPorts(ctx, userContext, portAddress, portResults); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to insert port scan results")
 	}
-	return portAddress, nil
-}
-
-// moduleAnalysis takes the list of possible new addresses filters against what is known, and any results left are added to our address map
-func (s *Service) modulePortAnalysis(ctx context.Context, userContext am.UserContext, module am.PortModuleService, scanGroupID int, address *am.ScanGroupAddress, portResults *am.PortResults) (*am.ScanGroupAddress, *am.Bag, error) {
-	updatedAddress, possibleNewAddrs, results, err := module.AnalyzeWithPorts(ctx, userContext, address, portResults)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if len(possibleNewAddrs) == 0 {
-		return updatedAddress, nil, nil
-	}
-
-	newAddrs, err := s.state.FilterNew(ctx, userContext.GetOrgID(), scanGroupID, possibleNewAddrs)
-	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("testing state to determine new address failed")
-	}
-
-	if len(newAddrs) > 0 {
-		for k, v := range newAddrs {
-			log.Ctx(ctx).Info().Str("host", v.HostAddress).Str("k", k).Str("ip", v.IPAddress).Str("hash", v.AddressHash).Msg("adding to PutAddressMap")
-		}
-		if err := s.state.PutAddressMap(ctx, userContext, scanGroupID, newAddrs); err != nil {
-			log.Ctx(ctx).Error().Err(err).Int("address_count", len(newAddrs)).Msg("failed to put in state")
-		}
-	}
-	return updatedAddress, results, nil
-}
-
-func (s *Service) defaultPortResults(group *am.ScanGroup) *am.PortResults {
-	return &am.PortResults{
-		PortID:      0,
-		OrgID:       0,
-		GroupID:     0,
-		HostAddress: "",
-		Ports: &am.Ports{
-			Current: &am.PortData{
-				IPAddress:  "",
-				TCPPorts:   nil,
-				UDPPorts:   nil,
-				TCPBanners: nil,
-				UDPBanners: nil,
-			},
-			Previous: &am.PortData{
-				IPAddress:  "",
-				TCPPorts:   nil,
-				UDPPorts:   nil,
-				TCPBanners: nil,
-				UDPBanners: nil,
-			},
-		},
-		ScannedTimestamp:         0,
-		PreviousScannedTimestamp: 0,
-	}
+	return nil
 }
 
 // should we skip ct/web analysis for this host? if enterprise, no, if yes, we need to ensure this host has been in the database

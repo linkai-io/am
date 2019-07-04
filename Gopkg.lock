@@ -51,7 +51,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:b3ecde469a0b0eb27c257451407c512cd125c6e4e8a77ae89508cf60b064af7e"
+  digest = "1:c341a69eac1a01eaa0d56ab6b54bf66b1e2482b0d70c67b628127c40f8bbffcd"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -94,8 +94,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "06512ecac9db8f44189277d87f426e6dc53cc86b"
-  version = "v1.20.14"
+  revision = "471204b4ff86c9c417adb58cec55079c06d16213"
+  version = "v1.20.15"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -643,7 +643,6 @@
     "github.com/wirepair/gcd",
     "github.com/wirepair/gcd/gcdapi",
     "github.com/wirepair/gcd/gcdmessage",
-    "golang.org/x/crypto/acme",
     "golang.org/x/crypto/acme/autocert",
     "golang.org/x/net/context",
     "golang.org/x/net/html",
@@ -655,11 +654,14 @@
     "google.golang.org/api/option",
     "google.golang.org/grpc",
     "google.golang.org/grpc/balancer/roundrobin",
+    "google.golang.org/grpc/codes",
     "google.golang.org/grpc/credentials",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
+    "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/resolver",
+    "google.golang.org/grpc/status",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

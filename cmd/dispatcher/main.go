@@ -68,7 +68,7 @@ func main() {
 		AddressClient:  initializers.AddrClientWithTimeout(timeout),
 		WebClient:      initializers.WebDataClientWithTimeout(timeout),
 		ModuleClients:  initializers.Modules(state),
-		PortScanClient: initializers.PortScanModule(state),
+		PortScanClient: initializers.PortScanModule("server1.linkai.io", "testtoken"),
 	}
 
 	service := dispatcher.New(dependentServices, state)

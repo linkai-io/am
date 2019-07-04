@@ -180,7 +180,7 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 
 func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
 	ports := &am.Ports{Current: &am.PortData{}, Previous: &am.PortData{}}
-	if in.Ports != nil && in.Ports.Current != nil {
+	if in != nil && in.Ports != nil && in.Ports.Current != nil {
 		ports.Current = &am.PortData{
 			IPAddress:  in.Ports.Current.IPAddress,
 			TCPPorts:   in.Ports.Current.TCPPorts,
@@ -190,7 +190,7 @@ func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
 		}
 	}
 
-	if in.Ports != nil && in.Ports.Previous != nil {
+	if in != nil && in.Ports != nil && in.Ports.Previous != nil {
 		ports.Previous = &am.PortData{
 			IPAddress:  in.Ports.Previous.IPAddress,
 			TCPPorts:   in.Ports.Previous.TCPPorts,
@@ -213,7 +213,7 @@ func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
 
 func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
 	ports := &prototypes.Ports{Current: &prototypes.PortData{}, Previous: &prototypes.PortData{}}
-	if in.Ports != nil && in.Ports.Current != nil {
+	if in != nil && in.Ports != nil && in.Ports.Current != nil {
 		ports.Current = &prototypes.PortData{
 			IPAddress:  in.Ports.Current.IPAddress,
 			TCPPorts:   in.Ports.Current.TCPPorts,
@@ -223,7 +223,7 @@ func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
 		}
 	}
 
-	if in.Ports != nil && in.Ports.Previous != nil {
+	if in != nil && in.Ports != nil && in.Ports.Previous != nil {
 		ports.Previous = &prototypes.PortData{
 			IPAddress:  in.Ports.Previous.IPAddress,
 			TCPPorts:   in.Ports.Previous.TCPPorts,
@@ -245,6 +245,9 @@ func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
 }
 
 func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
+	if in == nil {
+		return nil
+	}
 	return &am.ScanGroupAddress{
 		AddressID:           in.AddressID,
 		OrgID:               int(in.OrgID),
@@ -269,6 +272,10 @@ func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 }
 
 func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
+	if in == nil {
+		return nil
+	}
+
 	return &prototypes.AddressData{
 		OrgID:               int32(in.OrgID),
 		AddressID:           in.AddressID,

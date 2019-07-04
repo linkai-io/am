@@ -2,8 +2,10 @@ package module
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/linkai-io/am/am"
@@ -12,6 +14,7 @@ import (
 	service "github.com/linkai-io/am/protocservices/module/portscan"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type tokenAuth struct {
@@ -62,9 +65,11 @@ func (c *PortScanClient) Init(data []byte) error {
 		return errors.New("server address required in configuration")
 	}
 
-	conn, err := grpc.DialContext(context.Background(), c.config.ServerAddress, grpc.WithPerRPCCredentials(tokenAuth{
-		token: c.config.Token,
-	}))
+	conn, err := grpc.DialContext(context.Background(),
+		fmt.Sprintf("dns:///%s", c.config.ServerAddress),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
+		grpc.WithPerRPCCredentials(tokenAuth{token: c.config.Token}))
+
 	if err != nil {
 		return err
 	}
@@ -89,8 +94,8 @@ func (c *PortScanClient) parseConfig(data []byte) (*PortScanConfig, error) {
 
 func (c *PortScanClient) AddGroup(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
 	var err error
-	var resp *service.GroupAddedResponse
-	in := &service.AddGroupRequest{
+	var resp *service.PortScanGroupAddedResponse
+	in := &service.PortScanAddGroupRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		Group:       convert.DomainToScanGroup(group),
 	}
@@ -117,8 +122,8 @@ func (c *PortScanClient) AddGroup(ctx context.Context, userContext am.UserContex
 
 func (c *PortScanClient) RemoveGroup(ctx context.Context, userContext am.UserContext, orgID, groupID int) error {
 	var err error
-	var resp *service.GroupRemovedResponse
-	in := &service.RemoveGroupRequest{
+	var resp *service.PortScanGroupRemovedResponse
+	in := &service.PortScanRemoveGroupRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		OrgID:       int32(orgID),
 		GroupID:     int32(groupID),
@@ -146,8 +151,8 @@ func (c *PortScanClient) RemoveGroup(ctx context.Context, userContext am.UserCon
 
 func (c *PortScanClient) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, *am.PortResults, error) {
 	var err error
-	var resp *service.AnalyzedResponse
-	in := &service.AnalyzeRequest{
+	var resp *service.PortScanAnalyzedResponse
+	in := &service.PortScanAnalyzeRequest{
 		UserContext: convert.DomainToUserContext(userContext),
 		Address:     convert.DomainToAddress(address),
 	}

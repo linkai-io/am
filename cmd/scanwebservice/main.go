@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/linkai-io/am/pkg/autocertcache"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -59,7 +60,7 @@ func main() {
 	m := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(hostname),
-		Cache:      autocert.DirCache(certPath),
+		Cache:      autocertcache.GroupDirCache(certPath), // allow certs to have 0660 set
 	}
 
 	if email != "" {

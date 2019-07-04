@@ -3,7 +3,6 @@ package portscanner
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -289,10 +288,8 @@ func (s *Scanner) listen(ctx context.Context, handle *pcap.Handle, resultCh chan
 					continue
 				} else if decodeTCP.SYN && decodeTCP.ACK {
 					resultCh <- &portResult{Port: int32(decodeTCP.SrcPort)}
-					fmt.Printf("open: %d\n", decodeTCP.SrcPort)
 					total--
 				} else if decodeTCP.RST {
-					fmt.Printf("closed: %d\n", decodeTCP.SrcPort)
 					resultCh <- &portResult{Port: int32(decodeTCP.SrcPort), Closed: true}
 					total--
 				}

@@ -57,6 +57,10 @@ func TestPushAddresses(t *testing.T) {
 	if portClient.RemoveGroupInvoked == false {
 		t.Fatalf("error remove group was not invoked")
 	}
+
+	if portClient.AnalyzeInvoked == false {
+		t.Fatalf("error port scan was not invoked")
+	}
 }
 
 func mockGroups(orgID, num int, t *testing.T) []*am.ScanGroup {

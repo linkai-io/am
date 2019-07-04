@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/autocertcache"
 	"github.com/linkai-io/am/pkg/protocauth"
 
 	"github.com/linkai-io/am/pkg/dnsclient"
@@ -50,15 +51,21 @@ func init() {
 
 // GetTLS reads the tls cache from the scanwebserver certs path
 func GetTLS(host, cacheDir string) (*tls.Config, error) {
+	if _, err := os.Stat(cacheDir + "/scanner1.linkai.io"); err != nil {
+		return nil, err
+	}
+
 	manager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
-		Cache:      autocert.DirCache(cacheDir),
+		Cache:      autocertcache.GroupDirCache(cacheDir),
 		HostPolicy: autocert.HostWhitelist(host),
 	}
 	return &tls.Config{GetCertificate: manager.GetCertificate}, nil
 }
 
 func main() {
+	flag.Parse()
+
 	dnsClient := dnsclient.New(dnsServers, 1)
 
 	tlsConfig, err := GetTLS(hostname, certPath)
@@ -70,6 +77,8 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to listen")
 	}
+
+	log.Info().Str("port", listenPort).Msg("listening on port")
 
 	executor := portscanner.NewSocketClient(env)
 	if err := executor.Init(nil); err != nil {

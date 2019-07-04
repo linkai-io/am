@@ -7,8 +7,9 @@ After=network.target
 [Service]
 Type=simple
 User=scanwebservice
-Group=scanner
-LimitNOFILE=1024
+Group=certaccess
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+LimitNOFILE=2048
 
 Restart=on-failure
 RestartSec=30
@@ -19,10 +20,6 @@ WorkingDirectory=/opt/scanner/
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
-EnvironmentFile=/etc/app-environment
-ExecStartPre=/bin/mkdir -p /var/log/scanwebservice
-ExecStartPre=/bin/chown syslog:adm /var/log/scanwebservice
-ExecStartPre=/bin/chmod 755 /var/log/scanwebservice
 ExecStart=/opt/scanner/scanwebservice
 StandardOutput=syslog
 StandardError=syslog
