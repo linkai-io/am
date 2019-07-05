@@ -115,7 +115,11 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 
 	if e.LimitCustomWebFlowsReached != r.LimitCustomWebFlowsReached {
-		t.Fatalf("LimitTLD did not match expected: %v got %v\n", e.LimitCustomWebFlowsReached, r.LimitCustomWebFlowsReached)
+		t.Fatalf("LimitCustomWebFlowsReached did not match expected: %v got %v\n", e.LimitCustomWebFlowsReached, r.LimitCustomWebFlowsReached)
+	}
+
+	if e.PortScanEnabled != r.PortScanEnabled {
+		t.Fatalf("PortScanEnabled did not match expected: %v got %v\n", e.PortScanEnabled, r.PortScanEnabled)
 	}
 
 	if r.CreationTime <= 0 {

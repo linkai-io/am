@@ -298,6 +298,7 @@ func TestUpdate(t *testing.T) {
 	orgNoNameChange.LimitHostsReached = true
 	orgNoNameChange.LimitCustomWebFlows = 1
 	orgNoNameChange.LimitCustomWebFlowsReached = true
+	orgNoNameChange.PortScanEnabled = true
 
 	if _, err := service.Update(ctx, userContext, orgNoNameChange); err != nil {
 		t.Fatalf("error updating organization: %s\n", err)
