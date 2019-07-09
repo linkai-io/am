@@ -53,6 +53,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
+// Also Tests GetPorts
 func TestGetHostList(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -154,7 +155,6 @@ func TestGetHostList(t *testing.T) {
 	if len(hosts[0].AddressIDs) != 100 {
 		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
 	}
-	t.Logf("%#v\n", hosts[0].Ports)
 
 	// test with port scan results
 	portResults := &am.PortResults{
@@ -215,6 +215,62 @@ func TestGetHostList(t *testing.T) {
 	}
 
 	amtest.TestComparePortData(portResults.Ports.Current, hosts[0].Ports.Ports.Current, t)
+
+	filter = &am.ScanGroupAddressFilter{
+		Start:   0,
+		Limit:   10000,
+		GroupID: groupID,
+		Filters: &am.FilterType{},
+	}
+	// test single valid port
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21})
+	_, results, err := service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid port filter: %v\n", err)
+	}
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test multi valid port
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21, 22})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid multiports filter: %v\n", err)
+	}
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test single invalid port
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{44})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for invalid port filter: %v\n", err)
+	}
+
+	if len(results) != 0 {
+		t.Logf("%#v\n", results)
+		t.Fatalf("got port results when should not have\n")
+	}
+
+	// test multi valid port + invalid port (should pass since Or)
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21, 44})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for invalid port filter: %v\n", err)
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test ip address filter
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString(am.FilterIPAddress, "192.168.1.1")
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid ip address filter: %v\n", err)
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
 
 }
 func TestAdd(t *testing.T) {

@@ -49,6 +49,28 @@ func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.
 	return nil
 }
 
+func (s *AddressProtocService) GetPorts(in *address.GetPortsRequest, stream address.Address_GetPortsServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
+	filter := convert.AddressFilterToDomain(in.Filter)
+
+	oid, portResults, err := s.as.GetPorts(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
+	if err != nil {
+		return err
+	}
+
+	for _, port := range portResults {
+		if oid != port.OrgID {
+			return ErrOrgIDNonMatch
+		}
+
+		if err := stream.Send(&address.GetPortsResponse{OrgID: int32(oid), PortResults: convert.DomainToPortResults(port)}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *AddressProtocService) GetHostList(in *address.HostListRequest, stream address.Address_GetHostListServer) error {
 	s.reporter.Increment(1)
 	defer s.reporter.Increment(-1)

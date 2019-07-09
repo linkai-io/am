@@ -66,6 +66,9 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 		return orgID, nil
 	}
 
+	addrClient.GetPortsFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+		return orgID, nil, nil
+	}
 	return addrClient
 }
 

@@ -156,6 +156,69 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	return userContext.GetOrgID(), addresses, err
 }
 
+// Get returns all addresses for a scan group that match the supplied filter
+func (s *Service) GetPorts(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	serviceLog.Info().Msg("getting address list")
+
+	var rows *pgx.Rows
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	query, args, err := buildGetPortsFilterQuery(userContext, filter)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	serviceLog.Info().Msgf("Building GetPorts query with filter: %#v %#v", filter, filter.Filters)
+	serviceLog.Info().Msgf("%s", query)
+	serviceLog.Info().Msgf("%#v", args)
+	rows, err = s.pool.Query(query, args...)
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	portResults = make([]*am.PortResults, 0)
+
+	for i := 0; rows.Next(); i++ {
+		var scanTime time.Time
+		var prevScanTime time.Time
+
+		p := &am.PortResults{}
+		// port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp
+		if err := rows.Scan(&p.PortID, &p.OrgID, &p.GroupID, &p.HostAddress, &p.Ports, &scanTime, &prevScanTime); err != nil {
+			return 0, nil, err
+		}
+
+		p.ScannedTimestamp = scanTime.UnixNano()
+		p.PreviousScannedTimestamp = prevScanTime.UnixNano()
+
+		if p.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		portResults = append(portResults, p)
+	}
+
+	return userContext.GetOrgID(), portResults, err
+}
+
 // GetHostList returns hostnames and a list of IP addresses for each host
 // TODO: add filtering for start/limit
 func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {

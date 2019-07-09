@@ -40,6 +40,9 @@ type AddressService struct {
 
 	UpdateHostPortsFn      func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error)
 	UpdateHostPortsInvoked bool
+
+	GetPortsFn      func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error)
+	GetPortsInvoked bool
 }
 
 func (c *AddressService) Init(config []byte) error {
@@ -94,4 +97,9 @@ func (c *AddressService) Archive(ctx context.Context, userContext am.UserContext
 func (c *AddressService) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
 	c.UpdateHostPortsInvoked = true
 	return c.UpdateHostPortsFn(ctx, userContext, address, portResults)
+}
+
+func (c *AddressService) GetPorts(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+	c.GetPortsInvoked = true
+	return c.GetPortsFn(ctx, userContext, filter)
 }
