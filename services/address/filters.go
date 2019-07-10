@@ -229,6 +229,11 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 }
 
 func buildGetPortsFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddressFilter) (string, []interface{}, error) {
+
+	if filter.Start == 0 {
+		filter.Start = time.Now().Add(time.Hour).UnixNano()
+	}
+
 	columns := strings.Replace(defaultPortColumns, "\n\t\t", "", -1)
 	p := sq.Select().Columns(strings.Split(columns, ",")...).From("am.scan_group_addresses_ports as sgap")
 
@@ -376,6 +381,8 @@ func buildGetPortsFilterQuery(userContext am.UserContext, filter *am.ScanGroupAd
 		}
 	}
 
-	p = p.Limit(uint64(filter.Limit))
+	p = p.Where(sq.Lt{"sgap.scanned_timestamp": time.Unix(0, filter.Start)}).
+		OrderBy("sgap.scanned_timestamp desc").
+		Limit(uint64(filter.Limit))
 	return p.PlaceholderFormat(sq.Dollar).ToSql()
 }
