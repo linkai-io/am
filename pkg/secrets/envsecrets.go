@@ -26,3 +26,8 @@ func (s *EnvSecrets) SetSecureParameter(key, value string) error {
 	os.Setenv(key, value)
 	return nil
 }
+
+// WithCredentials not necessary for local testing
+func (s *EnvSecrets) WithCredentials(id, key string) {
+	return
+}

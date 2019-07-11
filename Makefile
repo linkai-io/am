@@ -157,26 +157,29 @@ deployeventservice:
 	aws ecs update-service --cluster ${APP_ENV}-backend-ecs-cluster --force-new-deployment --service eventservice
 
 pushwebmoduleservice:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/gcdleaser cmd/gcdleaser/main.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmoduleservice cmd/module/web/main.go	
-	zip deploy_files/webmodule.zip third_party/local.conf deploy_files/webmoduleservice deploy_files/gcdleaser
-	aws s3 cp deploy_files/webmodule.zip s3://linkai-infra/${APP_ENV}/webmodule/webmodule.zip
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmodule/gcdleaser cmd/gcdleaser/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/webmodule/webmoduleservice cmd/module/web/main.go	
+	zip deploy_files/webmodule/webmodule.zip third_party/local.conf deploy_files/webmodule/webmoduleservice deploy_files/webmodule/gcdleaser
+	aws s3 cp deploy_files/webmodule/webmodule.zip s3://linkai-infra/${APP_ENV}/webmodule/webmodule.zip
 
 buildscanwebservice:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/scanwebservice cmd/scanwebservice/main.go
-	zip deploy_files/scanwebservice.zip deploy_files/scanwebservice deploy_files/30-scanwebservice.conf deploy_files/scanwebservice.service deploy_files/install_scanwebservice.sh
+	zip deploy_files/scanwebservice.zip deploy_files/prod/scanwebservice/*
 
 buildportscannerdev:
-	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/portscannerdev cmd/portscanner/main.go
-	zip deploy_files/portscannerdev.zip deploy_files/portscannerdev deploy_files/30-portscannerdev.conf deploy_files/portscannerdev.service deploy_files/install_portscannerdev.sh
+	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/dev/portscanner/portscannerdev cmd/portscanner/main.go
+	zip deploy_files/dev/portscanner/portscannerdev.zip deploy_files/dev/portscanner/*
 
 buildportscanservicedev:
-	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/portscanservicedev cmd/module/port/main.go
-	zip deploy_files/portscanservicedev.zip deploy_files/portscanservicedev deploy_files/30-portscanservicedev.conf deploy_files/portscanservicedev.service deploy_files/install_portscanservicedev.sh
+	echo '{"id":$(shell aws ssm get-parameter --name /am/iam-users/dev-scanner1-user/aws_access_key_id --with-decryption | jq .Parameter.Value), "key":$(shell aws ssm get-parameter --name /am/iam-users/dev-scanner1-user/aws_secret_access_key --with-decryption | jq .Parameter.Value)}' > deploy_files/dev/portscanservice/dev.key
+	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/dev/portscanservice/portscanservicedev cmd/module/port/main.go
+	zip deploy_files/dev/portscanservice/portscanservicedev.zip deploy_files/dev/portscanservice/*
+	rm deploy_files/dev/portscanservice/dev.key
+	scp deploy_files/dev/portscanservice/portscanservicedev.zip linkai-admin@scanner1.linkai.io:/home/linkai-admin/
 
 buildportscanner:
-	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/portscanner cmd/portscanner/main.go
-	zip deploy_files/portscanner.zip deploy_files/portscanner deploy_files/30-portscanner.conf deploy_files/portscanner.service deploy_files/install_portscanner.sh
+	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/prod/portscanner/portscanner cmd/portscanner/main.go
+	zip deploy_files/prod/portscanner/portscanner.zip deploy_files/prod/portscanner/*
 
 test:
 	go test ./... -cover

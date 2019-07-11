@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/secrets"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -49,6 +51,12 @@ func main() {
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "DispatcherService").Logger()
 
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
+	portToken, err := sec.GetPortScanToken()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get port scan token from secrets")
+	}
+
 	if appConfig.Addr == "" {
 		appConfig.Addr = ":50051"
 	}
@@ -68,7 +76,7 @@ func main() {
 		AddressClient:  initializers.AddrClientWithTimeout(timeout),
 		WebClient:      initializers.WebDataClientWithTimeout(timeout),
 		ModuleClients:  initializers.Modules(state),
-		PortScanClient: initializers.PortScanModule("server1.linkai.io", "testtoken"),
+		PortScanClient: initializers.PortScanModule("server1.linkai.io", portToken),
 	}
 
 	service := dispatcher.New(dependentServices, state)

@@ -1,0 +1,29 @@
+[Unit]
+Description=portscan web service
+ConditionPathExists=/opt/scanner/
+ConditionPathExists=/opt/scanner/certs/
+After=network.target
+
+[Service]
+Type=simple
+User=scanwebservice
+Group=certaccess
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+LimitNOFILE=2048
+
+Restart=on-failure
+RestartSec=30
+startLimitIntervalSec=60
+
+WorkingDirectory=/opt/scanner/
+
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStart=/opt/scanner/scanwebservice
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=scanwebservice
+
+[Install]
+WantedBy=multi-user.target

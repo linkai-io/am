@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 )
@@ -22,6 +23,14 @@ func NewAWSSecrets(region string) *AWSSecrets {
 	s.sess = session.Must(session.NewSession(&aws.Config{Region: aws.String(s.Region)}))
 	s.manager = ssm.New(s.sess)
 	return s
+}
+
+// WithCredentials creates a session with credentials
+func (s *AWSSecrets) WithCredentials(id, key string) {
+	creds := credentials.NewStaticCredentials(id, key, "")
+	s.sess = session.Must(session.NewSession(&aws.Config{Credentials: creds, Region: aws.String(s.Region)}))
+	s.manager = ssm.New(s.sess)
+	return
 }
 
 // GetSecureParameter retrieves the parameter specified by key, or error otherwise.

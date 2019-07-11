@@ -24,6 +24,10 @@ func NewSecretsCache(env, region string) *SecretsCache {
 	return s
 }
 
+func (s *SecretsCache) WithCredentials(id, key string) {
+	s.secrets.WithCredentials(id, key)
+}
+
 // GetSecureString allows caller to provide the full key to return a string value
 func (s *SecretsCache) GetSecureString(key string) (string, error) {
 	data, err := s.secrets.GetSecureParameter(key)
@@ -114,6 +118,14 @@ func (s *SecretsCache) SystemUserID() (int, error) {
 		return -1, err
 	}
 	return strconv.Atoi(string(data))
+}
+
+func (s *SecretsCache) GetPortScanToken() (string, error) {
+	data, err := s.secrets.GetSecureParameter(fmt.Sprintf("/am/%s/scanner1/token", s.Environment))
+	if err != nil {
+		return "", err
+	}
+	return string(data), err
 }
 
 func (s *SecretsCache) SetSystemIDs(orgID, userID int) error {

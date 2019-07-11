@@ -2,10 +2,15 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"time"
+
+	"github.com/linkai-io/am/pkg/secrets"
 
 	"github.com/linkai-io/am/pkg/autocertcache"
 	"github.com/linkai-io/am/pkg/protocauth"
@@ -34,9 +39,10 @@ var env = os.Getenv("APP_ENV")
 var dnsServers = []string{"1.1.1.1:853", "1.0.0.1:853", "64.6.64.6:53", "77.88.8.8:53", "74.82.42.42:53", "8.8.4.4:53", "8.8.8.8:53"}
 
 var (
-	hostname   string
-	certPath   string
-	listenPort string
+	credentialPath string
+	hostname       string
+	certPath       string
+	listenPort     string
 )
 
 const (
@@ -46,6 +52,7 @@ const (
 func init() {
 	flag.StringVar(&hostname, "host", "scanner1.linkai.io", "hostname to use for serving files from")
 	flag.StringVar(&certPath, "certs", "/opt/scanner/certs", "path to autocert cache")
+	flag.StringVar(&credentialPath, "creds", "/opt/scanner/", "path to aws credentials")
 	flag.StringVar(&listenPort, "port", ":50052", "port to listen on 50052 for prod, 50053 for dev")
 }
 
@@ -61,6 +68,37 @@ func GetTLS(host, cacheDir string) (*tls.Config, error) {
 		HostPolicy: autocert.HostWhitelist(host),
 	}
 	return &tls.Config{GetCertificate: manager.GetCertificate}, nil
+}
+
+func getPortToken() []byte {
+	type awsCredentials struct {
+		ID  string `json:"id"`
+		Key string `json:"key"`
+	}
+	creds := &awsCredentials{}
+
+	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.key", env, env))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to open credentials file")
+	}
+
+	if err := json.Unmarshal(data, creds); err != nil {
+		log.Fatal().Err(err).Msg("failed to unmarshal creds")
+	}
+
+	sec := secrets.NewSecretsCache(env, "us-east-1")
+	sec.WithCredentials(creds.ID, creds.Key)
+
+	portToken, err := sec.GetPortScanToken()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get port scan token from secrets")
+	}
+
+	if portToken == "" {
+		log.Fatal().Err(err).Msg("token was empty")
+	}
+
+	return []byte(portToken)
 }
 
 func main() {
@@ -95,7 +133,8 @@ func main() {
 	servicep := modulerprotoc.New(service, r)
 
 	creds := credentials.NewTLS(tlsConfig)
-	authorizer := protocauth.New([]byte("testtoken"))
+	authorizer := protocauth.New(getPortToken())
+
 	s := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(protocauth.UnaryServerInterceptor(authorizer.Authenticate)))
 
 	moduleservice.RegisterPortScanModuleServer(s, servicep)
