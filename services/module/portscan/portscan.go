@@ -6,6 +6,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/linkai-io/am/pkg/retrier"
+
 	"github.com/linkai-io/am/pkg/parsers"
 
 	"github.com/linkai-io/am/pkg/cache"
@@ -80,10 +82,19 @@ func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, a
 	if hostAddress == "" {
 		hostAddress = address.IPAddress
 	} else {
-		if address, err = p.getTargetIPv4(ctx, address); err != nil {
-			return nil, nil, err
+		retryAddr := address
+		retryErr := retrier.RetryAttempts(func() error {
+			retryAddr, err = p.getTargetIPv4(ctx, address)
+			if err != nil {
+				return err
+			}
+			return nil
+		}, 2)
+
+		if retryErr != nil {
+			return nil, nil, retryErr
 		}
-		targetIP = address.IPAddress
+		targetIP = retryAddr.IPAddress
 	}
 
 	if targetIP == "" {

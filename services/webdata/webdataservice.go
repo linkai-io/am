@@ -530,7 +530,7 @@ func (s *Service) GetSnapshots(ctx context.Context, userContext am.UserContext, 
 		w.URLRequestTimestamp = urlRequestTime.UnixNano()
 		snapshots = append(snapshots, w)
 	}
-
+	logger.Info().Int("snapshot_len", len(snapshots)).Msg("returning snapshots")
 	return userContext.GetOrgID(), snapshots, err
 }
 

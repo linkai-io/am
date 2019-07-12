@@ -179,6 +179,9 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 }
 
 func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
+	if in == nil {
+		return &am.PortResults{}
+	}
 	ports := &am.Ports{Current: &am.PortData{}, Previous: &am.PortData{}}
 	if in != nil && in.Ports != nil && in.Ports.Current != nil {
 		ports.Current = &am.PortData{
@@ -206,12 +209,16 @@ func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
 		GroupID:                  int(in.GroupID),
 		HostAddress:              in.HostAddress,
 		Ports:                    ports,
-		ScannedTimestamp:         0,
-		PreviousScannedTimestamp: 0,
+		ScannedTimestamp:         in.ScannedTimestamp,
+		PreviousScannedTimestamp: in.PreviousScannedTimestamp,
 	}
 }
 
 func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
+	if in == nil {
+		return &prototypes.PortResults{}
+	}
+
 	ports := &prototypes.Ports{Current: &prototypes.PortData{}, Previous: &prototypes.PortData{}}
 	if in != nil && in.Ports != nil && in.Ports.Current != nil {
 		ports.Current = &prototypes.PortData{
@@ -239,8 +246,8 @@ func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
 		GroupID:                  int32(in.GroupID),
 		HostAddress:              in.HostAddress,
 		Ports:                    ports,
-		ScannedTimestamp:         0,
-		PreviousScannedTimestamp: 0,
+		ScannedTimestamp:         in.ScannedTimestamp,
+		PreviousScannedTimestamp: in.PreviousScannedTimestamp,
 	}
 }
 

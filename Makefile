@@ -121,8 +121,6 @@ deploybackend:
 deploymodules:
 	$(foreach var,$(MODULE_SERVICES),aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service $(var)-replica;)
 
-
-
 deploynsmoduleservice:
 	aws ecs update-service --cluster ${APP_ENV}-modules-ecs-cluster --force-new-deployment --service nsmoduleservice-replica
 

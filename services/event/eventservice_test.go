@@ -614,6 +614,11 @@ func TestPopulate(t *testing.T) {
 			t.Fatalf("error initalizing webdata service: %s\n", err)
 		}
 
+		addrService := address.New(auth)
+		if err := addrService.Init([]byte(addrDBString)); err != nil {
+			t.Fatalf("error initalizing address service: %s\n", err)
+		}
+
 		amtest.CreateOrg(db, orgName, t)
 		orgID := amtest.GetOrgID(db, orgName, t)
 		//defer amtest.DeleteOrg(db, orgName, t)
@@ -642,6 +647,75 @@ func TestPopulate(t *testing.T) {
 		}}
 		if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
 			t.Fatalf("error adding single new host webdata for notify complete")
+		}
+
+		portResults := &am.PortResults{
+			OrgID:       orgID,
+			GroupID:     groupID,
+			HostAddress: "example.com",
+			Ports: &am.Ports{
+				Current: &am.PortData{
+					IPAddress:  "1.1.1.2",
+					TCPPorts:   []int32{443, 8080},
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+			},
+			ScannedTimestamp:         time.Now().Add(time.Hour * -1).UnixNano(),
+			PreviousScannedTimestamp: 0,
+		}
+
+		if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+			t.Fatalf("error adding ports %#v\n", err)
+		}
+
+		// update again for changes
+		portResults.Ports.Current = &am.PortData{
+			IPAddress:  "1.1.1.1",
+			TCPPorts:   []int32{80, 443, 9090},
+			UDPPorts:   nil,
+			TCPBanners: nil,
+			UDPBanners: nil,
+		}
+		portResults.ScannedTimestamp = time.Now().UnixNano()
+
+		if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+			t.Fatalf("error adding ports again %#v\n", err)
+		}
+
+		portResults2 := &am.PortResults{
+			OrgID:       orgID,
+			GroupID:     groupID,
+			HostAddress: "example1.com",
+			Ports: &am.Ports{
+				Current: &am.PortData{
+					IPAddress:  "1.1.1.1",
+					TCPPorts:   []int32{443, 8080},
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+			},
+			ScannedTimestamp:         time.Now().Add(time.Hour * -1).UnixNano(),
+			PreviousScannedTimestamp: 0,
+		}
+		if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults2); err != nil {
+			t.Fatalf("error adding ports %#v\n", err)
+		}
+
+		// update again for changes
+		portResults2.Ports.Current = &am.PortData{
+			IPAddress:  "1.1.1.1",
+			TCPPorts:   []int32{80, 443, 9090},
+			UDPPorts:   nil,
+			TCPBanners: nil,
+			UDPBanners: nil,
+		}
+		portResults2.ScannedTimestamp = time.Now().UnixNano()
+
+		if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults2); err != nil {
+			t.Fatalf("error adding ports again %#v\n", err)
 		}
 
 		settings := &am.UserEventSettings{
@@ -673,6 +747,16 @@ func TestPopulate(t *testing.T) {
 				},
 				&am.EventSubscriptions{
 					TypeID:              am.EventNewWebTech,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventNewOpenPort,
+					Subscribed:          true,
+					SubscribedTimestamp: now.UnixNano(),
+				},
+				&am.EventSubscriptions{
+					TypeID:              am.EventClosedPort,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},

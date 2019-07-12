@@ -657,6 +657,8 @@ func (s *Service) UpdateHostPorts(ctx context.Context, userContext am.UserContex
 	}
 	defer tx.Rollback() // safe to call as no-op on success
 
+	serviceLog.Info().Msgf("adding ports %#v", portResults)
+
 	if address != nil {
 		a := address
 		if _, err := tx.ExecEx(ctx, "insertPortHost", &pgx.QueryExOptions{}, int32(a.OrgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
@@ -678,6 +680,10 @@ func (s *Service) UpdateHostPorts(ctx context.Context, userContext am.UserContex
 		}
 		return 0, err
 	}
+
 	err = tx.Commit()
+	if err == nil {
+		serviceLog.Info().Msg("added ports")
+	}
 	return oid, err
 }

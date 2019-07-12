@@ -47,6 +47,7 @@ func init() {
 // main starts the DispatcherService
 func main() {
 	var err error
+	portScanAddr := "scanner1.linkai.io:50052"
 
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "DispatcherService").Logger()
@@ -55,6 +56,10 @@ func main() {
 	portToken, err := sec.GetPortScanToken()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to get port scan token from secrets")
+	}
+
+	if appConfig.Env == "dev" {
+		portScanAddr = "scanner1.linkai.io:50053"
 	}
 
 	if appConfig.Addr == "" {
@@ -76,7 +81,7 @@ func main() {
 		AddressClient:  initializers.AddrClientWithTimeout(timeout),
 		WebClient:      initializers.WebDataClientWithTimeout(timeout),
 		ModuleClients:  initializers.Modules(state),
-		PortScanClient: initializers.PortScanModule("server1.linkai.io", portToken),
+		PortScanClient: initializers.PortScanModule(portScanAddr, portToken),
 	}
 
 	service := dispatcher.New(dependentServices, state)

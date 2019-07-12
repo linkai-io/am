@@ -539,6 +539,7 @@ func (s *Service) ShouldPortScan(ctx context.Context, userContext am.UserContext
 // with the port scan results into the db. If it's not new, we only add the port results. We also store the port results in
 // the state system so other modules can access it.
 func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, host string, address *am.ScanGroupAddress) error {
+	log.Ctx(ctx).Info().Msg("doing portscan")
 	portAddress, portResults, err := s.clientServices.PortScanClient.Analyze(ctx, userContext, address)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to do port scan")
@@ -555,9 +556,13 @@ func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, ho
 		portAddress = nil // address client UpdateHostPorts disregards address if nil
 	}
 
+	log.Ctx(ctx).Info().Msgf("portscan results %#v\n", portResults)
 	if _, err := s.clientServices.AddressClient.UpdateHostPorts(ctx, userContext, portAddress, portResults); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to insert port scan results")
+	} else {
+		log.Ctx(ctx).Info().Msg("inserted port scan results")
 	}
+	log.Ctx(ctx).Info().Msg("portscan completed")
 	return nil
 }
 

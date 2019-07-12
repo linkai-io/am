@@ -104,7 +104,7 @@ func getPortToken() []byte {
 func main() {
 	flag.Parse()
 
-	dnsClient := dnsclient.New(dnsServers, 1)
+	dnsClient := dnsclient.New(dnsServers, 3)
 
 	tlsConfig, err := GetTLS(hostname, certPath)
 	if err != nil {
