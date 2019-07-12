@@ -199,10 +199,11 @@ func (s *Service) GetPorts(ctx context.Context, userContext am.UserContext, filt
 	for i := 0; rows.Next(); i++ {
 		var scanTime time.Time
 		var prevScanTime time.Time
+		var isIPv4 bool // always true for now
 
 		p := &am.PortResults{}
 		// port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp
-		if err := rows.Scan(&p.PortID, &p.OrgID, &p.GroupID, &p.HostAddress, &p.Ports, &scanTime, &prevScanTime); err != nil {
+		if err := rows.Scan(&p.PortID, &p.OrgID, &p.GroupID, &p.HostAddress, &p.Ports, &scanTime, &prevScanTime, &isIPv4); err != nil {
 			return 0, nil, err
 		}
 

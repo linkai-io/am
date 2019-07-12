@@ -26,7 +26,7 @@ const (
 		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
 		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp, deleted`
 
-	defaultPortColumns = `port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp`
+	defaultPortColumns = `port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp, is_ipv4`
 )
 
 var queryMap = map[string]string{
@@ -115,7 +115,7 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 		values ($1, $2, $3, $4, (select discovery_id from am.scan_address_discovered_by where discovered_by=$5), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) on conflict do nothing;`,
 
 	"updateHostPorts": `insert into am.scan_group_addresses_ports (organization_id, scan_group_id, host_address, port_data, scanned_timestamp) 
-		values ($1, $2, $3, $4, $5) on conflict (organization_id, scan_group_id, host_address) do update set
+		values ($1, $2, $3, $4, $5) on conflict (organization_id, scan_group_id, host_address, is_ipv4) do update set
 		previous_scanned_timestamp=am.scan_group_addresses_ports.scanned_timestamp,
 		scanned_timestamp=EXCLUDED.scanned_timestamp,
 		port_data = EXCLUDED.port_data || ( 

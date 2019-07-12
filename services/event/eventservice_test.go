@@ -560,6 +560,9 @@ func TestNotifyCompletePorts(t *testing.T) {
 		t.Fatalf("expected 2 results got %v\n", len(returned))
 	}
 
+	t.Logf("%#v", returned[0])
+	t.Logf("%#v", returned[1])
+
 }
 
 func TestDeletePopulated(t *testing.T) {

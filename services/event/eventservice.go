@@ -488,8 +488,8 @@ func (s *Service) portChanges(ctx context.Context, userContext am.UserContext, t
 				openPorts = append(openPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(openPortStrs, ",")}...)
 			}
 			if len(closed) > 0 {
-				closedPortStrs := make([]string, len(open))
-				for j, port := range open {
+				closedPortStrs := make([]string, len(closed))
+				for j, port := range closed {
 					closedPortStrs[j] = strconv.Itoa(int(port))
 				}
 				closedPorts = append(closedPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(closedPortStrs, ",")}...)
