@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -438,6 +439,15 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 		events = append(events, expiringCerts)
 	}
 
+	// port changes
+	portChanges, err := s.portChanges(ctx, userContext, tx, startTime, groupID)
+	serviceLog.Info().Msgf("port changes: %#v\n", portChanges)
+	if err != nil {
+		serviceLog.Error().Err(err).Msg("failed to gather port change events")
+	} else if portChanges != nil {
+		events = append(events, portChanges...)
+	}
+
 	if err := tx.Commit(); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, "failed to notify complete")
@@ -446,6 +456,73 @@ func (s *Service) NotifyComplete(ctx context.Context, userContext am.UserContext
 	}
 
 	return s.Add(ctx, userContext, events)
+}
+
+func (s *Service) portChanges(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) ([]*am.Event, error) {
+	oid := userContext.GetOrgID()
+	rows, err := tx.Query("checkPortChanges", oid, groupID, time.Unix(0, startTime))
+	if err != nil {
+		return nil, err
+	}
+
+	openPorts := make([]string, 0)
+	closedPorts := make([]string, 0)
+	for i := 0; rows.Next(); i++ {
+		var ports am.Ports
+		var host string
+		var scanTime time.Time
+		var prevTime time.Time
+
+		if err := rows.Scan(&host, &ports, &scanTime, &prevTime); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to scan port change event")
+			continue
+		}
+		open, closed, change := ports.TCPChanges()
+		if change {
+			log.Ctx(ctx).Info().Msg("DETECTED CHANGE")
+			if len(open) > 0 {
+				openPortStrs := make([]string, len(open))
+				for j, port := range open {
+					openPortStrs[j] = strconv.Itoa(int(port))
+				}
+				openPorts = append(openPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(openPortStrs, ",")}...)
+			}
+			if len(closed) > 0 {
+				closedPortStrs := make([]string, len(open))
+				for j, port := range open {
+					closedPortStrs[j] = strconv.Itoa(int(port))
+				}
+				closedPorts = append(closedPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(closedPortStrs, ",")}...)
+			}
+		}
+
+	}
+	events := make([]*am.Event, 0)
+	if len(openPorts) != 0 {
+		events = append(events, &am.Event{
+			OrgID:          oid,
+			GroupID:        groupID,
+			TypeID:         am.EventNewOpenPort,
+			EventTimestamp: time.Now().UnixNano(),
+			Data:           openPorts,
+		})
+	}
+
+	if len(closedPorts) != 0 {
+		events = append(events, &am.Event{
+			OrgID:          oid,
+			GroupID:        groupID,
+			TypeID:         am.EventClosedPort,
+			EventTimestamp: time.Now().UnixNano(),
+			Data:           closedPorts,
+		})
+	}
+	if len(events) == 0 {
+		return nil, nil
+	}
+
+	return events, nil
+
 }
 
 func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext, tx *pgx.Tx, startTime int64, groupID int) (*am.Event, error) {

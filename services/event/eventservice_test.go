@@ -12,6 +12,7 @@ import (
 	"github.com/linkai-io/am/amtest"
 	"github.com/linkai-io/am/mock"
 	"github.com/linkai-io/am/pkg/secrets"
+	"github.com/linkai-io/am/services/address"
 	"github.com/linkai-io/am/services/event"
 	"github.com/linkai-io/am/services/webdata"
 )
@@ -19,9 +20,11 @@ import (
 var env string
 var dbstring string
 var webDBString string
+var addrDBString string
 
 const serviceKey = "eventservice"
 const webServiceKey = "webdataservice"
+const addressKey = "addressservice"
 
 func init() {
 	var err error
@@ -36,6 +39,11 @@ func init() {
 	webDBString, err = sec.DBString(webServiceKey)
 	if err != nil {
 		panic("error getting dbstring secret for webdata")
+	}
+
+	addrDBString, err = sec.DBString(addressKey)
+	if err != nil {
+		panic("error getting dbstring secret for address")
 	}
 }
 
@@ -441,6 +449,115 @@ func TestNotifyComplete(t *testing.T) {
 
 	if certonly[0].TypeID != am.EventCertExpiring {
 		t.Fatalf("expecting 1 event of cert expiring (%d), got %d\n", am.EventCertExpired, certonly[0].TypeID)
+	}
+
+}
+
+func TestNotifyCompletePorts(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "eventnotifycompleteports"
+	groupName := "eventnotifycompleteports"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := event.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing event service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+
+	addrService := address.New(auth)
+	if err := addrService.Init([]byte(addrDBString)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	amtest.CreateOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+	userID := amtest.GetUserId(db, orgID, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, userID)
+	now := time.Now()
+
+	portResults := &am.PortResults{
+		OrgID:       orgID,
+		GroupID:     groupID,
+		HostAddress: "example.com",
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  "1.1.1.2",
+				TCPPorts:   []int32{443, 8080},
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         time.Now().Add(time.Hour * -1).UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+	if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+		t.Fatalf("error adding ports %#v\n", err)
+	}
+
+	// update again for changes
+	portResults.Ports.Current = &am.PortData{
+		IPAddress:  "1.1.1.1",
+		TCPPorts:   []int32{80, 443, 9090},
+		UDPPorts:   nil,
+		TCPBanners: nil,
+		UDPBanners: nil,
+	}
+	portResults.ScannedTimestamp = time.Now().UnixNano()
+
+	if _, err := addrService.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+		t.Fatalf("error adding ports again %#v\n", err)
+	}
+
+	settings := &am.UserEventSettings{
+		WeeklyReportSendDay: 0,
+		ShouldWeeklyEmail:   true,
+		DailyReportSendHour: 0,
+		ShouldDailyEmail:    true,
+		UserTimezone:        "Asia/Tokyo",
+		Subscriptions: []*am.EventSubscriptions{
+			&am.EventSubscriptions{
+				TypeID:              am.EventNewOpenPort,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
+			&am.EventSubscriptions{
+				TypeID:              am.EventClosedPort,
+				Subscribed:          true,
+				SubscribedTimestamp: now.UnixNano(),
+			},
+		},
+	}
+
+	if err := service.UpdateSettings(ctx, userContext, settings); err != nil {
+		t.Fatalf("error updating user settings: %v\n", err)
+	}
+
+	err := service.NotifyComplete(ctx, userContext, now.UnixNano(), groupID)
+	if err != nil {
+		t.Fatalf("error notifying complete %#v", err)
+	}
+
+	returned, err := service.Get(ctx, userContext, &am.EventFilter{Start: 0, Limit: 1000, Filters: &am.FilterType{}})
+	if err != nil {
+		t.Fatalf("error getting events: %v\n", err)
+	}
+
+	if len(returned) != 2 {
+		t.Fatalf("expected 2 results got %v\n", len(returned))
 	}
 
 }

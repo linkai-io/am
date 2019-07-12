@@ -21,6 +21,40 @@ type Ports struct {
 	Previous *PortData `json:"previous,omitempty"`
 }
 
+// TCPChanges reports changes between current and previous
+func (p *Ports) TCPChanges() (open []int32, closed []int32, change bool) {
+	current := p.Current
+	prev := p.Previous
+	currentPorts := make(map[int32]struct{})
+	previousPorts := make(map[int32]struct{})
+
+	if current != nil && current.TCPPorts != nil {
+		for _, port := range current.TCPPorts {
+			currentPorts[port] = struct{}{}
+		}
+	}
+
+	if prev != nil && prev.TCPPorts != nil {
+		for _, port := range prev.TCPPorts {
+			previousPorts[port] = struct{}{}
+		}
+	}
+
+	for port := range currentPorts {
+		if _, exist := previousPorts[port]; !exist {
+			change = true
+			open = append(open, port)
+		}
+	}
+	for port := range previousPorts {
+		if _, exist := currentPorts[port]; !exist {
+			change = true
+			closed = append(closed, port)
+		}
+	}
+	return open, closed, change
+}
+
 type PortResults struct {
 	PortID                   int64  `json:"port_id,omitempty"`
 	OrgID                    int    `json:"org_id,omitempty"`
