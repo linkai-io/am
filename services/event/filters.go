@@ -53,6 +53,6 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.EventFilter) (st
 		p = p.Where(sq.Eq{"events.scan_group_id": val})
 	}
 
-	p = p.Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
+	p = p.OrderBy("events.event_timestamp desc").Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
 	return p.ToSql()
 }
