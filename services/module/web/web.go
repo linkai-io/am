@@ -115,7 +115,7 @@ func (w *Web) shouldAnalyze(ctx context.Context, address *am.ScanGroupAddress) b
 	return true
 }
 
-// AnalyzeWithPorts will attempt to find additional domains by extracting hosts from a website as well
+// Analyze will attempt to find additional domains by extracting hosts from a website as well
 // as capture any network traffic, save images, dom, and responses to s3/disk
 func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, map[string]*am.ScanGroupAddress, error) {
 	portCfg := module.DefaultPortConfig()
@@ -216,9 +216,11 @@ func (w *Web) getPortScanResults(ctx context.Context, userContext am.UserContext
 	}
 
 	if portResults == nil || portResults.Ports == nil || portResults.Ports.Current == nil || portResults.Ports.Current.TCPPorts == nil {
+		log.Ctx(ctx).Error().Err(err).Msg("portscan results were empty, returning default")
 		return w.defaultWebPorts(portCfg)
 	}
 
+	log.Ctx(ctx).Info().Ints32("ports", portResults.Ports.Current.TCPPorts).Msg("got port scan results, using open ports")
 	allPorts := make(map[int32]struct{}, 0)
 	for _, port := range portResults.Ports.Current.TCPPorts {
 		if _, ok := defaultWebPorts[port]; ok {
