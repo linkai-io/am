@@ -179,6 +179,13 @@ buildportscanner:
 	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/prod/portscanner/portscanner cmd/portscanner/main.go
 	zip deploy_files/prod/portscanner/portscanner.zip deploy_files/prod/portscanner/*
 
+buildportscanservice:
+	echo '{"id":$(shell aws ssm get-parameter --name /am/iam-users/prod-scanner1-user/aws_access_key_id --with-decryption | jq .Parameter.Value), "key":$(shell aws ssm get-parameter --name /am/iam-users/prod-scanner1-user/aws_secret_access_key --with-decryption | jq .Parameter.Value)}' > deploy_files/prod/portscanservice/prod.key
+	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/prod/portscanservice/portscanservice cmd/module/port/main.go
+	zip deploy_files/prod/portscanservice/portscanservice.zip deploy_files/prod/portscanservice/*
+	rm deploy_files/prod/portscanservice/prod.key
+	scp deploy_files/prod/portscanservice/portscanservice.zip linkai-admin@scanner1.linkai.io:/home/linkai-admin/
+
 test:
 	go test ./... -cover
 

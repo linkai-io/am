@@ -1,15 +1,14 @@
 [Unit]
-Description=This is the port scanner for prod
+Description=This is the port scan service for pipeline requests for prod
 ConditionPathExists=/opt/scanner/
-After=network.target
+After=network.target scanwebservice portscanner
 
 [Service]
 Type=simple
-User=portscanner
+User=portscanservice
 Environment=APP_ENV=prod
 Group=scanner
 LimitNOFILE=65000
-AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
 
 Restart=on-failure
 RestartSec=30
@@ -20,10 +19,10 @@ WorkingDirectory=/opt/scanner/
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
-ExecStart=/opt/scanner/portscanner
+ExecStart=/opt/scanner/portscanservice -port=:50052
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=portscanner
+SyslogIdentifier=portscanservice
 
 [Install]
 WantedBy=multi-user.target
