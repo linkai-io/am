@@ -148,7 +148,7 @@ func TestPortsAndBanners(t *testing.T) {
 		HostAddress: "",
 		Ports: &am.Ports{
 			Current: &am.PortData{
-				IPAddress:  "",
+				IPAddress:  "1.1.1.1",
 				TCPPorts:   []int32{21, 22},
 				UDPPorts:   []int32{500},
 				TCPBanners: []string{"ftp", "ssh"},
@@ -190,6 +190,10 @@ func TestPortsAndBanners(t *testing.T) {
 		t.Fatalf("error getting port results v2: %#v\n", err)
 	}
 
+	if results.Ports.Current.IPAddress != "1.1.1.1" {
+		t.Fatalf("error getting IP Address")
+	}
+
 	amtest.SortEqualInt32(portResults.Ports.Current.TCPPorts, results.Ports.Current.TCPPorts, t)
 	amtest.SortEqualInt32(portResults.Ports.Current.UDPPorts, results.Ports.Current.UDPPorts, t)
 
@@ -201,6 +205,10 @@ func TestPortsAndBanners(t *testing.T) {
 	results, err = r.GetPortResults(ctx, 1, 1, "example.com")
 	if err != nil {
 		t.Fatalf("error getting port results v2: %#v\n", err)
+	}
+
+	if results.Ports.Current.IPAddress != "1.1.1.1" {
+		t.Fatalf("error getting IP Address")
 	}
 
 	if len(results.Ports.Current.TCPPorts) != 0 || len(results.Ports.Current.UDPPorts) != 0 ||

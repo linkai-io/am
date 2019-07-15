@@ -112,7 +112,7 @@ func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, a
 		return nil, nil, err
 	}
 
-	log.Ctx(ctx).Info().TimeDiff("scan_time", time.Now(), start).Msg("scan completed")
+	log.Ctx(ctx).Info().TimeDiff("scan_time", time.Now(), start).Ints32("ports", results.Open).Msg("scan completed")
 	portResults := &am.PortResults{
 		OrgID:       address.OrgID,
 		GroupID:     address.GroupID,

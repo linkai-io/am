@@ -307,7 +307,7 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, group 
 	if group.ArchiveAfterDays == 0 {
 		group.ArchiveAfterDays = am.DefaultArchiveDays
 	}
-	err = s.pool.QueryRow("updateScanGroup", group.GroupName, time.Unix(0, group.ModifiedTime), group.ModifiedByID, group.ModuleConfigurations, group.ArchiveAfterDays, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
+	err = s.pool.QueryRow("updateScanGroup", group.GroupName, time.Now(), group.ModifiedByID, group.ModuleConfigurations, group.ArchiveAfterDays, userContext.GetOrgID(), group.GroupID).Scan(&oid, &gid)
 	if err != nil {
 		serviceLog.Error().Err(err).Msgf("Updating Scan group failed %s", queryMap["updateScanGroup"])
 		return 0, 0, err

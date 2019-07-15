@@ -20,6 +20,7 @@ import (
 
 const (
 	oneHour      = 60 * 60
+	twoHours     = oneHour * 2
 	fiftyMinutes = 60 * 50
 )
 
@@ -480,7 +481,7 @@ func (s *Service) analyzeAddressPorts(ctx context.Context, userContext am.UserCo
 	if host, canScan := s.ShouldPortScan(ctx, userContext, group, address); canScan {
 		err = s.doPortScan(ctx, userContext, host, address)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("failed to do port scan")
+			log.Ctx(ctx).Error().Err(err).Msg("failed to analyze using portscan module")
 		}
 	}
 
@@ -527,7 +528,7 @@ func (s *Service) ShouldPortScan(ctx context.Context, userContext am.UserContext
 		return "", false
 	}
 
-	canScan, err := s.state.DoPortScan(ctx, group.OrgID, group.GroupID, oneHour, address.HostAddress)
+	canScan, err := s.state.DoPortScan(ctx, group.OrgID, group.GroupID, fiftyMinutes, address.HostAddress)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to check state if we can port scan")
 		return "", false
@@ -546,7 +547,7 @@ func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, ho
 		return err
 	}
 
-	if err := s.state.PutPortResults(ctx, userContext.GetOrgID(), address.GroupID, oneHour, host, portResults); err != nil {
+	if err := s.state.PutPortResults(ctx, userContext.GetOrgID(), address.GroupID, twoHours, host, portResults); err != nil {
 		return err
 	}
 
@@ -556,7 +557,7 @@ func (s *Service) doPortScan(ctx context.Context, userContext am.UserContext, ho
 		portAddress = nil // address client UpdateHostPorts disregards address if nil
 	}
 
-	log.Ctx(ctx).Info().Msgf("portscan results %#v\n", portResults)
+	log.Ctx(ctx).Info().Msgf("portscan results %#v\n", portResults.Ports.Current)
 	if _, err := s.clientServices.AddressClient.UpdateHostPorts(ctx, userContext, portAddress, portResults); err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to insert port scan results")
 	} else {
@@ -644,7 +645,7 @@ func (s *Service) GetActiveAddresses() int32 {
 }
 
 // StartGroupFilter for building a filter for this scan group. Depending on subscription level we will only extract addresses
-// that have not been scanned since: default: 5 min, small: 12 hours, medium: 6 hours.
+// that have not been scanned since: default: 30 min, small: 12 hours, medium: 6 hours.
 func (s *Service) StartGroupFilter(userContext am.UserContext, scanGroupID int, start time.Time) *am.ScanGroupAddressFilter {
 	duration := s.defaultDuration
 	filter := &am.FilterType{}

@@ -212,15 +212,15 @@ func (w *Web) getPortScanResults(ctx context.Context, userContext am.UserContext
 	portResults, err := w.st.GetPortResults(ctx, userContext.GetOrgID(), address.GroupID, host)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to get port scan results from state, returning default")
-		return w.defaultWebPorts(portCfg)
+		return defaultWebPorts
 	}
 
-	if portResults == nil || portResults.Ports == nil || portResults.Ports.Current == nil || portResults.Ports.Current.TCPPorts == nil {
+	if portResults == nil || portResults.Ports == nil || portResults.Ports.Current == nil || portResults.Ports.Current.TCPPorts == nil || portResults.Ports.Current.IPAddress == "" {
 		log.Ctx(ctx).Error().Err(err).Msg("portscan results were empty, returning default")
-		return w.defaultWebPorts(portCfg)
+		return defaultWebPorts
 	}
 
-	log.Ctx(ctx).Info().Ints32("ports", portResults.Ports.Current.TCPPorts).Msg("got port scan results, using open ports")
+	log.Ctx(ctx).Info().Ints32("ports", portResults.Ports.Current.TCPPorts).Msgf("got port scan results, using open ports: %#v", portResults.Ports.Current)
 	allPorts := make(map[int32]struct{}, 0)
 	for _, port := range portResults.Ports.Current.TCPPorts {
 		if _, ok := defaultWebPorts[port]; ok {

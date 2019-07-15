@@ -668,6 +668,11 @@ func (s *State) PutPortResults(ctx context.Context, orgID, scanGroupID, expireSe
 		return err
 	}
 
+	// add ip address
+	if err := conn.Send("SET", keys.PortIP(host), portResults.Ports.Current.IPAddress); err != nil {
+		return err
+	}
+
 	// add tcp ports
 	tcpPorts := portResults.Ports.Current.TCPPorts
 	if tcpPorts != nil && len(tcpPorts) != 0 {
@@ -756,6 +761,12 @@ func (s *State) GetPortResults(ctx context.Context, orgID, scanGroupID int, host
 			Current: &am.PortData{},
 		},
 	}
+
+	ipAddress, err := redis.String(conn.Do("GET", keys.PortIP(host)))
+	if err != nil {
+		return nil, err
+	}
+	portResults.Ports.Current.IPAddress = ipAddress
 
 	tcpPorts, err := redis.Ints(conn.Do("LRANGE", keys.PortResults(host, "tcp"), 0, -1))
 	if err != nil {

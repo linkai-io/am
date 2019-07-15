@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/pkg/errors"
@@ -104,19 +105,20 @@ func (s *Service) startGroups() {
 }
 
 // shouldUpdateGroup checks if the group should be updated (modified time check) even if it is running
-func (s *Service) shouldUpdateGroup(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
+func (s *Service) shouldUpdateGroup(ctx context.Context, groupLog zerolog.Logger, userContext am.UserContext, group *am.ScanGroup) error {
 	wantModules := true
 	cachedGroup, err := s.state.GetGroup(ctx, userContext.GetOrgID(), group.GroupID, wantModules)
 	if err != nil {
 		return errors.Wrap(err, "failed to get cached group")
 	}
-
+	groupLog.Info().Msgf("shouldUpdateGroup: modified time: %v vs group time: %v", cachedGroup.ModifiedTime, group.ModifiedTime)
 	if cachedGroup.ModifiedTime < group.ModifiedTime {
 		if err := s.state.Delete(ctx, userContext, group); err != nil {
 			return errors.Wrap(err, "failed to delete group")
 		}
 
 		// update/create configuration
+		groupLog.Info().Msg("shouldUpdateGroup will update")
 		if err := s.state.Put(ctx, userContext, group); err != nil {
 			return errors.Wrap(err, "failed to update/put group")
 		}
@@ -145,7 +147,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 	}
 
 	if status == am.GroupStarted || group.Paused || group.Deleted {
-		if err := s.shouldUpdateGroup(ctx, userContext, group); err != nil {
+		if err := s.shouldUpdateGroup(ctx, groupLog, userContext, group); err != nil {
 			groupLog.Error().Err(err).Msg("shouldUpdate group failed")
 			return err
 		}
@@ -171,7 +173,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		}
 	}
 
-	if err := s.shouldUpdateGroup(ctx, userContext, group); err != nil {
+	if err := s.shouldUpdateGroup(ctx, groupLog, userContext, group); err != nil {
 		groupLog.Error().Err(err).Msg("failed during shouldUpdateGroup check")
 		return errors.Wrap(err, "failed to start group")
 	}

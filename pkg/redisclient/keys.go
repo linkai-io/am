@@ -131,6 +131,9 @@ func (r *RedisKeys) AddrExistsHash() string {
 	return r.addrFmt + "_hash"
 }
 
+func (r *RedisKeys) PortIP(host string) string {
+	return r.portFmt + ":" + host + ":ip_address"
+}
 func (r *RedisKeys) PortResults(host, proto string) string {
 	return r.portFmt + ":" + host + ":" + proto
 }
@@ -140,7 +143,6 @@ func (r *RedisKeys) PortBannerResults(host, proto string) string {
 }
 
 // Addr returns the address key based on supplied addr id
-// TODO: look at better more performant options other than Sprintf
 func (r *RedisKeys) Addr(addrHash string) string {
 	return fmt.Sprintf("%d:%d:address:%s", r.orgID, r.groupID, addrHash)
 }
