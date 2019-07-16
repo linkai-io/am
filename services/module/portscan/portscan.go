@@ -84,12 +84,13 @@ func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, a
 	} else {
 		retryAddr := address
 		retryErr := retrier.RetryAttempts(func() error {
-			retryAddr, err = p.getTargetIPv4(ctx, address)
-			if err != nil {
-				return err
-			}
-			return nil
-		}, 2)
+			var err error
+			timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+			defer cancel()
+
+			retryAddr, err = p.getTargetIPv4(timeoutCtx, address)
+			return err
+		}, 3)
 
 		if retryErr != nil {
 			return nil, nil, retryErr
@@ -134,6 +135,7 @@ func (p *PortScanner) getTargetIPv4(ctx context.Context, address *am.ScanGroupAd
 	log.Ctx(ctx).Info().Str("host_address", address.HostAddress).Msg("resolving")
 	results, err := p.dc.ResolveName(ctx, address.HostAddress)
 	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Str("host_address", address.HostAddress).Msg("failed to resolve")
 		return nil, err
 	}
 
