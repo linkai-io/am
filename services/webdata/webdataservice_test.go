@@ -653,12 +653,11 @@ func TestGetResponsesWithAdvancedFilters(t *testing.T) {
 		t.Fatalf("expected 10 responses with latest got: %d\n", len(responses))
 	}
 
-	responseDay := time.Unix(0, responses[0].URLRequestTimestamp).Day()
-	if responseDay != time.Now().Day()-1 {
-		t.Fatalf("expected day to be now -1, got %d %d\n", responseDay, time.Now().Day()-1)
+	if time.Unix(0, responses[0].URLRequestTimestamp).Equal(time.Now().Add(time.Hour * (-24))) {
+		t.Fatalf("expected day to be now -1, got %v %v\n", time.Unix(0, responses[0].URLRequestTimestamp), time.Now().Add(time.Hour*(-24)))
 	}
 
-	if responseDay != time.Unix(0, responses[9].URLRequestTimestamp).Day() {
+	if !time.Unix(0, responses[0].URLRequestTimestamp).Equal(time.Unix(0, responses[9].URLRequestTimestamp)) {
 		t.Fatalf("expected latest only, got %v and %v\n", time.Unix(0, responses[0].URLRequestTimestamp), time.Unix(0, responses[9].URLRequestTimestamp))
 	}
 
@@ -769,9 +768,9 @@ func TestGetURLList(t *testing.T) {
 	if len(urlLists[0].URLs) != 10 {
 		t.Fatalf("expected 10 urls, got %d\n", len(urlLists[0].URLs))
 	}
-	requestDay := time.Unix(0, urlLists[0].URLRequestTimestamp).Day()
-	if requestDay != time.Now().Day()-1 {
-		t.Fatalf("last series of URLs should all have request timestamp of day - 1 got %d %d", requestDay, time.Now().Day()-1)
+
+	if time.Unix(0, urlLists[0].URLRequestTimestamp).Equal(time.Now().Add(time.Hour * (-24))) {
+		t.Fatalf("last series of URLs should all have request timestamp of day - 1 got %v expected %v", time.Unix(0, urlLists[0].URLRequestTimestamp), time.Now().Add(time.Hour*(-24)))
 	}
 
 	// test url list single query via url_request_timestamp

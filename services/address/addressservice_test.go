@@ -53,6 +53,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
+// Also Tests GetPorts
 func TestGetHostList(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -123,10 +124,6 @@ func TestGetHostList(t *testing.T) {
 		t.Fatalf("error adding addreses: %s\n", err)
 	}
 
-	if count != 100 {
-		t.Fatalf("error expected count to be 100, got: %d\n", count)
-	}
-	// test invalid (missing groupID) filter first
 	filter := &am.ScanGroupAddressFilter{
 		Start:   0,
 		Limit:   10000,
@@ -135,6 +132,60 @@ func TestGetHostList(t *testing.T) {
 	}
 
 	oid, hosts, err := service.GetHostList(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting host list: %v\n", err)
+	}
+
+	if oid != userContext.GetOrgID() {
+		t.Fatalf("oid %v did not equal userContext id %v\n", oid, userContext.GetOrgID())
+	}
+
+	if count != 100 {
+		t.Fatalf("error expected count to be 100, got: %d\n", count)
+	}
+
+	if len(hosts) != 1 {
+		t.Fatalf("expected 1 host (multiple IPs) got %d\n", len(hosts))
+	}
+
+	if len(hosts[0].IPAddresses) != 100 {
+		t.Fatalf("expected 100 IP addresses for host got %d\n", len(hosts[0].IPAddresses))
+	}
+
+	if len(hosts[0].AddressIDs) != 100 {
+		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
+	}
+
+	// test with port scan results
+	portResults := &am.PortResults{
+		OrgID:       orgID,
+		GroupID:     groupID,
+		HostAddress: "www.example.com",
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  "192.168.1.1",
+				TCPPorts:   []int32{21, 22},
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+			Previous: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   nil,
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         time.Now().Add(-time.Hour).UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+	if _, err := service.UpdateHostPorts(ctx, userContext, nil, portResults); err != nil {
+		t.Fatalf("error adding port scan results for hostlist test: %#v\n", err)
+	}
+	// test again with port scan results
+
+	oid, hosts, err = service.GetHostList(ctx, userContext, filter)
 	if err != nil {
 		t.Fatalf("error getting host list: %v\n", err)
 	}
@@ -154,6 +205,72 @@ func TestGetHostList(t *testing.T) {
 	if len(hosts[0].AddressIDs) != 100 {
 		t.Fatalf("expected 100 AddressIDs for host got %d\n", len(hosts[0].AddressIDs))
 	}
+
+	if hosts[0].Ports == nil || hosts[0].Ports.Ports == nil {
+		t.Fatalf("Expected results to return port data")
+	}
+
+	if hosts[0].Ports.ScannedTimestamp == 0 {
+		t.Fatalf("port scan timestamp was not set\n")
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, hosts[0].Ports.Ports.Current, t)
+
+	filter = &am.ScanGroupAddressFilter{
+		Start:   0,
+		Limit:   10000,
+		GroupID: groupID,
+		Filters: &am.FilterType{},
+	}
+	// test single valid port
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21})
+	_, results, err := service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid port filter: %v\n", err)
+	}
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test multi valid port
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21, 22})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid multiports filter: %v\n", err)
+	}
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test single invalid port
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{44})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for invalid port filter: %v\n", err)
+	}
+
+	if len(results) != 0 {
+		t.Logf("%#v\n", results)
+		t.Fatalf("got port results when should not have\n")
+	}
+
+	// test multi valid port + invalid port (should pass since Or)
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32s(am.FilterTCPPortOpen, []int32{21, 44})
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for invalid port filter: %v\n", err)
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
+
+	// test ip address filter
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddString(am.FilterIPAddress, "192.168.1.1")
+	_, results, err = service.GetPorts(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting ports for valid ip address filter: %v\n", err)
+	}
+
+	amtest.TestComparePortData(portResults.Ports.Current, results[0].Ports.Current, t)
 
 }
 func TestAdd(t *testing.T) {
@@ -1267,4 +1384,102 @@ func TestPopulateData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error adding addresses: %v\n", err)
 	}
+}
+
+func TestUpdateHostPorts(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgName := "updatehostports"
+	groupName := "updatehostportsgroup"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := address.New(auth)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing address service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+	amtest.DeleteOrg(db, orgName, t)
+
+	amtest.CreateSmallOrg(db, orgName, t)
+	orgID := amtest.GetOrgID(db, orgName, t)
+	defer amtest.DeleteOrg(db, orgName, t)
+
+	groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
+	userContext := amtest.CreateUserContext(orgID, 1)
+
+	now := time.Now().UnixNano()
+
+	ip := "192.168.1.1"
+	host := "1.example.com"
+	hash := convert.HashAddress(ip, host)
+	address := &am.ScanGroupAddress{
+		OrgID:               orgID,
+		GroupID:             groupID,
+		HostAddress:         host,
+		IPAddress:           ip,
+		AddressHash:         hash,
+		DiscoveryTime:       now,
+		DiscoveredBy:        "input_list",
+		LastScannedTime:     0,
+		LastSeenTime:        0,
+		ConfidenceScore:     100,
+		UserConfidenceScore: 0.0,
+		IsSOA:               false,
+		IsWildcardZone:      false,
+		IsHostedService:     false,
+		Ignored:             false,
+	}
+
+	portResults := &am.PortResults{
+		OrgID:       orgID,
+		GroupID:     groupID,
+		HostAddress: host,
+		Ports: &am.Ports{
+			Current: &am.PortData{
+				IPAddress:  ip,
+				TCPPorts:   []int32{21, 22},
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+			Previous: &am.PortData{
+				IPAddress:  "",
+				TCPPorts:   nil,
+				UDPPorts:   nil,
+				TCPBanners: nil,
+				UDPBanners: nil,
+			},
+		},
+		ScannedTimestamp:         time.Now().Add(-time.Hour).UnixNano(),
+		PreviousScannedTimestamp: 0,
+	}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
+	portResults.ScannedTimestamp = time.Now().UnixNano()
+	portResults.Ports.Current.TCPPorts = []int32{22}
+	portResults.Ports.Current.UDPPorts = []int32{500}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
+	portResults.ScannedTimestamp = time.Now().UnixNano()
+	portResults.Ports.Current.TCPPorts = []int32{21}
+	portResults.Ports.Current.UDPPorts = []int32{500, 1194}
+
+	if _, err := service.UpdateHostPorts(ctx, userContext, address, portResults); err != nil {
+		t.Fatalf("error adding ports: %#v\n", err)
+	}
+
 }

@@ -57,6 +57,7 @@ type Organization struct {
 	LimitHostsReached          bool   `json:"limit_hosts_reached"`
 	LimitCustomWebFlows        int32  `json:"limit_custom_web_flows"`
 	LimitCustomWebFlowsReached bool   `json:"limit_custom_web_flows_reached"`
+	PortScanEnabled            bool   `json:"port_scan_enabled"`
 }
 
 // OrgFilter for filtering organization list results

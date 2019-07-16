@@ -115,11 +115,68 @@ func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T)
 	}
 
 	if e.LimitCustomWebFlowsReached != r.LimitCustomWebFlowsReached {
-		t.Fatalf("LimitTLD did not match expected: %v got %v\n", e.LimitCustomWebFlowsReached, r.LimitCustomWebFlowsReached)
+		t.Fatalf("LimitCustomWebFlowsReached did not match expected: %v got %v\n", e.LimitCustomWebFlowsReached, r.LimitCustomWebFlowsReached)
+	}
+
+	if e.PortScanEnabled != r.PortScanEnabled {
+		t.Fatalf("PortScanEnabled did not match expected: %v got %v\n", e.PortScanEnabled, r.PortScanEnabled)
 	}
 
 	if r.CreationTime <= 0 {
 		t.Fatalf("creation time of returned was not set\n")
+	}
+}
+
+func TestComparePorts(e, r *am.PortResults, t *testing.T) {
+	testComparePorts(e, r, t)
+	TestComparePortData(e.Ports.Current, r.Ports.Current, t)
+}
+
+func TestComparePortsWithPrevious(e, r *am.PortResults, t *testing.T) {
+	testComparePorts(e, r, t)
+	TestComparePortData(e.Ports.Current, r.Ports.Current, t)
+	TestComparePortData(e.Ports.Previous, r.Ports.Previous, t)
+}
+
+func testComparePorts(e, r *am.PortResults, t *testing.T) {
+	if e.GroupID != r.GroupID {
+		t.Fatalf("port.GroupID expected %v got %v\n", e.GroupID, r.GroupID)
+	}
+	if e.OrgID != r.OrgID {
+		t.Fatalf("port.OrgID expected %v got %v\n", e.OrgID, r.OrgID)
+	}
+	if e.PreviousScannedTimestamp != r.PreviousScannedTimestamp {
+		t.Fatalf("port.PreviousScannedTimestamp expected %v got %v\n", e.PreviousScannedTimestamp, r.PreviousScannedTimestamp)
+	}
+
+	if e.ScannedTimestamp != r.ScannedTimestamp {
+		t.Fatalf("port.ScannedTimestamp expected %v got %v\n", e.ScannedTimestamp, r.ScannedTimestamp)
+	}
+
+	if e.HostAddress != r.HostAddress {
+		t.Fatalf("port.HostAddress expected %v got %v\n", e.HostAddress, r.HostAddress)
+	}
+}
+
+func TestComparePortData(e, r *am.PortData, t *testing.T) {
+	if e.IPAddress != r.IPAddress {
+		t.Fatalf("portdata.IPAddress expected %v got %v\n", e.IPAddress, r.IPAddress)
+	}
+
+	if !SortEqualInt32(e.TCPPorts, r.TCPPorts, t) {
+		t.Fatalf("portdata.TCPPorts expected %v got %v\n", e.TCPPorts, r.TCPPorts)
+	}
+
+	if !SortEqualInt32(e.UDPPorts, r.UDPPorts, t) {
+		t.Fatalf("portdata.UDPPorts expected %v got %v\n", e.UDPPorts, r.UDPPorts)
+	}
+
+	if !SortEqualString(e.TCPBanners, r.TCPBanners, t) {
+		t.Fatalf("portdata.TCPBanners expected %v got %v\n", e.TCPBanners, r.TCPBanners)
+	}
+
+	if !SortEqualString(e.UDPBanners, r.UDPBanners, t) {
+		t.Fatalf("portdata.UDPBanners expected %v got %v\n", e.UDPBanners, r.UDPBanners)
 	}
 }
 
@@ -294,8 +351,36 @@ func TestCompareGroupModules(e, r *am.ModuleConfiguration, t *testing.T) {
 		t.Fatalf("KeywordModule expected %v got %v\n", e.KeywordModule.Keywords, r.KeywordModule.Keywords)
 	}
 
-	if !SortEqualInt32(e.PortModule.CustomPorts, r.PortModule.CustomPorts, t) {
-		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomPorts, r.PortModule.CustomPorts)
+	if e.PortModule.PortScanEnabled != r.PortModule.PortScanEnabled {
+		t.Fatalf("PortModule.PortScanEnabled expected %v got %v\n", e.PortModule.PortScanEnabled, r.PortModule.PortScanEnabled)
+	}
+
+	if !SortEqualInt32(e.PortModule.CustomWebPorts, r.PortModule.CustomWebPorts, t) {
+		t.Fatalf("PortModule.CustomPorts expected %v got %v\n", e.PortModule.CustomWebPorts, r.PortModule.CustomWebPorts)
+	}
+
+	if !SortEqualInt32(e.PortModule.TCPPorts, r.PortModule.TCPPorts, t) {
+		t.Fatalf("PortModule.TCPPorts expected %v got %v\n", e.PortModule.TCPPorts, r.PortModule.TCPPorts)
+	}
+
+	if !SortEqualInt32(e.PortModule.UDPPorts, r.PortModule.UDPPorts, t) {
+		t.Fatalf("PortModule.UDPPorts expected %v got %v\n", e.PortModule.UDPPorts, r.PortModule.UDPPorts)
+	}
+
+	if !SortEqualString(e.PortModule.AllowedTLDs, r.PortModule.AllowedTLDs, t) {
+		t.Fatalf("PortModule.AllowedTLDs expected %v got %v\n", e.PortModule.AllowedTLDs, r.PortModule.AllowedTLDs)
+	}
+
+	if !SortEqualString(e.PortModule.AllowedHosts, r.PortModule.AllowedHosts, t) {
+		t.Fatalf("PortModule.AllowedHosts expected %v got %v\n", e.PortModule.AllowedHosts, r.PortModule.AllowedHosts)
+	}
+
+	if !SortEqualString(e.PortModule.DisallowedTLDs, r.PortModule.DisallowedTLDs, t) {
+		t.Fatalf("PortModule.DisallowedTLDs expected %v got %v\n", e.PortModule.DisallowedTLDs, r.PortModule.DisallowedTLDs)
+	}
+
+	if !SortEqualString(e.PortModule.DisallowedHosts, r.PortModule.DisallowedHosts, t) {
+		t.Fatalf("PortModule.DisallowedHosts expected %v got %v\n", e.PortModule.DisallowedHosts, r.PortModule.DisallowedHosts)
 	}
 
 	if e.WebModule.ExtractJS != r.WebModule.ExtractJS {

@@ -38,6 +38,10 @@ const (
 	FilterNotStartsHostAddress   = "not_starts_host_address"
 	FilterContainsHostAddress    = "contains_host_address"
 	FilterNotContainsHostAddress = "not_contains_host_address"
+	FilterTCPPortOpen            = "tcp_port_open"
+	FiltetTCPPortClosed          = "tcp_port_closed"
+	FilterUDPPortOpen            = "udp_port_open"
+	FiltetUDPPortClosed          = "udp_port_closed"
 )
 
 /*
@@ -70,7 +74,7 @@ const (
 	DiscoveryBruteSubDomain  = "dns_brute_forcer"
 	DiscoveryBruteMutator    = "dns_mutator"
 	DiscoveryWebCrawler      = "web_crawler"
-	DisoveryGitHooks         = "git_hooks"
+	DiscoveryGitHooks        = "git_hooks"
 	DiscoveryBigData         = "bigdata"
 	DiscoveryBigDataCT       = "bigdata_certificate_transparency"
 )
@@ -100,12 +104,13 @@ type ScanGroupAddress struct {
 }
 
 type ScanGroupHostList struct {
-	OrgID       int      `json:"org_id"`
-	GroupID     int      `json:"group_id"`
-	ETLD        string   `json:"etld"`
-	HostAddress string   `json:"host_address"` // or ip address if no hostname
-	AddressIDs  []int64  `json:"address_ids"`
-	IPAddresses []string `json:"ip_addresses"`
+	OrgID       int          `json:"org_id"`
+	GroupID     int          `json:"group_id"`
+	ETLD        string       `json:"etld"`
+	HostAddress string       `json:"host_address"` // or ip address if no hostname
+	AddressIDs  []int64      `json:"address_ids"`
+	IPAddresses []string     `json:"ip_addresses"`
+	Ports       *PortResults `json:"ports,omitempty"`
 }
 
 // ScanGroupAddressFilter filters the results of an Addresses search
@@ -142,6 +147,8 @@ type AddressService interface {
 	GetHostList(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, hostList []*ScanGroupHostList, err error)
 	Count(ctx context.Context, userContext UserContext, groupID int) (oid int, count int, err error)
 	Update(ctx context.Context, userContext UserContext, addresses map[string]*ScanGroupAddress) (oid int, count int, err error)
+	UpdateHostPorts(ctx context.Context, userContext UserContext, address *ScanGroupAddress, portResults *PortResults) (oid int, err error)
+	GetPorts(ctx context.Context, userContext UserContext, filter *ScanGroupAddressFilter) (oid int, portList []*PortResults, err error)
 	Delete(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64) (oid int, err error)
 	Ignore(ctx context.Context, userContext UserContext, groupID int, addressIDs []int64, ignoreValue bool) (oid int, err error)
 	Archive(ctx context.Context, userContext UserContext, group *ScanGroup, archiveTime time.Time) (int, int, error)

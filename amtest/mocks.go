@@ -62,6 +62,13 @@ func MockAddressService(orgID int, addresses []*am.ScanGroupAddress) *mock.Addre
 		return orgID, 0, nil
 	}
 
+	addrClient.UpdateHostPortsFn = func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+		return orgID, nil
+	}
+
+	addrClient.GetPortsFn = func(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+		return orgID, nil, nil
+	}
 	return addrClient
 }
 
@@ -93,6 +100,54 @@ func MockScanGroupService(orgID, groupID int) *mock.ScanGroupService {
 	}
 
 	return sgClient
+}
+
+func MockPortScanService(orgID, groupID int, ports []int32) *mock.PortScannerService {
+	portClient := &mock.PortScannerService{}
+	groups := make(map[int]*am.ScanGroup)
+	groupLock := &sync.RWMutex{}
+
+	portClient.AddGroupFn = func(ctx context.Context, userContext am.UserContext, group *am.ScanGroup) error {
+		groupLock.Lock()
+		defer groupLock.Unlock()
+		groups[group.GroupID] = group
+		return nil
+	}
+
+	portClient.RemoveGroupFn = func(ctx context.Context, userContext am.UserContext, orgID, groupID int) error {
+		groupLock.Lock()
+		defer groupLock.Unlock()
+		delete(groups, groupID)
+		return nil
+	}
+
+	portClient.AnalyzeFn = func(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress) (*am.ScanGroupAddress, *am.PortResults, error) {
+		return address, &am.PortResults{
+			PortID:      0,
+			OrgID:       0,
+			GroupID:     0,
+			HostAddress: "",
+			Ports: &am.Ports{
+				Current: &am.PortData{
+					IPAddress:  "",
+					TCPPorts:   ports,
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+				Previous: &am.PortData{
+					IPAddress:  "",
+					TCPPorts:   nil,
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+			},
+			ScannedTimestamp:         0,
+			PreviousScannedTimestamp: 0,
+		}, nil
+	}
+	return portClient
 }
 
 func MockAuthorizer() *mock.Authorizer {
@@ -230,6 +285,33 @@ func MockWebState() *mock.WebState {
 		return false, nil
 	}
 
+	mockState.GetPortResultsFn = func(ctx context.Context, orgID, scanGroupID int, host string) (*am.PortResults, error) {
+		return &am.PortResults{
+			PortID:      0,
+			OrgID:       0,
+			GroupID:     0,
+			HostAddress: "",
+			Ports: &am.Ports{
+				Current: &am.PortData{
+					IPAddress:  "",
+					TCPPorts:   []int32{80, 443, 8080},
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+				Previous: &am.PortData{
+					IPAddress:  "",
+					TCPPorts:   nil,
+					UDPPorts:   nil,
+					TCPBanners: nil,
+					UDPBanners: nil,
+				},
+			},
+			ScannedTimestamp:         0,
+			PreviousScannedTimestamp: 0,
+		}, nil
+	}
+
 	return mockState
 }
 
@@ -352,7 +434,7 @@ func MockDispatcherState(wg *sync.WaitGroup, groups []*am.ScanGroup) *mock.Dispa
 	disState := &mock.DispatcherState{}
 	stateAddrs := make([]*am.ScanGroupAddress, 0)        // addresses stored in state
 	stateHashes := make(map[string]*am.ScanGroupAddress) // hashes stored in state
-
+	statePorts := make(map[string]*am.PortResults)       // host -> portResults
 	stateGroups := groups
 	stateLock := &sync.RWMutex{}
 
@@ -425,6 +507,17 @@ func MockDispatcherState(wg *sync.WaitGroup, groups []*am.ScanGroup) *mock.Dispa
 
 	disState.StopFn = func(ctx context.Context, userContext am.UserContext, scanGroupID int) error {
 		wg.Done()
+		return nil
+	}
+
+	disState.DoPortScanFn = func(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string) (bool, error) {
+		return true, nil
+	}
+
+	disState.PutPortResultsFn = func(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string, portResults *am.PortResults) error {
+		stateLock.Lock()
+		defer stateLock.Unlock()
+		statePorts[host] = portResults
 		return nil
 	}
 

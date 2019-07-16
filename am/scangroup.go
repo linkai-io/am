@@ -56,6 +56,13 @@ type ScanGroup struct {
 	ArchiveAfterDays     int32                `json:"archive_after_days"`
 }
 
+func (s *ScanGroup) PortScanEnabled() bool {
+	if s.ModuleConfigurations == nil || s.ModuleConfigurations.PortModule == nil {
+		return false
+	}
+	return s.ModuleConfigurations.PortModule.PortScanEnabled
+}
+
 // ScanGroupFilter for returning only select values from the AllGroups service method
 type ScanGroupFilter struct {
 	Filters *FilterType `json:"filters"`

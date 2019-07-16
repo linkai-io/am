@@ -129,6 +129,23 @@ func BuildSubdomainsForCT(etld string, count int) map[string]*am.CTSubdomain {
 	return records
 }
 
+func CreateAddressOnly(orgID, groupID int, ipAddress, hostAddress string, t *testing.T) *am.ScanGroupAddress {
+	return &am.ScanGroupAddress{
+		AddressID:           1,
+		OrgID:               orgID,
+		GroupID:             groupID,
+		HostAddress:         hostAddress,
+		IPAddress:           ipAddress,
+		AddressHash:         convert.HashAddress(ipAddress, hostAddress),
+		DiscoveryTime:       time.Now().UnixNano(),
+		DiscoveredBy:        "input_list",
+		LastScannedTime:     0,
+		LastSeenTime:        0,
+		ConfidenceScore:     100.0,
+		UserConfidenceScore: 0.0,
+	}
+}
+
 func AddrsFromInputFile(orgID, groupID int, addrFile io.Reader, t *testing.T) []*am.ScanGroupAddress {
 	in, err := inputlist.ParseList(addrFile, 10000)
 	if err != nil {
@@ -183,15 +200,32 @@ func CreateModuleConfig() *am.ModuleConfiguration {
 	m := &am.ModuleConfiguration{}
 	customSubNames := []string{"sub1", "sub2"}
 	m.BruteModule = &am.BruteModuleConfig{CustomSubNames: customSubNames, RequestsPerSecond: 10, MaxDepth: 2}
-	customPorts := []int32{1, 2}
+	customWebPorts := []int32{1, 2}
+	tcpPorts := []int32{21, 22, 23, 25, 53, 80, 135, 139, 443, 445, 1443, 1723, 3306, 3389, 5432, 5900, 6379, 8000, 8080, 8443, 8500, 9500, 27017}
+	udpPorts := []int32{500, 1194}
+	allowedTLDs := []string{"example.com"}
+	disallowedTLDs := []string{"blah.com"}
+	allowedHosts := []string{"scanme.blah.com"}
+	disallowedHosts := []string{"noportscan.example.com"}
+
 	m.NSModule = &am.NSModuleConfig{RequestsPerSecond: 10}
-	m.PortModule = &am.PortModuleConfig{RequestsPerSecond: 10, CustomPorts: customPorts}
+	m.PortModule = &am.PortScanModuleConfig{
+		RequestsPerSecond: 10,
+		PortScanEnabled:   true,
+		CustomWebPorts:    customWebPorts,
+		TCPPorts:          tcpPorts,
+		UDPPorts:          udpPorts,
+		AllowedTLDs:       allowedTLDs,
+		AllowedHosts:      allowedHosts,
+		DisallowedTLDs:    disallowedTLDs,
+		DisallowedHosts:   disallowedHosts,
+	}
 	m.WebModule = &am.WebModuleConfig{MaxLinks: 10, TakeScreenShots: true, ExtractJS: true, FingerprintFrameworks: true}
 	m.KeywordModule = &am.KeywordModuleConfig{Keywords: []string{"company"}}
 	return m
 }
 
-func BuildScanGroup(orgID, groupID int) *am.ScanGroup {
+func CreateScanGroupOnly(orgID, groupID int) *am.ScanGroup {
 	return &am.ScanGroup{
 		OrgID:                orgID,
 		GroupID:              groupID,

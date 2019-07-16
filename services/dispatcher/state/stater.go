@@ -20,4 +20,7 @@ type Stater interface {
 	PutAddressMap(ctx context.Context, userContext am.UserContext, scanGroupID int, addresses map[string]*am.ScanGroupAddress) error
 	PopAddresses(ctx context.Context, userContext am.UserContext, scanGroupID int, limit int) (map[string]*am.ScanGroupAddress, error)
 	FilterNew(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error)
+	// DoPortScan determines if we should port scan this host (or ip)
+	DoPortScan(ctx context.Context, orgID, scanGroupID int, expireSeconds int, host string) (bool, error)
+	PutPortResults(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string, portResults *am.PortResults) error
 }

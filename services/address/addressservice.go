@@ -72,6 +72,7 @@ func (s *Service) parseConfig(config []byte) (*pgx.ConnPoolConfig, error) {
 func (s *Service) afterConnect(conn *pgx.Conn) error {
 	for k, v := range queryMap {
 		if _, err := conn.Prepare(k, v); err != nil {
+			log.Error().Err(err).Str("key", k).Msg("failed to init key")
 			return err
 		}
 	}
@@ -155,6 +156,70 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 	return userContext.GetOrgID(), addresses, err
 }
 
+// Get returns all addresses for a scan group that match the supplied filter
+func (s *Service) GetPorts(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "read") {
+		return 0, nil, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	serviceLog.Info().Msg("getting address list")
+
+	var rows *pgx.Rows
+	if filter.Limit > 10000 {
+		return 0, nil, am.ErrLimitTooLarge
+	}
+
+	if filter.GroupID == 0 {
+		return 0, nil, ErrFilterMissingGroupID
+	}
+
+	query, args, err := buildGetPortsFilterQuery(userContext, filter)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	serviceLog.Info().Msgf("Building GetPorts query with filter: %#v %#v", filter, filter.Filters)
+	serviceLog.Info().Msgf("%s", query)
+	serviceLog.Info().Msgf("%#v", args)
+	rows, err = s.pool.Query(query, args...)
+	defer rows.Close()
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	portResults = make([]*am.PortResults, 0)
+
+	for i := 0; rows.Next(); i++ {
+		var scanTime time.Time
+		var prevScanTime time.Time
+		var isIPv4 bool // always true for now
+
+		p := &am.PortResults{}
+		// port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp
+		if err := rows.Scan(&p.PortID, &p.OrgID, &p.GroupID, &p.HostAddress, &p.Ports, &scanTime, &prevScanTime, &isIPv4); err != nil {
+			return 0, nil, err
+		}
+
+		p.ScannedTimestamp = scanTime.UnixNano()
+		p.PreviousScannedTimestamp = prevScanTime.UnixNano()
+
+		if p.OrgID != userContext.GetOrgID() {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+
+		portResults = append(portResults, p)
+	}
+
+	return userContext.GetOrgID(), portResults, err
+}
+
 // GetHostList returns hostnames and a list of IP addresses for each host
 // TODO: add filtering for start/limit
 func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, hosts []*am.ScanGroupHostList, err error) {
@@ -196,15 +261,24 @@ func (s *Service) GetHostList(ctx context.Context, userContext am.UserContext, f
 
 	for i := 0; rows.Next(); i++ {
 		h := &am.ScanGroupHostList{}
-		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs); err != nil {
+		h.Ports = &am.PortResults{}
+		// if there are no port scan results, these will be NULL so make ptr -> ptr
+		var portScanTime *time.Time
+		var portPrevScanTime *time.Time
 
+		if err := rows.Scan(&h.OrgID, &h.GroupID, &h.HostAddress, &h.IPAddresses, &h.AddressIDs, &portScanTime, &portPrevScanTime, &h.Ports.Ports); err != nil {
 			return 0, nil, err
 		}
 
 		if h.OrgID != userContext.GetOrgID() {
 			return 0, nil, am.ErrOrgIDMismatch
 		}
-
+		if portScanTime != nil {
+			h.Ports.ScannedTimestamp = portScanTime.UnixNano()
+		}
+		if portPrevScanTime != nil {
+			h.Ports.PreviousScannedTimestamp = portPrevScanTime.UnixNano()
+		}
 		hosts = append(hosts, h)
 	}
 
@@ -562,4 +636,54 @@ func (s *Service) Archive(ctx context.Context, userContext am.UserContext, group
 	err = tx.Commit()
 	// report how many were archived
 	return userContext.GetOrgID(), 0, err
+}
+
+// UpdateHostPorts saves new port scan results
+func (s *Service) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNAddressAddresses, "update") {
+		return 0, am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("call", "AddressService.UpdateHostPorts").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	tx, err := s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	serviceLog.Info().Msgf("adding ports %#v", portResults)
+
+	if address != nil {
+		a := address
+		if _, err := tx.ExecEx(ctx, "insertPortHost", &pgx.QueryExOptions{}, int32(a.OrgID), int32(a.GroupID), a.HostAddress, a.IPAddress,
+			a.DiscoveredBy, a.ConfidenceScore, a.UserConfidenceScore, a.IsSOA, a.IsWildcardZone, a.IsHostedService,
+			a.Ignored, a.FoundFrom, a.NSRecord, a.AddressHash,
+			time.Unix(0, a.DiscoveryTime), time.Unix(0, a.LastScannedTime), time.Unix(0, a.LastSeenTime),
+		); err != nil {
+			if v, ok := err.(pgx.PgError); ok {
+				return 0, errors.Wrap(v, "failed to insert host from portscan")
+			}
+			return 0, err
+		}
+	}
+
+	portResults.Ports.Previous = &am.PortData{} // nil it out so we don't add garbage to the table
+	if _, err := tx.ExecEx(ctx, "updateHostPorts", &pgx.QueryExOptions{}, userContext.GetOrgID(), portResults.GroupID, portResults.HostAddress, portResults.Ports, time.Unix(0, portResults.ScannedTimestamp)); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return 0, errors.Wrap(v, "failed to insert ports")
+		}
+		return 0, err
+	}
+
+	err = tx.Commit()
+	if err == nil {
+		serviceLog.Info().Msg("added ports")
+	}
+	return oid, err
 }

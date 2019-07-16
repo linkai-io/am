@@ -123,7 +123,17 @@ func main() {
 	log.Info().Msg("eventService init'd")
 
 	state := initializers.State(createAppConfig(am.DispatcherServiceKey))
-	dispatcher := dispatcher.New(scangroupService, eventService, addressService, webdataService, createModules(webdataService, eventService), state)
+
+	dependentServices := &dispatcher.DependentServices{
+		EventClient:    eventService,
+		SgClient:       scangroupService,
+		AddressClient:  addressService,
+		WebClient:      webdataService,
+		ModuleClients:  createModules(webdataService, eventService),
+		PortScanClient: nil,
+	}
+
+	dispatcher := dispatcher.New(dependentServices, state)
 	if err := dispatcher.Init(nil); err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize dispatcher")
 	}

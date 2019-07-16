@@ -1,0 +1,28 @@
+[Unit]
+Description=This is the port scan service for pipeline requests for dev
+ConditionPathExists=/opt/scanner/
+After=network.target scanwebservice portscannerdev
+
+[Service]
+Type=simple
+User=portscanservicedev
+Environment=APP_ENV=dev
+Group=scanner
+LimitNOFILE=65000
+
+Restart=on-failure
+RestartSec=30
+startLimitIntervalSec=60
+
+WorkingDirectory=/opt/scanner/
+
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStart=/opt/scanner/portscanservicedev -port=:50053
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=portscanservicedev
+
+[Install]
+WantedBy=multi-user.target

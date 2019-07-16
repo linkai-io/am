@@ -129,9 +129,9 @@ func TestAnalyzeLinkai(t *testing.T) {
 					RequestsPerSecond: 10,
 					MaxDepth:          2,
 				},
-				PortModule: &am.PortModuleConfig{
+				PortModule: &am.PortScanModuleConfig{
 					RequestsPerSecond: 0,
-					CustomPorts:       nil,
+					CustomWebPorts:    nil,
 				},
 				WebModule: &am.WebModuleConfig{
 					TakeScreenShots:       false,

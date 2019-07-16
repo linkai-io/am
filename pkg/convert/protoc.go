@@ -121,6 +121,7 @@ func DomainToOrganization(in *am.Organization) *prototypes.Org {
 		LimitHostsReached:          in.LimitHostsReached,
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
+		PortScanEnabled:            in.PortScanEnabled,
 	}
 }
 
@@ -156,6 +157,7 @@ func OrganizationToDomain(in *prototypes.Org) *am.Organization {
 		LimitHostsReached:          in.LimitHostsReached,
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
+		PortScanEnabled:            in.PortScanEnabled,
 	}
 }
 
@@ -176,7 +178,83 @@ func OrgFilterToDomain(in *prototypes.OrgFilter) *am.OrgFilter {
 	}
 }
 
+func PortResultsToDomain(in *prototypes.PortResults) *am.PortResults {
+	if in == nil {
+		return &am.PortResults{}
+	}
+	ports := &am.Ports{Current: &am.PortData{}, Previous: &am.PortData{}}
+	if in != nil && in.Ports != nil && in.Ports.Current != nil {
+		ports.Current = &am.PortData{
+			IPAddress:  in.Ports.Current.IPAddress,
+			TCPPorts:   in.Ports.Current.TCPPorts,
+			UDPPorts:   in.Ports.Current.UDPPorts,
+			TCPBanners: in.Ports.Current.TCPBanners,
+			UDPBanners: in.Ports.Current.UDPBanners,
+		}
+	}
+
+	if in != nil && in.Ports != nil && in.Ports.Previous != nil {
+		ports.Previous = &am.PortData{
+			IPAddress:  in.Ports.Previous.IPAddress,
+			TCPPorts:   in.Ports.Previous.TCPPorts,
+			UDPPorts:   in.Ports.Previous.UDPPorts,
+			TCPBanners: in.Ports.Previous.TCPBanners,
+			UDPBanners: in.Ports.Previous.UDPBanners,
+		}
+	}
+
+	return &am.PortResults{
+		PortID:                   in.PortID,
+		OrgID:                    int(in.OrgID),
+		GroupID:                  int(in.GroupID),
+		HostAddress:              in.HostAddress,
+		Ports:                    ports,
+		ScannedTimestamp:         in.ScannedTimestamp,
+		PreviousScannedTimestamp: in.PreviousScannedTimestamp,
+	}
+}
+
+func DomainToPortResults(in *am.PortResults) *prototypes.PortResults {
+	if in == nil {
+		return &prototypes.PortResults{}
+	}
+
+	ports := &prototypes.Ports{Current: &prototypes.PortData{}, Previous: &prototypes.PortData{}}
+	if in != nil && in.Ports != nil && in.Ports.Current != nil {
+		ports.Current = &prototypes.PortData{
+			IPAddress:  in.Ports.Current.IPAddress,
+			TCPPorts:   in.Ports.Current.TCPPorts,
+			UDPPorts:   in.Ports.Current.UDPPorts,
+			TCPBanners: in.Ports.Current.TCPBanners,
+			UDPBanners: in.Ports.Current.UDPBanners,
+		}
+	}
+
+	if in != nil && in.Ports != nil && in.Ports.Previous != nil {
+		ports.Previous = &prototypes.PortData{
+			IPAddress:  in.Ports.Previous.IPAddress,
+			TCPPorts:   in.Ports.Previous.TCPPorts,
+			UDPPorts:   in.Ports.Previous.UDPPorts,
+			TCPBanners: in.Ports.Previous.TCPBanners,
+			UDPBanners: in.Ports.Previous.UDPBanners,
+		}
+	}
+
+	return &prototypes.PortResults{
+		PortID:                   in.PortID,
+		OrgID:                    int32(in.OrgID),
+		GroupID:                  int32(in.GroupID),
+		HostAddress:              in.HostAddress,
+		Ports:                    ports,
+		ScannedTimestamp:         in.ScannedTimestamp,
+		PreviousScannedTimestamp: in.PreviousScannedTimestamp,
+	}
+}
+
 func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
+	if in == nil {
+		return nil
+	}
 	return &am.ScanGroupAddress{
 		AddressID:           in.AddressID,
 		OrgID:               int(in.OrgID),
@@ -201,6 +279,10 @@ func AddressToDomain(in *prototypes.AddressData) *am.ScanGroupAddress {
 }
 
 func DomainToAddress(in *am.ScanGroupAddress) *prototypes.AddressData {
+	if in == nil {
+		return nil
+	}
+
 	return &prototypes.AddressData{
 		OrgID:               int32(in.OrgID),
 		AddressID:           in.AddressID,
@@ -277,9 +359,16 @@ func ModuleToDomain(in *prototypes.ModuleConfiguration) *am.ModuleConfiguration 
 			CustomSubNames:    in.BruteConfig.CustomSubNames,
 			MaxDepth:          in.BruteConfig.MaxDepth,
 		},
-		PortModule: &am.PortModuleConfig{
+		PortModule: &am.PortScanModuleConfig{
 			RequestsPerSecond: in.PortConfig.RequestsPerSecond,
-			CustomPorts:       in.PortConfig.CustomPorts,
+			PortScanEnabled:   in.PortConfig.PortScanEnabled,
+			CustomWebPorts:    in.PortConfig.CustomWebPorts,
+			TCPPorts:          in.PortConfig.TCPPorts,
+			UDPPorts:          in.PortConfig.UDPPorts,
+			AllowedTLDs:       in.PortConfig.AllowedTLDs,
+			AllowedHosts:      in.PortConfig.AllowedHosts,
+			DisallowedTLDs:    in.PortConfig.DisallowedTLDs,
+			DisallowedHosts:   in.PortConfig.DisallowedHosts,
 		},
 		WebModule: &am.WebModuleConfig{
 			RequestsPerSecond:     in.WebModuleConfig.RequestsPerSecond,
@@ -306,7 +395,14 @@ func DomainToModule(in *am.ModuleConfiguration) *prototypes.ModuleConfiguration 
 		},
 		PortConfig: &prototypes.PortModuleConfig{
 			RequestsPerSecond: in.PortModule.RequestsPerSecond,
-			CustomPorts:       in.PortModule.CustomPorts,
+			PortScanEnabled:   in.PortModule.PortScanEnabled,
+			CustomWebPorts:    in.PortModule.CustomWebPorts,
+			TCPPorts:          in.PortModule.TCPPorts,
+			UDPPorts:          in.PortModule.UDPPorts,
+			AllowedTLDs:       in.PortModule.AllowedTLDs,
+			AllowedHosts:      in.PortModule.AllowedHosts,
+			DisallowedTLDs:    in.PortModule.DisallowedTLDs,
+			DisallowedHosts:   in.PortModule.DisallowedHosts,
 		},
 		WebModuleConfig: &prototypes.WebModuleConfig{
 			RequestsPerSecond:     in.WebModule.RequestsPerSecond,
@@ -414,107 +510,6 @@ func GroupsStatsToDomain(in map[int32]*prototypes.GroupStats) map[int]*am.GroupS
 	}
 
 	return stats
-}
-
-func DomainToFilterTypes(in *am.FilterType) *prototypes.FilterType {
-	filter := &prototypes.FilterType{}
-	if in.BoolFilters != nil {
-		filter.BoolFilters = make(map[string]*prototypes.BoolFilter)
-		for k, v := range in.BoolFilters {
-			if v == nil {
-				continue
-			}
-			filter.BoolFilters[k] = &prototypes.BoolFilter{Value: v}
-		}
-	}
-	if in.Int32Filters != nil {
-		filter.Int32Filters = make(map[string]*prototypes.Int32Filter)
-		for k, v := range in.Int32Filters {
-			if v == nil {
-				continue
-			}
-			filter.Int32Filters[k] = &prototypes.Int32Filter{Value: v}
-		}
-	}
-	if in.Int64Filters != nil {
-		filter.Int64Filters = make(map[string]*prototypes.Int64Filter)
-		for k, v := range in.Int64Filters {
-			if v == nil {
-				continue
-			}
-			filter.Int64Filters[k] = &prototypes.Int64Filter{Value: v}
-		}
-	}
-	if in.Float32Filters != nil {
-		filter.FloatFilters = make(map[string]*prototypes.FloatFilter)
-		for k, v := range in.Float32Filters {
-			if v == nil {
-				continue
-			}
-			filter.FloatFilters[k] = &prototypes.FloatFilter{Value: v}
-		}
-	}
-
-	if in.StringFilters != nil {
-		filter.StringFilters = make(map[string]*prototypes.StringFilter)
-		for k, v := range in.StringFilters {
-			if v == nil {
-				continue
-			}
-			filter.StringFilters[k] = &prototypes.StringFilter{Value: v}
-		}
-	}
-	return filter
-}
-
-func FilterTypesToDomain(in *prototypes.FilterType) *am.FilterType {
-	filter := &am.FilterType{}
-	if in.BoolFilters != nil {
-		filter.BoolFilters = make(map[string][]bool)
-		for k, v := range in.BoolFilters {
-			if v == nil {
-				continue
-			}
-			filter.BoolFilters[k] = v.Value
-		}
-	}
-	if in.Int32Filters != nil {
-		filter.Int32Filters = make(map[string][]int32)
-		for k, v := range in.Int32Filters {
-			if v == nil {
-				continue
-			}
-			filter.Int32Filters[k] = v.Value
-		}
-	}
-	if in.Int64Filters != nil {
-		filter.Int64Filters = make(map[string][]int64)
-		for k, v := range in.Int64Filters {
-			if v == nil {
-				continue
-			}
-			filter.Int64Filters[k] = v.Value
-		}
-	}
-	if in.FloatFilters != nil {
-		filter.Float32Filters = make(map[string][]float32)
-		for k, v := range in.FloatFilters {
-			if v == nil {
-				continue
-			}
-			filter.Float32Filters[k] = v.Value
-		}
-	}
-	if in.StringFilters != nil {
-		filter.StringFilters = make(map[string][]string)
-		for k, v := range in.StringFilters {
-			if v == nil {
-				continue
-			}
-			filter.StringFilters[k] = v.Value
-		}
-	}
-	return filter
 }
 
 func DomainToScanGroupAggregates(in map[string]*am.ScanGroupAggregates) map[string]*prototypes.ScanGroupAggregates {

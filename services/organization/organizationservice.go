@@ -153,7 +153,7 @@ func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.
 		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
 		&org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
-		&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached)
+		&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
@@ -188,7 +188,7 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 		if err := rows.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 			&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
 			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
-			&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached); err != nil {
+			&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled); err != nil {
 			return nil, err
 		}
 		org.CreationTime = createTime.UnixNano()
@@ -235,7 +235,7 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
 		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID,
-		org.LimitTLD, org.LimitTLDReached, org.LimitHosts, org.LimitHostsReached, org.LimitCustomWebFlows, org.LimitCustomWebFlowsReached,
+		org.LimitTLD, org.LimitTLDReached, org.LimitHosts, org.LimitHostsReached, org.LimitCustomWebFlows, org.LimitCustomWebFlowsReached, org.PortScanEnabled,
 		userCID, org.OwnerEmail, org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			log.Error().Err(v).Msgf("create error: %#v", v)
@@ -409,11 +409,15 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 		update.LimitCustomWebFlowsReached = org.LimitCustomWebFlowsReached
 	}
 
+	if org.PortScanEnabled != false && org.PortScanEnabled != update.PortScanEnabled {
+		update.PortScanEnabled = org.PortScanEnabled
+	}
+
 	_, err = tx.Exec("orgUpdate", update.UserPoolID, update.UserPoolAppClientID, update.UserPoolAppClientSecret,
 		update.IdentityPoolID, update.UserPoolJWK, update.OwnerEmail, update.FirstName, update.LastName, update.Phone, update.Country,
 		update.StatePrefecture, update.Street, update.Address1, update.Address2, update.City, update.PostalCode,
-		update.StatusID, update.SubscriptionID,
-		update.LimitTLD, update.LimitTLDReached, update.LimitHosts, update.LimitHostsReached, update.LimitCustomWebFlows, update.LimitCustomWebFlowsReached,
+		update.StatusID, update.SubscriptionID, update.LimitTLD, update.LimitTLDReached, update.LimitHosts, update.LimitHostsReached,
+		update.LimitCustomWebFlows, update.LimitCustomWebFlowsReached, update.PortScanEnabled,
 		oid)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {

@@ -16,6 +16,7 @@ var (
 	ErrScanGroupVersionLinked = errors.New("scan group version is linked to this scan group")
 	ErrAddressCopyCount       = errors.New("copy count of addresses did not match expected amount")
 	ErrEmptyAddress           = errors.New("address data was nil")
+	ErrEmptyModuleConfig      = errors.New("module configuration was nil")
 
 	// Organization Specific
 	ErrOrganizationExists    = errors.New("organization already exists")
@@ -29,4 +30,9 @@ var (
 
 	// Events & Notifications
 	ErrEventCopyCount = errors.New("copy count of events did not match expected amount")
+
+	// Module related
+	ErrEmptyIP                 = errors.New("ip address was empty")
+	ErrBannedIP                = errors.New("ip address was found in banned list")
+	ErrWithPortsNotImplemented = errors.New("AnalyzeWithPorts is not implemented for this module")
 )

@@ -34,6 +34,12 @@ type DispatcherState struct {
 
 	StopFn      func(ctx context.Context, userContext am.UserContext, scanGroupID int) error
 	StopInvoked bool
+
+	DoPortScanFn      func(ctx context.Context, orgID, scanGroupID int, expireSeconds int, host string) (bool, error)
+	DoPortScanInvoked bool
+
+	PutPortResultsFn      func(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string, portResults *am.PortResults) error
+	PutPortResultsInvoked bool
 }
 
 func (s *DispatcherState) Init(config []byte) error {
@@ -74,7 +80,18 @@ func (s *DispatcherState) PutAddressMap(ctx context.Context, userContext am.User
 	s.PutAddressMapInvoked = true
 	return s.PutAddressMapFn(ctx, userContext, scanGroupID, addresses)
 }
+
 func (s *DispatcherState) FilterNew(ctx context.Context, orgID, scanGroupID int, addresses map[string]*am.ScanGroupAddress) (map[string]*am.ScanGroupAddress, error) {
 	s.FilterNewInvoked = true
 	return s.FilterNewFn(ctx, orgID, scanGroupID, addresses)
+}
+
+func (s *DispatcherState) DoPortScan(ctx context.Context, orgID, scanGroupID int, expireSeconds int, host string) (bool, error) {
+	s.DoPortScanInvoked = true
+	return s.DoPortScanFn(ctx, orgID, scanGroupID, expireSeconds, host)
+}
+
+func (s *DispatcherState) PutPortResults(ctx context.Context, orgID, scanGroupID, expireSeconds int, host string, portResults *am.PortResults) error {
+	s.PutPortResultsInvoked = true
+	return s.PutPortResultsFn(ctx, orgID, scanGroupID, expireSeconds, host, portResults)
 }

@@ -322,9 +322,9 @@ func TestModuleConfigs(t *testing.T) {
 	group.ModuleConfigurations.NSModule = &am.NSModuleConfig{
 		RequestsPerSecond: 50,
 	}
-	group.ModuleConfigurations.PortModule = &am.PortModuleConfig{
+	group.ModuleConfigurations.PortModule = &am.PortScanModuleConfig{
 		RequestsPerSecond: 50,
-		CustomPorts:       []int32{80, 8800},
+		CustomWebPorts:    []int32{80, 8800},
 	}
 	group.ModuleConfigurations.WebModule = &am.WebModuleConfig{
 		RequestsPerSecond:     50,

@@ -26,8 +26,7 @@ const (
 		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
 		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp, deleted`
 
-	defaultPortColumns = `port_id, organization_id, scan_group_id, host_address, ip_address, address_hash,
-	port_data, scanned_timestamp, previous_scanned_timestamp`
+	defaultPortColumns = `port_id, organization_id, scan_group_id, host_address, port_data, scanned_timestamp, previous_scanned_timestamp, is_ipv4`
 )
 
 var queryMap = map[string]string{
@@ -75,16 +74,21 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 			top.scan_group_id, 
 			top.host_address, 
 			array_agg(arr.ip_address) as addresses, 
-			array_agg(arr.address_id) as address_ids 
+			array_agg(arr.address_id) as address_ids,
+			ports.scanned_timestamp,
+			ports.previous_scanned_timestamp,
+			ports.port_data 
 		from am.scan_group_addresses as top 
-			left join am.scan_group_addresses as arr on 
-				top.address_id=arr.address_id 
+			left join am.scan_group_addresses as arr on top.address_id=arr.address_id 
+			left join am.scan_group_addresses_ports as ports on top.host_address=ports.host_address and top.organization_id=ports.organization_id and top.scan_group_id=ports.scan_group_id
 		where top.organization_id=$1 and top.scan_group_id=$2 
 			and top.host_address != '' 
 			and top.deleted=false
 			and top.ignored=false
 			and (top.confidence_score=100 or top.user_confidence_score=100)
-			and top.host_address > $3 group by top.organization_id, top.scan_group_id, top.host_address order by top.host_address limit $4;`,
+			and top.host_address > $3 
+			group by top.organization_id, top.scan_group_id, top.host_address, ports.scanned_timestamp,
+			ports.previous_scanned_timestamp, ports.port_data order by top.host_address limit $4;`,
 
 	"unsetMaxHosts": `update am.organizations set limit_hosts_reached=false where organization_id=$1`,
 
@@ -102,7 +106,22 @@ union select 'scanned_trihourly' as agg,scan_group_id, period_start, sum(scanned
 		delete from am.scan_group_addresses where 
 		organization_id=$1 and scan_group_id=$2 and discovery_id not in (1,2) and last_seen_timestamp < $3 returning %s
 	) 
-	insert into am.scan_group_addresses_archive select %s,archive_time.archived_timestamp from delete_hosts,archive_time`, defaultPortColumns, defaultPortColumns, defaultColumns, defaultColumns),
+	insert into am.scan_group_addresses_archive (%s, archived_timestamp) select %s,archive_time.archived_timestamp from delete_hosts,archive_time`, defaultPortColumns, defaultPortColumns, defaultColumns, defaultColumns, defaultColumns),
+
+	// PORT SCAN STMTS
+	"insertPortHost": `insert into am.scan_group_addresses (organization_id, scan_group_id, host_address, ip_address, 
+		discovery_id, confidence_score, user_confidence_score, is_soa, is_wildcard_zone, is_hosted_service, 
+		ignored, found_from, ns_record, address_hash, discovered_timestamp, last_scanned_timestamp, last_seen_timestamp) 
+		values ($1, $2, $3, $4, (select discovery_id from am.scan_address_discovered_by where discovered_by=$5), $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) on conflict do nothing;`,
+
+	"updateHostPorts": `insert into am.scan_group_addresses_ports (organization_id, scan_group_id, host_address, port_data, scanned_timestamp) 
+		values ($1, $2, $3, $4, $5) on conflict (organization_id, scan_group_id, host_address, is_ipv4) do update set
+		previous_scanned_timestamp=am.scan_group_addresses_ports.scanned_timestamp,
+		scanned_timestamp=EXCLUDED.scanned_timestamp,
+		port_data = EXCLUDED.port_data || ( 
+			jsonb_set(EXCLUDED.port_data, '{previous}', am.scan_group_addresses_ports.port_data->'current', true)
+		)
+		`,
 }
 
 var (
@@ -167,7 +186,7 @@ var (
 			temp.ignored,
 			temp.found_from,
 			temp.ns_record,
-			temp.address_hash 
+			temp.address_hash
 		from sga_add_temp as temp on conflict (scan_group_id, address_hash) do update set
 			last_scanned_timestamp=EXCLUDED.last_scanned_timestamp,
 			last_seen_timestamp=EXCLUDED.last_seen_timestamp,

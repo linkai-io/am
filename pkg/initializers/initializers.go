@@ -357,6 +357,28 @@ func Module(state *redis.State, moduleType am.ModuleType) am.ModuleService {
 	return nil
 }
 
+// PortScanModule connects directly with our port scanner service
+func PortScanModule(server, token string) am.PortScannerService {
+	portScan := module.NewPortScanClient()
+
+	cfg := &module.PortScanConfig{ModuleType: am.PortScanModule, Timeout: thirtyMinutes, ServerAddress: server, Token: token}
+	data, _ := json.Marshal(cfg)
+
+	err := retrier.RetryUntil(func() error {
+		log.Info().Msg("connecting to port scan module...")
+		e := portScan.Init(data)
+		if e != nil {
+			log.Error().Err(e).Msg("failed")
+		}
+		return portScan.Init(data)
+	}, time.Minute*1, time.Second*3)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to connect to portScan module client")
+	}
+	return portScan
+}
+
 // Modules initializes all modules and connects to them
 func Modules(state *redis.State) map[am.ModuleType]am.ModuleService {
 	modules := make(map[am.ModuleType]am.ModuleService)

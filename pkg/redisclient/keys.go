@@ -9,6 +9,7 @@ type RedisKeys struct {
 	statusFmt string
 	addrFmt   string
 	queueFmt  string
+	portFmt   string
 }
 
 func NewRedisKeys(orgID, groupID int) *RedisKeys {
@@ -16,6 +17,7 @@ func NewRedisKeys(orgID, groupID int) *RedisKeys {
 	r.configFmt = fmt.Sprintf("%d:%d:configuration", orgID, groupID)
 	r.addrFmt = fmt.Sprintf("%d:%d:address", orgID, groupID)
 	r.statusFmt = fmt.Sprintf("%d:%d:status", orgID, groupID)
+	r.portFmt = fmt.Sprintf("%d:%d:portscan", orgID, groupID)
 	return r
 }
 
@@ -76,12 +78,41 @@ func (r *RedisKeys) BigDataZone(zone string) string {
 	return r.configFmt + ":module:bigdata:zones:" + zone
 }
 
+// PortZone key for determining if we should do a port scan for this hostname/ip
+func (r *RedisKeys) PortZone(zone string) string {
+	return r.configFmt + ":module:port:zones:" + zone
+}
+
 func (r *RedisKeys) PortConfig() string {
 	return r.configFmt + ":module:port:config"
 }
 
 func (r *RedisKeys) PortConfigPorts() string {
 	return r.PortConfig() + ":custom_ports"
+}
+
+func (r *RedisKeys) PortConfigTCPPorts() string {
+	return r.PortConfig() + ":tcp_ports"
+}
+
+func (r *RedisKeys) PortConfigUDPPorts() string {
+	return r.PortConfig() + ":udp_ports"
+}
+
+func (r *RedisKeys) PortConfigAllowedTLDs() string {
+	return r.PortConfig() + ":allowed_tlds"
+}
+
+func (r *RedisKeys) PortConfigAllowedHosts() string {
+	return r.PortConfig() + ":allowed_hosts"
+}
+
+func (r *RedisKeys) PortConfigDisallowedTLDs() string {
+	return r.PortConfig() + ":disallowed_tlds"
+}
+
+func (r *RedisKeys) PortConfigDisallowedHosts() string {
+	return r.PortConfig() + ":disallowed_hosts"
 }
 
 func (r *RedisKeys) WebConfig() string {
@@ -100,8 +131,18 @@ func (r *RedisKeys) AddrExistsHash() string {
 	return r.addrFmt + "_hash"
 }
 
+func (r *RedisKeys) PortIP(host string) string {
+	return r.portFmt + ":" + host + ":ip_address"
+}
+func (r *RedisKeys) PortResults(host, proto string) string {
+	return r.portFmt + ":" + host + ":" + proto
+}
+
+func (r *RedisKeys) PortBannerResults(host, proto string) string {
+	return r.portFmt + ":" + host + ":" + proto + ":banners"
+}
+
 // Addr returns the address key based on supplied addr id
-// TODO: look at better more performant options other than Sprintf
 func (r *RedisKeys) Addr(addrHash string) string {
 	return fmt.Sprintf("%d:%d:address:%s", r.orgID, r.groupID, addrHash)
 }

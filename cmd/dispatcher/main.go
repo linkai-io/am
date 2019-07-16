@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/secrets"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -45,9 +47,20 @@ func init() {
 // main starts the DispatcherService
 func main() {
 	var err error
+	portScanAddr := "scanner1.linkai.io:50052"
 
 	zerolog.TimeFieldFormat = ""
 	log.Logger = log.With().Str("service", "DispatcherService").Logger()
+
+	sec := secrets.NewSecretsCache(appConfig.Env, appConfig.Region)
+	portToken, err := sec.GetPortScanToken()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to get port scan token from secrets")
+	}
+
+	if appConfig.Env == "dev" {
+		portScanAddr = "scanner1.linkai.io:50053"
+	}
 
 	if appConfig.Addr == "" {
 		appConfig.Addr = ":50051"
@@ -61,13 +74,17 @@ func main() {
 	timeout := time.Minute * 30
 
 	state := initializers.State(&appConfig)
-	sgClient := initializers.SGClient()
-	addrClient := initializers.AddrClientWithTimeout(timeout)
-	webClient := initializers.WebDataClientWithTimeout(timeout)
-	eventClient := initializers.EventClient()
-	modules := initializers.Modules(state)
 
-	service := dispatcher.New(sgClient, eventClient, addrClient, webClient, modules, state)
+	dependentServices := &dispatcher.DependentServices{
+		EventClient:    initializers.EventClient(),
+		SgClient:       initializers.SGClient(),
+		AddressClient:  initializers.AddrClientWithTimeout(timeout),
+		WebClient:      initializers.WebDataClientWithTimeout(timeout),
+		ModuleClients:  initializers.Modules(state),
+		PortScanClient: initializers.PortScanModule(portScanAddr, portToken),
+	}
+
+	service := dispatcher.New(dependentServices, state)
 	err = retrier.Retry(func() error {
 		return service.Init(nil)
 	})

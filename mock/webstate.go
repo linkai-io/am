@@ -19,6 +19,9 @@ type WebState struct {
 
 	GetGroupFn      func(ctx context.Context, orgID, scanGroupID int, wantModules bool) (*am.ScanGroup, error)
 	GetGroupInvoked bool
+
+	GetPortResultsFn      func(ctx context.Context, orgID, scanGroupID int, host string) (*am.PortResults, error)
+	GetPortResultsInvoked bool
 }
 
 func (s *WebState) Init(config []byte) error {
@@ -38,4 +41,9 @@ func (s *WebState) Subscribe(ctx context.Context, onStartFn state.SubOnStart, on
 func (s *WebState) GetGroup(ctx context.Context, orgID int, scanGroupID int, wantModules bool) (*am.ScanGroup, error) {
 	s.GetGroupInvoked = true
 	return s.GetGroupFn(ctx, orgID, scanGroupID, wantModules)
+}
+
+func (s *WebState) GetPortResults(ctx context.Context, orgID, scanGroupID int, host string) (*am.PortResults, error) {
+	s.GetPortResultsInvoked = true
+	return s.GetPortResultsFn(ctx, orgID, scanGroupID, host)
 }

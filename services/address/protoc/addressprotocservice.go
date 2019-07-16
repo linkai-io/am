@@ -49,6 +49,28 @@ func (s *AddressProtocService) Get(in *address.AddressesRequest, stream address.
 	return nil
 }
 
+func (s *AddressProtocService) GetPorts(in *address.GetPortsRequest, stream address.Address_GetPortsServer) error {
+	s.reporter.Increment(1)
+	defer s.reporter.Increment(-1)
+	filter := convert.AddressFilterToDomain(in.Filter)
+
+	oid, portResults, err := s.as.GetPorts(stream.Context(), convert.UserContextToDomain(in.UserContext), filter)
+	if err != nil {
+		return err
+	}
+
+	for _, port := range portResults {
+		if oid != port.OrgID {
+			return ErrOrgIDNonMatch
+		}
+
+		if err := stream.Send(&address.GetPortsResponse{OrgID: int32(oid), PortResults: convert.DomainToPortResults(port)}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *AddressProtocService) GetHostList(in *address.HostListRequest, stream address.Address_GetHostListServer) error {
 	s.reporter.Increment(1)
 	defer s.reporter.Increment(-1)
@@ -148,4 +170,17 @@ func (s *AddressProtocService) Archive(ctx context.Context, in *address.ArchiveA
 		return nil, err
 	}
 	return &address.AddressesArchivedResponse{OrgID: int32(oid), Count: int32(count)}, nil
+}
+
+func (s *AddressProtocService) UpdateHostPorts(ctx context.Context, in *address.UpdateHostPortsRequest) (*address.UpdateHostPortsResponse, error) {
+	var oid int
+	var err error
+
+	s.reporter.Increment(1)
+	oid, err = s.as.UpdateHostPorts(ctx, convert.UserContextToDomain(in.UserContext), convert.AddressToDomain(in.Address), convert.PortResultsToDomain(in.PortResult))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &address.UpdateHostPortsResponse{OrgID: int32(oid)}, nil
 }

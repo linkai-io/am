@@ -209,6 +209,32 @@ func (c *Client) Update(ctx context.Context, userContext am.UserContext, address
 	return int(resp.GetOrgID()), int(resp.GetCount()), nil
 }
 
+func (c *Client) UpdateHostPorts(ctx context.Context, userContext am.UserContext, address *am.ScanGroupAddress, portResults *am.PortResults) (oid int, err error) {
+	var resp *service.UpdateHostPortsResponse
+
+	in := &service.UpdateHostPortsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Address:     convert.DomainToAddress(address),
+		PortResult:  convert.DomainToPortResults(portResults),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.UpdateHostPorts(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to update hostports from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(resp.GetOrgID()), nil
+}
+
 func (c *Client) Count(ctx context.Context, userContext am.UserContext, groupID int) (oid int, count int, err error) {
 	var resp *service.CountAddressesResponse
 
@@ -314,4 +340,50 @@ func (c *Client) Archive(ctx context.Context, userContext am.UserContext, group 
 		return 0, 0, err
 	}
 	return int(resp.GetOrgID()), int(resp.Count), nil
+}
+
+// GetPorts returns ports that match the filter from address service
+func (c *Client) GetPorts(ctx context.Context, userContext am.UserContext, filter *am.ScanGroupAddressFilter) (oid int, portResults []*am.PortResults, err error) {
+	var resp service.Address_GetPortsClient
+	oid = userContext.GetOrgID()
+
+	in := &service.GetPortsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Filter:      convert.DomainToAddressFilter(filter),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetPorts(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get portResults from client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	portResults = make([]*am.PortResults, 0)
+	for {
+		port, err := resp.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return 0, nil, err
+		}
+		// empty address
+		if port.GetOrgID() == 0 {
+			continue
+		}
+		portResults = append(portResults, convert.PortResultsToDomain(port.PortResults))
+		if port.GetOrgID() != int32(oid) {
+			return 0, nil, am.ErrOrgIDMismatch
+		}
+	}
+	return oid, portResults, nil
 }

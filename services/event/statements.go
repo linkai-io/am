@@ -70,6 +70,12 @@ var queryMap = map[string]string{
 		new_tech.load_url=prev_tech.load_url and new_tech.response_port=prev_tech.response_port and new_tech.techname=prev_tech.techname and new_tech.version=prev_tech.version
 	)`,
 
+	"checkPortChanges": `select host_address, port_data, scanned_timestamp, previous_scanned_timestamp from am.scan_group_addresses_ports
+		where organization_id=$1
+		and scan_group_id=$2
+		and scanned_timestamp >= $3
+		and previous_scanned_timestamp != 'epoch'`,
+
 	"checkCertExpiration": `select subject_name, port, valid_to from am.web_certificates 
 		where (TIMESTAMPTZ 'epoch' + valid_to * '1 second'::interval) 
 		between now() and now() + interval '30 days'
