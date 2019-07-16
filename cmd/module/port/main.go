@@ -31,6 +31,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -135,7 +136,10 @@ func main() {
 	creds := credentials.NewTLS(tlsConfig)
 	authorizer := protocauth.New(getPortToken())
 
-	s := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(protocauth.UnaryServerInterceptor(authorizer.Authenticate)))
+	s := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(protocauth.UnaryServerInterceptor(authorizer.Authenticate)), grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+		MinTime:             time.Second * 30,
+		PermitWithoutStream: true,
+	}))
 
 	moduleservice.RegisterPortScanModuleServer(s, servicep)
 	healthgrpc.RegisterHealthServer(s, health.NewServer())

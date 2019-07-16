@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 )
 
 type tokenAuth struct {
@@ -68,7 +69,11 @@ func (c *PortScanClient) Init(data []byte) error {
 	conn, err := grpc.DialContext(context.Background(),
 		fmt.Sprintf("dns:///%s", c.config.ServerAddress),
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
-		grpc.WithPerRPCCredentials(tokenAuth{token: c.config.Token}))
+		grpc.WithPerRPCCredentials(tokenAuth{token: c.config.Token}),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                time.Second * 20,
+			PermitWithoutStream: true,
+		}))
 
 	if err != nil {
 		return err
