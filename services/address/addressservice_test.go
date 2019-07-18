@@ -901,6 +901,30 @@ func TestGetAddressFilters(t *testing.T) {
 	if len(returned) != 95 {
 		t.Fatalf("expected 95 returned got: %d\n", len(returned))
 	}
+
+	// test discovered by
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32(am.FilterDiscoveredBy, am.DiscoveryMap[am.DiscoveryBigData])
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 0 {
+		t.Fatalf("expected 0 returned got: %d\n", len(returned))
+	}
+
+	filter.Filters = &am.FilterType{}
+	filter.Filters.AddInt32(am.FilterDiscoveredBy, am.DiscoveryMap[am.DiscoveryNSInputList])
+	_, returned, err = service.Get(ctx, userContext, filter)
+	if err != nil {
+		t.Fatalf("error getting addresses: %v\n", err)
+	}
+
+	if len(returned) != 100 {
+		t.Fatalf("expected 100 returned got: %d\n", len(returned))
+	}
+
 	// test discovered time
 	filter.Filters = &am.FilterType{}
 	filter.Filters.AddInt64("after_discovered_time", now.Add(time.Hour*time.Duration(-5*2)).UnixNano())
