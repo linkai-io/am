@@ -102,6 +102,18 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.ScanGroupAddress
 		}
 	}
 
+	if vals, ok := filter.Filters.Int32s(am.FilterDiscoveredBy); ok && len(vals) > 0 {
+		if len(vals) == 1 {
+			p = p.Where(sq.Eq{"sga.discovery_id": vals[0]})
+		} else {
+			var equals sq.Or
+			for _, val := range vals {
+				equals = append(equals, sq.Eq{"sga.discovery_id": val})
+			}
+			p = p.Where(equals)
+		}
+	}
+
 	if vals, ok := filter.Filters.Strings(am.FilterIPAddress); ok && len(vals) > 0 {
 		if len(vals) == 1 {
 			p = p.Where(sq.Eq{"sga.ip_address": vals[0]})

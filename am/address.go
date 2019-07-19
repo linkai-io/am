@@ -14,6 +14,7 @@ const (
 	FilterIgnored                = "ignored"
 	FilterWildcard               = "wildcard"
 	FilterHosted                 = "hosted"
+	FilterDiscoveredBy           = "discovered_by"
 	FilterAfterScannedTime       = "after_scanned_time"
 	FilterBeforeScannedTime      = "before_scanned_time"
 	FilterAfterSeenTime          = "after_seen_time"
@@ -45,23 +46,20 @@ const (
 )
 
 /*
-(1, 'input_list'),
-    (2, 'manual'),
-    (3, 'other'),
-    -- ns analyzer module 100-200
-    (100, 'ns_query_other'),
-    (101, 'ns_query_ip_to_name'),
-	(102, 'ns_query_name_to_ip'),
-	(103, 'dns_axfr'),
-    -- dns brute module 200-300
-    (200, 'dns_brute_forcer'),
-    (201, 'dns_mutator'),
-    -- web modules 300 - 999
-    (300, 'web_crawler'),
-	-- other, feature modules
-	(400, 'bigdata'),
-	(401, 'bigdata_certificate_transparency'),
-	(1000, 'git_hooks');
+1	"input_list"
+2	"manual"
+3	"other"
+100	"ns_query_other"
+101	"ns_query_ip_to_name"
+102	"ns_query_name_to_ip"
+103	"ns_query_axfr"
+200	"dns_brute_forcer"
+201	"dns_mutator"
+300	"web_crawler"
+1000	"git_hooks"
+400	"bigdata"
+401	"bigdata_certificate_transparency"
+104	"ns_query_nsec_walk"
 */
 const (
 	DiscoveryNSInputList     = "input_list"
@@ -78,6 +76,22 @@ const (
 	DiscoveryBigData         = "bigdata"
 	DiscoveryBigDataCT       = "bigdata_certificate_transparency"
 )
+
+var DiscoveryMap = map[string]int32{
+	DiscoveryNSInputList:     1,
+	DiscoveryNSManual:        2,
+	DiscoveryNSQueryOther:    3,
+	DiscoveryNSQueryIPToName: 101,
+	DiscoveryNSQueryNameToIP: 102,
+	DiscoveryNSAXFR:          103,
+	DiscoveryNSSECWalk:       104,
+	DiscoveryBruteSubDomain:  200,
+	DiscoveryBruteMutator:    201,
+	DiscoveryWebCrawler:      300,
+	DiscoveryGitHooks:        1000,
+	DiscoveryBigData:         400,
+	DiscoveryBigDataCT:       401,
+}
 
 // ScanGroupAddress contains details on addresses belonging to the scan group
 // for scanning.
