@@ -254,6 +254,11 @@ func (b *Bruter) bruteDomains(ctx context.Context, address *am.ScanGroupAddress,
 		newHosts[subdomain+"."+hostAddress] = struct{}{}
 	}
 
+	// anything less is too slow, increases chances of timeouts.
+	if requestsPerSecond < 5 {
+		requestsPerSecond = 5
+	}
+
 	return module.ResolveNewAddresses(ctx, b.dc, &module.ResolverData{
 		Address:           address,
 		RequestsPerSecond: requestsPerSecond,
