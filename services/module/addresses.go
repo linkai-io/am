@@ -146,11 +146,11 @@ func ResolveNewAddresses(ctx context.Context, dns *dnsclient.Client, data *Resol
 				}
 				newAddress.ConfidenceScore = CalculateConfidence(ctx, data.Address, newAddress)
 				newRecords[newAddress.AddressHash] = newAddress
-				log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Str("newAddress.AddressHash", newAddress.AddressHash).Str("hash", convert.HashAddress(ip, result.Hostname)).Msg("found new record")
+				//log.Ctx(ctx).Info().Str("hostname", result.Hostname).Str("ip_address", ip).Str("newAddress.AddressHash", newAddress.AddressHash).Str("hash", convert.HashAddress(ip, result.Hostname)).Msg("found new record")
 			}
 		}
 	}
-
+	log.Ctx(ctx).Info().Int("record_count", len(newRecords)).Msg("found new records")
 	return newRecords
 }
 
