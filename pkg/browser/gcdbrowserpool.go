@@ -115,6 +115,7 @@ func (b *GCDBrowserPool) Start() error {
 	defer cancel()
 
 	log.Info().Int("browsers", b.maxBrowsers).Msg("creating browsers")
+	b.browsers = make(chan *gcd.Gcd, b.maxBrowsers)
 	// always have 2 browsers ready
 	for i := 0; i < b.maxBrowsers; i++ {
 		b.Return(timeoutCtx, nil) // passing nil will just create a new one for us
@@ -132,13 +133,35 @@ func (b *GCDBrowserPool) Acquire(ctx context.Context) *gcd.Gcd {
 
 	select {
 	case browser := <-b.browsers:
-		atomic.AddInt32(&b.acquiredBrowsers, 1)
+		if browser != nil {
+			atomic.AddInt32(&b.acquiredBrowsers, 1)
+		}
 		return browser
 	case <-ctx.Done():
 		log.Warn().Err(ctx.Err()).Msg("failed to acquire Browser from pool")
 		atomic.AddInt32(&b.acquireErrors, 1)
+		b.shouldRestart(ctx)
 		return nil
 	}
+}
+
+// Closing a channel that may be being read will cause a panic, which is fine because
+// then we just restart anyways
+func (b *GCDBrowserPool) shouldRestart(ctx context.Context) {
+	acquired := atomic.LoadInt32(&b.acquiredBrowsers)
+	errored := atomic.LoadInt32(&b.acquireErrors)
+	count, _ := b.leaser.Count()
+	log.Warn().Int32("acquired", acquired).Int32("errored", errored).Str("leaser_count", count).Msg("force restarting due to failure to acquire browsers")
+	atomic.StoreInt32(&b.acquiredBrowsers, 0)
+	atomic.StoreInt32(&b.acquireErrors, 0)
+	atomic.StoreInt32(&b.closing, 1)
+	close(b.browsers)
+	if err := b.Start(); err != nil {
+		panic("restarting due to failure to restart browsers process")
+	}
+
+	atomic.StoreInt32(&b.closing, 0)
+
 }
 
 // Return a browser
@@ -196,6 +219,8 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	if browser = b.Acquire(ctx); browser == nil {
 		return "", "", errors.New("browser acquisition failed during Load")
 	}
+	defer b.Return(ctx, browser)
+
 	logger := log.With().Str("HostAddress", address.HostAddress).Str("port", port).Str("call", "LoadForDiff").Logger()
 	ctx = logger.WithContext(ctx)
 	log.Ctx(ctx).Info().Msg("acquired browser")
@@ -203,11 +228,9 @@ func (b *GCDBrowserPool) LoadForDiff(ctx context.Context, address *am.ScanGroupA
 	t, err := browser.GetFirstTab()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get first tab")
-		b.Return(ctx, browser)
 		return "", "", err
 	}
 
-	defer b.Return(ctx, browser)
 	defer browser.CloseTab(t) // closes websocket go routines
 
 	t.SetApiTimeout(b.browserTimeout)
@@ -258,18 +281,18 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 	if browser = b.Acquire(ctx); browser == nil {
 		return nil, errors.New("browser acquisition failed during Load")
 	}
+	defer b.Return(ctx, browser)
+
 	logger := log.With().Str("HostAddress", address.HostAddress).Str("port", port).Str("call", "Load").Logger()
 	ctx = logger.WithContext(ctx)
-	log.Ctx(ctx).Info().Msg("acquired browser")
+	log.Ctx(ctx).Info().Int32("acquired", atomic.LoadInt32(&b.acquiredBrowsers)).Int32("errors", atomic.LoadInt32(&b.acquireErrors)).Msg("acquired browser")
 
 	t, err := browser.GetFirstTab()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get first tab")
-		b.Return(ctx, browser)
 		return nil, err
 	}
 
-	defer b.Return(ctx, browser)
 	defer browser.CloseTab(t) // closes websocket go routines
 
 	t.SetApiTimeout(b.browserTimeout)

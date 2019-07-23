@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:a9ac4c16cb0c7e6700a6e1cc4dff348487c43600f6e0ad58c0a75881f0134a34"
+  digest = "1:338226968dacb9cf77c46043950020710c6bc058e2dbc2622d41417a52e80c96"
   name = "cloud.google.com/go"
   packages = [
     "bigquery",
@@ -15,8 +15,8 @@
     "internal/version",
   ]
   pruneopts = "UT"
-  revision = "cf81fad90a1a1de334c4fc27e23eb9a4224b627a"
-  version = "v0.41.0"
+  revision = "cdaaf98f9226c39dc162b8e55083b2fbc67b4674"
+  version = "v0.43.0"
 
 [[projects]]
   digest = "1:14a90eb1290bd0aa42848afa9ee2c9ce247abdb63c2cf614331670119760962f"
@@ -51,7 +51,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:c341a69eac1a01eaa0d56ab6b54bf66b1e2482b0d70c67b628127c40f8bbffcd"
+  digest = "1:27c180a7599bcd29d1a8e55fc69ca5900336495b934be85c68ab293e173ba61c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -92,10 +92,11 @@
     "service/ses",
     "service/ssm",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "471204b4ff86c9c417adb58cec55079c06d16213"
-  version = "v1.20.15"
+  revision = "246b05ad4b913883ee208efe8c779ea711ba11a4"
+  version = "v1.21.2"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -130,7 +131,7 @@
   version = "v3.2.0"
 
 [[projects]]
-  digest = "1:64c2b533ffd17023738c534548ab2455d7f519bc15ed4225145425ed2222448b"
+  digest = "1:7ade0e7351787347d3dd3456abb365fd71ea75c19a859505e6a427064e1f9e42"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -141,8 +142,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:38ec74012390146c45af1f92d46e5382b50531247929ff3a685d2b2be65155ac"
@@ -372,7 +373,7 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:1aa9095818a4d92f3682b427bd62e58c6c9885eb0701d6b9ed5a8814b969c58d"
+  digest = "1:31b9bcaecb8531d63352ada07802b1ee4f8c590b22b7d95e6d78b512b15ac292"
   name = "github.com/wirepair/gcd"
   packages = [
     ".",
@@ -380,8 +381,8 @@
     "gcdmessage",
   ]
   pruneopts = "UT"
-  revision = "44bb7d51f34e1a82ad6868dcad7ff21222c80c96"
-  version = "v1.0.6"
+  revision = "55ec1aef55e586500bd3f04449565a4978a52c9a"
+  version = "v1.0.7"
 
 [[projects]]
   digest = "1:74055050ea547bb04600be79cc501965cb3de8988018262f2ca430f0a0b48ec3"
@@ -465,14 +466,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:afb5346f71acefc3da7ad800f952cb2bcdb762194b05304bbf54d7f9490e31c5"
+  digest = "1:31d44814b45607afa77c6e8ef20ea8bacc1d1053fe084440c874f311732e7ec3"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
+  revision = "fae7ac547cb717d141c433a2a173315e216b64c4"
 
 [[projects]]
   digest = "1:5f1559c4cee44069f81517430ebba19589869f3d4d4648213a4d5ddd199b11d8"
@@ -559,7 +560,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "710ae3a149df3775bfc2e9efb7f4fb97b186b233"
+  revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
   digest = "1:cbb340eee6c5bef6dd29cfb621b88aaaf242c1d9b2d8d4ed8c184a64b23cb6b6"
@@ -617,6 +618,7 @@
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/ses",
@@ -658,6 +660,7 @@
     "google.golang.org/grpc/credentials",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
+    "google.golang.org/grpc/keepalive",
     "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/resolver",
