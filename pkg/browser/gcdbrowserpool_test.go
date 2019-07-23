@@ -80,6 +80,29 @@ func TestGCDBrowserPool(t *testing.T) {
 	}
 }
 
+func TestGCDBrowserPool(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "example.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	webData, err := b.Load(ctx, address, "http", "80")
+	if err != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	for _, resp := range webData.Responses {
+		t.Logf("%v\n", resp.URL)
+	}
+}
+
 func TestGCDBrowserPoolLoadForDiff(t *testing.T) {
 	ctx := context.Background()
 	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
