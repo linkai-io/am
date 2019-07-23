@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -60,6 +61,7 @@ func (g *GcdLeaser) Serve() error {
 
 	http.HandleFunc("/cleanup", g.Cleanup)
 	http.HandleFunc("/acquire", g.Acquire)
+	http.HandleFunc("/count", g.Count)
 	http.HandleFunc("/return", g.Return)
 
 	err = g.srv.Serve(g.listener)
@@ -70,6 +72,16 @@ func (g *GcdLeaser) Shutdown() {
 	if err := g.srv.Shutdown(context.Background()); err != nil {
 		log.Info().Err(err).Msgf("HTTP server Shutdown")
 	}
+}
+
+func (g *GcdLeaser) Count(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	g.browserLock.RLock()
+	count := len(g.browsers)
+	g.browserLock.RUnlock()
+	w.WriteHeader(200)
+	fmt.Fprintf(w, strconv.Itoa(count))
 }
 
 func (g *GcdLeaser) Acquire(w http.ResponseWriter, r *http.Request) {

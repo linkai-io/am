@@ -59,6 +59,21 @@ func (s *SocketLeaser) Acquire() (string, error) {
 	return string(port), nil
 }
 
+func (s *SocketLeaser) Count() (string, error) {
+	resp, err := s.leaserClient.Get("http://unix/count")
+	if err != nil {
+		return "", err
+	}
+
+	count, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return "", err
+	}
+
+	return string(count), nil
+}
+
 func (s *SocketLeaser) Return(port string) error {
 	resp, err := s.leaserClient.Get("http://unix/return?port=" + port)
 	if err != nil {

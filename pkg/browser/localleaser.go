@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"strconv"
 	"sync"
 	"time"
 
@@ -40,6 +41,13 @@ func (s *LocalLeaser) Acquire() (string, error) {
 	s.browserLock.Unlock()
 
 	return string(port), nil
+}
+
+func (s *LocalLeaser) Count() (string, error) {
+	s.browserLock.RLock()
+	count := len(s.browsers)
+	s.browserLock.RUnlock()
+	return strconv.Itoa(count), nil
 }
 
 func (s *LocalLeaser) Return(port string) error {
