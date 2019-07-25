@@ -58,6 +58,11 @@ type Organization struct {
 	LimitCustomWebFlows        int32  `json:"limit_custom_web_flows"`
 	LimitCustomWebFlowsReached bool   `json:"limit_custom_web_flows_reached"`
 	PortScanEnabled            bool   `json:"port_scan_enabled"`
+	PaymentRequiredTimestamp   int64  `json:"payment_required_timestamp"`
+	BillingPlanType            string `json:"billing_plan_type"`
+	BillingPlanID              string `json:"billing_plan_id"`
+	BillingSubscriptionID      string `json:"billing_subscription_id"`
+	IsBetaPlan                 bool   `json:"is_beta_plan"`
 }
 
 // OrgFilter for filtering organization list results

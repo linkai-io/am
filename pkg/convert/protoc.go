@@ -72,6 +72,7 @@ func UserContextToDomain(in *prototypes.UserContext) am.UserContext {
 		Roles:          in.Roles,
 		IPAddress:      in.IPAddress,
 		SubscriptionID: in.SubscriptionID,
+		OrgStatusID:    int(in.OrgStatusID),
 	}
 }
 
@@ -86,6 +87,7 @@ func DomainToUserContext(in am.UserContext) *prototypes.UserContext {
 		Roles:          in.GetRoles(),
 		IPAddress:      in.GetIPAddress(),
 		SubscriptionID: in.GetSubscriptionID(),
+		OrgStatusID:    int32(in.GetOrgStatusID()),
 	}
 }
 
@@ -122,6 +124,11 @@ func DomainToOrganization(in *am.Organization) *prototypes.Org {
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
 		PortScanEnabled:            in.PortScanEnabled,
+		PaymentRequiredTimestamp:   in.PaymentRequiredTimestamp,
+		BillingPlanType:            in.BillingPlanType,
+		BillingPlanID:              in.BillingPlanID,
+		BillingSubscriptionID:      in.BillingSubscriptionID,
+		IsBetaPlan:                 in.IsBetaPlan,
 	}
 }
 
@@ -158,6 +165,11 @@ func OrganizationToDomain(in *prototypes.Org) *am.Organization {
 		LimitCustomWebFlows:        in.LimitCustomWebFlows,
 		LimitCustomWebFlowsReached: in.LimitCustomWebFlowsReached,
 		PortScanEnabled:            in.PortScanEnabled,
+		PaymentRequiredTimestamp:   in.PaymentRequiredTimestamp,
+		BillingPlanType:            in.BillingPlanType,
+		BillingPlanID:              in.BillingPlanID,
+		BillingSubscriptionID:      in.BillingSubscriptionID,
+		IsBetaPlan:                 in.IsBetaPlan,
 	}
 }
 

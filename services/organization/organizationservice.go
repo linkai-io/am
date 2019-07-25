@@ -149,15 +149,18 @@ func (s *Service) GetByAppClientID(ctx context.Context, userContext am.UserConte
 func (s *Service) get(ctx context.Context, userContext am.UserContext, row *pgx.Row) (oid int, org *am.Organization, err error) {
 	org = &am.Organization{}
 	var createTime time.Time
+	var paymentTime time.Time
 	err = row.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 		&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone,
 		&org.Country, &org.StatePrefecture, &org.Street, &org.Address1, &org.Address2,
 		&org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
-		&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled)
+		&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled,
+		&paymentTime, &org.BillingPlanType, &org.BillingPlanID, &org.BillingSubscriptionID, &org.IsBetaPlan)
 	if err == pgx.ErrNoRows {
 		return 0, nil, am.ErrNoResults
 	}
 	org.CreationTime = createTime.UnixNano()
+	org.PaymentRequiredTimestamp = paymentTime.UnixNano()
 	return org.OrgID, org, err
 }
 
@@ -184,14 +187,17 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 
 	for i := 0; rows.Next(); i++ {
 		var createTime time.Time
+		var paymentTime time.Time
 		org := &am.Organization{}
 		if err := rows.Scan(&org.OrgID, &org.OrgName, &org.OrgCID, &org.UserPoolID, &org.UserPoolAppClientID, &org.UserPoolAppClientSecret,
 			&org.IdentityPoolID, &org.UserPoolJWK, &org.OwnerEmail, &org.FirstName, &org.LastName, &org.Phone, &org.Country, &org.StatePrefecture,
 			&org.Street, &org.Address1, &org.Address2, &org.City, &org.PostalCode, &createTime, &org.StatusID, &org.Deleted, &org.SubscriptionID,
-			&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled); err != nil {
+			&org.LimitTLD, &org.LimitTLDReached, &org.LimitHosts, &org.LimitHostsReached, &org.LimitCustomWebFlows, &org.LimitCustomWebFlowsReached, &org.PortScanEnabled,
+			&paymentTime, &org.BillingPlanType, &org.BillingPlanID, &org.BillingSubscriptionID, &org.IsBetaPlan); err != nil {
 			return nil, err
 		}
 		org.CreationTime = createTime.UnixNano()
+		org.PaymentRequiredTimestamp = paymentTime.UnixNano()
 		orgs = append(orgs, org)
 	}
 
@@ -231,11 +237,13 @@ func (s *Service) Create(ctx context.Context, userContext am.UserContext, org *a
 	ocid = id.String()
 
 	now := time.Now()
+	paymentRequired := time.Now().AddDate(0, 1, 2) // make payment required 1 month ~ 2 days
 	if err = tx.QueryRow("orgCreate", org.OrgName, ocid, org.UserPoolID, org.UserPoolAppClientID,
 		org.UserPoolAppClientSecret, org.IdentityPoolID, org.UserPoolJWK, org.OwnerEmail, org.FirstName,
 		org.LastName, org.Phone, org.Country, org.StatePrefecture, org.Street, org.Address1,
 		org.Address2, org.City, org.PostalCode, now, org.StatusID, org.SubscriptionID,
 		org.LimitTLD, org.LimitTLDReached, org.LimitHosts, org.LimitHostsReached, org.LimitCustomWebFlows, org.LimitCustomWebFlowsReached, org.PortScanEnabled,
+		paymentRequired, org.BillingPlanType, org.BillingPlanID, org.BillingSubscriptionID, org.IsBetaPlan,
 		userCID, org.OwnerEmail, org.FirstName, org.LastName, am.UserStatusActive, now).Scan(&oid, &uid); err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			log.Error().Err(v).Msgf("create error: %#v", v)
@@ -413,11 +421,35 @@ func (s *Service) Update(ctx context.Context, userContext am.UserContext, org *a
 		update.PortScanEnabled = org.PortScanEnabled
 	}
 
+	// billing specific
+	if org.PaymentRequiredTimestamp != 0 && org.PaymentRequiredTimestamp != update.PaymentRequiredTimestamp {
+		update.PaymentRequiredTimestamp = org.PaymentRequiredTimestamp
+	}
+
+	if org.BillingPlanType != "" && org.BillingPlanType != update.BillingPlanType {
+		update.BillingPlanType = org.BillingPlanType
+	}
+
+	if org.BillingPlanID != "" && org.BillingPlanID != update.BillingPlanID {
+		update.BillingPlanID = org.BillingPlanID
+	}
+
+	if org.BillingSubscriptionID != "" && org.BillingSubscriptionID != update.BillingSubscriptionID {
+		update.BillingSubscriptionID = org.BillingSubscriptionID
+	}
+
+	if org.IsBetaPlan != false && org.IsBetaPlan != update.IsBetaPlan {
+		update.IsBetaPlan = org.IsBetaPlan
+	}
+
+	paymentRequired := time.Unix(0, update.PaymentRequiredTimestamp)
+
 	_, err = tx.Exec("orgUpdate", update.UserPoolID, update.UserPoolAppClientID, update.UserPoolAppClientSecret,
 		update.IdentityPoolID, update.UserPoolJWK, update.OwnerEmail, update.FirstName, update.LastName, update.Phone, update.Country,
 		update.StatePrefecture, update.Street, update.Address1, update.Address2, update.City, update.PostalCode,
 		update.StatusID, update.SubscriptionID, update.LimitTLD, update.LimitTLDReached, update.LimitHosts, update.LimitHostsReached,
 		update.LimitCustomWebFlows, update.LimitCustomWebFlowsReached, update.PortScanEnabled,
+		paymentRequired, update.BillingPlanType, update.BillingPlanID, update.BillingSubscriptionID, update.IsBetaPlan,
 		oid)
 	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {

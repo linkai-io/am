@@ -24,6 +24,9 @@ type UserContext struct {
 
 	GetSubscriptionIDFn      func() int32
 	GetSubscriptionIDInvoked bool
+
+	GetOrgStatusIDFn      func() int
+	GetOrgStatusIDInvoked bool
 }
 
 func (u *UserContext) GetTraceID() string {
@@ -67,4 +70,9 @@ func (u *UserContext) GetIPAddress() string {
 func (u *UserContext) GetSubscriptionID() int32 {
 	u.GetSubscriptionIDInvoked = true
 	return u.GetSubscriptionIDFn()
+}
+
+func (u *UserContext) GetOrgStatusID() int {
+	u.GetOrgStatusIDInvoked = true
+	return u.GetOrgStatusIDFn()
 }
