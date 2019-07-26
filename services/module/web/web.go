@@ -184,6 +184,10 @@ func (w *Web) Analyze(ctx context.Context, userContext am.UserContext, address *
 				continue
 			}
 
+			if ctx.Err() != nil {
+				return nil, nil, ctx.Err()
+			}
+
 			// the diff takes care of random csrf/nonce values and remove them from urls
 			log.Ctx(ctx).Info().Str("diffURL", loadDiffURL).Str("webData.URL", webData.URL).Msg("patching diff urls")
 			webData.URL = w.diff.DiffPatchURL(webData.URL, loadDiffURL) // any params or paths that are different will be removed
