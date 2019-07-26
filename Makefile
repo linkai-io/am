@@ -1,7 +1,7 @@
 ALL_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice nsmoduleservice webdataservice bigdataservice brutemoduleservice bigdatamoduleservice eventservice
 BACKEND_SERVICES = orgservice userservice scangroupservice addressservice coordinatorservice dispatcherservice webdataservice bigdataservice eventservice
 MODULE_SERVICES = nsmoduleservice brutemoduleservice bigdatamoduleservice
-APP_ENV = prod
+APP_ENV = dev
 build:
 	go build -v ./...
 
@@ -188,7 +188,7 @@ buildportscanservice:
 	scp deploy_files/prod/portscanservice/portscanservice.zip linkai-admin@scanner1.linkai.io:/home/linkai-admin/
 
 test:
-	go test ./... -cover
+	go test -p 1 ./... -cover
 
 infratest:
-	INFRA_TESTS=yes go test ./... -cover
+	INFRA_TESTS=yes go test -p 1 ./... -cover

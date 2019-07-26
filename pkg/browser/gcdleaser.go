@@ -40,7 +40,7 @@ func (g *GcdLeaser) Serve() error {
 	var err error
 	// Start Server
 	os.Remove(SOCK)
-
+	g.browsers = make(map[string]*gcd.Gcd)
 	if err := KillOldProcesses(); err != nil {
 		log.Fatal().Err(err).Msg("failed to kill old chrome processes")
 	}
@@ -99,7 +99,7 @@ func (g *GcdLeaser) Acquire(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "error: "+err.Error())
 		return
 	}
-
+	log.Info().Str("port", port).Msg("leasing browser")
 	g.browserLock.Lock()
 	g.browsers[port] = b
 	g.browserLock.Unlock()
@@ -114,12 +114,34 @@ func (g *GcdLeaser) Return(w http.ResponseWriter, r *http.Request) {
 	port := r.Form.Get("port")
 	g.browserLock.Lock()
 	defer g.browserLock.Unlock()
-
+	log.Info().Str("port", port).Msg("closing browser")
 	if b, ok := g.browsers[port]; ok {
 		delete(g.browsers, port)
-		if err := b.ExitProcess(); err != nil {
+		timeoutCtx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+		defer cancel()
+		doneCh := make(chan error)
+
+		go func(browser *gcd.Gcd, doneCh chan error) {
+			if err := b.ExitProcess(); err != nil {
+				doneCh <- err
+			}
+			doneCh <- nil
+		}(b, doneCh)
+
+		select {
+		case err := <-doneCh:
+			if err == nil {
+				break
+			}
 			w.WriteHeader(500)
+			log.Error().Err(err).Str("port", port).Msg("failed to exit browser process")
 			fmt.Fprintf(w, "error: "+err.Error())
+			return
+		case <-timeoutCtx.Done():
+			go g.ForceKill(b.PID())
+			w.WriteHeader(500)
+			log.Error().Err(timeoutCtx.Err()).Str("port", port).Msg("failed to exit browser process in time")
+			fmt.Fprintf(w, "error: "+timeoutCtx.Err().Error())
 			return
 		}
 
@@ -132,8 +154,20 @@ func (g *GcdLeaser) Return(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "not found")
 }
 
+func (g *GcdLeaser) ForceKill(pid int) {
+	cmd := exec.Command("kill", "-9", strconv.Itoa(pid))
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Warn().Msgf("%s:%s", err.Error(), string(output))
+	}
+}
+
 func (g *GcdLeaser) Cleanup(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	g.browserLock.Lock()
+	g.browsers = make(map[string]*gcd.Gcd)
+	g.browserLock.Unlock()
 
 	if err := KillOldProcesses(); err != nil {
 		w.WriteHeader(500)
@@ -166,7 +200,13 @@ func KillOldProcesses() error {
 	cmd := exec.Command("killall", "google-chrome")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Warn().Msgf("%s:%s", err.Error(), string(output))
+		log.Warn().Msgf("google-chrome %s:%s", err.Error(), string(output))
+	}
+
+	cmd = exec.Command("killall", "chrome")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Warn().Msgf("chrome %s:%s", err.Error(), string(output))
 	}
 	return nil
 }

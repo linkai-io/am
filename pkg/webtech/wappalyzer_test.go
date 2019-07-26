@@ -97,7 +97,7 @@ func TestWappalyzerInject(t *testing.T) {
 	}
 
 	brows := b.Acquire(ctx)
-	defer b.Return(ctx, brows)
+	defer b.Return(ctx, brows, 1)
 	ta, err := brows.GetFirstTab()
 	if err != nil {
 		t.Fatalf("error getting tab: %v\n", err)
@@ -151,7 +151,7 @@ func TestWappalyzerDraftInject(t *testing.T) {
 	}
 
 	brows := b.Acquire(ctx)
-	defer b.Return(ctx, brows)
+	defer b.Return(ctx, brows, 1)
 	ta, err := brows.GetFirstTab()
 	if err != nil {
 		t.Fatalf("error getting tab: %v\n", err)
