@@ -75,6 +75,20 @@ func NewUserContext(orgID, userID int, orgCID, userCID, traceID, ipAddress strin
 	}
 }
 
+func ProxyUserContext(orgID int, userContext UserContext) *UserContextData {
+	return &UserContextData{
+		TraceID:        userContext.GetTraceID(),
+		OrgID:          orgID,
+		OrgCID:         userContext.GetOrgCID(),
+		UserID:         userContext.GetUserID(),
+		UserCID:        userContext.GetUserCID(),
+		Roles:          userContext.GetRoles(),
+		IPAddress:      userContext.GetIPAddress(),
+		SubscriptionID: userContext.GetSubscriptionID(),
+		OrgStatusID:    userContext.GetOrgStatusID(),
+	}
+}
+
 // GetTraceID returns the id used for tracking requests
 func (u *UserContextData) GetTraceID() string {
 	return u.TraceID
