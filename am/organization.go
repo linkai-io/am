@@ -11,6 +11,10 @@ const (
 )
 
 const (
+	FilterBillingSubscriptionID = "billing_subscription_id"
+)
+
+const (
 	OrgStatusDisabledPendingPayment = 1
 	OrgStatusDisabledClosed         = 2
 	OrgStatusDisabledLocked         = 3

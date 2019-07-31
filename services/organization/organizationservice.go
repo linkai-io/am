@@ -179,7 +179,15 @@ func (s *Service) List(ctx context.Context, userContext am.UserContext, filter *
 	}
 	orgs = make([]*am.Organization, 0)
 
-	rows, err := s.pool.Query("orgList", filter.Start, filter.Limit)
+	query, args, err := buildListFilterQuery(userContext, filter)
+	if err != nil {
+		return nil, err
+	}
+	serviceLog.Info().Msgf("Building List query with filter: %#v %#v", filter, filter.Filters)
+	serviceLog.Info().Msgf("%s", query)
+	serviceLog.Info().Msgf("%#v", args)
+
+	rows, err := s.pool.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
