@@ -94,6 +94,11 @@ func (s *Service) startGroups() {
 			continue
 		}
 
+		// make sure organization is active
+		if org.StatusID != am.OrgStatusActive {
+			continue
+		}
+
 		proxyUserContext := &am.UserContextData{OrgID: group.OrgID, OrgCID: org.OrgCID, SubscriptionID: org.SubscriptionID, UserID: group.CreatedByID, TraceID: createID()}
 		log.Info().Int("GroupID", group.GroupID).Msg("starting group")
 		if err := s.StartGroup(ctx, proxyUserContext, group.GroupID); err != nil {

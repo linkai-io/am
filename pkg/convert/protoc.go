@@ -72,6 +72,7 @@ func UserContextToDomain(in *prototypes.UserContext) am.UserContext {
 		Roles:          in.Roles,
 		IPAddress:      in.IPAddress,
 		SubscriptionID: in.SubscriptionID,
+		OrgStatusID:    int(in.OrgStatusID),
 	}
 }
 
@@ -86,6 +87,7 @@ func DomainToUserContext(in am.UserContext) *prototypes.UserContext {
 		Roles:          in.GetRoles(),
 		IPAddress:      in.GetIPAddress(),
 		SubscriptionID: in.GetSubscriptionID(),
+		OrgStatusID:    int32(in.GetOrgStatusID()),
 	}
 }
 
