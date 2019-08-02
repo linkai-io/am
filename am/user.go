@@ -58,7 +58,7 @@ type UserContextData struct {
 	Roles          []string `json:"roles"`
 	IPAddress      string   `json:"ip_address"`
 	SubscriptionID int32    `json:"subscription_id"`
-	OrgStatusID    int      `json:"org_status"`
+	OrgStatusID    int      `json:"org_status_id"`
 }
 
 // NewUserContext creates user contextual data
@@ -115,6 +115,7 @@ func (u *UserContextData) GetSubscriptionID() int32 {
 	return u.SubscriptionID
 }
 
+// GetOrgStatusID returns this context's user organizational status (enabled/disabled)
 func (u *UserContextData) GetOrgStatusID() int {
 	return u.OrgStatusID
 }
