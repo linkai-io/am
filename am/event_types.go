@@ -83,9 +83,9 @@ type EventCertExpired struct {
 }
 
 type EventAXFR struct {
-	Servers []string `json:"servers`
+	Servers []string `json:"servers"`
 }
 
 type EventNSEC struct {
-	Servers []string `json:"servers`
+	Servers []string `json:"servers"`
 }
