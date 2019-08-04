@@ -2,6 +2,7 @@ package ns
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"runtime"
 	"time"
@@ -244,12 +245,18 @@ func (ns *NS) analyzeZone(ctx context.Context, userContext am.UserContext, nsCfg
 	// notify event service that the ns server is leaking addrs via axfr
 	if axfrWorked {
 		axfrEvents := make([]*am.Event, 1)
+		m, err := json.Marshal([]*am.EventAXFR{&am.EventAXFR{Servers: axfrServers}})
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to marshal axfr servers")
+			return nsData
+		}
+
 		axfrEvents[0] = &am.Event{
 			OrgID:          userContext.GetOrgID(),
 			GroupID:        address.GroupID,
-			TypeID:         am.EventAXFR,
+			TypeID:         am.EventAXFRID,
 			EventTimestamp: time.Now().UnixNano(),
-			Data:           axfrServers,
+			JSONData:       string(m),
 			Read:           false,
 		}
 		if err := ns.eventClient.Add(ctx, userContext, axfrEvents); err != nil {

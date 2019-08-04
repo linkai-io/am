@@ -11,53 +11,25 @@ const (
 	FilterEventGroupID = "group_id"
 )
 
-var (
-	EventInitialGroupComplete int32 = 1
-	EventMaxHostPricing       int32 = 2
-	EventNewHost              int32 = 10
-	EventNewRecord            int32 = 11
-	EventNewOpenPort          int32 = 12
-	EventClosedPort           int32 = 13
-	EventNewWebsite           int32 = 100
-	EventWebHTMLUpdated       int32 = 101
-	EventNewWebTech           int32 = 102
-	EventWebJSChanged         int32 = 103
-	EventCertExpiring         int32 = 150
-	EventCertExpired          int32 = 151
-	EventAXFR                 int32 = 200
-	EventNSEC                 int32 = 201
-)
-var EventTypes = map[int32]string{
-	1:   "initial scan group analysis completed",
-	2:   "maximum number of hostnames reached for pricing plan",
-	10:  "new hostname",
-	11:  "new record",
-	12:  "new port open",
-	13:  "port closed",
-	100: "new website detected",
-	101: "website's html updated",
-	102: "website's technology changed or updated",
-	103: "website's javascript changed",
-	150: "certificate expiring",
-	151: "certificate expired",
-	200: "dns server exposing records via zone transfer",
-	201: "dns server exposing records via NSEC walking",
-}
-
 type Event struct {
 	NotificationID int64    `json:"notification_id"`
 	OrgID          int      `json:"org_id"`
 	GroupID        int      `json:"group_id"`
 	TypeID         int32    `json:"type_id"`
 	EventTimestamp int64    `json:"event_timestamp"`
-	Data           []string `json:"data"`
+	Data           []string `json:"data,omitempty"`
+	JSONData       string   `json:"json_data,omitempty"`
 	Read           bool     `json:"read"`
 }
 
 type EventSubscriptions struct {
-	TypeID              int32 `json:"type_id"`
-	SubscribedTimestamp int64 `json:"subscribed_since"`
-	Subscribed          bool  `json:"subscribed"`
+	TypeID              int32  `json:"type_id"`
+	SubscribedTimestamp int64  `json:"subscribed_since"`
+	Subscribed          bool   `json:"subscribed"`
+	WebhookVersion      string `json:"webhook_version"`
+	WebhookEnabled      bool   `json:"webhook_enabled"`
+	WebhookURL          string `json:"webhook_url"`
+	WebhookType         string `json:"webhook_type"`
 }
 
 type UserEventSettings struct {
@@ -67,6 +39,8 @@ type UserEventSettings struct {
 	ShouldDailyEmail    bool                  `json:"should_daily_email"`
 	UserTimezone        string                `json:"user_timezone"`
 	Subscriptions       []*EventSubscriptions `json:"subscriptions"`
+	WebhookCurrentKey   string                `json:"webhook_current_key,omitempty"`
+	WebhookPreviousKey  string                `json:"webhook_previous_key,omitempty"`
 }
 
 type EventFilter struct {
