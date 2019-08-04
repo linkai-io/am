@@ -646,7 +646,6 @@ func TestPopulate(t *testing.T) {
 
 		amtest.CreateOrg(db, orgName, t)
 		orgID := amtest.GetOrgID(db, orgName, t)
-		//defer amtest.DeleteOrg(db, orgName, t)
 		userID := amtest.GetUserId(db, orgID, orgName, t)
 
 		groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
@@ -670,6 +669,8 @@ func TestPopulate(t *testing.T) {
 			Version:  "1.5.3",
 			Location: "script",
 		}}
+		newWebHost.URL = "https://new.website.com:443"
+		newWebHost.ResponsePort = 443
 		if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
 			t.Fatalf("error adding single new host webdata for notify complete")
 		}
