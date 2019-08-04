@@ -70,9 +70,10 @@ type EventNewWebTech struct {
 }
 
 type EventCertExpiring struct {
-	SubjectName string `json:"subject_name"`
-	Port        int    `json:"port"`
-	ValidTo     int64  `json:"valid_to"`
+	SubjectName   string `json:"subject_name"`
+	Port          int    `json:"port"`
+	ValidTo       int64  `json:"valid_to"`
+	TimeRemaining string `json:"time_remaining"`
 }
 
 type EventCertExpired struct {
