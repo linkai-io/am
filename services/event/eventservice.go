@@ -2,9 +2,7 @@ package event
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
+	"encoding/json"
 	"time"
 
 	"github.com/jackc/pgx"
@@ -128,7 +126,7 @@ func (s *Service) Get(ctx context.Context, userContext am.UserContext, filter *a
 		var ts time.Time
 		e := &am.Event{}
 		e.Data = make([]string, 0)
-		if err := rows.Scan(&e.OrgID, &e.GroupID, &e.NotificationID, &e.TypeID, &ts, &e.Data); err != nil {
+		if err := rows.Scan(&e.OrgID, &e.GroupID, &e.NotificationID, &e.TypeID, &ts, &e.Data, &e.JSONData); err != nil {
 			return nil, err
 		}
 		e.EventTimestamp = ts.UnixNano()
@@ -183,7 +181,8 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 	for i := 0; rows.Next(); i++ {
 		sub := &am.EventSubscriptions{}
 		var ts time.Time
-		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts, &sub.Subscribed); err != nil {
+		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts, &sub.Subscribed,
+			&sub.WebhookVersion, &sub.WebhookEnabled, &sub.WebhookURL, &sub.WebhookType); err != nil {
 			return nil, err
 		}
 
@@ -299,7 +298,7 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 
 	for i := 0; i < numEvents; i++ {
 		log.Ctx(ctx).Info().Msgf("%#v", events[i])
-		eventRows[i] = []interface{}{orgID, events[i].GroupID, events[i].TypeID, time.Unix(0, events[i].EventTimestamp), events[i].Data}
+		eventRows[i] = []interface{}{orgID, events[i].GroupID, events[i].TypeID, time.Unix(0, events[i].EventTimestamp), events[i].Data, events[i].JSONData}
 	}
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{AddTempTableKey}, AddTempTableColumns, pgx.CopyFromRows(eventRows))
@@ -364,7 +363,8 @@ func (s *Service) updateSubscriptions(ctx context.Context, userContext am.UserCo
 	userID := userContext.GetUserID()
 
 	for i := 0; i < numSubscriptions; i++ {
-		subRows[i] = []interface{}{orgID, userID, subscriptions[i].TypeID, time.Unix(0, subscriptions[i].SubscribedTimestamp), subscriptions[i].Subscribed}
+		subRows[i] = []interface{}{orgID, userID, subscriptions[i].TypeID, time.Unix(0, subscriptions[i].SubscribedTimestamp), subscriptions[i].Subscribed,
+			subscriptions[i].WebhookVersion, subscriptions[i].WebhookEnabled, subscriptions[i].WebhookURL, subscriptions[i].WebhookType}
 	}
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{SubscriptionsTempTableKey}, SubscriptionsTempTableColumns, pgx.CopyFromRows(subRows))
@@ -465,8 +465,8 @@ func (s *Service) portChanges(ctx context.Context, userContext am.UserContext, t
 		return nil, err
 	}
 
-	openPorts := make([]string, 0)
-	closedPorts := make([]string, 0)
+	openPorts := make([]*am.EventNewOpenPort, 0)
+	closedPorts := make([]*am.EventClosedPort, 0)
 	for i := 0; rows.Next(); i++ {
 		var ports am.Ports
 		var host string
@@ -481,40 +481,51 @@ func (s *Service) portChanges(ctx context.Context, userContext am.UserContext, t
 		if change {
 			log.Ctx(ctx).Info().Msg("DETECTED CHANGE")
 			if len(open) > 0 {
-				openPortStrs := make([]string, len(open))
-				for j, port := range open {
-					openPortStrs[j] = strconv.Itoa(int(port))
-				}
-				openPorts = append(openPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(openPortStrs, ",")}...)
+				openPorts = append(openPorts, &am.EventNewOpenPort{
+					Host:       host,
+					CurrentIP:  ports.Current.IPAddress,
+					PreviousIP: ports.Previous.IPAddress,
+					OpenPorts:  open,
+				})
 			}
 			if len(closed) > 0 {
-				closedPortStrs := make([]string, len(closed))
-				for j, port := range closed {
-					closedPortStrs[j] = strconv.Itoa(int(port))
-				}
-				closedPorts = append(closedPorts, []string{host, ports.Current.IPAddress, ports.Previous.IPAddress, strings.Join(closedPortStrs, ",")}...)
+				closedPorts = append(closedPorts, &am.EventClosedPort{
+					Host:        host,
+					CurrentIP:   ports.Current.IPAddress,
+					PreviousIP:  ports.Previous.IPAddress,
+					ClosedPorts: closed,
+				})
 			}
 		}
 
 	}
 	events := make([]*am.Event, 0)
 	if len(openPorts) != 0 {
+		m, err := json.Marshal(openPorts)
+		if err != nil {
+			return nil, err
+		}
+
 		events = append(events, &am.Event{
 			OrgID:          oid,
 			GroupID:        groupID,
-			TypeID:         am.EventNewOpenPort,
+			TypeID:         am.EventNewOpenPortID,
 			EventTimestamp: time.Now().UnixNano(),
-			Data:           openPorts,
+			JSONData:       string(m),
 		})
 	}
 
 	if len(closedPorts) != 0 {
+		m, err := json.Marshal(closedPorts)
+		if err != nil {
+			return nil, err
+		}
 		events = append(events, &am.Event{
 			OrgID:          oid,
 			GroupID:        groupID,
-			TypeID:         am.EventClosedPort,
+			TypeID:         am.EventClosedPortID,
 			EventTimestamp: time.Now().UnixNano(),
-			Data:           closedPorts,
+			JSONData:       string(m),
 		})
 	}
 	if len(events) == 0 {
@@ -533,7 +544,7 @@ func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext,
 		return nil, err
 	}
 
-	certs := make([]string, 0)
+	certs := make([]*am.EventCertExpiring, 0)
 	for i := 0; rows.Next(); i++ {
 		var subjectName string
 		var port int
@@ -542,23 +553,30 @@ func (s *Service) expiringCerts(ctx context.Context, userContext am.UserContext,
 			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new certificate expiring event")
 			continue
 		}
-		validTime := strconv.FormatInt(validTo, 10)
 
-		certs = append(certs, subjectName)
-		certs = append(certs, fmt.Sprintf("%d", port))
-		certs = append(certs, validTime)
+		certs = append(certs, &am.EventCertExpiring{
+			SubjectName: subjectName,
+			Port:        port,
+			ValidTo:     validTo,
+		})
+
 	}
 	// no new certs this round
 	if len(certs) == 0 {
 		return nil, nil
 	}
 
+	m, err := json.Marshal(certs)
+	if err != nil {
+		return nil, err
+	}
+
 	e := &am.Event{
 		OrgID:          oid,
 		GroupID:        groupID,
-		TypeID:         am.EventCertExpiring,
+		TypeID:         am.EventCertExpiringID,
 		EventTimestamp: time.Now().UnixNano(),
-		Data:           certs,
+		JSONData:       string(m),
 	}
 	return e, nil
 }
@@ -570,28 +588,37 @@ func (s *Service) newWebsites(ctx context.Context, userContext am.UserContext, t
 	if err != nil {
 		return nil, err
 	}
-	urlPorts := make([]string, 0)
+	newSites := make([]*am.EventNewWebsite, 0)
 	for i := 0; rows.Next(); i++ {
+		var loadURL []byte
 		var url []byte
 		var port int
-		if err := rows.Scan(&url, &port); err != nil {
+		if err := rows.Scan(&loadURL, &url, &port); err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new website event")
 			continue
 		}
-		urlPorts = append(urlPorts, string(url))
-		urlPorts = append(urlPorts, fmt.Sprintf("%d", port))
+		newSites = append(newSites, &am.EventNewWebsite{
+			LoadURL: string(loadURL),
+			URL:     string(url),
+			Port:    port,
+		})
 	}
 	// no new urls this round
-	if len(urlPorts) == 0 {
+	if len(newSites) == 0 {
 		return nil, nil
+	}
+
+	m, err := json.Marshal(newSites)
+	if err != nil {
+		return nil, err
 	}
 
 	e := &am.Event{
 		OrgID:          oid,
 		GroupID:        groupID,
-		TypeID:         am.EventNewWebsite,
+		TypeID:         am.EventNewWebsiteID,
 		EventTimestamp: time.Now().UnixNano(),
-		Data:           urlPorts,
+		JSONData:       string(m),
 	}
 	return e, nil
 }
@@ -604,44 +631,44 @@ func (s *Service) newTech(ctx context.Context, userContext am.UserContext, tx *p
 		log.Ctx(ctx).Error().Err(err).Msg("error getting new tech")
 		return nil, err
 	}
-	techPorts := make([]string, 0)
+	techPorts := make([]*am.EventNewWebTech, 0)
 	//techData := make(map[string]map[string][]string)
 	for i := 0; rows.Next(); i++ {
+		var loadURL []byte
 		var url []byte
 		var port int
-		var techname string
+		var techName string
 		var version string
-		if err := rows.Scan(&url, &port, &techname, &version); err != nil {
+		if err := rows.Scan(&loadURL, &url, &port, &techName, &version); err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new technology event")
 			continue
 		}
-		log.Ctx(ctx).Info().Msgf("%s %d %s %s\n", string(url), port, techname, version)
-		/*
-			if _, ok := techData[techname]; !ok {
-				techData[techname] = make(map[string][]string)
-				techData[techname][version] = make([]string, 0)
-			}
+		log.Ctx(ctx).Info().Msgf("%s %d %s %s\n", string(url), port, techName, version)
 
-			if _, ok := techData[techname][version]; !ok {
-				techData[techname][version] = make([]string, 0)
-			}
-
-			techData[techname][version] = append(techData[techname][version], string(url))
-			techData[techname][version] = append(techData[techname][version], fmt.Sprintf("%d", port))
-		*/
-		techPorts = append(techPorts, []string{string(url), fmt.Sprintf("%d", port), techname, version}...)
+		techPorts = append(techPorts, &am.EventNewWebTech{
+			LoadURL:  string(loadURL),
+			URL:      string(url),
+			Port:     port,
+			TechName: techName,
+			Version:  version,
+		})
 	}
 	// no new technologies this round
 	if len(techPorts) == 0 {
 		return nil, nil
 	}
 
+	m, err := json.Marshal(techPorts)
+	if err != nil {
+		return nil, err
+	}
+
 	e := &am.Event{
 		OrgID:          oid,
 		GroupID:        groupID,
-		TypeID:         am.EventNewWebTech,
+		TypeID:         am.EventNewWebTechID,
 		EventTimestamp: time.Now().UnixNano(),
-		Data:           techPorts,
+		JSONData:       string(m),
 	}
 	return e, nil
 }
@@ -653,7 +680,7 @@ func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, 
 	if err != nil {
 		return nil, err
 	}
-	hosts := make([]string, 0)
+	hosts := make([]*am.EventNewHost, 0)
 	for i := 0; rows.Next(); i++ {
 
 		var host string
@@ -661,7 +688,7 @@ func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, 
 			log.Ctx(ctx).Error().Err(err).Msg("failed to scan new hostname event")
 			continue
 		}
-		hosts = append(hosts, host)
+		hosts = append(hosts, &am.EventNewHost{Host: host})
 
 	}
 	// no new hosts this round
@@ -669,12 +696,17 @@ func (s *Service) newHostnames(ctx context.Context, userContext am.UserContext, 
 		return nil, nil
 	}
 
+	m, err := json.Marshal(hosts)
+	if err != nil {
+		return nil, err
+	}
+
 	e := &am.Event{
 		OrgID:          oid,
 		GroupID:        groupID,
-		TypeID:         am.EventNewHost,
+		TypeID:         am.EventNewHostID,
 		EventTimestamp: time.Now().UnixNano(),
-		Data:           hosts,
+		JSONData:       string(m),
 	}
 	return e, nil
 }

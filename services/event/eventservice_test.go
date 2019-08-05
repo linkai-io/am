@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -125,17 +126,17 @@ func TestAddGet(t *testing.T) {
 		UserTimezone:        "Asia/Tokyo",
 		Subscriptions: []*am.EventSubscriptions{
 			&am.EventSubscriptions{
-				TypeID:              am.EventInitialGroupComplete,
+				TypeID:              am.EventInitialGroupCompleteID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewHost,
+				TypeID:              am.EventNewHostID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewWebsite,
+				TypeID:              am.EventNewWebsiteID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
@@ -222,33 +223,48 @@ func TestAddGet(t *testing.T) {
 func makeEvents(orgID, groupID int, now time.Time) []*am.Event {
 	events := make([]*am.Event, 4)
 
+	m, _ := json.Marshal(&am.EventInitialGroupComplete{Message: "completed run"})
 	events[0] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
-		TypeID:         1,
+		TypeID:         am.EventInitialGroupCompleteID,
 		EventTimestamp: now.UnixNano(),
-		Data:           []string{"completed run"},
+		JSONData:       string(m),
 	}
+
+	m, _ = json.Marshal([]*am.EventNewHost{
+		&am.EventNewHost{Host: "example.com"},
+		&am.EventNewHost{Host: "test.example.com"},
+		&am.EventNewHost{Host: "something.example.com"},
+	})
 	events[1] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
-		TypeID:         am.EventNewHost,
+		TypeID:         am.EventNewHostID,
 		EventTimestamp: now.UnixNano(),
-		Data:           []string{"example.com", "test.example.com", "something.example.com"},
+		JSONData:       string(m),
 	}
+
+	m, _ = json.Marshal([]*am.EventNewWebsite{
+		&am.EventNewWebsite{LoadURL: "https://blah.example.com", URL: "https://blah.example.com/", Port: 443},
+	})
 	events[2] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
-		TypeID:         am.EventNewWebsite,
+		TypeID:         am.EventNewWebsiteID,
 		EventTimestamp: now.UnixNano(),
-		Data:           []string{"https://blah.example.com"},
+		JSONData:       string(m),
 	}
+
+	m, _ = json.Marshal([]*am.EventCertExpiring{
+		&am.EventCertExpiring{SubjectName: "test.example.com", Port: 443, ValidTo: int64(1111111111111)},
+	})
 	events[3] = &am.Event{
 		OrgID:          orgID,
 		GroupID:        groupID,
-		TypeID:         am.EventCertExpiring,
+		TypeID:         am.EventCertExpiringID,
 		EventTimestamp: now.UnixNano(),
-		Data:           []string{"test.example.com", "443", "1111111111111"},
+		JSONData:       string(m),
 	}
 	return events
 }
@@ -316,27 +332,27 @@ func TestNotifyComplete(t *testing.T) {
 		UserTimezone:        "Asia/Tokyo",
 		Subscriptions: []*am.EventSubscriptions{
 			&am.EventSubscriptions{
-				TypeID:              am.EventInitialGroupComplete,
+				TypeID:              am.EventInitialGroupCompleteID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewHost,
+				TypeID:              am.EventNewHostID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewWebsite,
+				TypeID:              am.EventNewWebsiteID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventCertExpiring,
+				TypeID:              am.EventCertExpiringID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewWebTech,
+				TypeID:              am.EventNewWebTechID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
@@ -365,15 +381,24 @@ func TestNotifyComplete(t *testing.T) {
 	newTechFound := false
 	for _, e := range returned {
 		t.Logf("%#v\n", e)
-		if e.TypeID == am.EventNewWebsite {
+		if e.TypeID == am.EventNewWebsiteID {
 			newSiteFound = true
-			if e.Data[0] != "http://new.website.com/" && e.Data[1] != "80" {
-				t.Fatalf("expected data to equal our new website, got %#v\n", e.Data)
+			var newWeb []*am.EventNewWebsite
+			json.Unmarshal([]byte(e.JSONData), &newWeb)
+			if newWeb[0].LoadURL != "http://new.website.com/" && newWeb[0].Port != 80 {
+				t.Fatalf("expected data to equal our new website, got %#v\n", e.JSONData)
 			}
 		}
-		if e.TypeID == am.EventNewWebTech {
+		if e.TypeID == am.EventNewWebTechID {
 			newTechFound = true
-			if e.Data[2] != "AngularJS" {
+			var newTech []*am.EventNewWebTech
+			err := json.Unmarshal([]byte(e.JSONData), &newTech)
+			if err != nil {
+				t.Fatalf("%#v\n", err)
+			}
+			t.Logf("%s\n", e.JSONData)
+			t.Logf("%#v\n", newTech)
+			if newTech[0].TechName != "AngularJS" {
 				t.Fatalf("expected data to equal our new AngularJS, got %#v\n", e.Data)
 			}
 		}
@@ -447,8 +472,8 @@ func TestNotifyComplete(t *testing.T) {
 		t.Fatalf("expected 1 results got %v\n", len(certonly))
 	}
 
-	if certonly[0].TypeID != am.EventCertExpiring {
-		t.Fatalf("expecting 1 event of cert expiring (%d), got %d\n", am.EventCertExpired, certonly[0].TypeID)
+	if certonly[0].TypeID != am.EventCertExpiringID {
+		t.Fatalf("expecting 1 event of cert expiring (%d), got %d\n", am.EventCertExpiredID, certonly[0].TypeID)
 	}
 
 }
@@ -530,12 +555,12 @@ func TestNotifyCompletePorts(t *testing.T) {
 		UserTimezone:        "Asia/Tokyo",
 		Subscriptions: []*am.EventSubscriptions{
 			&am.EventSubscriptions{
-				TypeID:              am.EventNewOpenPort,
+				TypeID:              am.EventNewOpenPortID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
 			&am.EventSubscriptions{
-				TypeID:              am.EventClosedPort,
+				TypeID:              am.EventClosedPortID,
 				Subscribed:          true,
 				SubscribedTimestamp: now.UnixNano(),
 			},
@@ -621,7 +646,6 @@ func TestPopulate(t *testing.T) {
 
 		amtest.CreateOrg(db, orgName, t)
 		orgID := amtest.GetOrgID(db, orgName, t)
-		//defer amtest.DeleteOrg(db, orgName, t)
 		userID := amtest.GetUserId(db, orgID, orgName, t)
 
 		groupID := amtest.CreateScanGroup(db, orgName, groupName, t)
@@ -645,6 +669,8 @@ func TestPopulate(t *testing.T) {
 			Version:  "1.5.3",
 			Location: "script",
 		}}
+		newWebHost.URL = "https://new.website.com:443"
+		newWebHost.ResponsePort = 443
 		if _, err := webService.Add(ctx, userContext, newWebHost); err != nil {
 			t.Fatalf("error adding single new host webdata for notify complete")
 		}
@@ -726,37 +752,37 @@ func TestPopulate(t *testing.T) {
 			UserTimezone:        "Asia/Tokyo",
 			Subscriptions: []*am.EventSubscriptions{
 				&am.EventSubscriptions{
-					TypeID:              am.EventInitialGroupComplete,
+					TypeID:              am.EventInitialGroupCompleteID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventNewHost,
+					TypeID:              am.EventNewHostID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventNewWebsite,
+					TypeID:              am.EventNewWebsiteID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventCertExpiring,
+					TypeID:              am.EventCertExpiringID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventNewWebTech,
+					TypeID:              am.EventNewWebTechID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventNewOpenPort,
+					TypeID:              am.EventNewOpenPortID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},
 				&am.EventSubscriptions{
-					TypeID:              am.EventClosedPort,
+					TypeID:              am.EventClosedPortID,
 					Subscribed:          true,
 					SubscribedTimestamp: now.UnixNano(),
 				},

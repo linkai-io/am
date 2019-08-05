@@ -12,7 +12,7 @@ const sharedSettingColumns = `organization_id,
 
 var queryMap = map[string]string{
 	"getUserSettings":      fmt.Sprintf(`select %s from am.user_notification_settings where organization_id=$1 and user_id=$2`, sharedSettingColumns),
-	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
+	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed, webhook_version, webhook_enabled, webhook_url, webhook_type from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
 	"updateUserSettings": fmt.Sprintf(`insert into am.user_notification_settings (%s) values
 		($1, $2, $3, $4, $5, $6, $7) on conflict (organization_id,user_id) do update set
 		weekly_report_send_day=EXCLUDED.weekly_report_send_day,
@@ -34,7 +34,7 @@ var queryMap = map[string]string{
 		)
 		group by latest.host_address`,
 
-	"newWebsites": `select latest.load_url, latest.response_port from am.web_snapshots as latest
+	"newWebsites": `select latest.load_url, latest.url, latest.response_port from am.web_snapshots as latest
 		where deleted=false and 
 		updated=false and 
 		organization_id=$1 and 
@@ -44,28 +44,28 @@ var queryMap = map[string]string{
 			select load_url, response_port from am.web_snapshots as ws 
 			where ws.url_request_timestamp < $3 and ws.organization_id=$1 and ws.scan_group_id=$2 and 
 			latest.load_url=ws.load_url and latest.response_port=ws.response_port 
-			group by ws.load_url, ws.response_port
+			group by ws.load_url,  ws.response_port
 		)
-		group by latest.load_url,latest.response_port;`,
+		group by latest.load_url, latest.url, latest.response_port;`,
 
 	"newTechnologies": `with prev_tech as (
-		select ws.load_url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
+		select ws.load_url, ws.url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
 		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
 		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
 		where ws.organization_id=$1 and ws.scan_group_id=$2 
 		and	ws.url_request_timestamp < $3 
-		group by ws.load_url, ws.response_port, wtt.techname, t.version
+		group by ws.load_url, ws.url, ws.response_port, wtt.techname, t.version
 	),
 	new_tech as (
-		select ws.load_url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
+		select ws.load_url, ws.url, ws.response_port, wtt.techname, t.version from am.web_technologies as t
 		join am.web_snapshots as ws on t.snapshot_id=ws.snapshot_id
 		join am.web_techtypes as wtt on t.techtype_id=wtt.techtype_id
 		where ws.organization_id=$1 and ws.scan_group_id=$2
 		and ws.url_request_timestamp >= $3 
 		and t.updated<>true
-		group by ws.load_url, ws.response_port, wtt.techname, t.version
+		group by ws.load_url, ws.url, ws.response_port, wtt.techname, t.version
 	)
-	select new_tech.load_url, new_tech.response_port, new_tech.techname, new_tech.version from new_tech where not exists (
+	select new_tech.load_url, new_tech.url, new_tech.response_port, new_tech.techname, new_tech.version from new_tech where not exists (
 		select prev_tech.load_url, prev_tech.techname,prev_tech.version from prev_tech where 
 		new_tech.load_url=prev_tech.load_url and new_tech.response_port=prev_tech.response_port and new_tech.techname=prev_tech.techname and new_tech.version=prev_tech.version
 	)`,
@@ -106,37 +106,44 @@ var queryMap = map[string]string{
 
 var (
 	AddTempTableKey     = "event_add_temp"
-	AddTempTableColumns = []string{"organization_id", "scan_group_id", "type_id", "event_timestamp", "event_data"}
+	AddTempTableColumns = []string{"organization_id", "scan_group_id", "type_id", "event_timestamp", "event_data", "event_data_json"}
 	AddTempTable        = `create temporary table event_add_temp (
 		organization_id int not null,
 		scan_group_id int not null,
 		type_id int not null,
 		event_timestamp timestamptz not null,
-		event_data jsonb
+		event_data jsonb,
+		event_data_json json
 		) on commit drop;`
 	AddTempToAdd = `insert into am.event_notifications as unr (
 		organization_id,
 		scan_group_id,
 		type_id,
 		event_timestamp,
-		event_data
+		event_data,
+		event_data_json
 	)
 	select 
 		temp.organization_id,
 		temp.scan_group_id,
 		temp.type_id,
 		temp.event_timestamp,
-		temp.event_data 
+		temp.event_data,
+		temp.event_data_json
 	from event_add_temp as temp`
 
 	SubscriptionsTempTableKey     = "event_subs_temp"
-	SubscriptionsTempTableColumns = []string{"organization_id", "user_id", "type_id", "subscribed_since", "subscribed"}
+	SubscriptionsTempTableColumns = []string{"organization_id", "user_id", "type_id", "subscribed_since", "subscribed", "webhook_version", "webhook_enabled", "webhook_url", "webhook_type"}
 	SubscriptionsTempTable        = `create temporary table event_subs_temp (
 			organization_id int not null,
 			user_id int not null,
 			type_id int not null,
 			subscribed_since timestamptz not null,
-			subscribed boolean not null
+			subscribed boolean not null,
+			webhook_version text default '',
+			webhook_enabled boolean not null default false,
+			webhook_url text default '',
+			webhook_type text default ''
 		) on commit drop;`
 
 	SubscriptionsTempToSubscriptions = `insert into am.user_notification_subscriptions as unr (
@@ -144,14 +151,22 @@ var (
 		user_id,
 		type_id,
 		subscribed_since,
-		subscribed
+		subscribed,
+		webhook_version,
+		webhook_enabled,
+		webhook_url,
+		webhook_type
 	)
 	select 
 		temp.organization_id,
 		temp.user_id,
 		temp.type_id,
 		temp.subscribed_since,
-		temp.subscribed 
+		temp.subscribed, 
+		temp.webhook_version,
+		temp.webhook_enabled,
+		temp.webhook_url,
+		temp.webhook_type
 	from event_subs_temp as temp on conflict (organization_id, user_id, type_id) do update set
 		subscribed_since=EXCLUDED.subscribed_since,
 		subscribed=EXCLUDED.subscribed`

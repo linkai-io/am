@@ -13,6 +13,7 @@ func DomainToEvent(in *am.Event) *prototypes.EventData {
 		TypeID:         in.TypeID,
 		EventTimestamp: in.EventTimestamp,
 		Data:           in.Data,
+		JsonData:       in.JSONData,
 		Read:           false,
 	}
 }
@@ -25,6 +26,7 @@ func EventToDomain(in *prototypes.EventData) *am.Event {
 		TypeID:         in.TypeID,
 		EventTimestamp: in.EventTimestamp,
 		Data:           in.Data,
+		JSONData:       in.JsonData,
 		Read:           in.Read,
 	}
 }
@@ -34,6 +36,10 @@ func DomainToEventSubscriptions(in *am.EventSubscriptions) *prototypes.EventSubs
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
 		Subscribed:          in.Subscribed,
+		WebhookEnabled:      in.WebhookEnabled,
+		WebhookType:         in.WebhookType,
+		WebhookURL:          in.WebhookURL,
+		WebhookVersion:      in.WebhookVersion,
 	}
 }
 
@@ -42,6 +48,10 @@ func EventSubscriptionsToDomain(in *prototypes.EventSubscriptions) *am.EventSubs
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
 		Subscribed:          in.Subscribed,
+		WebhookEnabled:      in.WebhookEnabled,
+		WebhookType:         in.WebhookType,
+		WebhookURL:          in.WebhookURL,
+		WebhookVersion:      in.WebhookVersion,
 	}
 }
 
@@ -59,6 +69,8 @@ func DomainToUserEventSettings(in *am.UserEventSettings) *prototypes.UserEventSe
 		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
+		WebhookCurrentKey:   in.WebhookCurrentKey,
+		WebhookPreviousKey:  in.WebhookPreviousKey,
 	}
 }
 
@@ -76,6 +88,8 @@ func UserEventSettingsToDomain(in *prototypes.UserEventSettings) *am.UserEventSe
 		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
+		WebhookCurrentKey:   in.WebhookCurrentKey,
+		WebhookPreviousKey:  in.WebhookPreviousKey,
 	}
 }
 
