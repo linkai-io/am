@@ -612,7 +612,7 @@ func TestDeletePopulated(t *testing.T) {
 }
 
 func TestPopulate(t *testing.T) {
-	t.Skip("disabled for testing mailreports")
+	//t.Skip("disabled for testing mailreports")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}

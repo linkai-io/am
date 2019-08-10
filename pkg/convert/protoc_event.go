@@ -36,10 +36,6 @@ func DomainToEventSubscriptions(in *am.EventSubscriptions) *prototypes.EventSubs
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
 		Subscribed:          in.Subscribed,
-		WebhookEnabled:      in.WebhookEnabled,
-		WebhookType:         in.WebhookType,
-		WebhookURL:          in.WebhookURL,
-		WebhookVersion:      in.WebhookVersion,
 	}
 }
 
@@ -48,10 +44,62 @@ func EventSubscriptionsToDomain(in *prototypes.EventSubscriptions) *am.EventSubs
 		TypeID:              in.TypeID,
 		SubscribedTimestamp: in.SubscribedTimestamp,
 		Subscribed:          in.Subscribed,
-		WebhookEnabled:      in.WebhookEnabled,
-		WebhookType:         in.WebhookType,
-		WebhookURL:          in.WebhookURL,
-		WebhookVersion:      in.WebhookVersion,
+	}
+}
+
+func DomainToWebhookEventSettings(in *prototypes.WebhookEventSettings) *am.WebhookEventSettings {
+	return &am.WebhookEventSettings{
+		WebhookID: in.WebhookID,
+		OrgID:     in.OrgID,
+		GroupID:   in.GroupID,
+		Name:      in.Name,
+		Events:    in.Events,
+		Enabled:   in.Enabled,
+		Version:   in.Version,
+		URL:       in.URL,
+		Type:      in.Type,
+		Deleted:   in.Deleted,
+	}
+}
+
+func WebhookEventSettingsToDomain(in *am.WebhookEventSettings) *prototypes.WebhookEventSettings {
+	return &prototypes.WebhookEventSettings{
+		WebhookID: in.WebhookID,
+		OrgID:     in.OrgID,
+		GroupID:   in.GroupID,
+		Name:      in.Name,
+		Events:    in.Events,
+		Enabled:   in.Enabled,
+		Version:   in.Version,
+		URL:       in.URL,
+		Type:      in.Type,
+		Deleted:   in.Deleted,
+	}
+}
+
+func DomainToWebhookEvent(in *prototypes.WebhookEvent) *am.WebhookEvent {
+	return &am.WebhookEvent{
+		WebhookEventID:       in.WebhookEventID,
+		OrgID:                in.OrgID,
+		GroupID:              in.GroupID,
+		NotificationID:       in.NotificationID,
+		WebhookID:            in.WebhookID,
+		TypeID:               in.TypeID,
+		LastAttemptTimestamp: in.LastAttemptTimestamp,
+		LastAttemptStatus:    in.LastAttemptStatus,
+	}
+}
+
+func WebhookEventToDomain(in *am.WebhookEvent) *prototypes.WebhookEvent {
+	return &prototypes.WebhookEvent{
+		WebhookEventID:       in.WebhookEventID,
+		OrgID:                in.OrgID,
+		GroupID:              in.GroupID,
+		NotificationID:       in.NotificationID,
+		WebhookID:            in.WebhookID,
+		TypeID:               in.TypeID,
+		LastAttemptTimestamp: in.LastAttemptTimestamp,
+		LastAttemptStatus:    in.LastAttemptStatus,
 	}
 }
 
@@ -69,8 +117,6 @@ func DomainToUserEventSettings(in *am.UserEventSettings) *prototypes.UserEventSe
 		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
-		WebhookCurrentKey:   in.WebhookCurrentKey,
-		WebhookPreviousKey:  in.WebhookPreviousKey,
 	}
 }
 
@@ -88,8 +134,6 @@ func UserEventSettingsToDomain(in *prototypes.UserEventSettings) *am.UserEventSe
 		ShouldDailyEmail:    in.ShouldDailyEmail,
 		UserTimezone:        in.UserTimezone,
 		Subscriptions:       subs,
-		WebhookCurrentKey:   in.WebhookCurrentKey,
-		WebhookPreviousKey:  in.WebhookPreviousKey,
 	}
 }
 

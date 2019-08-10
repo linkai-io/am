@@ -133,17 +133,13 @@ var (
 	from event_add_temp as temp`
 
 	SubscriptionsTempTableKey     = "event_subs_temp"
-	SubscriptionsTempTableColumns = []string{"organization_id", "user_id", "type_id", "subscribed_since", "subscribed", "webhook_version", "webhook_enabled", "webhook_url", "webhook_type"}
+	SubscriptionsTempTableColumns = []string{"organization_id", "user_id", "type_id", "subscribed_since", "subscribed"}
 	SubscriptionsTempTable        = `create temporary table event_subs_temp (
 			organization_id int not null,
 			user_id int not null,
 			type_id int not null,
 			subscribed_since timestamptz not null,
-			subscribed boolean not null,
-			webhook_version text default '',
-			webhook_enabled boolean not null default false,
-			webhook_url text default '',
-			webhook_type text default ''
+			subscribed boolean not null
 		) on commit drop;`
 
 	SubscriptionsTempToSubscriptions = `insert into am.user_notification_subscriptions as unr (
@@ -151,22 +147,14 @@ var (
 		user_id,
 		type_id,
 		subscribed_since,
-		subscribed,
-		webhook_version,
-		webhook_enabled,
-		webhook_url,
-		webhook_type
+		subscribed
 	)
 	select 
 		temp.organization_id,
 		temp.user_id,
 		temp.type_id,
 		temp.subscribed_since,
-		temp.subscribed, 
-		temp.webhook_version,
-		temp.webhook_enabled,
-		temp.webhook_url,
-		temp.webhook_type
+		temp.subscribed
 	from event_subs_temp as temp on conflict (organization_id, user_id, type_id) do update set
 		subscribed_since=EXCLUDED.subscribed_since,
 		subscribed=EXCLUDED.subscribed`

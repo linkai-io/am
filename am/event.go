@@ -32,6 +32,30 @@ type EventSubscriptions struct {
 	WebhookType         string `json:"webhook_type"`
 }
 
+type WebhookEventSettings struct {
+	WebhookID int32   `json:"webhook_id"`
+	OrgID     int32   `json:"org_id"`
+	GroupID   int32   `json:"group_id"`
+	Name      string  `json:"name"`
+	Events    []int32 `json:"events"`
+	Enabled   bool    `json:"enabled"`
+	Version   string  `json:"version"`
+	URL       string  `json:"url"`
+	Type      string  `json:"type"`
+	Deleted   bool    `json:"deleted"`
+}
+
+type WebhookEvent struct {
+	WebhookEventID       int32 `json:"webhook_event_id"`
+	OrgID                int32 `json:"org_id"`
+	GroupID              int32 `json:"group_id"`
+	NotificationID       int64 `json:"notification_id"`
+	WebhookID            int32 `json:"webhook_id"`
+	TypeID               int32 `json:"type_id"`
+	LastAttemptTimestamp int64 `json:"last_attempt_timestamp"`
+	LastAttemptStatus    int32 `json:"last_attempt_status"`
+}
+
 type UserEventSettings struct {
 	WeeklyReportSendDay int32                 `json:"weekly_report_day"`
 	ShouldWeeklyEmail   bool                  `json:"should_weekly_email"`
@@ -64,4 +88,9 @@ type EventService interface {
 	UpdateSettings(ctx context.Context, userContext UserContext, settings *UserEventSettings) error
 	// NotifyComplete that a scan group has completed
 	NotifyComplete(ctx context.Context, userContext UserContext, startTime int64, groupID int) error
+	// GetWebhooks returns all webhooks for an organization (max 10)
+	GetWebhooks(ctx context.Context, userContext UserContext) ([]*WebhookEventSettings, error)
+	// UpdateWebhooks adds or updates an existing webhook (by name)
+	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) (int32, error)
+	GetWebhookEvents(ctx context.Context, userContext UserContext) ([]*WebhookEvent, error)
 }
