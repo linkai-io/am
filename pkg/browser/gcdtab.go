@@ -223,6 +223,7 @@ func (t *Tab) CaptureNetworkTraffic(ctx context.Context, address *am.ScanGroupAd
 		}
 		//message.Params.RedirectResponse.RemoteIPAddress
 		if message.Params.Type == "Document" {
+			//log.Info().Msgf("%s", string(payload))
 			t.container.SetLoadRequest(message.Params.RequestId)
 		}
 	})
