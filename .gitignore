@@ -15,6 +15,8 @@ cmd/event/event
 services/module/web/testdata/*
 pkg/browser/testdata/dom1.html
 pkg/browser/testdata/dom2.html
+pkg/browser/testdata/redirect.html
+pkg/browser/testdata/redirect2.html
 deploy_files/webmodule/webmodule.zip
 deploy_files/webmodule/webmoduleservice 
 deploy_files/webmodule/gcdleaser

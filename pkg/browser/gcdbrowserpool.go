@@ -387,11 +387,17 @@ func (b *GCDBrowserPool) Load(ctx context.Context, address *am.ScanGroupAddress,
 
 	webTech := b.detector.MergeMatches([]map[string][]*webtech.Match{domMatches, headerMatches, jsMatches})
 
+	// TODO: follow redirect loadResponse and use that.
+	finalURL := tab.GetURL(ctx)
+	if finalURL == "" {
+		finalURL = loadResponse.URL
+	}
+
 	webData := &am.WebData{
 		Address:             address,
 		Responses:           allResponses,
 		Snapshot:            img,
-		URL:                 loadResponse.URL,
+		URL:                 finalURL,
 		AddressHash:         convert.HashAddress(loadResponse.IPAddress, loadResponse.HostAddress),
 		HostAddress:         loadResponse.HostAddress,
 		IPAddress:           loadResponse.IPAddress,
