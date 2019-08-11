@@ -69,6 +69,12 @@ func (d *Diff) DiffPatchURL(in1, in2 string) string {
 		return in1
 	}
 
+	if u1.Host != u2.Host {
+		log.Warn().Str("host1", u1.Host).Str("host2", u2.Host).Msg("hosts of url did not match")
+		return u2.String()
+	}
+
+	log.Info().Msgf("%s and %s", u1.Path, u2.Path)
 	if u1.Path != u2.Path {
 		log.Warn().Str("path1", u1.Path).Str("path2", u2.Path).Msg("paths of url did not match")
 		return d.DiffPatch(in1, in2, 1)

@@ -28,6 +28,18 @@ func TestDiffURL(t *testing.T) {
 	}
 }
 
+func TestDiffURLHosts(t *testing.T) {
+	expected := "https://redirected.google.com/signin"
+	u1 := "https://www.google.com/blah/"
+	u2 := "https://redirected.google.com/signin"
+	d := differ.New()
+	result := d.DiffPatchURL(u1, u2)
+	if result != expected {
+		t.Fatalf("error expected %s got %s", expected, result)
+	}
+
+}
+
 func TestDiffMicrosoft1(t *testing.T) {
 	f1, err := ioutil.ReadFile("testdata/dom1.html")
 	if err != nil {

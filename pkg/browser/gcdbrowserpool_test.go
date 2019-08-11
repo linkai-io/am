@@ -154,6 +154,53 @@ func TestGCDBrowserPoolLoadURLForDiff(t *testing.T) {
 	t.Logf("%s\n", hash)
 }
 
+func TestGCDBrowserPoolDiffRedirect(t *testing.T) {
+	ctx := context.Background()
+	b := NewGCDBrowserPool(5, leaser, amtest.MockWebDetector())
+	defer b.Close(ctx)
+
+	if err := b.Init(); err != nil {
+		t.Fatalf("error initializing browser: %v\n", err)
+	}
+
+	address := &am.ScanGroupAddress{
+		HostAddress: "microsoft.com",
+		IPAddress:   "93.184.216.34",
+	}
+
+	loadDiffURL, dom, err := b.LoadForDiff(ctx, address, "https", "443")
+	if err != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/redirect.html", []byte(dom), 0600)
+	t.Logf("%s\n", convert.HashData([]byte(dom)))
+
+	webData, err2 := b.Load(ctx, address, "https", "443")
+	if err2 != nil {
+		t.Fatalf("error during load: %v\n", err)
+	}
+	ioutil.WriteFile("testdata/redirect2.html", []byte(webData.SerializedDOM), 0600)
+
+	d := differ.New()
+	hash, same := d.DiffHash(ctx, dom, webData.SerializedDOM)
+	if !same {
+		t.Fatalf("error diff hash failed")
+	}
+	diffURL := d.DiffPatch(loadDiffURL, webData.URL, 1)
+	/*
+		t.Logf("%#v\n", webData)
+		for i, resp := range webData.Responses {
+			if resp.HostAddress == "upvest.co" || resp.HostAddress == "wallet.upvest.co" {
+				t.Logf("%d %#v\n", i, resp)
+			}
+		}
+	*/
+	t.Logf("LoadDiffURL: %#v\n", loadDiffURL)
+	t.Logf("webData.URL %#v\n", webData.URL)
+	t.Logf("webData.URL %#v\n", diffURL)
+	t.Logf("%s\n", hash)
+}
+
 func TestGCDBrowserPoolTLS(t *testing.T) {
 	ctx := context.Background()
 	b := NewGCDBrowserPool(1, leaser, amtest.MockWebDetector())
