@@ -108,6 +108,7 @@ func (p *PortScanner) Analyze(ctx context.Context, userContext am.UserContext, a
 
 	log.Ctx(ctx).Info().Str("ip_address", targetIP).Msg("scanning now")
 	start := time.Now()
+
 	results, err := p.scanner.PortScan(ctx, targetIP, int(cfg.RequestsPerSecond), cfg.TCPPorts)
 	if err != nil {
 		return nil, nil, err

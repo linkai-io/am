@@ -39,7 +39,7 @@ type Scanner struct {
 	macLock    *sync.RWMutex
 	// settings
 	timeout time.Duration
-
+	retry   int
 	// destination, gateway (if applicable), and source IP addresses to use.
 	dst, gw, src net.IP
 	handle       *pcap.Handle
@@ -51,7 +51,7 @@ type Scanner struct {
 
 // New returns a new scanner with a default timeout of 1 minute after send completion
 func New() *Scanner {
-	return &Scanner{timeout: time.Minute, macLock: &sync.RWMutex{}}
+	return &Scanner{timeout: time.Minute, macLock: &sync.RWMutex{}, retry: 3}
 }
 
 // NewWithMAC builds a new scanner with provided src/dst macs for routing with a default
@@ -64,6 +64,7 @@ func NewWithMAC(srcMac, dstMac net.HardwareAddr, device, srcIP string) *Scanner 
 		dstMacAddr: dstMac,
 		macLock:    &sync.RWMutex{},
 		timeout:    time.Minute,
+		retry:      3,
 	}
 }
 
@@ -197,51 +198,56 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 	}
 	defer handle.Close()
 
-	resultCh := make(chan *portResult, len(ports))
+	resultCh := make(chan *portResult, len(ports)*s.retry)
 
 	ipFlow := gopacket.NewFlow(layers.EndpointIPv4, ip4.DstIP, ip4.SrcIP)
 	go s.listen(ctx, handle, resultCh, ipFlow, len(ports), rawPort)
 
+	// retry a few times to make sure we actually get valid responses every time
 	r := rate.Limit(packetsPerSecond)
 	lim := rate.NewLimiter(r, 1)
-	for _, port := range ports {
-		tcp.DstPort = layers.TCPPort(port)
-		if err := s.send(handle, &eth, &ip4, &tcp); err != nil {
-			return nil, err
+	for i := 0; i < s.retry; i++ {
+		for _, port := range ports {
+			tcp.DstPort = layers.TCPPort(port)
+
+			if err := s.send(handle, &eth, &ip4, &tcp); err != nil {
+				return nil, err
+			}
+			lim.Wait(ctx)
 		}
-		lim.Wait(ctx)
 	}
 
 	timer := time.AfterFunc(s.timeout, func() { handle.Close() })
 	defer timer.Stop()
 
 	// use a map *just in case* we get duplicate responses
-	openResults := make(map[int32]struct{})
-	closedResults := make(map[int32]struct{})
+	openResults := make(map[int32]int)
+	closedResults := make(map[int32]int)
 
 	for result := range resultCh {
 		if result.Closed {
-			closedResults[result.Port] = struct{}{}
+			closedResults[result.Port]++
 		} else {
-			openResults[result.Port] = struct{}{}
+			openResults[result.Port]++
 		}
 	}
 	results := &ScanResults{
-		Open:   make([]int32, len(openResults)),
-		Closed: make([]int32, len(closedResults)),
+		Open:   make([]int32, 0),
+		Closed: make([]int32, 0),
 	}
 
-	i := 0
-	for port := range openResults {
-		results.Open[i] = port
-		i++
+	for port, count := range openResults {
+		if count >= 2 {
+			results.Open = append(results.Open, port)
+		} else {
+			log.Warn().Str("target", targetIP).Int32("port", port).Int("count", count).Msg("did not meet threshold")
+		}
 	}
 
-	i = 0
 	for port := range closedResults {
-		results.Closed[i] = port
-		i++
+		results.Closed = append(results.Closed, port)
 	}
+
 	return results, nil
 }
 
