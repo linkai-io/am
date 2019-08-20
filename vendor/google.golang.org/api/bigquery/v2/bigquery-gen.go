@@ -88,6 +88,9 @@ const (
 	// Insert data into Google BigQuery
 	BigqueryInsertdataScope = "https://www.googleapis.com/auth/bigquery.insertdata"
 
+	// View your data in Google BigQuery
+	BigqueryReadonlyScope = "https://www.googleapis.com/auth/bigquery.readonly"
+
 	// View and manage your data across Google Cloud Platform services
 	CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
@@ -109,6 +112,7 @@ func NewService(ctx context.Context, opts ...option.ClientOption) (*Service, err
 	scopesOption := option.WithScopes(
 		"https://www.googleapis.com/auth/bigquery",
 		"https://www.googleapis.com/auth/bigquery.insertdata",
+		"https://www.googleapis.com/auth/bigquery.readonly",
 		"https://www.googleapis.com/auth/cloud-platform",
 		"https://www.googleapis.com/auth/cloud-platform.read-only",
 		"https://www.googleapis.com/auth/devstorage.full_control",
@@ -1173,6 +1177,8 @@ type Dataset struct {
 	// DatasetReference: [Required] A reference that identifies the dataset.
 	DatasetReference *DatasetReference `json:"datasetReference,omitempty"`
 
+	DefaultEncryptionConfiguration *EncryptionConfiguration `json:"defaultEncryptionConfiguration,omitempty"`
+
 	// DefaultPartitionExpirationMs: [Optional] The default partition
 	// expiration for all partitioned tables in the dataset, in
 	// milliseconds. Once this property is set, all newly-created
@@ -1617,7 +1623,9 @@ type EvaluationMetrics struct {
 	// classification/classifier models.
 	MultiClassClassificationMetrics *MultiClassClassificationMetrics `json:"multiClassClassificationMetrics,omitempty"`
 
-	// RegressionMetrics: Populated for regression models.
+	// RegressionMetrics: Populated for regression models and explicit
+	// feedback type matrix
+	// factorization models.
 	RegressionMetrics *RegressionMetrics `json:"regressionMetrics,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g.
@@ -3031,6 +3039,12 @@ type JobStatistics struct {
 	// reservation.
 	ReservationUsage []*JobStatisticsReservationUsage `json:"reservationUsage,omitempty"`
 
+	// ReservationId: [Output-only] Name of the primary reservation assigned
+	// to this job. Note that this could be different than reservations
+	// reported in the reservation usage field if parent reservations were
+	// used to execute this job.
+	ReservationId string `json:"reservation_id,omitempty"`
+
 	// StartTime: [Output-only] Start time of this job, in milliseconds
 	// since the epoch. This field will be present when the job transitions
 	// from the PENDING state to either RUNNING or DONE.
@@ -3163,6 +3177,10 @@ type JobStatistics2 struct {
 
 	// QueryPlan: [Output-only] Describes execution plan for the query.
 	QueryPlan []*ExplainQueryStage `json:"queryPlan,omitempty"`
+
+	// ReferencedRoutines: [Output-only] Referenced routines (persistent
+	// user-defined functions and stored procedures) for the job.
+	ReferencedRoutines []*RoutineReference `json:"referencedRoutines,omitempty"`
 
 	// ReferencedTables: [Output-only] Referenced tables for the job.
 	// Queries that reference more than 50 tables will not have a complete
@@ -4314,7 +4332,9 @@ func (s *RangePartitioningRange) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
-// RegressionMetrics: Evaluation metrics for regression models.
+// RegressionMetrics: Evaluation metrics for regression and explicit
+// feedback type matrix
+// factorization models.
 type RegressionMetrics struct {
 	// MeanAbsoluteError: Mean absolute error.
 	MeanAbsoluteError float64 `json:"meanAbsoluteError,omitempty"`
@@ -4388,25 +4408,35 @@ type Routine struct {
 	CreationTime int64 `json:"creationTime,omitempty,string"`
 
 	// DefinitionBody: Required. The body of the routine.
+	//
 	// For functions, this is the expression in the AS clause.
+	//
 	// If language=SQL, it is the substring inside (but excluding)
 	// the
 	// parentheses. For example, for the function created with the
 	// following
-	// statement
-	//   create function JoinLines(x string, y string) as (concat(x, "\n",
-	// y))
-	// definition_body = r'concat(x, "\n", y)' (\n is not replaced
+	// statement:
+	//
+	// `CREATE FUNCTION JoinLines(x string, y string) as (concat(x, "\n",
+	// y))`
+	//
+	// The definition_body is `concat(x, "\n", y)` (\n is not replaced
 	// with
 	// linebreak).
+	//
 	// If language=JAVASCRIPT, it is the evaluated string in the AS
 	// clause.
-	// For example, for the function created with the following statement
-	//   CREATE FUNCTION f() RETURNS STRING LANGUAGE js AS 'return
-	// "\n";\n'
-	// definition_body = 'return "\n";\n' (both \n are replaced
-	// with
-	// linebreaks).
+	// For example, for the function created with the following
+	// statement:
+	//
+	// `CREATE FUNCTION f() RETURNS STRING LANGUAGE js AS 'return
+	// "\n";\n'`
+	//
+	// The definition_body is
+	//
+	// `return "\n";\n`
+	//
+	// Note that both \n are replaced with linebreaks.
 	DefinitionBody string `json:"definitionBody,omitempty"`
 
 	// Etag: Output only. A hash of this resource.
@@ -4431,6 +4461,7 @@ type Routine struct {
 	LastModifiedTime int64 `json:"lastModifiedTime,omitempty,string"`
 
 	// ReturnType: Optional if language = "SQL"; required otherwise.
+	//
 	// If absent, the return type is inferred from definition_body at query
 	// time
 	// in each query that references this routine. If present, then the
@@ -4438,20 +4469,29 @@ type Routine struct {
 	// result will be cast to the specified returned type at query
 	// time.
 	//
-	// For example, for the functions created with the following statements
-	//   CREATE FUNCTION Add(x FLOAT64, y FLOAT64) RETURNS FLOAT64 AS (x +
-	// y);
-	//   CREATE FUNCTION Increment(x FLOAT64) AS (Add(x, 1));
-	//   CREATE FUNCTION Decrement(x FLOAT64) RETURNS FLOAT64 AS (Add(x,
-	// -1));
-	// The return_type is {type_kind: "FLOAT64"} for Add and Decrement,
-	// and
-	// is absent for Increment (inferred as FLOAT64 at query time).
-	// Suppose the function Add is replaced by
-	//   CREATE OR REPLACE FUNCTION Add(x INT64, y INT64) AS (x + y);
-	// Then the inferred return type of Increment is automatically changed
+	// For example, for the functions created with the following
+	// statements:
+	//
+	// * `CREATE FUNCTION Add(x FLOAT64, y FLOAT64) RETURNS FLOAT64 AS (x +
+	// y);`
+	//
+	// * `CREATE FUNCTION Increment(x FLOAT64) AS (Add(x, 1));`
+	//
+	// * `CREATE FUNCTION Decrement(x FLOAT64) RETURNS FLOAT64 AS (Add(x,
+	// -1));`
+	//
+	// The return_type is `{type_kind: "FLOAT64"}` for `Add` and
+	// `Decrement`, and
+	// is absent for `Increment` (inferred as FLOAT64 at query
+	// time).
+	//
+	// Suppose the function `Add` is replaced by
+	//   `CREATE OR REPLACE FUNCTION Add(x INT64, y INT64) AS (x +
+	// y);`
+	//
+	// Then the inferred return type of `Increment` is automatically changed
 	// to
-	// INT64 at query time, while the return type of Decrement remains
+	// INT64 at query time, while the return type of `Decrement` remains
 	// FLOAT64.
 	ReturnType *StandardSqlDataType `json:"returnType,omitempty"`
 
@@ -5814,6 +5854,7 @@ func (c *DatasetsDeleteCall) Header() http.Header {
 
 func (c *DatasetsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -5940,6 +5981,7 @@ func (c *DatasetsGetCall) Header() http.Header {
 
 func (c *DatasetsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6029,6 +6071,7 @@ func (c *DatasetsGetCall) Do(opts ...googleapi.CallOption) (*Dataset, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -6082,6 +6125,7 @@ func (c *DatasetsInsertCall) Header() http.Header {
 
 func (c *DatasetsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6261,6 +6305,7 @@ func (c *DatasetsListCall) Header() http.Header {
 
 func (c *DatasetsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6363,6 +6408,7 @@ func (c *DatasetsListCall) Do(opts ...googleapi.CallOption) (*DatasetList, error
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -6442,6 +6488,7 @@ func (c *DatasetsPatchCall) Header() http.Header {
 
 func (c *DatasetsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6592,6 +6639,7 @@ func (c *DatasetsUpdateCall) Header() http.Header {
 
 func (c *DatasetsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6749,6 +6797,7 @@ func (c *JobsCancelCall) Header() http.Header {
 
 func (c *JobsCancelCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -6913,6 +6962,7 @@ func (c *JobsGetCall) Header() http.Header {
 
 func (c *JobsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7007,6 +7057,7 @@ func (c *JobsGetCall) Do(opts ...googleapi.CallOption) (*Job, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -7110,6 +7161,7 @@ func (c *JobsGetQueryResultsCall) Header() http.Header {
 
 func (c *JobsGetQueryResultsCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7227,6 +7279,7 @@ func (c *JobsGetQueryResultsCall) Do(opts ...googleapi.CallOption) (*GetQueryRes
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -7342,6 +7395,7 @@ func (c *JobsInsertCall) Header() http.Header {
 
 func (c *JobsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7600,6 +7654,7 @@ func (c *JobsListCall) Header() http.Header {
 
 func (c *JobsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7738,6 +7793,7 @@ func (c *JobsListCall) Do(opts ...googleapi.CallOption) (*JobList, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -7813,6 +7869,7 @@ func (c *JobsQueryCall) Header() http.Header {
 
 func (c *JobsQueryCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -7899,6 +7956,7 @@ func (c *JobsQueryCall) Do(opts ...googleapi.CallOption) (*QueryResponse, error)
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -7954,6 +8012,7 @@ func (c *ModelsDeleteCall) Header() http.Header {
 
 func (c *ModelsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8089,6 +8148,7 @@ func (c *ModelsGetCall) Header() http.Header {
 
 func (c *ModelsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8220,7 +8280,8 @@ func (r *ModelsService) List(projectId string, datasetId string) *ModelsListCall
 }
 
 // MaxResults sets the optional parameter "maxResults": The maximum
-// number of results per page.
+// number of results to return in a single response page.
+// Leverage the page tokens to iterate through the entire collection.
 func (c *ModelsListCall) MaxResults(maxResults int64) *ModelsListCall {
 	c.urlParams_.Set("maxResults", fmt.Sprint(maxResults))
 	return c
@@ -8271,6 +8332,7 @@ func (c *ModelsListCall) Header() http.Header {
 
 func (c *ModelsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8350,7 +8412,7 @@ func (c *ModelsListCall) Do(opts ...googleapi.CallOption) (*ListModelsResponse, 
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
-	//       "description": "The maximum number of results per page.",
+	//       "description": "The maximum number of results to return in a single response page.\nLeverage the page tokens to iterate through the entire collection.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -8452,6 +8514,7 @@ func (c *ModelsPatchCall) Header() http.Header {
 
 func (c *ModelsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8620,6 +8683,7 @@ func (c *ProjectsGetServiceAccountCall) Header() http.Header {
 
 func (c *ProjectsGetServiceAccountCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8701,6 +8765,7 @@ func (c *ProjectsGetServiceAccountCall) Do(opts ...googleapi.CallOption) (*GetSe
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -8776,6 +8841,7 @@ func (c *ProjectsListCall) Header() http.Header {
 
 func (c *ProjectsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -8856,6 +8922,7 @@ func (c *ProjectsListCall) Do(opts ...googleapi.CallOption) (*ProjectList, error
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -8932,6 +8999,7 @@ func (c *RoutinesDeleteCall) Header() http.Header {
 
 func (c *RoutinesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9075,6 +9143,7 @@ func (c *RoutinesGetCall) Header() http.Header {
 
 func (c *RoutinesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9237,6 +9306,7 @@ func (c *RoutinesInsertCall) Header() http.Header {
 
 func (c *RoutinesInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9363,7 +9433,8 @@ func (r *RoutinesService) List(projectId string, datasetId string) *RoutinesList
 }
 
 // MaxResults sets the optional parameter "maxResults": The maximum
-// number of results per page.
+// number of results to return in a single response page.
+// Leverage the page tokens to iterate through the entire collection.
 func (c *RoutinesListCall) MaxResults(maxResults int64) *RoutinesListCall {
 	c.urlParams_.Set("maxResults", fmt.Sprint(maxResults))
 	return c
@@ -9414,6 +9485,7 @@ func (c *RoutinesListCall) Header() http.Header {
 
 func (c *RoutinesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9493,7 +9565,7 @@ func (c *RoutinesListCall) Do(opts ...googleapi.CallOption) (*ListRoutinesRespon
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
-	//       "description": "The maximum number of results per page.",
+	//       "description": "The maximum number of results to return in a single response page.\nLeverage the page tokens to iterate through the entire collection.",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -9597,6 +9669,7 @@ func (c *RoutinesUpdateCall) Header() http.Header {
 
 func (c *RoutinesUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9760,6 +9833,7 @@ func (c *TabledataInsertAllCall) Header() http.Header {
 
 func (c *TabledataInsertAllCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -9958,6 +10032,7 @@ func (c *TabledataListCall) Header() http.Header {
 
 func (c *TabledataListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10077,6 +10152,7 @@ func (c *TabledataListCall) Do(opts ...googleapi.CallOption) (*TableDataList, er
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -10154,6 +10230,7 @@ func (c *TablesDeleteCall) Header() http.Header {
 
 func (c *TablesDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10295,6 +10372,7 @@ func (c *TablesGetCall) Header() http.Header {
 
 func (c *TablesGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10397,6 +10475,7 @@ func (c *TablesGetCall) Do(opts ...googleapi.CallOption) (*Table, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -10452,6 +10531,7 @@ func (c *TablesInsertCall) Header() http.Header {
 
 func (c *TablesInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10624,6 +10704,7 @@ func (c *TablesListCall) Header() http.Header {
 
 func (c *TablesListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10724,6 +10805,7 @@ func (c *TablesListCall) Do(opts ...googleapi.CallOption) (*TableList, error) {
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/bigquery",
+	//     "https://www.googleapis.com/auth/bigquery.readonly",
 	//     "https://www.googleapis.com/auth/cloud-platform",
 	//     "https://www.googleapis.com/auth/cloud-platform.read-only"
 	//   ]
@@ -10805,6 +10887,7 @@ func (c *TablesPatchCall) Header() http.Header {
 
 func (c *TablesPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
@@ -10965,6 +11048,7 @@ func (c *TablesUpdateCall) Header() http.Header {
 
 func (c *TablesUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
+	reqHeaders.Set("x-goog-api-client", "gl-go/1.11.0 gdcl/20190802")
 	for k, v := range c.header_ {
 		reqHeaders[k] = v
 	}
