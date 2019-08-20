@@ -2,6 +2,7 @@ package portscanner
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"io"
 	"net"
@@ -171,9 +172,11 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 		DstMAC:       s.dstMacAddr,
 		EthernetType: layers.EthernetTypeIPv4,
 	}
+
+	destIP := net.ParseIP(targetIP)
 	ip4 := layers.IPv4{
 		SrcIP:    net.ParseIP(s.srcIP),
-		DstIP:    net.ParseIP(targetIP),
+		DstIP:    destIP,
 		Version:  4,
 		TTL:      160,
 		Protocol: layers.IPProtocolTCP,
@@ -201,7 +204,7 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 	resultCh := make(chan *portResult, len(ports)*s.retry)
 
 	ipFlow := gopacket.NewFlow(layers.EndpointIPv4, ip4.DstIP, ip4.SrcIP)
-	go s.listen(ctx, handle, resultCh, ipFlow, len(ports), rawPort)
+	go s.listen(ctx, handle, resultCh, destIP, ipFlow, len(ports), rawPort)
 
 	// retry a few times to make sure we actually get valid responses every time
 	r := rate.Limit(packetsPerSecond)
@@ -209,9 +212,10 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 	for i := 0; i < s.retry; i++ {
 		for _, port := range ports {
 			tcp.DstPort = layers.TCPPort(port)
-
+			tcp.Seq = CreateSequence(destIP, uint32(port))
 			if err := s.send(handle, &eth, &ip4, &tcp); err != nil {
-				return nil, err
+				log.Error().Err(err).Msg("failed to send packet")
+				continue
 			}
 			lim.Wait(ctx)
 		}
@@ -252,7 +256,7 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 }
 
 // listen on the pcap handle and decode eth/ip4/tcp packet responses.
-func (s *Scanner) listen(ctx context.Context, handle *pcap.Handle, resultCh chan<- *portResult, ipFlow gopacket.Flow, total, rawPort int) {
+func (s *Scanner) listen(ctx context.Context, handle *pcap.Handle, resultCh chan<- *portResult, destIP net.IP, ipFlow gopacket.Flow, total, rawPort int) {
 	decodeETH := &layers.Ethernet{}
 	decodeIP4 := &layers.IPv4{}
 	decodeTCP := &layers.TCP{}
@@ -293,6 +297,11 @@ func (s *Scanner) listen(ctx context.Context, handle *pcap.Handle, resultCh chan
 				if decodeTCP.DstPort != layers.TCPPort(rawPort) {
 					continue
 				} else if decodeTCP.SYN && decodeTCP.ACK {
+					expectedAck := CreateSequence(destIP, uint32(decodeTCP.SrcPort)) + 1 //add one for seq+1
+					if expectedAck != decodeTCP.Ack {
+						log.Warn().IPAddr("dest", destIP).Int32("port", int32(decodeTCP.SrcPort)).Uint32("expected", expectedAck).Uint32("ack", decodeTCP.Ack).Msg("expected ack did not match returned ack")
+						continue
+					}
 					resultCh <- &portResult{Port: int32(decodeTCP.SrcPort)}
 					total--
 				} else if decodeTCP.RST {
@@ -385,4 +394,8 @@ func ipv4GetDstCheck() {
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+func CreateSequence(ip net.IP, port uint32) uint32 {
+	return binary.BigEndian.Uint32(ip.To4()) + port
 }
