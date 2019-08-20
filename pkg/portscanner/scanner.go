@@ -187,14 +187,6 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 		return nil, err
 	}
 
-	tcp := layers.TCP{
-		SrcPort: layers.TCPPort(rawPort),
-		DstPort: 0,
-		SYN:     true,
-	}
-
-	tcp.SetNetworkLayerForChecksum(&ip4)
-
 	handle, err := pcap.OpenLive(s.device, 512, true, pcap.BlockForever)
 	if err != nil {
 		return nil, err
@@ -206,19 +198,24 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 	ipFlow := gopacket.NewFlow(layers.EndpointIPv4, ip4.DstIP, ip4.SrcIP)
 	go s.listen(ctx, handle, resultCh, destIP, ipFlow, len(ports), rawPort)
 
-	// retry a few times to make sure we actually get valid responses every time
 	r := rate.Limit(packetsPerSecond)
 	lim := rate.NewLimiter(r, 1)
-	for i := 0; i < s.retry; i++ {
-		for _, port := range ports {
-			tcp.DstPort = layers.TCPPort(port)
-			tcp.Seq = CreateSequence(destIP, uint32(port))
-			if err := s.send(handle, &eth, &ip4, &tcp); err != nil {
-				log.Error().Err(err).Msg("failed to send packet")
-				continue
-			}
-			lim.Wait(ctx)
+
+	for _, port := range ports {
+
+		tcp := layers.TCP{
+			SrcPort: layers.TCPPort(rawPort),
+			DstPort: layers.TCPPort(port),
+			SYN:     true,
+			Seq:     CreateSequence(destIP, uint32(port)),
 		}
+		tcp.SetNetworkLayerForChecksum(&ip4)
+
+		if err := s.send(handle, &eth, &ip4, &tcp); err != nil {
+			log.Error().Err(err).Msg("failed to send packet")
+			continue
+		}
+		lim.Wait(ctx)
 	}
 
 	timer := time.AfterFunc(s.timeout, func() { handle.Close() })
@@ -240,12 +237,8 @@ func (s *Scanner) ScanIPv4(ctx context.Context, targetIP string, packetsPerSecon
 		Closed: make([]int32, 0),
 	}
 
-	for port, count := range openResults {
-		if count >= 2 {
-			results.Open = append(results.Open, port)
-		} else {
-			log.Warn().Str("target", targetIP).Int32("port", port).Int("count", count).Msg("did not meet threshold")
-		}
+	for port := range openResults {
+		results.Open = append(results.Open, port)
 	}
 
 	for port := range closedResults {

@@ -17,7 +17,7 @@ func TestScanIPv4(t *testing.T) {
 		t.Fatalf("error initializing scanner: %v\n", err)
 	}
 	ctx := context.Background()
-	targetIP := "99.84.143.109" // "209.126.252.34" //scanner1.linkai.io
+	targetIP := "165.227.80.170" // "99.84.143.109" // "209.126.252.34" //scanner1.linkai.io
 	results, err := scan.ScanIPv4(ctx, targetIP, 10, testPorts)
 	if err != nil {
 		t.Fatalf("error scanning scanner: %v\n", err)
