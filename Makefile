@@ -167,6 +167,7 @@ buildscanwebservice:
 buildportscannerdev:
 	GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '-w -s' -o deploy_files/dev/portscanner/portscannerdev cmd/portscanner/main.go
 	zip deploy_files/dev/portscanner/portscannerdev.zip deploy_files/dev/portscanner/*
+	scp deploy_files/dev/portscanner/portscannerdev.zip linkai-admin@scanner1.linkai.io:/home/linkai-admin/
 
 buildportscanservicedev:
 	echo '{"id":$(shell aws ssm get-parameter --name /am/iam-users/dev-scanner1-user/aws_access_key_id --with-decryption | jq .Parameter.Value), "key":$(shell aws ssm get-parameter --name /am/iam-users/dev-scanner1-user/aws_secret_access_key --with-decryption | jq .Parameter.Value)}' > deploy_files/dev/portscanservice/dev.key
