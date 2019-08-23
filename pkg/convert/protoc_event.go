@@ -49,31 +49,37 @@ func EventSubscriptionsToDomain(in *prototypes.EventSubscriptions) *am.EventSubs
 
 func DomainToWebhookEventSettings(in *prototypes.WebhookEventSettings) *am.WebhookEventSettings {
 	return &am.WebhookEventSettings{
-		WebhookID: in.WebhookID,
-		OrgID:     in.OrgID,
-		GroupID:   in.GroupID,
-		Name:      in.Name,
-		Events:    in.Events,
-		Enabled:   in.Enabled,
-		Version:   in.Version,
-		URL:       in.URL,
-		Type:      in.Type,
-		Deleted:   in.Deleted,
+		WebhookID:     in.WebhookID,
+		OrgID:         in.OrgID,
+		GroupID:       in.GroupID,
+		ScanGroupName: in.ScanGroupName,
+		Name:          in.Name,
+		Events:        in.Events,
+		Enabled:       in.Enabled,
+		Version:       in.Version,
+		URL:           in.URL,
+		Type:          in.Type,
+		CurrentKey:    in.CurrentKey,
+		PreviousKey:   in.PreviousKey,
+		Deleted:       in.Deleted,
 	}
 }
 
 func WebhookEventSettingsToDomain(in *am.WebhookEventSettings) *prototypes.WebhookEventSettings {
 	return &prototypes.WebhookEventSettings{
-		WebhookID: in.WebhookID,
-		OrgID:     in.OrgID,
-		GroupID:   in.GroupID,
-		Name:      in.Name,
-		Events:    in.Events,
-		Enabled:   in.Enabled,
-		Version:   in.Version,
-		URL:       in.URL,
-		Type:      in.Type,
-		Deleted:   in.Deleted,
+		WebhookID:     in.WebhookID,
+		OrgID:         in.OrgID,
+		GroupID:       in.GroupID,
+		ScanGroupName: in.ScanGroupName,
+		Name:          in.Name,
+		Events:        in.Events,
+		Enabled:       in.Enabled,
+		Version:       in.Version,
+		URL:           in.URL,
+		Type:          in.Type,
+		CurrentKey:    in.CurrentKey,
+		PreviousKey:   in.PreviousKey,
+		Deleted:       in.Deleted,
 	}
 }
 

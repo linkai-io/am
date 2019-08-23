@@ -33,16 +33,19 @@ type EventSubscriptions struct {
 }
 
 type WebhookEventSettings struct {
-	WebhookID int32   `json:"webhook_id"`
-	OrgID     int32   `json:"org_id"`
-	GroupID   int32   `json:"group_id"`
-	Name      string  `json:"name"`
-	Events    []int32 `json:"events"`
-	Enabled   bool    `json:"enabled"`
-	Version   string  `json:"version"`
-	URL       string  `json:"url"`
-	Type      string  `json:"type"`
-	Deleted   bool    `json:"deleted"`
+	WebhookID     int32   `json:"webhook_id"`
+	OrgID         int32   `json:"org_id"`
+	GroupID       int32   `json:"group_id"`
+	ScanGroupName string  `json:"scan_group_name,omitempty"`
+	Name          string  `json:"name"`
+	Events        []int32 `json:"events"`
+	Enabled       bool    `json:"enabled"`
+	Version       string  `json:"version"`
+	URL           string  `json:"url"`
+	Type          string  `json:"type"`
+	CurrentKey    string  `json:"current_key"`
+	PreviousKey   string  `json:"previous_key"`
+	Deleted       bool    `json:"deleted"`
 }
 
 type WebhookEvent struct {
@@ -92,5 +95,6 @@ type EventService interface {
 	GetWebhooks(ctx context.Context, userContext UserContext) ([]*WebhookEventSettings, error)
 	// UpdateWebhooks adds or updates an existing webhook (by name)
 	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) (int32, error)
+	// GetWebhook events
 	GetWebhookEvents(ctx context.Context, userContext UserContext) ([]*WebhookEvent, error)
 }

@@ -10,9 +10,25 @@ const sharedSettingColumns = `organization_id,
 	should_weekly_email,
 	should_daily_email`
 
+const webhookColumns = `webhook_id,
+	organization_id,
+	scan_group_id,
+	name,
+	events,
+	enabled,
+	version,
+	url,
+	type,
+	current_key,
+	previous_key,
+	deleted
+`
+
+//  webhook_version, webhook_enabled, webhook_url, webhook_type
 var queryMap = map[string]string{
+	"getOrgWebhooks":       fmt.Sprintf(`select %s,(select scan_group_name from am.scan_group where scan_group_id=$2) from am.webhook_event_settings where organization_id=$1 and scan_group_id=$2 and deleted=false and enabled=true`, webhookColumns),
 	"getUserSettings":      fmt.Sprintf(`select %s from am.user_notification_settings where organization_id=$1 and user_id=$2`, sharedSettingColumns),
-	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed, webhook_version, webhook_enabled, webhook_url, webhook_type from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
+	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
 	"updateUserSettings": fmt.Sprintf(`insert into am.user_notification_settings (%s) values
 		($1, $2, $3, $4, $5, $6, $7) on conflict (organization_id,user_id) do update set
 		weekly_report_send_day=EXCLUDED.weekly_report_send_day,
@@ -105,6 +121,39 @@ var queryMap = map[string]string{
 }
 
 var (
+	// Add Webhook results
+	WebhookTempTableKey     = "event_webhook_add_temp"
+	WebhookTempTableColumns = []string{"organization_id", "scan_group_id", "notification_id", "webhook_id", "type_id", "last_attempt_timestamp", "last_attempt_status"}
+	WebhookTempTable        = `create temporary table event_webhook_add_temp (
+		organization_id integer,
+		scan_group_id integer,
+		notification_id bigint,
+		webhook_id integer,
+		type_id integer,
+		last_attempt_timestamp timestamptz,
+		last_attempt_status integer,
+	) on commit drop;`
+
+	TempToWebhook = `insert into am.webhook_events as whe (
+		organization_id,
+		scan_group_id,
+		notification_id,
+		webhook_id,
+		type_id,
+		last_attempt_timestamp,
+		last_attempt_status
+	)
+	select 
+		temp.organization_id,
+		temp.scan_group_id,
+		temp.notification_id,
+		temp.webhook_id,
+		temp.type_id,
+		temp.last_attempt_timestamp
+		temp.last_attempt_status
+	from event_webhook_add_temp as temp`
+
+	// Add Events
 	AddTempTableKey     = "event_add_temp"
 	AddTempTableColumns = []string{"organization_id", "scan_group_id", "type_id", "event_timestamp", "event_data", "event_data_json"}
 	AddTempTable        = `create temporary table event_add_temp (
@@ -115,6 +164,33 @@ var (
 		event_data jsonb,
 		event_data_json json
 		) on commit drop;`
+
+	AddTempToAddCTE = `with temp as (
+		select 
+			organization_id,
+			scan_group_id,
+			type_id,
+			event_timestamp,
+			event_data,
+			event_data_json
+		from event_add_temp
+	)
+	insert into am.event_notifications as unr (
+		organization_id,
+		scan_group_id,
+		type_id,
+		event_timestamp,
+		event_data,
+		event_data_json
+	) as evts select * from temp returning 
+		evts.notification_id, 
+		evts.organization_id
+		evts.scan_group_id,
+		evts.type_id,
+		evts.event_timestamp,
+		evts.event_data_json;
+		`
+
 	AddTempToAdd = `insert into am.event_notifications as unr (
 		organization_id,
 		scan_group_id,

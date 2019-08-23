@@ -22,6 +22,7 @@ var env string
 var dbstring string
 var webDBString string
 var addrDBString string
+var hooker = amtest.MockWebhooker()
 
 const serviceKey = "eventservice"
 const webServiceKey = "webdataservice"
@@ -57,7 +58,7 @@ func TestNew(t *testing.T) {
 	auth.IsAllowedFn = func(subject, resource, action string) error {
 		return nil
 	}
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing address service: %s\n", err)
@@ -79,7 +80,7 @@ func TestAddGet(t *testing.T) {
 
 	auth := amtest.MockEmptyAuthorizer()
 
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing event service: %s\n", err)
@@ -281,7 +282,7 @@ func TestNotifyComplete(t *testing.T) {
 
 	auth := amtest.MockEmptyAuthorizer()
 
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing event service: %s\n", err)
@@ -490,7 +491,7 @@ func TestNotifyCompletePorts(t *testing.T) {
 
 	auth := amtest.MockEmptyAuthorizer()
 
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing event service: %s\n", err)
@@ -597,7 +598,7 @@ func TestDeletePopulated(t *testing.T) {
 	}
 
 	auth := amtest.MockEmptyAuthorizer()
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing event service: %s\n", err)
@@ -620,7 +621,7 @@ func TestPopulate(t *testing.T) {
 	ctx := context.Background()
 	auth := amtest.MockEmptyAuthorizer()
 
-	service := event.New(auth)
+	service := event.New(auth, hooker)
 
 	if err := service.Init([]byte(dbstring)); err != nil {
 		t.Fatalf("error initalizing event service: %s\n", err)
