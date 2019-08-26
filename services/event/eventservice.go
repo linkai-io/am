@@ -287,7 +287,7 @@ func (s *Service) UpdateWebhooks(ctx context.Context, userContext am.UserContext
 	return tx.Commit()
 }
 
-func (s *Service) GetWebhookEvents(ctx context.Context, userContext am.UserContext, filter *am.EventFilter) ([]*am.WebhookEvent, error) {
+func (s *Service) GetWebhookEvents(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEvent, error) {
 	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "read") {
 		return nil, am.ErrUserNotAuthorized
 	}
@@ -302,10 +302,6 @@ func (s *Service) GetWebhookEvents(ctx context.Context, userContext am.UserConte
 		Str("Call", "event.GetWebhookEvents").
 		Str("TraceID", userContext.GetTraceID()).Logger()
 	ctx = serviceLog.WithContext(ctx)
-
-	if filter.Limit > 10000 {
-		return nil, am.ErrLimitTooLarge
-	}
 
 	tx, err = s.pool.BeginEx(ctx, nil)
 	if err != nil {

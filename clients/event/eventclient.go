@@ -168,6 +168,82 @@ func (c *Client) UpdateSettings(ctx context.Context, userContext am.UserContext,
 	return nil
 }
 
+func (c *Client) GetWebhooks(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEventSettings, error) {
+	var err error
+	var resp *service.GetWebhooksResponse
+
+	in := &service.GetWebhooksRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetWebhooks(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get webhooks from event client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.WebhooksEventSettingsToDomain(resp.Settings), nil
+}
+
+func (c *Client) GetWebhookEvents(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEvent, error) {
+	var err error
+	var resp *service.GetWebhookEventsResponse
+
+	in := &service.GetWebhookEventsRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		resp, retryErr = c.client.GetWebhookEvents(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to get webhook events from event client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return convert.WebhookEventsToDomain(resp.Events), nil
+}
+
+// UpdateWebhooks for user's org
+func (c *Client) UpdateWebhooks(ctx context.Context, userContext am.UserContext, webhook *am.WebhookEventSettings) error {
+	var err error
+
+	in := &service.UpdateWebhooksRequest{
+		UserContext: convert.DomainToUserContext(userContext),
+		Settings:    convert.DomainToWebhookEventSettings(webhook),
+	}
+
+	ctxDeadline, cancel := context.WithTimeout(ctx, c.defaultTimeout)
+	defer cancel()
+
+	err = retrier.RetryIfNot(func() error {
+		var retryErr error
+
+		_, retryErr = c.client.UpdateWebhooks(ctxDeadline, in)
+		return errors.Wrap(retryErr, "unable to set webhooks for events from event client")
+	}, "rpc error: code = Unavailable desc")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // NotifyComplete that a scan group has completed
 func (c *Client) NotifyComplete(ctx context.Context, userContext am.UserContext, startTime int64, groupID int) error {
 	var err error

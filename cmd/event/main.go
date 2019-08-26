@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/linkai-io/am/pkg/webhooks"
+
 	"github.com/linkai-io/am/am"
 	"github.com/linkai-io/am/pkg/initializers"
 	"github.com/linkai-io/am/pkg/lb/consul"
@@ -59,6 +61,10 @@ func main() {
 	}
 
 	dbstring, db := initializers.DB(&appConfig)
+	hooks := webhooks.New(appConfig.Env, appConfig.Region)
+	if err := hooks.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize webhook sender")
+	}
 
 	err = retrier.Retry(func() error {
 		policyManager := ladonauth.NewPolicyManager(db, "pgx")
@@ -73,7 +79,7 @@ func main() {
 
 		authorizer := ladonauth.NewLadonAuthorizer(policyManager, roleManager)
 
-		service = event.New(authorizer)
+		service = event.New(authorizer, hooks)
 
 		return service.Init([]byte(dbstring))
 	})

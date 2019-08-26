@@ -210,6 +210,8 @@ func MockEventService() *mock.EventService {
 	mockEvent.NotifyCompleteFn = func(ctx context.Context, userContext am.UserContext, startTime int64, groupID int) error {
 		return nil
 	}
+
+	
 	return mockEvent
 }
 

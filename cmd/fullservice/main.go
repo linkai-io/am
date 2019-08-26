@@ -34,6 +34,7 @@ import (
 	"github.com/linkai-io/am/pkg/dnsclient"
 	"github.com/linkai-io/am/pkg/filestorage"
 	"github.com/linkai-io/am/pkg/initializers"
+	"github.com/linkai-io/am/pkg/webhooks"
 	"github.com/linkai-io/am/pkg/webtech"
 	"github.com/linkai-io/am/services/address"
 
@@ -116,7 +117,14 @@ func main() {
 
 	dbstring, db = initializers.DB(createAppConfig(am.EventServiceKey))
 	auth, _ = authorizer(db)
-	eventService := event.New(auth)
+	env := os.Getenv("APP_ENV")
+	region := os.Getenv("APP_REGION")
+	hooks := webhooks.New(env, region)
+	if err := hooks.Init(); err != nil {
+		log.Fatal().Err(err).Msg("failed to init webhooks")
+	}
+
+	eventService := event.New(auth, hooks)
 	if err := eventService.Init([]byte(dbstring)); err != nil {
 		log.Fatal().Err(err).Msg("failed to init event service")
 	}

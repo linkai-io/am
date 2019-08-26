@@ -15,12 +15,14 @@ func TestSendEvent(t *testing.T) {
 	c := webhooks.NewClient()
 	eventData := makeEvents()
 
-	evt := &webhooks.Events{
-		URL:       "https://hooks.slack.com/services/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",
-		Version:   "v1",
-		Type:      "slack",
-		ScanGroup: "test",
-		Event:     eventData,
+	evt := &webhooks.Data{
+		Settings: &am.WebhookEventSettings{
+			URL:           "https://hooks.slack.com/services/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",
+			Version:       "v1",
+			Type:          "slack",
+			ScanGroupName: "test",
+		},
+		Event: eventData,
 	}
 	ctx := context.Background()
 	respCode, err := c.SendEvent(ctx, evt)

@@ -88,7 +88,7 @@ type EventService interface {
 	// GetWebhooks returns all webhooks for an organization (max 10)
 	GetWebhooks(ctx context.Context, userContext UserContext) ([]*WebhookEventSettings, error)
 	// UpdateWebhooks adds or updates an existing webhook (by name)
-	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) (webhookID int32, err error)
+	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) error
 	// GetWebhook events
-	GetWebhookEvents(ctx context.Context, userContext UserContext, filter *EventFilter) ([]*WebhookEvent, error)
+	GetWebhookEvents(ctx context.Context, userContext UserContext) ([]*WebhookEvent, error)
 }

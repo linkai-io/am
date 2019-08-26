@@ -47,25 +47,7 @@ func EventSubscriptionsToDomain(in *prototypes.EventSubscriptions) *am.EventSubs
 	}
 }
 
-func DomainToWebhookEventSettings(in *prototypes.WebhookEventSettings) *am.WebhookEventSettings {
-	return &am.WebhookEventSettings{
-		WebhookID:     in.WebhookID,
-		OrgID:         in.OrgID,
-		GroupID:       in.GroupID,
-		ScanGroupName: in.ScanGroupName,
-		Name:          in.Name,
-		Events:        in.Events,
-		Enabled:       in.Enabled,
-		Version:       in.Version,
-		URL:           in.URL,
-		Type:          in.Type,
-		CurrentKey:    in.CurrentKey,
-		PreviousKey:   in.PreviousKey,
-		Deleted:       in.Deleted,
-	}
-}
-
-func WebhookEventSettingsToDomain(in *am.WebhookEventSettings) *prototypes.WebhookEventSettings {
+func DomainToWebhookEventSettings(in *am.WebhookEventSettings) *prototypes.WebhookEventSettings {
 	return &prototypes.WebhookEventSettings{
 		WebhookID:     in.WebhookID,
 		OrgID:         in.OrgID,
@@ -83,7 +65,71 @@ func WebhookEventSettingsToDomain(in *am.WebhookEventSettings) *prototypes.Webho
 	}
 }
 
-func DomainToWebhookEvent(in *prototypes.WebhookEvent) *am.WebhookEvent {
+func DomainToWebhooksEventSettings(in []*am.WebhookEventSettings) []*prototypes.WebhookEventSettings {
+	if in == nil || len(in) == 0 {
+		return make([]*prototypes.WebhookEventSettings, 0)
+	}
+	hooks := make([]*prototypes.WebhookEventSettings, len(in))
+	for i, setting := range in {
+		hooks[i] = DomainToWebhookEventSettings(setting)
+	}
+	return hooks
+}
+
+func WebhookEventSettingsToDomain(in *prototypes.WebhookEventSettings) *am.WebhookEventSettings {
+	return &am.WebhookEventSettings{
+		WebhookID:     in.WebhookID,
+		OrgID:         in.OrgID,
+		GroupID:       in.GroupID,
+		ScanGroupName: in.ScanGroupName,
+		Name:          in.Name,
+		Events:        in.Events,
+		Enabled:       in.Enabled,
+		Version:       in.Version,
+		URL:           in.URL,
+		Type:          in.Type,
+		CurrentKey:    in.CurrentKey,
+		PreviousKey:   in.PreviousKey,
+		Deleted:       in.Deleted,
+	}
+}
+
+func WebhooksEventSettingsToDomain(in []*prototypes.WebhookEventSettings) []*am.WebhookEventSettings {
+	if in == nil || len(in) == 0 {
+		return make([]*am.WebhookEventSettings, 0)
+	}
+	hooks := make([]*am.WebhookEventSettings, len(in))
+	for i, setting := range in {
+		hooks[i] = WebhookEventSettingsToDomain(setting)
+	}
+	return hooks
+}
+
+func DomainToWebhookEvent(in *am.WebhookEvent) *prototypes.WebhookEvent {
+	return &prototypes.WebhookEvent{
+		WebhookEventID:       in.WebhookEventID,
+		OrgID:                in.OrgID,
+		GroupID:              in.GroupID,
+		NotificationID:       in.NotificationID,
+		WebhookID:            in.WebhookID,
+		TypeID:               in.TypeID,
+		LastAttemptTimestamp: in.LastAttemptTimestamp,
+		LastAttemptStatus:    in.LastAttemptStatus,
+	}
+}
+
+func DomainToWebhookEvents(in []*am.WebhookEvent) []*prototypes.WebhookEvent {
+	if in == nil || len(in) == 0 {
+		return make([]*prototypes.WebhookEvent, 0)
+	}
+	events := make([]*prototypes.WebhookEvent, len(in))
+	for i, event := range in {
+		events[i] = DomainToWebhookEvent(event)
+	}
+	return events
+}
+
+func WebhookEventToDomain(in *prototypes.WebhookEvent) *am.WebhookEvent {
 	return &am.WebhookEvent{
 		WebhookEventID:       in.WebhookEventID,
 		OrgID:                in.OrgID,
@@ -96,17 +142,15 @@ func DomainToWebhookEvent(in *prototypes.WebhookEvent) *am.WebhookEvent {
 	}
 }
 
-func WebhookEventToDomain(in *am.WebhookEvent) *prototypes.WebhookEvent {
-	return &prototypes.WebhookEvent{
-		WebhookEventID:       in.WebhookEventID,
-		OrgID:                in.OrgID,
-		GroupID:              in.GroupID,
-		NotificationID:       in.NotificationID,
-		WebhookID:            in.WebhookID,
-		TypeID:               in.TypeID,
-		LastAttemptTimestamp: in.LastAttemptTimestamp,
-		LastAttemptStatus:    in.LastAttemptStatus,
+func WebhookEventsToDomain(in []*prototypes.WebhookEvent) []*am.WebhookEvent {
+	if in == nil || len(in) == 0 {
+		return make([]*am.WebhookEvent, 0)
 	}
+	events := make([]*am.WebhookEvent, len(in))
+	for i, event := range in {
+		events[i] = WebhookEventToDomain(event)
+	}
+	return events
 }
 
 func DomainToUserEventSettings(in *am.UserEventSettings) *prototypes.UserEventSettings {
