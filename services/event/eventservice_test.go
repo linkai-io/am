@@ -65,6 +65,81 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestWebhooks(t *testing.T) {
+	if os.Getenv("INFRA_TESTS") == "" {
+		t.Skip("skipping infrastructure tests")
+	}
+
+	ctx := context.Background()
+
+	orgOne := "eventwebhooks"
+	groupOne := "eventwebhooks"
+
+	auth := amtest.MockEmptyAuthorizer()
+
+	service := event.New(auth, hooker)
+
+	if err := service.Init([]byte(dbstring)); err != nil {
+		t.Fatalf("error initalizing event service: %s\n", err)
+	}
+
+	db := amtest.InitDB(env, t)
+	defer db.Close()
+	defer amtest.DeleteOrg(db, orgOne, t)
+	amtest.CreateOrg(db, orgOne, t)
+	orgID := amtest.GetOrgID(db, orgOne, t)
+
+	userOneID := amtest.GetUserId(db, orgID, orgOne, t)
+	groupOneID := amtest.CreateScanGroup(db, orgOne, groupOne, t)
+	userOneContext := amtest.CreateUserContext(orgID, userOneID)
+
+	hook := &am.WebhookEventSettings{
+		WebhookID:     0,
+		OrgID:         int32(orgID),
+		GroupID:       int32(groupOneID),
+		ScanGroupName: groupOne,
+		Name:          "TestWebhook",
+		Events:        []int32{am.EventAXFRID, am.EventCertExpiringID, am.EventClosedPortID, am.EventNewHostID, am.EventNewOpenPortID, am.EventNewWebTechID, am.EventNewWebsiteID},
+		Enabled:       true,
+		Version:       "v1",
+		URL:           "https://localhost:8080/test",
+		Type:          "slack",
+		CurrentKey:    "",
+		PreviousKey:   "",
+		Deleted:       false,
+	}
+
+	if err := service.UpdateWebhooks(ctx, userOneContext, hook); err != nil {
+		t.Fatalf("error updating webhooks: %v\n", err)
+	}
+
+	hooks, err := service.GetWebhooks(ctx, userOneContext)
+	if err != nil {
+		t.Fatalf("error reading webhook settings: %v\n", err)
+	}
+
+	if len(hooks) != 1 {
+		t.Fatalf("error expected 1 hook set, got %d\n", len(hooks))
+	}
+
+	amtest.TestCompareWebhookSettings(hook, hooks[0], t)
+
+	hook.Deleted = true
+
+	if err := service.UpdateWebhooks(ctx, userOneContext, hook); err != nil {
+		t.Fatalf("error updating webhooks: %v\n", err)
+	}
+
+	hooks, err = service.GetWebhooks(ctx, userOneContext)
+	if err != nil {
+		t.Fatalf("error reading webhook settings: %v\n", err)
+	}
+
+	if len(hooks) != 0 {
+		t.Fatalf("error expected 0 hook set, got %d\n", len(hooks))
+	}
+}
+
 func TestAddGet(t *testing.T) {
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
@@ -312,6 +387,26 @@ func TestNotifyComplete(t *testing.T) {
 		if _, err := webService.Add(ctx, userContext, web); err != nil {
 			t.Fatalf("error adding webdata for notify complete")
 		}
+	}
+
+	hook := &am.WebhookEventSettings{
+		WebhookID:     0,
+		OrgID:         int32(orgID),
+		GroupID:       int32(groupID),
+		ScanGroupName: groupName,
+		Name:          "TestWebhook",
+		Events:        []int32{am.EventAXFRID, am.EventCertExpiringID, am.EventClosedPortID, am.EventNewHostID, am.EventNewOpenPortID, am.EventNewWebTechID, am.EventNewWebsiteID},
+		Enabled:       true,
+		Version:       "v1",
+		URL:           "https://localhost:8080/test",
+		Type:          "slack",
+		CurrentKey:    "",
+		PreviousKey:   "",
+		Deleted:       false,
+	}
+
+	if err := service.UpdateWebhooks(ctx, userContext, hook); err != nil {
+		t.Fatalf("error updating webhooks: %v\n", err)
 	}
 
 	// only this host should be found, since multiwebdata will create hosts that will exist < end of start scan time.
@@ -613,7 +708,7 @@ func TestDeletePopulated(t *testing.T) {
 }
 
 func TestPopulate(t *testing.T) {
-	//t.Skip("disabled for testing mailreports")
+	t.Skip("disabled for testing mailreports")
 	if os.Getenv("INFRA_TESTS") == "" {
 		t.Skip("skipping infrastructure tests")
 	}

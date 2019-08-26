@@ -23,13 +23,9 @@ type Event struct {
 }
 
 type EventSubscriptions struct {
-	TypeID              int32  `json:"type_id"`
-	SubscribedTimestamp int64  `json:"subscribed_since"`
-	Subscribed          bool   `json:"subscribed"`
-	WebhookVersion      string `json:"webhook_version"`
-	WebhookEnabled      bool   `json:"webhook_enabled"`
-	WebhookURL          string `json:"webhook_url"`
-	WebhookType         string `json:"webhook_type"`
+	TypeID              int32 `json:"type_id"`
+	SubscribedTimestamp int64 `json:"subscribed_since"`
+	Subscribed          bool  `json:"subscribed"`
 }
 
 type WebhookEventSettings struct {
@@ -66,8 +62,6 @@ type UserEventSettings struct {
 	ShouldDailyEmail    bool                  `json:"should_daily_email"`
 	UserTimezone        string                `json:"user_timezone"`
 	Subscriptions       []*EventSubscriptions `json:"subscriptions"`
-	WebhookCurrentKey   string                `json:"webhook_current_key,omitempty"`
-	WebhookPreviousKey  string                `json:"webhook_previous_key,omitempty"`
 }
 
 type EventFilter struct {
@@ -94,7 +88,7 @@ type EventService interface {
 	// GetWebhooks returns all webhooks for an organization (max 10)
 	GetWebhooks(ctx context.Context, userContext UserContext) ([]*WebhookEventSettings, error)
 	// UpdateWebhooks adds or updates an existing webhook (by name)
-	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) (int32, error)
+	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) (webhookID int32, err error)
 	// GetWebhook events
-	GetWebhookEvents(ctx context.Context, userContext UserContext) ([]*WebhookEvent, error)
+	GetWebhookEvents(ctx context.Context, userContext UserContext, filter *EventFilter) ([]*WebhookEvent, error)
 }

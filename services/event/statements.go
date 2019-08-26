@@ -1,6 +1,9 @@
 package event
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const sharedSettingColumns = `organization_id, 
 	user_id, 
@@ -24,11 +27,56 @@ const webhookColumns = `webhook_id,
 	deleted
 `
 
+var prefixedWebhookColumns = "hooks." + strings.Join(strings.Split(webhookColumns, ",\n\t"), ",hooks.")
+
 //  webhook_version, webhook_enabled, webhook_url, webhook_type
 var queryMap = map[string]string{
+	"getWebhooksForUser": fmt.Sprintf(`select %s, sg.scan_group_name from am.webhook_event_settings as hooks 
+		join am.scan_group as sg on sg.scan_group_id=hooks.scan_group_id
+		where hooks.organization_id=$1 and 
+		sg.deleted=false and
+		hooks.deleted=false`, prefixedWebhookColumns),
+
 	"getOrgWebhooks":       fmt.Sprintf(`select %s,(select scan_group_name from am.scan_group where scan_group_id=$2) from am.webhook_event_settings where organization_id=$1 and scan_group_id=$2 and deleted=false and enabled=true`, webhookColumns),
 	"getUserSettings":      fmt.Sprintf(`select %s from am.user_notification_settings where organization_id=$1 and user_id=$2`, sharedSettingColumns),
 	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
+
+	"updateWebhook": `insert into am.webhook_event_settings
+		(organization_id, scan_group_id, name, events, enabled, version, url, type, current_key, previous_key) values
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) on conflict (organization_id, scan_group_id, name) do update set
+		events=EXCLUDED.events,
+		enabled=EXCLUDED.enabled,
+		version=EXCLUDED.version,
+		url=EXCLUDED.url,
+		type=EXCLUDED.type,
+		current_key=EXCLUDED.current_key,
+		previous_key=EXCLUDED.previous_key`,
+
+	"deleteWebhook": `update am.webhook_event_settings set deleted=true, name=$1 where organization_id=$2 and scan_group_id=$3 and name=$4`,
+
+	"getLastWebhookEvents": `with last as (
+		select 
+		evt.organization_id,
+		evt.scan_group_id,
+		evt.notification_id,
+		evt.webhook_id,
+		evt.type_id,
+		evt.last_attempt_timestamp,
+		evt.last_attempt_status,
+		ROW_NUMBER() OVER(PARTITION BY evt.webhook_id ORDER BY evt.last_attempt_timestamp DESC) AS row_count 
+		from am.webhook_events as evt
+		join am.webhook_event_settings as hook on evt.webhook_id=hook.webhook_id
+		join am.scan_group as sg on evt.scan_group_id=evt.scan_group_id
+		where sg.deleted = false and hook.deleted = false and evt.organization_id=$1
+	)
+		select last.organization_id,
+		last.scan_group_id,
+		last.notification_id,
+		last.webhook_id,
+		last.type_id,
+		last.last_attempt_timestamp,
+		last.last_attempt_status from last where last.row_count = 1`,
+
 	"updateUserSettings": fmt.Sprintf(`insert into am.user_notification_settings (%s) values
 		($1, $2, $3, $4, $5, $6, $7) on conflict (organization_id,user_id) do update set
 		weekly_report_send_day=EXCLUDED.weekly_report_send_day,
@@ -131,7 +179,7 @@ var (
 		webhook_id integer,
 		type_id integer,
 		last_attempt_timestamp timestamptz,
-		last_attempt_status integer,
+		last_attempt_status integer
 	) on commit drop;`
 
 	TempToWebhook = `insert into am.webhook_events as whe (
@@ -165,32 +213,6 @@ var (
 		event_data_json json
 		) on commit drop;`
 
-	AddTempToAddCTE = `with temp as (
-		select 
-			organization_id,
-			scan_group_id,
-			type_id,
-			event_timestamp,
-			event_data,
-			event_data_json
-		from event_add_temp
-	)
-	insert into am.event_notifications as unr (
-		organization_id,
-		scan_group_id,
-		type_id,
-		event_timestamp,
-		event_data,
-		event_data_json
-	) as evts select * from temp returning 
-		evts.notification_id, 
-		evts.organization_id
-		evts.scan_group_id,
-		evts.type_id,
-		evts.event_timestamp,
-		evts.event_data_json;
-		`
-
 	AddTempToAdd = `insert into am.event_notifications as unr (
 		organization_id,
 		scan_group_id,
@@ -206,7 +228,12 @@ var (
 		temp.event_timestamp,
 		temp.event_data,
 		temp.event_data_json
-	from event_add_temp as temp`
+	from event_add_temp as temp returning notification_id, 
+		organization_id,
+		scan_group_id,
+		type_id,
+		event_timestamp,
+		event_data_json`
 
 	SubscriptionsTempTableKey     = "event_subs_temp"
 	SubscriptionsTempTableColumns = []string{"organization_id", "user_id", "type_id", "subscribed_since", "subscribed"}
