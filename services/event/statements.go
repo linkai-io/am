@@ -32,18 +32,18 @@ var prefixedWebhookColumns = "hooks." + strings.Join(strings.Split(webhookColumn
 //  webhook_version, webhook_enabled, webhook_url, webhook_type
 var queryMap = map[string]string{
 	"getWebhooksForUser": fmt.Sprintf(`select %s, sg.scan_group_name from am.webhook_event_settings as hooks 
-		join am.scan_group as sg on sg.scan_group_id=hooks.scan_group_id
+		join am.scan_group as sg on sg.scan_group_id=hooks.scan_group_id and sg.organization_id=hooks.organization_id
 		where hooks.organization_id=$1 and 
 		sg.deleted=false and
 		hooks.deleted=false`, prefixedWebhookColumns),
 
-	"getOrgWebhooks":       fmt.Sprintf(`select %s,(select scan_group_name from am.scan_group where scan_group_id=$2) from am.webhook_event_settings where organization_id=$1 and scan_group_id=$2 and deleted=false and enabled=true`, webhookColumns),
+	"getOrgWebhooks":       fmt.Sprintf(`select %s,(select scan_group_name from am.scan_group where scan_group_id=$2 and organization_id=$1) from am.webhook_event_settings where organization_id=$1 and scan_group_id=$2 and deleted=false and enabled=true`, webhookColumns),
 	"getUserSettings":      fmt.Sprintf(`select %s from am.user_notification_settings where organization_id=$1 and user_id=$2`, sharedSettingColumns),
 	"getUserSubscriptions": `select organization_id, user_id, type_id, subscribed_since, subscribed from am.user_notification_subscriptions where organization_id=$1 and user_id=$2`,
 
 	"updateWebhook": `insert into am.webhook_event_settings
 		(organization_id, scan_group_id, name, events, enabled, version, url, type, current_key, previous_key) values
-		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) on conflict (organization_id, scan_group_id, name) do update set
+		($1, (select scan_group_id from am.scan_group where organization_id=$1 and scan_group_id=$2), $3, $4, $5, $6, $7, $8, $9, $10) on conflict (organization_id, scan_group_id, name) do update set
 		events=EXCLUDED.events,
 		enabled=EXCLUDED.enabled,
 		version=EXCLUDED.version,
@@ -66,7 +66,7 @@ var queryMap = map[string]string{
 		ROW_NUMBER() OVER(PARTITION BY evt.webhook_id ORDER BY evt.last_attempt_timestamp DESC) AS row_count 
 		from am.webhook_events as evt
 		join am.webhook_event_settings as hook on evt.webhook_id=hook.webhook_id
-		join am.scan_group as sg on evt.scan_group_id=evt.scan_group_id
+		join am.scan_group as sg on sg.scan_group_id=evt.scan_group_id and sg.organization_id=evt.organization_id
 		where sg.deleted = false and hook.deleted = false and evt.organization_id=$1
 	)
 		select last.organization_id,
