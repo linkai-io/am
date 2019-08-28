@@ -460,6 +460,7 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 			log.Ctx(ctx).Warn().Err(err).Msg("failed to read back event from insert with notification id")
 			continue
 		}
+		evt.EventTimestamp = evtTime.UnixNano()
 		webhookEvents = append(webhookEvents, evt)
 	}
 
