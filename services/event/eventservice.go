@@ -3,7 +3,10 @@ package event
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
+
+	"github.com/linkai-io/am/pkg/webhooks"
 
 	"github.com/jackc/pgx"
 	"github.com/linkai-io/am/am"
@@ -19,11 +22,12 @@ type Service struct {
 	pool       *pgx.ConnPool
 	config     *pgx.ConnPoolConfig
 	authorizer auth.Authorizer
+	webhooks   webhooks.Webhooker
 }
 
 // New returns an empty Service
-func New(authorizer auth.Authorizer) *Service {
-	return &Service{authorizer: authorizer}
+func New(authorizer auth.Authorizer, hooks webhooks.Webhooker) *Service {
+	return &Service{authorizer: authorizer, webhooks: hooks}
 }
 
 // Init by parsing the config and initializing the database pool
@@ -181,8 +185,7 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 	for i := 0; rows.Next(); i++ {
 		sub := &am.EventSubscriptions{}
 		var ts time.Time
-		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts, &sub.Subscribed,
-			&sub.WebhookVersion, &sub.WebhookEnabled, &sub.WebhookURL, &sub.WebhookType); err != nil {
+		if err := rows.Scan(&oid, &uid, &sub.TypeID, &ts, &sub.Subscribed); err != nil {
 			return nil, err
 		}
 
@@ -204,6 +207,134 @@ func (s *Service) GetSettings(ctx context.Context, userContext am.UserContext) (
 		return nil, err
 	}
 	return settings, nil
+}
+
+func (s *Service) GetWebhooks(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEventSettings, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "read") {
+		return nil, am.ErrUserNotAuthorized
+	}
+
+	var rows *pgx.Rows
+	var tx *pgx.Tx
+	var err error
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	hooks := make([]*am.WebhookEventSettings, 0)
+	rows, err = tx.Query("getWebhooksForUser", userContext.GetOrgID())
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; rows.Next(); i++ {
+		w := &am.WebhookEventSettings{}
+		if err := rows.Scan(&w.WebhookID, &w.OrgID, &w.GroupID, &w.Name, &w.Events, &w.Enabled,
+			&w.Version, &w.URL, &w.Type, &w.CurrentKey, &w.PreviousKey, &w.Deleted, &w.ScanGroupName); err != nil {
+			return nil, err
+		}
+
+		if w.OrgID != int32(userContext.GetOrgID()) {
+			return nil, am.ErrOrgIDMismatch
+		}
+		hooks = append(hooks, w)
+	}
+
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return nil, v
+		}
+		return nil, err
+	}
+	return hooks, nil
+}
+
+// UpdateWebhooks or insert new (uniqueness on org,groupid,name)
+func (s *Service) UpdateWebhooks(ctx context.Context, userContext am.UserContext, webhook *am.WebhookEventSettings) (err error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "create") {
+		return am.ErrUserNotAuthorized
+	}
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "event.UpdateWebhooks").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+
+	ctx = serviceLog.WithContext(ctx)
+	var tx *pgx.Tx
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if webhook.Deleted == true {
+		deletedName := fmt.Sprintf("%s_%d", webhook.Name, time.Now().UnixNano())
+		if _, err = tx.Exec("deleteWebhook", deletedName, userContext.GetOrgID(), webhook.GroupID, webhook.Name); err != nil {
+			return err
+		}
+	} else {
+		if _, err = tx.Exec("updateWebhook", userContext.GetOrgID(), webhook.GroupID, webhook.Name, webhook.Events,
+			webhook.Enabled, webhook.Version, webhook.URL, webhook.Type, webhook.CurrentKey, webhook.PreviousKey); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (s *Service) GetWebhookEvents(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEvent, error) {
+	if !s.IsAuthorized(ctx, userContext, am.RNEventService, "read") {
+		return nil, am.ErrUserNotAuthorized
+	}
+
+	var tx *pgx.Tx
+	var rows *pgx.Rows
+	var err error
+
+	serviceLog := log.With().
+		Int("UserID", userContext.GetUserID()).
+		Int("OrgID", userContext.GetOrgID()).
+		Str("Call", "event.GetWebhookEvents").
+		Str("TraceID", userContext.GetTraceID()).Logger()
+	ctx = serviceLog.WithContext(ctx)
+
+	tx, err = s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	rows, err = tx.Query("getLastWebhookEvents", userContext.GetOrgID())
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	serviceLog.Info().Msg("reading rows")
+
+	events := make([]*am.WebhookEvent, 0)
+	for i := 0; rows.Next(); i++ {
+		var ts time.Time
+		e := &am.WebhookEvent{}
+		if err := rows.Scan(&e.OrgID, &e.GroupID, &e.NotificationID, &e.WebhookID, &e.TypeID, &ts, &e.LastAttemptStatus); err != nil {
+			return nil, err
+		}
+		e.LastAttemptTimestamp = ts.UnixNano()
+		events = append(events, e)
+	}
+
+	if err := tx.Commit(); err != nil {
+		if v, ok := err.(pgx.PgError); ok {
+			return nil, v
+		}
+		return nil, err
+	}
+	return events, nil
 }
 
 // MarkRead events
@@ -280,6 +411,9 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 	var err error
 
 	numEvents := len(events)
+	if numEvents == 0 {
+		return nil
+	}
 	log.Ctx(ctx).Info().Int("event_len", numEvents).Msg("adding")
 
 	tx, err = s.pool.BeginEx(ctx, nil)
@@ -294,7 +428,6 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 
 	eventRows := make([][]interface{}, numEvents)
 	orgID := userContext.GetOrgID()
-	//userID := userContext.GetUserID()
 
 	for i := 0; i < numEvents; i++ {
 		log.Ctx(ctx).Info().Msgf("%#v", events[i])
@@ -310,14 +443,131 @@ func (s *Service) Add(ctx context.Context, userContext am.UserContext, events []
 		return am.ErrEventCopyCount
 	}
 
-	if _, err := tx.Exec(AddTempToAdd); err != nil {
+	rows, err := tx.Query(AddTempToAdd)
+	if err != nil {
 		if v, ok := err.(pgx.PgError); ok {
 			return errors.Wrap(v, "failed to add events")
 		}
 		return err
 	}
+	log.Ctx(ctx).Info().Msgf("got rows: %v\n", rows)
+
+	webhookEvents := make([]*am.Event, 0)
+	for rows.Next() {
+		evt := &am.Event{}
+		var evtTime time.Time
+		if err := rows.Scan(&evt.NotificationID, &evt.OrgID, &evt.GroupID, &evt.TypeID, &evtTime, &evt.JSONData); err != nil {
+			log.Ctx(ctx).Warn().Err(err).Msg("failed to read back event from insert with notification id")
+			continue
+		}
+		evt.EventTimestamp = evtTime.UnixNano()
+		webhookEvents = append(webhookEvents, evt)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	allHooks, err := s.getOrgWebhooks(ctx, userContext, webhookEvents)
+	if err != nil {
+		log.Ctx(ctx).Warn().Err(err).Msg("unable to retrieve webhooks")
+	}
+
+	if len(allHooks) > 0 {
+		return s.sendWebhookEvents(ctx, userContext, allHooks)
+	}
+	return nil
+}
+
+func (s *Service) sendWebhookEvents(ctx context.Context, userContext am.UserContext, hooks []*webhooks.Data) error {
+	responses := make([]*webhooks.DataResponse, 0)
+	for _, hook := range hooks {
+
+		resp, err := s.webhooks.Send(ctx, hook)
+		if err != nil {
+			continue
+		}
+		resp.Data = hook
+		responses = append(responses, resp)
+	}
+
+	if len(responses) == 0 {
+		log.Ctx(ctx).Warn().Msg("no responses from send webhooks")
+		return nil
+	}
+
+	tx, err := s.pool.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // safe to call as no-op on success
+
+	if _, err := tx.Exec(WebhookTempTable); err != nil {
+		return err
+	}
+
+	eventRows := make([][]interface{}, 0)
+	orgID := userContext.GetOrgID()
+	for _, resp := range responses {
+		for _, evt := range resp.Data.Event {
+			eventRows = append(eventRows, []interface{}{orgID, resp.Data.Settings.GroupID, evt.NotificationID, resp.Data.Settings.WebhookID, evt.TypeID, time.Unix(0, resp.DeliveredTime), resp.StatusCode})
+		}
+	}
+
+	copyCount, err := tx.CopyFrom(pgx.Identifier{WebhookTempTableKey}, WebhookTempTableColumns, pgx.CopyFromRows(eventRows))
+	if err != nil {
+		return err
+	}
+
+	if copyCount != len(eventRows) {
+		return am.ErrEventCopyCount
+	}
 
 	return tx.Commit()
+}
+
+// getOrgWebhooks scans the table with webhook settings and only return webhooks that match defined hooks for this scangroup + actual event types
+func (s *Service) getOrgWebhooks(ctx context.Context, userContext am.UserContext, events []*am.Event) ([]*webhooks.Data, error) {
+	allHooks := make([]*webhooks.Data, 0)
+
+	// assumes len(events) > 0 and all events are from same group (which they should be)
+	groupID := events[0].GroupID
+
+	rows, err := s.pool.QueryEx(ctx, "getOrgWebhooks", &pgx.QueryExOptions{}, userContext.GetOrgID(), groupID)
+	if err != nil {
+		return allHooks, err
+	}
+
+	for rows.Next() {
+		w := &am.WebhookEventSettings{}
+		if err := rows.Scan(&w.WebhookID, &w.OrgID, &w.GroupID, &w.Name, &w.Events, &w.Enabled,
+			&w.Version, &w.URL, &w.Type, &w.CurrentKey, &w.PreviousKey, &w.Deleted, &w.ScanGroupName); err != nil {
+			log.Ctx(ctx).Warn().Err(err).Msg("failed to scan webhook row")
+			continue
+		}
+
+		evt := &webhooks.Data{
+			Settings: w,
+			Event:    make([]*am.Event, 0),
+		}
+
+		// iterate over events, and make sure this webhook is subscribed to the event type
+		// if it is, add it to the events specific for this webhook.
+		for _, e := range events {
+			for _, subscribed := range w.Events {
+				if e.TypeID == subscribed {
+					evt.Event = append(evt.Event, e)
+				}
+			}
+		}
+
+		// if no webhooks match the event types, don't bother adding to our list of webhooks
+		if len(evt.Event) == 0 {
+			continue
+		}
+		allHooks = append(allHooks, evt)
+	}
+	return allHooks, nil
 }
 
 // UpdateSettings for user
@@ -363,8 +613,7 @@ func (s *Service) updateSubscriptions(ctx context.Context, userContext am.UserCo
 	userID := userContext.GetUserID()
 
 	for i := 0; i < numSubscriptions; i++ {
-		subRows[i] = []interface{}{orgID, userID, subscriptions[i].TypeID, time.Unix(0, subscriptions[i].SubscribedTimestamp), subscriptions[i].Subscribed,
-			subscriptions[i].WebhookVersion, subscriptions[i].WebhookEnabled, subscriptions[i].WebhookURL, subscriptions[i].WebhookType}
+		subRows[i] = []interface{}{orgID, userID, subscriptions[i].TypeID, time.Unix(0, subscriptions[i].SubscribedTimestamp), subscriptions[i].Subscribed}
 	}
 
 	copyCount, err := tx.CopyFrom(pgx.Identifier{SubscriptionsTempTableKey}, SubscriptionsTempTableColumns, pgx.CopyFromRows(subRows))
@@ -631,8 +880,8 @@ func (s *Service) newTech(ctx context.Context, userContext am.UserContext, tx *p
 		log.Ctx(ctx).Error().Err(err).Msg("error getting new tech")
 		return nil, err
 	}
+
 	techPorts := make([]*am.EventNewWebTech, 0)
-	//techData := make(map[string]map[string][]string)
 	for i := 0; rows.Next(); i++ {
 		var loadURL []byte
 		var url []byte

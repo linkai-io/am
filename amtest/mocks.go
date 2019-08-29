@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/linkai-io/am/pkg/webhooks"
+
 	"github.com/linkai-io/am/pkg/parsers"
 
 	"github.com/linkai-io/am/am"
@@ -183,6 +185,18 @@ func MockEmptyAuthorizer() *mock.Authorizer {
 	return auth
 }
 
+func MockWebhooker() *mock.Webhooker {
+	hooker := &mock.Webhooker{}
+	hooker.InitFn = func() error {
+		return nil
+	}
+
+	hooker.SendFn = func(ctx context.Context, events *webhooks.Data) (*webhooks.DataResponse, error) {
+		return &webhooks.DataResponse{StatusCode: 200, DeliveredTime: time.Now().UnixNano()}, nil
+	}
+	return hooker
+}
+
 func MockEventService() *mock.EventService {
 	mockEvent := &mock.EventService{}
 	mockEvent.InitFn = func(config []byte) error {
@@ -196,6 +210,8 @@ func MockEventService() *mock.EventService {
 	mockEvent.NotifyCompleteFn = func(ctx context.Context, userContext am.UserContext, startTime int64, groupID int) error {
 		return nil
 	}
+
+	
 	return mockEvent
 }
 

@@ -8,6 +8,52 @@ import (
 	"github.com/linkai-io/am/am"
 )
 
+func TestCompareWebhookSettings(e, r *am.WebhookEventSettings, t *testing.T) {
+	if e.Deleted != r.Deleted {
+		t.Fatalf("expected Deleted %v did not equal %v\n", e.Deleted, r.Deleted)
+	}
+
+	if e.Enabled != r.Enabled {
+		t.Fatalf("expected Enabled %v did not equal %v\n", e.Enabled, r.Enabled)
+	}
+
+	if !SortEqualInt32(e.Events, r.Events, t) {
+		t.Fatalf("expected Events %v did not equal %v\n", e.Events, r.Events)
+	}
+
+	if e.GroupID != r.GroupID {
+		t.Fatalf("expected GroupID %v did not equal %v\n", e.GroupID, r.GroupID)
+	}
+
+	if e.Name != r.Name {
+		t.Fatalf("expected Name %v did not equal %v\n", e.Name, r.Name)
+	}
+
+	if e.OrgID != r.OrgID {
+		t.Fatalf("expected OrgID %v did not equal %v\n", e.OrgID, r.OrgID)
+	}
+
+	if e.PreviousKey != r.PreviousKey {
+		t.Fatalf("expected PreviousKey %v did not equal %v\n", e.PreviousKey, r.PreviousKey)
+	}
+
+	if e.ScanGroupName != r.ScanGroupName {
+		t.Fatalf("expected ScanGroupName %v did not equal %v\n", e.ScanGroupName, r.ScanGroupName)
+	}
+
+	if e.Type != r.Type {
+		t.Fatalf("expected Type %v did not equal %v\n", e.Type, r.Type)
+	}
+
+	if e.URL != r.URL {
+		t.Fatalf("expected URL %v did not equal %v\n", e.URL, r.URL)
+	}
+
+	if e.Version != r.Version {
+		t.Fatalf("expected Version %v did not equal %v\n", e.Version, r.Version)
+	}
+}
+
 // TestCompareOrganizations does not compare fields that are unknown prior to creation
 // time (creation time, org id, orgcid)
 func TestCompareOrganizations(expected, returned *am.Organization, t *testing.T) {

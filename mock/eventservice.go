@@ -27,6 +27,15 @@ type EventService struct {
 
 	NotifyCompleteFn      func(ctx context.Context, userContext am.UserContext, startTime int64, groupID int) error
 	NotifyCompleteInvoked bool
+
+	GetWebhooksFn      func(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEventSettings, error)
+	GetWebhooksInvoked bool
+
+	UpdateWebhooksFn      func(ctx context.Context, userContext am.UserContext, webhook *am.WebhookEventSettings) error
+	UpdateWebhooksInvoked bool
+
+	GetWebhookEventsFn      func(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEvent, error)
+	GetWebhookEventsInvoked bool
 }
 
 func (s *EventService) Init(config []byte) error {
@@ -61,4 +70,19 @@ func (s *EventService) UpdateSettings(ctx context.Context, userContext am.UserCo
 func (s *EventService) NotifyComplete(ctx context.Context, userContext am.UserContext, startTime int64, groupID int) error {
 	s.NotifyCompleteInvoked = true
 	return s.NotifyCompleteFn(ctx, userContext, startTime, groupID)
+}
+
+func (s *EventService) GetWebhooks(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEventSettings, error) {
+	s.GetWebhooksInvoked = true
+	return s.GetWebhooksFn(ctx, userContext)
+}
+
+func (s *EventService) UpdateWebhooks(ctx context.Context, userContext am.UserContext, webhook *am.WebhookEventSettings) error {
+	s.UpdateWebhooksInvoked = true
+	return s.UpdateWebhooksFn(ctx, userContext, webhook)
+}
+
+func (s *EventService) GetWebhookEvents(ctx context.Context, userContext am.UserContext) ([]*am.WebhookEvent, error) {
+	s.GetWebhookEventsInvoked = true
+	return s.GetWebhookEventsFn(ctx, userContext)
 }

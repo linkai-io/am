@@ -38,7 +38,7 @@ func (m *GetRequest) Reset()         { *m = GetRequest{} }
 func (m *GetRequest) String() string { return proto.CompactTextString(m) }
 func (*GetRequest) ProtoMessage()    {}
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{0}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{0}
 }
 func (m *GetRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -92,7 +92,7 @@ func (m *GetResponse) Reset()         { *m = GetResponse{} }
 func (m *GetResponse) String() string { return proto.CompactTextString(m) }
 func (*GetResponse) ProtoMessage()    {}
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{1}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{1}
 }
 func (m *GetResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -139,7 +139,7 @@ func (m *GetSettingsRequest) Reset()         { *m = GetSettingsRequest{} }
 func (m *GetSettingsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetSettingsRequest) ProtoMessage()    {}
 func (*GetSettingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{2}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{2}
 }
 func (m *GetSettingsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -186,7 +186,7 @@ func (m *GetSettingsResponse) Reset()         { *m = GetSettingsResponse{} }
 func (m *GetSettingsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetSettingsResponse) ProtoMessage()    {}
 func (*GetSettingsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{3}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{3}
 }
 func (m *GetSettingsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -234,7 +234,7 @@ func (m *MarkReadRequest) Reset()         { *m = MarkReadRequest{} }
 func (m *MarkReadRequest) String() string { return proto.CompactTextString(m) }
 func (*MarkReadRequest) ProtoMessage()    {}
 func (*MarkReadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{4}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{4}
 }
 func (m *MarkReadRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -287,7 +287,7 @@ func (m *MarkReadResponse) Reset()         { *m = MarkReadResponse{} }
 func (m *MarkReadResponse) String() string { return proto.CompactTextString(m) }
 func (*MarkReadResponse) ProtoMessage()    {}
 func (*MarkReadResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{5}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{5}
 }
 func (m *MarkReadResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -328,7 +328,7 @@ func (m *AddRequest) Reset()         { *m = AddRequest{} }
 func (m *AddRequest) String() string { return proto.CompactTextString(m) }
 func (*AddRequest) ProtoMessage()    {}
 func (*AddRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{6}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{6}
 }
 func (m *AddRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -381,7 +381,7 @@ func (m *AddedResponse) Reset()         { *m = AddedResponse{} }
 func (m *AddedResponse) String() string { return proto.CompactTextString(m) }
 func (*AddedResponse) ProtoMessage()    {}
 func (*AddedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{7}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{7}
 }
 func (m *AddedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -422,7 +422,7 @@ func (m *UpdateSettingsRequest) Reset()         { *m = UpdateSettingsRequest{} }
 func (m *UpdateSettingsRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSettingsRequest) ProtoMessage()    {}
 func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{8}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{8}
 }
 func (m *UpdateSettingsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -475,7 +475,7 @@ func (m *SettingsUpdatedResponse) Reset()         { *m = SettingsUpdatedResponse
 func (m *SettingsUpdatedResponse) String() string { return proto.CompactTextString(m) }
 func (*SettingsUpdatedResponse) ProtoMessage()    {}
 func (*SettingsUpdatedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{9}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{9}
 }
 func (m *SettingsUpdatedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -517,7 +517,7 @@ func (m *NotifyCompleteRequest) Reset()         { *m = NotifyCompleteRequest{} }
 func (m *NotifyCompleteRequest) String() string { return proto.CompactTextString(m) }
 func (*NotifyCompleteRequest) ProtoMessage()    {}
 func (*NotifyCompleteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{10}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{10}
 }
 func (m *NotifyCompleteRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -577,7 +577,7 @@ func (m *NotifyCompletedResponse) Reset()         { *m = NotifyCompletedResponse
 func (m *NotifyCompletedResponse) String() string { return proto.CompactTextString(m) }
 func (*NotifyCompletedResponse) ProtoMessage()    {}
 func (*NotifyCompletedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eventservicer_aa6865ac74bd08ba, []int{11}
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{11}
 }
 func (m *NotifyCompletedResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -606,6 +606,312 @@ func (m *NotifyCompletedResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_NotifyCompletedResponse proto.InternalMessageInfo
 
+type GetWebhooksRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GetWebhooksRequest) Reset()         { *m = GetWebhooksRequest{} }
+func (m *GetWebhooksRequest) String() string { return proto.CompactTextString(m) }
+func (*GetWebhooksRequest) ProtoMessage()    {}
+func (*GetWebhooksRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{12}
+}
+func (m *GetWebhooksRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetWebhooksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetWebhooksRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetWebhooksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWebhooksRequest.Merge(dst, src)
+}
+func (m *GetWebhooksRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetWebhooksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetWebhooksRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetWebhooksRequest proto.InternalMessageInfo
+
+func (m *GetWebhooksRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type GetWebhooksResponse struct {
+	OrgID                int32                              `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	Settings             []*prototypes.WebhookEventSettings `protobuf:"bytes,2,rep,name=Settings" json:"Settings,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                           `json:"-"`
+	XXX_unrecognized     []byte                             `json:"-"`
+	XXX_sizecache        int32                              `json:"-"`
+}
+
+func (m *GetWebhooksResponse) Reset()         { *m = GetWebhooksResponse{} }
+func (m *GetWebhooksResponse) String() string { return proto.CompactTextString(m) }
+func (*GetWebhooksResponse) ProtoMessage()    {}
+func (*GetWebhooksResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{13}
+}
+func (m *GetWebhooksResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetWebhooksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetWebhooksResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetWebhooksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWebhooksResponse.Merge(dst, src)
+}
+func (m *GetWebhooksResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetWebhooksResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetWebhooksResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetWebhooksResponse proto.InternalMessageInfo
+
+func (m *GetWebhooksResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GetWebhooksResponse) GetSettings() []*prototypes.WebhookEventSettings {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+type UpdateWebhooksRequest struct {
+	UserContext          *prototypes.UserContext          `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	Settings             *prototypes.WebhookEventSettings `protobuf:"bytes,2,opt,name=Settings" json:"Settings,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
+	XXX_unrecognized     []byte                           `json:"-"`
+	XXX_sizecache        int32                            `json:"-"`
+}
+
+func (m *UpdateWebhooksRequest) Reset()         { *m = UpdateWebhooksRequest{} }
+func (m *UpdateWebhooksRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateWebhooksRequest) ProtoMessage()    {}
+func (*UpdateWebhooksRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{14}
+}
+func (m *UpdateWebhooksRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateWebhooksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateWebhooksRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *UpdateWebhooksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateWebhooksRequest.Merge(dst, src)
+}
+func (m *UpdateWebhooksRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateWebhooksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateWebhooksRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateWebhooksRequest proto.InternalMessageInfo
+
+func (m *UpdateWebhooksRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+func (m *UpdateWebhooksRequest) GetSettings() *prototypes.WebhookEventSettings {
+	if m != nil {
+		return m.Settings
+	}
+	return nil
+}
+
+type WebhooksUpdatedResponse struct {
+	OrgID                int32    `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *WebhooksUpdatedResponse) Reset()         { *m = WebhooksUpdatedResponse{} }
+func (m *WebhooksUpdatedResponse) String() string { return proto.CompactTextString(m) }
+func (*WebhooksUpdatedResponse) ProtoMessage()    {}
+func (*WebhooksUpdatedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{15}
+}
+func (m *WebhooksUpdatedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *WebhooksUpdatedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_WebhooksUpdatedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *WebhooksUpdatedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WebhooksUpdatedResponse.Merge(dst, src)
+}
+func (m *WebhooksUpdatedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *WebhooksUpdatedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_WebhooksUpdatedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WebhooksUpdatedResponse proto.InternalMessageInfo
+
+func (m *WebhooksUpdatedResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+type GetWebhookEventsRequest struct {
+	UserContext          *prototypes.UserContext `protobuf:"bytes,1,opt,name=UserContext" json:"UserContext,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GetWebhookEventsRequest) Reset()         { *m = GetWebhookEventsRequest{} }
+func (m *GetWebhookEventsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetWebhookEventsRequest) ProtoMessage()    {}
+func (*GetWebhookEventsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{16}
+}
+func (m *GetWebhookEventsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetWebhookEventsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetWebhookEventsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetWebhookEventsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWebhookEventsRequest.Merge(dst, src)
+}
+func (m *GetWebhookEventsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetWebhookEventsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetWebhookEventsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetWebhookEventsRequest proto.InternalMessageInfo
+
+func (m *GetWebhookEventsRequest) GetUserContext() *prototypes.UserContext {
+	if m != nil {
+		return m.UserContext
+	}
+	return nil
+}
+
+type GetWebhookEventsResponse struct {
+	OrgID                int32                      `protobuf:"varint,1,opt,name=OrgID,proto3" json:"OrgID,omitempty"`
+	Events               []*prototypes.WebhookEvent `protobuf:"bytes,2,rep,name=Events" json:"Events,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
+}
+
+func (m *GetWebhookEventsResponse) Reset()         { *m = GetWebhookEventsResponse{} }
+func (m *GetWebhookEventsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetWebhookEventsResponse) ProtoMessage()    {}
+func (*GetWebhookEventsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eventservicer_21879c9097e953c9, []int{17}
+}
+func (m *GetWebhookEventsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetWebhookEventsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetWebhookEventsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (dst *GetWebhookEventsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWebhookEventsResponse.Merge(dst, src)
+}
+func (m *GetWebhookEventsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetWebhookEventsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetWebhookEventsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetWebhookEventsResponse proto.InternalMessageInfo
+
+func (m *GetWebhookEventsResponse) GetOrgID() int32 {
+	if m != nil {
+		return m.OrgID
+	}
+	return 0
+}
+
+func (m *GetWebhookEventsResponse) GetEvents() []*prototypes.WebhookEvent {
+	if m != nil {
+		return m.Events
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GetRequest)(nil), "event.GetRequest")
 	proto.RegisterType((*GetResponse)(nil), "event.GetResponse")
@@ -619,6 +925,12 @@ func init() {
 	proto.RegisterType((*SettingsUpdatedResponse)(nil), "event.SettingsUpdatedResponse")
 	proto.RegisterType((*NotifyCompleteRequest)(nil), "event.NotifyCompleteRequest")
 	proto.RegisterType((*NotifyCompletedResponse)(nil), "event.NotifyCompletedResponse")
+	proto.RegisterType((*GetWebhooksRequest)(nil), "event.GetWebhooksRequest")
+	proto.RegisterType((*GetWebhooksResponse)(nil), "event.GetWebhooksResponse")
+	proto.RegisterType((*UpdateWebhooksRequest)(nil), "event.UpdateWebhooksRequest")
+	proto.RegisterType((*WebhooksUpdatedResponse)(nil), "event.WebhooksUpdatedResponse")
+	proto.RegisterType((*GetWebhookEventsRequest)(nil), "event.GetWebhookEventsRequest")
+	proto.RegisterType((*GetWebhookEventsResponse)(nil), "event.GetWebhookEventsResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -639,6 +951,9 @@ type EventClient interface {
 	Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*AddedResponse, error)
 	UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*SettingsUpdatedResponse, error)
 	NotifyComplete(ctx context.Context, in *NotifyCompleteRequest, opts ...grpc.CallOption) (*NotifyCompletedResponse, error)
+	GetWebhooks(ctx context.Context, in *GetWebhooksRequest, opts ...grpc.CallOption) (*GetWebhooksResponse, error)
+	UpdateWebhooks(ctx context.Context, in *UpdateWebhooksRequest, opts ...grpc.CallOption) (*WebhooksUpdatedResponse, error)
+	GetWebhookEvents(ctx context.Context, in *GetWebhookEventsRequest, opts ...grpc.CallOption) (*GetWebhookEventsResponse, error)
 }
 
 type eventClient struct {
@@ -703,6 +1018,33 @@ func (c *eventClient) NotifyComplete(ctx context.Context, in *NotifyCompleteRequ
 	return out, nil
 }
 
+func (c *eventClient) GetWebhooks(ctx context.Context, in *GetWebhooksRequest, opts ...grpc.CallOption) (*GetWebhooksResponse, error) {
+	out := new(GetWebhooksResponse)
+	err := c.cc.Invoke(ctx, "/event.Event/GetWebhooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventClient) UpdateWebhooks(ctx context.Context, in *UpdateWebhooksRequest, opts ...grpc.CallOption) (*WebhooksUpdatedResponse, error) {
+	out := new(WebhooksUpdatedResponse)
+	err := c.cc.Invoke(ctx, "/event.Event/UpdateWebhooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventClient) GetWebhookEvents(ctx context.Context, in *GetWebhookEventsRequest, opts ...grpc.CallOption) (*GetWebhookEventsResponse, error) {
+	out := new(GetWebhookEventsResponse)
+	err := c.cc.Invoke(ctx, "/event.Event/GetWebhookEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServer is the server API for Event service.
 type EventServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
@@ -711,6 +1053,9 @@ type EventServer interface {
 	Add(context.Context, *AddRequest) (*AddedResponse, error)
 	UpdateSettings(context.Context, *UpdateSettingsRequest) (*SettingsUpdatedResponse, error)
 	NotifyComplete(context.Context, *NotifyCompleteRequest) (*NotifyCompletedResponse, error)
+	GetWebhooks(context.Context, *GetWebhooksRequest) (*GetWebhooksResponse, error)
+	UpdateWebhooks(context.Context, *UpdateWebhooksRequest) (*WebhooksUpdatedResponse, error)
+	GetWebhookEvents(context.Context, *GetWebhookEventsRequest) (*GetWebhookEventsResponse, error)
 }
 
 func RegisterEventServer(s *grpc.Server, srv EventServer) {
@@ -825,6 +1170,60 @@ func _Event_NotifyComplete_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Event_GetWebhooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWebhooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServer).GetWebhooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Event/GetWebhooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServer).GetWebhooks(ctx, req.(*GetWebhooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Event_UpdateWebhooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateWebhooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServer).UpdateWebhooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Event/UpdateWebhooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServer).UpdateWebhooks(ctx, req.(*UpdateWebhooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Event_GetWebhookEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWebhookEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServer).GetWebhookEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Event/GetWebhookEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServer).GetWebhookEvents(ctx, req.(*GetWebhookEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Event_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "event.Event",
 	HandlerType: (*EventServer)(nil),
@@ -852,6 +1251,18 @@ var _Event_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NotifyComplete",
 			Handler:    _Event_NotifyComplete_Handler,
+		},
+		{
+			MethodName: "GetWebhooks",
+			Handler:    _Event_GetWebhooks_Handler,
+		},
+		{
+			MethodName: "UpdateWebhooks",
+			Handler:    _Event_UpdateWebhooks_Handler,
+		},
+		{
+			MethodName: "GetWebhookEvents",
+			Handler:    _Event_GetWebhookEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1252,6 +1663,211 @@ func (m *NotifyCompletedResponse) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *GetWebhooksRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetWebhooksRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n12, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n12
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetWebhooksResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetWebhooksResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if len(m.Settings) > 0 {
+		for _, msg := range m.Settings {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintEventservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *UpdateWebhooksRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateWebhooksRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n13, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n13
+	}
+	if m.Settings != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.Settings.Size()))
+		n14, err := m.Settings.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n14
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *WebhooksUpdatedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WebhooksUpdatedResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetWebhookEventsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetWebhookEventsRequest) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.UserContext.Size()))
+		n15, err := m.UserContext.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n15
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *GetWebhookEventsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetWebhookEventsResponse) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		dAtA[i] = 0x8
+		i++
+		i = encodeVarintEventservicer(dAtA, i, uint64(m.OrgID))
+	}
+	if len(m.Events) > 0 {
+		for _, msg := range m.Events {
+			dAtA[i] = 0x12
+			i++
+			i = encodeVarintEventservicer(dAtA, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(dAtA[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
 func encodeVarintEventservicer(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -1460,6 +2076,115 @@ func (m *NotifyCompletedResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetWebhooksRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovEventservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetWebhooksResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovEventservicer(uint64(m.OrgID))
+	}
+	if len(m.Settings) > 0 {
+		for _, e := range m.Settings {
+			l = e.Size()
+			n += 1 + l + sovEventservicer(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *UpdateWebhooksRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovEventservicer(uint64(l))
+	}
+	if m.Settings != nil {
+		l = m.Settings.Size()
+		n += 1 + l + sovEventservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *WebhooksUpdatedResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovEventservicer(uint64(m.OrgID))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetWebhookEventsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UserContext != nil {
+		l = m.UserContext.Size()
+		n += 1 + l + sovEventservicer(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetWebhookEventsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OrgID != 0 {
+		n += 1 + sovEventservicer(uint64(m.OrgID))
+	}
+	if len(m.Events) > 0 {
+		for _, e := range m.Events {
+			l = e.Size()
+			n += 1 + l + sovEventservicer(uint64(l))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -2561,6 +3286,563 @@ func (m *NotifyCompletedResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *GetWebhooksRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetWebhooksRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetWebhooksRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetWebhooksResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetWebhooksResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetWebhooksResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Settings", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Settings = append(m.Settings, &prototypes.WebhookEventSettings{})
+			if err := m.Settings[len(m.Settings)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateWebhooksRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateWebhooksRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateWebhooksRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Settings", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Settings == nil {
+				m.Settings = &prototypes.WebhookEventSettings{}
+			}
+			if err := m.Settings.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WebhooksUpdatedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WebhooksUpdatedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WebhooksUpdatedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetWebhookEventsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetWebhookEventsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetWebhookEventsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserContext", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UserContext == nil {
+				m.UserContext = &prototypes.UserContext{}
+			}
+			if err := m.UserContext.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetWebhookEventsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEventservicer
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetWebhookEventsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetWebhookEventsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrgID", wireType)
+			}
+			m.OrgID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrgID |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEventservicer
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Events = append(m.Events, &prototypes.WebhookEvent{})
+			if err := m.Events[len(m.Events)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEventservicer(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthEventservicer
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipEventservicer(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2667,43 +3949,51 @@ var (
 )
 
 func init() {
-	proto.RegisterFile("event/eventservicer.proto", fileDescriptor_eventservicer_aa6865ac74bd08ba)
+	proto.RegisterFile("event/eventservicer.proto", fileDescriptor_eventservicer_21879c9097e953c9)
 }
 
-var fileDescriptor_eventservicer_aa6865ac74bd08ba = []byte{
-	// 530 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x41, 0x6f, 0xd3, 0x4c,
-	0x10, 0xfd, 0x1c, 0x7f, 0x09, 0x65, 0x02, 0x04, 0x16, 0xd2, 0x3a, 0x56, 0x65, 0x45, 0x16, 0x87,
-	0x1c, 0x8a, 0x23, 0xc2, 0x11, 0x09, 0x29, 0xd4, 0x25, 0xea, 0x81, 0x1e, 0x5c, 0x7a, 0x41, 0x5c,
-	0x9c, 0x78, 0x28, 0xab, 0x24, 0x5e, 0xe3, 0x9d, 0x14, 0x7a, 0xe2, 0xca, 0x4f, 0xe0, 0x27, 0x71,
-	0xe4, 0x27, 0xa0, 0xf0, 0x47, 0x50, 0xd6, 0x6b, 0x3b, 0x0e, 0xa9, 0x84, 0xc2, 0x25, 0xca, 0xbe,
-	0x79, 0x7e, 0xf3, 0xf6, 0xed, 0xec, 0x42, 0x07, 0xaf, 0x30, 0xa6, 0xbe, 0xfa, 0x95, 0x98, 0x5e,
-	0xf1, 0x09, 0xa6, 0x5e, 0x92, 0x0a, 0x12, 0xac, 0xae, 0x40, 0xbb, 0xad, 0x56, 0x74, 0x9d, 0xa0,
-	0xec, 0x2f, 0x64, 0x5e, 0xb5, 0xf7, 0xd7, 0x60, 0x45, 0xcc, 0x70, 0x77, 0x0c, 0x30, 0x42, 0x0a,
-	0xf0, 0xe3, 0x02, 0x25, 0x31, 0x0f, 0x9a, 0x17, 0x12, 0xd3, 0x63, 0x11, 0x13, 0x7e, 0x26, 0xcb,
-	0xe8, 0x1a, 0xbd, 0xe6, 0xe0, 0x8e, 0xb7, 0x86, 0x05, 0xeb, 0x04, 0xf6, 0x18, 0x1a, 0xaf, 0xf8,
-	0x8c, 0x30, 0xb5, 0x6a, 0x9a, 0x7a, 0xb2, 0xd2, 0xce, 0xb0, 0x40, 0xd7, 0xdc, 0xa7, 0xd0, 0x54,
-	0x3d, 0x64, 0x22, 0x62, 0x89, 0xcc, 0x85, 0x86, 0x62, 0x49, 0xcb, 0xe8, 0x9a, 0xbd, 0xe6, 0x00,
-	0xb2, 0x8f, 0xfc, 0x90, 0xc2, 0x40, 0x57, 0x5c, 0x1f, 0xd8, 0x08, 0xe9, 0x1c, 0x89, 0x78, 0x7c,
-	0x29, 0x77, 0xb4, 0xe7, 0x9e, 0xc0, 0xc3, 0x8a, 0x8a, 0x36, 0xe0, 0xc1, 0x5e, 0x8e, 0x69, 0x0d,
-	0xa6, 0x34, 0x54, 0xef, 0x82, 0x5d, 0x70, 0xdc, 0x29, 0xb4, 0x5e, 0x87, 0xe9, 0x34, 0xc0, 0x30,
-	0xda, 0x35, 0xa8, 0x1e, 0xb4, 0xce, 0x04, 0xf1, 0xf7, 0x7c, 0x12, 0x12, 0x17, 0xf1, 0xa9, 0x2f,
-	0xad, 0x5a, 0xd7, 0xec, 0x99, 0xc1, 0x26, 0xec, 0x32, 0xb8, 0x5f, 0x36, 0xcb, 0x0c, 0xbb, 0xef,
-	0x00, 0x86, 0xd1, 0xce, 0xbd, 0x1d, 0xf8, 0x7f, 0x95, 0xad, 0x6a, 0x58, 0x4d, 0x5b, 0xe1, 0x6e,
-	0x0b, 0xee, 0x0e, 0xa3, 0x08, 0xcb, 0x76, 0x9f, 0xa0, 0x7d, 0x91, 0x44, 0x21, 0xe1, 0x3f, 0xe6,
-	0x5f, 0x09, 0xba, 0xf6, 0x17, 0x41, 0x77, 0xe0, 0x20, 0xff, 0x9f, 0x19, 0x28, 0x3d, 0x7d, 0x81,
-	0xb6, 0x4a, 0xea, 0xfa, 0x58, 0xcc, 0x93, 0x19, 0x12, 0xee, 0xea, 0xc9, 0x82, 0x5b, 0xa3, 0x54,
-	0x2c, 0x92, 0x53, 0x5f, 0x59, 0xaa, 0x07, 0xf9, 0x92, 0x1d, 0xc2, 0xed, 0x73, 0x0a, 0x53, 0x7a,
-	0xc3, 0xe7, 0x68, 0x99, 0x5d, 0xa3, 0x67, 0x06, 0x25, 0xb0, 0xf2, 0x56, 0x35, 0x50, 0x78, 0x1b,
-	0x7c, 0x35, 0xa1, 0xae, 0xb6, 0xc4, 0x8e, 0xc0, 0x1c, 0x21, 0xb1, 0x07, 0x5e, 0x76, 0xc5, 0xca,
-	0x9b, 0x65, 0xb3, 0x75, 0x48, 0xcf, 0xa1, 0xaf, 0xee, 0x45, 0xbe, 0x63, 0xd6, 0x29, 0x29, 0x1b,
-	0xc1, 0xdb, 0xf6, 0xb6, 0x92, 0x56, 0x79, 0x0e, 0x7b, 0xf9, 0xc0, 0xb0, 0x7d, 0xcd, 0xdb, 0x18,
-	0x57, 0xfb, 0xe0, 0x0f, 0xbc, 0xb8, 0x0a, 0xe6, 0x30, 0x8a, 0x0a, 0xc3, 0xe5, 0x94, 0xd9, 0x8f,
-	0x4a, 0xa8, 0xdc, 0x2a, 0x3b, 0x83, 0x7b, 0xd5, 0xd1, 0x60, 0x87, 0x9a, 0xb7, 0x75, 0x62, 0x6c,
-	0x47, 0x57, 0x6f, 0x38, 0xd6, 0x95, 0x5e, 0x35, 0xd5, 0x42, 0x6f, 0xeb, 0x69, 0x17, 0x7a, 0x37,
-	0x1c, 0xc5, 0xcb, 0x17, 0xdf, 0x97, 0x8e, 0xf1, 0x63, 0xe9, 0x18, 0x3f, 0x97, 0x8e, 0xf1, 0xed,
-	0x97, 0xf3, 0xdf, 0xdb, 0xa3, 0x4b, 0x4e, 0x1f, 0x16, 0x63, 0x6f, 0x22, 0xe6, 0xfd, 0x19, 0x8f,
-	0xa7, 0x21, 0x7f, 0xc2, 0x45, 0x3f, 0x9c, 0xf7, 0xd5, 0xfb, 0x37, 0xd1, 0x8f, 0xa8, 0x7e, 0x14,
-	0xc7, 0x0d, 0x85, 0x3e, 0xfb, 0x1d, 0x00, 0x00, 0xff, 0xff, 0xdb, 0x16, 0xa8, 0xc1, 0x68, 0x05,
-	0x00, 0x00,
+var fileDescriptor_eventservicer_21879c9097e953c9 = []byte{
+	// 669 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0xc5, 0x75, 0x53, 0xca, 0x84, 0xd2, 0xb2, 0x34, 0x8d, 0x63, 0x55, 0x26, 0xb2, 0x40, 0xca,
+	0xa1, 0xd8, 0x6a, 0x38, 0x22, 0x21, 0x85, 0xba, 0x44, 0x39, 0x50, 0x24, 0x87, 0xaa, 0x12, 0x42,
+	0x48, 0x4e, 0xbc, 0xa4, 0x56, 0x12, 0xaf, 0xb1, 0x37, 0x85, 0x72, 0xe1, 0x37, 0xf8, 0x24, 0x8e,
+	0x7c, 0x02, 0x0a, 0x9f, 0xc0, 0x0f, 0xa0, 0xac, 0xd7, 0x5e, 0xdb, 0x49, 0x50, 0xe5, 0x5e, 0x22,
+	0xef, 0xdb, 0xf1, 0x9b, 0xb7, 0x6f, 0x67, 0xc6, 0x81, 0x06, 0xbe, 0xc2, 0x3e, 0x35, 0xd9, 0x6f,
+	0x84, 0xc3, 0x2b, 0x6f, 0x88, 0x43, 0x23, 0x08, 0x09, 0x25, 0xa8, 0xc2, 0x40, 0xb5, 0xc6, 0x56,
+	0xf4, 0x3a, 0xc0, 0x91, 0x39, 0x8b, 0x92, 0x5d, 0xf5, 0x20, 0x03, 0xb3, 0xc0, 0x18, 0xd7, 0x07,
+	0x00, 0x5d, 0x4c, 0x6d, 0xfc, 0x79, 0x86, 0x23, 0x8a, 0x0c, 0xa8, 0x9e, 0x47, 0x38, 0x3c, 0x21,
+	0x3e, 0xc5, 0x5f, 0xa9, 0x22, 0x35, 0xa5, 0x56, 0xb5, 0x7d, 0xdf, 0xc8, 0x60, 0x76, 0x36, 0x00,
+	0x3d, 0x81, 0xad, 0xd7, 0xde, 0x84, 0xe2, 0x50, 0xd9, 0xe0, 0xa1, 0xa7, 0x0b, 0xee, 0x18, 0xb3,
+	0xf9, 0x9e, 0x7e, 0x0c, 0x55, 0x96, 0x23, 0x0a, 0x88, 0x1f, 0x61, 0xa4, 0xc3, 0x16, 0x8b, 0x8a,
+	0x14, 0xa9, 0x29, 0xb7, 0xaa, 0x6d, 0x88, 0x5f, 0xb2, 0x1c, 0xea, 0xd8, 0x7c, 0x47, 0xb7, 0x00,
+	0x75, 0x31, 0xed, 0x63, 0x4a, 0x3d, 0x7f, 0x14, 0x95, 0x94, 0xa7, 0x9f, 0xc2, 0xa3, 0x1c, 0x0b,
+	0x17, 0x60, 0xc0, 0x76, 0x82, 0x71, 0x0e, 0xc4, 0x38, 0x58, 0xee, 0x34, 0x3a, 0x8d, 0xd1, 0xc7,
+	0xb0, 0xfb, 0xc6, 0x09, 0xc7, 0x36, 0x76, 0xdc, 0xb2, 0x46, 0xb5, 0x60, 0xf7, 0x8c, 0x50, 0xef,
+	0x93, 0x37, 0x74, 0xa8, 0x47, 0xfc, 0x9e, 0x15, 0x29, 0x1b, 0x4d, 0xb9, 0x25, 0xdb, 0x45, 0x58,
+	0x47, 0xb0, 0x27, 0x92, 0xc5, 0x82, 0xf5, 0x0f, 0x00, 0x1d, 0xb7, 0x74, 0x6e, 0x0d, 0x36, 0x17,
+	0xde, 0xb2, 0x84, 0x79, 0xb7, 0x19, 0xae, 0xef, 0xc2, 0x4e, 0xc7, 0x75, 0xb1, 0x48, 0xf7, 0x05,
+	0x6a, 0xe7, 0x81, 0xeb, 0x50, 0x7c, 0x4b, 0xff, 0x73, 0x46, 0x6f, 0xdc, 0xc0, 0xe8, 0x06, 0xd4,
+	0x93, 0xe7, 0x58, 0x80, 0xd0, 0xf4, 0x1d, 0x6a, 0xcc, 0xa9, 0xeb, 0x13, 0x32, 0x0d, 0x26, 0x98,
+	0xe2, 0xb2, 0x9a, 0x14, 0xb8, 0xdb, 0x0d, 0xc9, 0x2c, 0xe8, 0x59, 0x4c, 0x52, 0xc5, 0x4e, 0x96,
+	0xe8, 0x10, 0xee, 0xf5, 0xa9, 0x13, 0xd2, 0x77, 0xde, 0x14, 0x2b, 0x72, 0x53, 0x6a, 0xc9, 0xb6,
+	0x00, 0x16, 0xda, 0xf2, 0x02, 0x84, 0xb6, 0xb8, 0x58, 0x2f, 0xf0, 0xe0, 0x92, 0x90, 0x71, 0xe9,
+	0x62, 0xfd, 0xc8, 0x8a, 0x55, 0xb0, 0xf0, 0x62, 0xdd, 0x87, 0xca, 0xdb, 0x70, 0xd4, 0xb3, 0x18,
+	0x41, 0xc5, 0x8e, 0x17, 0xe8, 0x38, 0xe7, 0xec, 0xe2, 0x5e, 0x6b, 0x06, 0x7f, 0x75, 0x9d, 0xb9,
+	0xdf, 0x92, 0x5b, 0xbd, 0xa5, 0xd0, 0x42, 0x6e, 0xe9, 0x26, 0xb9, 0x4d, 0xa8, 0x27, 0x59, 0x0b,
+	0x17, 0xbb, 0xfa, 0x7c, 0x7a, 0x0f, 0xea, 0xc2, 0x8c, 0x78, 0x26, 0x94, 0xf5, 0xf5, 0x02, 0x94,
+	0x65, 0xaa, 0xff, 0x9a, 0xfb, 0x34, 0x1d, 0x50, 0xb1, 0xb5, 0x3b, 0xb9, 0xe3, 0x25, 0x33, 0xaa,
+	0xfd, 0x77, 0x13, 0x2a, 0xec, 0x11, 0x1d, 0x81, 0xdc, 0xc5, 0x14, 0x3d, 0x34, 0xe2, 0xc9, 0x2a,
+	0x06, 0xaa, 0x8a, 0xb2, 0x10, 0x4f, 0x6a, 0xb1, 0x71, 0x98, 0x78, 0x83, 0x1a, 0x22, 0xa4, 0xd0,
+	0x6f, 0xaa, 0xba, 0x6a, 0x8b, 0xb3, 0xbc, 0x80, 0xed, 0x64, 0x4e, 0xa0, 0x03, 0x1e, 0x57, 0x98,
+	0x52, 0x6a, 0x7d, 0x09, 0x4f, 0x27, 0xa0, 0xdc, 0x71, 0xdd, 0x54, 0xb0, 0x18, 0x2e, 0xea, 0xbe,
+	0x80, 0x32, 0x97, 0x74, 0x06, 0x0f, 0xf2, 0x13, 0x01, 0x1d, 0xf2, 0xb8, 0x95, 0x83, 0x42, 0xd5,
+	0xf8, 0xee, 0x9a, 0x6e, 0x5e, 0xf0, 0xe5, 0x9b, 0x29, 0xe5, 0x5b, 0xd9, 0xe4, 0x29, 0xdf, 0x9a,
+	0x0e, 0xe4, 0x96, 0x26, 0x25, 0x96, 0xb5, 0xb4, 0x50, 0xec, 0x59, 0x4b, 0x97, 0x5a, 0x2d, 0x3d,
+	0x65, 0x4a, 0x94, 0x3f, 0x65, 0x91, 0x2b, 0x51, 0xb5, 0xae, 0xb4, 0xfb, 0xb0, 0x57, 0xac, 0x3c,
+	0xa4, 0x2d, 0xe5, 0xcf, 0x55, 0xb7, 0xfa, 0x78, 0xed, 0x7e, 0x4c, 0xfa, 0xea, 0xe5, 0xcf, 0xb9,
+	0x26, 0xfd, 0x9a, 0x6b, 0xd2, 0xef, 0xb9, 0x26, 0xfd, 0xf8, 0xa3, 0xdd, 0x79, 0x7f, 0x34, 0xf2,
+	0xe8, 0xe5, 0x6c, 0x60, 0x0c, 0xc9, 0xd4, 0x9c, 0x78, 0xfe, 0xd8, 0xf1, 0x9e, 0x79, 0xc4, 0x74,
+	0xa6, 0x26, 0xfb, 0xc2, 0x0f, 0xf9, 0xdf, 0x04, 0xfe, 0xd9, 0x1f, 0x6c, 0x31, 0xf4, 0xf9, 0xbf,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x9f, 0x43, 0xbe, 0x79, 0x4a, 0x08, 0x00, 0x00,
 }

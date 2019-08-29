@@ -52,15 +52,15 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:ec49ab6d44f187df8a1e2e897aef3561a77b2f012e56d0cc42f6a9bdfb9857f9"
+  digest = "1:c365d6716245dfb25f76bac0958779afa29f5edb5b6a141ae3681f66a1c7ff84"
   name = "github.com/aws/aws-lambda-go"
   packages = ["events"]
   pruneopts = "UT"
-  revision = "f7dba3f79cca0ce775c07c38db419e0da8d7ca64"
-  version = "v1.12.1"
+  revision = "ec56cb71d7d3e87e21d2151131d4360c25a304d8"
+  version = "v1.13.0"
 
 [[projects]]
-  digest = "1:9aa0bfbd0ce72ed0634a79f35346a1a948ea2eeddf82c2308d73ecafe278cb84"
+  digest = "1:8df4c99cd67cd9640de3b24abffde27f0864a5551994abcb186ede298389872a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -95,8 +95,10 @@
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restjson",
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/lambda",
     "service/s3",
     "service/ses",
     "service/ssm",
@@ -104,8 +106,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "782e25af382e14e671fafa168293c52f24fc1992"
-  version = "v1.23.4"
+  revision = "02973e4916ed10f78aff1257f45f01d23907a05d"
+  version = "v1.23.6"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -437,7 +439,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cd78578f1271cec3c0756ede60da35382b49e4efb1c96ab8604bc8fb2f9e79f6"
+  digest = "1:328c7b5669e94da2b16bf062251c922c8d889e782cbf2f74d96d9f7f4ea47a2a"
   name = "golang.org/x/crypto"
   packages = [
     "acme",
@@ -447,7 +449,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
+  revision = "60c769a6c58655dab1b9adac0d58967dd517cfba"
 
 [[projects]]
   branch = "master"
@@ -563,7 +565,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:68bf22f900e242f9f32a122e80b86e48328bb48ff8fddbfbfa7f744ea20efb0c"
+  digest = "1:a3ddac6b49cc9c8ba5453c5d9e56ef5557d204ddb925336292746948f2d4e830"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -585,10 +587,10 @@
     "internal/semver",
   ]
   pruneopts = "UT"
-  revision = "15fda70baffdaf33960a0c82145a5d020cd802fd"
+  revision = "fc82fb2afd64396b05ea9aa0bccd6e8f2257b154"
 
 [[projects]]
-  digest = "1:bd8676a23a9d15159f9627172b3525c43f6ae43ee53b73560c368201ca37343a"
+  digest = "1:c1c08a8eeff6383aaa5f684243adeb294062ca9b1b03afd028c3cf2951d26d77"
   name = "google.golang.org/api"
   packages = [
     "bigquery/v2",
@@ -603,8 +605,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "UT"
-  revision = "dec2ee309f5b09fc59bc40676447c15736284d78"
-  version = "v0.8.0"
+  revision = "feb0267beb8644f5088a03be4d5ec3f8c7020152"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:498b722d33dde4471e7d6e5d88a5e7132d2a8306fea5ff5ee82d1f418b4f41ed"
@@ -736,6 +738,7 @@
     "github.com/aws/aws-sdk-go/aws/awserr",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/ses",
     "github.com/aws/aws-sdk-go/service/ssm",

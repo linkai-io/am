@@ -57,3 +57,18 @@ func buildGetFilterQuery(userContext am.UserContext, filter *am.EventFilter) (st
 	p = p.OrderBy("events.event_timestamp desc").Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
 	return p.ToSql()
 }
+
+func buildGetWebhookFilterQuery(userContext am.UserContext, filter *am.EventFilter) (string, []interface{}, error) {
+	p := sq.Select().Columns("evt.organization_id", "evt.scan_group_id", "evt.notification_id", "evt.webhook_id",
+		"evt.type_id", "evt.last_attempt_timestamp", "evt.last_attempt_status").From("am.webhook_events as evt").
+		LeftJoin("am.event_webhook_settings as hook on hook.webhook_id=evt.webhook_id").
+		Where(sq.Eq{"hook.deleted": false}).
+		Where(sq.Eq{"evt.organization_id": userContext.GetOrgID()})
+
+	if val, ok := filter.Filters.Int32(am.FilterEventGroupID); ok {
+		p = p.Where(sq.Eq{"events.scan_group_id": val})
+	}
+
+	p = p.OrderBy("events.event_timestamp desc").Limit(uint64(filter.Limit)).PlaceholderFormat(sq.Dollar)
+	return p.ToSql()
+}

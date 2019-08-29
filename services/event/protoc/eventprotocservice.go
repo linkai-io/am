@@ -84,3 +84,33 @@ func (s *EventProtocService) NotifyComplete(ctx context.Context, in *event.Notif
 	}
 	return &event.NotifyCompletedResponse{}, nil
 }
+
+func (s *EventProtocService) GetWebhooks(ctx context.Context, in *event.GetWebhooksRequest) (*event.GetWebhooksResponse, error) {
+	s.reporter.Increment(1)
+	settings, err := s.es.GetWebhooks(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &event.GetWebhooksResponse{OrgID: in.UserContext.OrgID, Settings: convert.DomainToWebhooksEventSettings(settings)}, nil
+}
+
+func (s *EventProtocService) UpdateWebhooks(ctx context.Context, in *event.UpdateWebhooksRequest) (*event.WebhooksUpdatedResponse, error) {
+	s.reporter.Increment(1)
+	err := s.es.UpdateWebhooks(ctx, convert.UserContextToDomain(in.UserContext), convert.WebhookEventSettingsToDomain(in.Settings))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &event.WebhooksUpdatedResponse{OrgID: in.UserContext.OrgID}, nil
+}
+
+func (s *EventProtocService) GetWebhookEvents(ctx context.Context, in *event.GetWebhookEventsRequest) (*event.GetWebhookEventsResponse, error) {
+	s.reporter.Increment(1)
+	events, err := s.es.GetWebhookEvents(ctx, convert.UserContextToDomain(in.UserContext))
+	s.reporter.Increment(-1)
+	if err != nil {
+		return nil, err
+	}
+	return &event.GetWebhookEventsResponse{OrgID: in.UserContext.OrgID, Events: convert.DomainToWebhookEvents(events)}, nil
+}

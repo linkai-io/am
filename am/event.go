@@ -23,13 +23,36 @@ type Event struct {
 }
 
 type EventSubscriptions struct {
-	TypeID              int32  `json:"type_id"`
-	SubscribedTimestamp int64  `json:"subscribed_since"`
-	Subscribed          bool   `json:"subscribed"`
-	WebhookVersion      string `json:"webhook_version"`
-	WebhookEnabled      bool   `json:"webhook_enabled"`
-	WebhookURL          string `json:"webhook_url"`
-	WebhookType         string `json:"webhook_type"`
+	TypeID              int32 `json:"type_id"`
+	SubscribedTimestamp int64 `json:"subscribed_since"`
+	Subscribed          bool  `json:"subscribed"`
+}
+
+type WebhookEventSettings struct {
+	WebhookID     int32   `json:"webhook_id"`
+	OrgID         int32   `json:"org_id"`
+	GroupID       int32   `json:"group_id"`
+	ScanGroupName string  `json:"scan_group_name,omitempty"`
+	Name          string  `json:"name"`
+	Events        []int32 `json:"events"`
+	Enabled       bool    `json:"enabled"`
+	Version       string  `json:"version"`
+	URL           string  `json:"url"`
+	Type          string  `json:"type"`
+	CurrentKey    string  `json:"current_key"`
+	PreviousKey   string  `json:"previous_key"`
+	Deleted       bool    `json:"deleted"`
+}
+
+type WebhookEvent struct {
+	WebhookEventID       int32 `json:"webhook_event_id"`
+	OrgID                int32 `json:"org_id"`
+	GroupID              int32 `json:"group_id"`
+	NotificationID       int64 `json:"notification_id"`
+	WebhookID            int32 `json:"webhook_id"`
+	TypeID               int32 `json:"type_id"`
+	LastAttemptTimestamp int64 `json:"last_attempt_timestamp"`
+	LastAttemptStatus    int32 `json:"last_attempt_status"`
 }
 
 type UserEventSettings struct {
@@ -39,8 +62,6 @@ type UserEventSettings struct {
 	ShouldDailyEmail    bool                  `json:"should_daily_email"`
 	UserTimezone        string                `json:"user_timezone"`
 	Subscriptions       []*EventSubscriptions `json:"subscriptions"`
-	WebhookCurrentKey   string                `json:"webhook_current_key,omitempty"`
-	WebhookPreviousKey  string                `json:"webhook_previous_key,omitempty"`
 }
 
 type EventFilter struct {
@@ -64,4 +85,10 @@ type EventService interface {
 	UpdateSettings(ctx context.Context, userContext UserContext, settings *UserEventSettings) error
 	// NotifyComplete that a scan group has completed
 	NotifyComplete(ctx context.Context, userContext UserContext, startTime int64, groupID int) error
+	// GetWebhooks returns all webhooks for an organization (max 10)
+	GetWebhooks(ctx context.Context, userContext UserContext) ([]*WebhookEventSettings, error)
+	// UpdateWebhooks adds or updates an existing webhook (by name)
+	UpdateWebhooks(ctx context.Context, userContext UserContext, webhook *WebhookEventSettings) error
+	// GetWebhook events
+	GetWebhookEvents(ctx context.Context, userContext UserContext) ([]*WebhookEvent, error)
 }
