@@ -180,7 +180,7 @@ func (s *Service) AllGroups(ctx context.Context, userContext am.UserContext, gro
 		serviceLog.Info().Bool("paused", val).Msg("querying with paused")
 		rows, err = s.pool.Query("allScanGroupsWithPaused", val)
 	} else {
-		serviceLog.Info().Msg("querying all scan groups (except deleted")
+		serviceLog.Info().Msg("querying all scan groups")
 		rows, err = s.pool.Query("allScanGroups")
 	}
 

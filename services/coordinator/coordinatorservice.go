@@ -217,19 +217,40 @@ func (s *Service) StopGroup(ctx context.Context, userContext am.UserContext, org
 
 	log.Info().Bool("exists", exists).Int("status", int(status)).Msg("stop group got group status")
 
-	if status == am.GroupStopped {
-		return "group already stopped", nil
+	//if status == am.GroupStopped {
+	//	return "group already stopped", nil
+	//}
+
+	if !exists {
+		return "group not found", nil
 	}
 
-	if exists {
-		if err := s.state.Stop(ctx, &am.UserContextData{OrgID: orgID}, scanGroupID); err != nil {
-			log.Error().Err(err).Int("OrgID", orgID).Int("GroupID", scanGroupID).Msg("failed to set state as stopped")
-			return "", err
-		}
-		return "group stopped", nil
+	g, err := s.state.GetGroup(ctx, orgID, scanGroupID, false)
+	if err != nil {
+		return "", errors.Wrap(err, "err getting group from state")
 	}
 
-	return "group not found", nil
+	_, pausedGroup, err := s.scanGroupClient.Get(ctx, &am.UserContextData{OrgID: orgID, UserID: g.CreatedByID}, scanGroupID)
+	if err != nil {
+		return "", errors.Wrap(err, "err with scan group client")
+	}
+
+	if err := s.state.Delete(ctx, userContext, pausedGroup); err != nil {
+		return "", errors.Wrap(err, "failed to delete group")
+	}
+
+	// update/create configuration
+	if err := s.state.Put(ctx, userContext, pausedGroup); err != nil {
+		return "", errors.Wrap(err, "failed to update/put group")
+	}
+
+	if err := s.state.Stop(ctx, &am.UserContextData{OrgID: orgID}, scanGroupID); err != nil {
+		log.Error().Err(err).Int("OrgID", orgID).Int("GroupID", scanGroupID).Msg("failed to set state as stopped")
+		return "", err
+	}
+
+	return "group stopped", nil
+
 }
 
 // stopGroup gets the updated group data and then deletes the old group from state, replacing it
