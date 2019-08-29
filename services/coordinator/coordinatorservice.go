@@ -165,7 +165,7 @@ func (s *Service) StartGroup(ctx context.Context, userContext am.UserContext, sc
 		return am.ErrOrgIDMismatch
 	}
 
-	if group.Paused {
+	if group.Paused || group.Deleted {
 		// TODO: empty work queue if it exists
 		return ErrScanGroupPaused
 	}

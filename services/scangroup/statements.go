@@ -11,7 +11,7 @@ const (
 
 var queryMap = map[string]string{
 	// am.scan_group related
-	"allScanGroups": fmt.Sprintf(`select %s from am.scan_group where deleted=false`, defaultColumns),
+	"allScanGroups": fmt.Sprintf(`select %s from am.scan_group`, defaultColumns),
 
 	"allScanGroupsWithPaused": fmt.Sprintf(`select %s from am.scan_group where deleted=false and paused=$1`, defaultColumns),
 
@@ -26,7 +26,7 @@ var queryMap = map[string]string{
 	"scanGroupName": `select organization_id, scan_group_name from am.scan_group where organization_id=$1 and scan_group_id=$2`,
 
 	// updates the scan_group_name to name_<deleted_timestamp>
-	"deleteScanGroup": "update am.scan_group set deleted=true, scan_group_name=$1 where organization_id=$2 and scan_group_id=$3",
+	"deleteScanGroup": "update am.scan_group set deleted=true, paused=true, last_paused_timestamp=now(), modified_time=now(), scan_group_name=$1 where organization_id=$2 and scan_group_id=$3",
 
 	"createScanGroup": `insert into am.scan_group (organization_id, scan_group_name, creation_time, created_by, modified_time, modified_by, original_input_s3_url, configuration, paused, deleted, archive_after_days) values 
 		($1, $2, $3, $4, $5, $6, $7, $8, false, false, $9) returning organization_id, scan_group_id`,
