@@ -3,7 +3,6 @@ package webhooks
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -86,13 +85,13 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 	}
 	blocks.AppendSection(title)
 
-	var alertText string
-	var alertFields []*SlackField
 	for _, e := range evt.Event {
+		var alertText string
+		msg := ""
 		switch e.TypeID {
 		case am.EventCertExpiredID:
 		case am.EventCertExpiringID:
-			alertText = "The following certificates will expire soon:"
+			alertText = "*The following certificates will expire soon:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				// handle new json type
@@ -101,15 +100,13 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 					return "", err
 				}
 
-				alertFields = make([]*SlackField, len(expireCerts))
-				for i, expired := range expireCerts {
-					alertFields[i] = NewSlackField(fmt.Sprintf("%s on port %d expires in %s\n", expired.SubjectName, expired.Port, FormatUnixTimeRemaining(expired.ValidTo)))
+				for _, expired := range expireCerts {
+					msg += fmt.Sprintf("• %s on port %d expires in %s\n", expired.SubjectName, expired.Port, FormatUnixTimeRemaining(expired.ValidTo))
 				}
-
 			}
 
 		case am.EventNewOpenPortID:
-			alertText = "The following ports were opened:"
+			alertText = "*The following ports were opened:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var openPorts []*am.EventNewOpenPort
@@ -117,78 +114,78 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 					return "", err
 				}
 
-				alertFields = make([]*SlackField, len(openPorts))
-				for i, open := range openPorts {
+				for _, open := range openPorts {
 					ips := open.CurrentIP
 					if open.CurrentIP != open.PreviousIP {
 						ips += ") previously (" + open.PreviousIP
 					}
-					alertFields[i] = NewSlackField(fmt.Sprintf("Host %s (%s) ports: %s\n", open.Host, ips, IntToString(open.OpenPorts)))
+					msg += fmt.Sprintf("• Host %s (%s) ports: %s\n", open.Host, ips, IntToString(open.OpenPorts))
 				}
 			}
 		case am.EventClosedPortID:
-			alertText = "The following ports were recently closed:"
+			alertText = "*The following ports were recently closed:*"
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var closedPorts []*am.EventClosedPort
 				if err := json.Unmarshal([]byte(e.JSONData), &closedPorts); err != nil {
 					return "", err
 				}
 
-				alertFields = make([]*SlackField, len(closedPorts))
-				for i, closed := range closedPorts {
+				for _, closed := range closedPorts {
 					ips := closed.CurrentIP
 					if closed.CurrentIP != closed.PreviousIP {
 						ips += ") previously (" + closed.PreviousIP
 					}
-					alertFields[i] = NewSlackField(fmt.Sprintf("Host %s (%s) ports: %s\n", closed.Host, ips, IntToString(closed.ClosedPorts)))
+					msg += fmt.Sprintf("• Host %s (%s) ports: %s\n", closed.Host, ips, IntToString(closed.ClosedPorts))
 				}
 			}
 		case am.EventInitialGroupCompleteID:
 		case am.EventMaxHostPricingID:
 		case am.EventNewHostID:
-			alertText = "The following new hosts were found:"
+			alertText = "*The following new hosts were found:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var newHosts []*am.EventNewHost
 				if err := json.Unmarshal([]byte(e.JSONData), &newHosts); err != nil {
 					return "", err
 				}
-				alertFields = make([]*SlackField, len(newHosts))
+				msg := "• "
 				for i, newHost := range newHosts {
-					alertFields[i] = NewSlackField(newHost.Host)
+					msg += newHost.Host
+					if i != len(newHosts)-1 {
+						msg += ","
+					}
 				}
 			}
 
 		case am.EventAXFRID:
-			alertText = "The following name servers allow zone transfers (AXFR):"
+			alertText = "*The following name servers allow zone transfers (AXFR):*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var axfrServers []*am.EventAXFR
 				if err := json.Unmarshal([]byte(e.JSONData), &axfrServers); err != nil {
 					return "", err
 				}
-				alertFields = make([]*SlackField, len(axfrServers))
-				for i, axfr := range axfrServers {
-					log.Printf("%#v %s", axfr, strings.Join(axfr.Servers, ","))
-					alertFields[i] = NewSlackField(strings.Join(axfr.Servers, ","))
+
+				for _, axfr := range axfrServers {
+					msg += "• " + strings.Join(axfr.Servers, ",") + "\n"
 				}
 			}
 		case am.EventNSECID:
-			alertText = "The following name servers are leaking hostnames via NSEC records:"
+			alertText = "*The following name servers are leaking hostnames via NSEC records:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var nsecServers []*am.EventNSEC
 				if err := json.Unmarshal([]byte(e.JSONData), &nsecServers); err != nil {
 					return "", err
 				}
-				alertFields = make([]*SlackField, len(nsecServers))
-				for i, nsec := range nsecServers {
-					alertFields[i] = NewSlackField(strings.Join(nsec.Servers, ","))
+
+				for _, nsec := range nsecServers {
+					msg += "• " + strings.Join(nsec.Servers, ",") + "\n"
 				}
 			}
 
 		case am.EventNewWebsiteID:
-			alertText = "The following new web sites were found:"
+			alertText = "*The following new web sites were found:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var newSites []*am.EventNewWebsite
@@ -196,21 +193,18 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 					return "", err
 				}
 
-				alertFields = make([]*SlackField, len(newSites))
-				for i, site := range newSites {
-					msg := ""
+				for _, site := range newSites {
 					if wasRedirected(site.LoadURL, site.URL) {
-						msg = fmt.Sprintf("%s (was redirected to %s) on port %d", site.LoadURL, site.URL, site.Port)
+						msg += fmt.Sprintf("• %s (was redirected to %s) on port %d\n", site.LoadURL, site.URL, site.Port)
 					} else {
-						msg = fmt.Sprintf("%s on port %d", site.LoadURL, site.Port)
+						msg += fmt.Sprintf("• %s on port %d\n", site.LoadURL, site.Port)
 					}
-					alertFields[i] = NewSlackField(msg)
 				}
 			}
 		case am.EventWebHTMLUpdatedID:
 		case am.EventWebJSChangedID:
 		case am.EventNewWebTechID:
-			alertText = "The following new or updated technologies were found:"
+			alertText = "*The following new or updated technologies were found:*"
 
 			if e.JSONData != "" && e.JSONData != "{}" {
 				var newTech []*am.EventNewWebTech
@@ -218,25 +212,27 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 					return "", err
 				}
 
-				alertFields = make([]*SlackField, len(newTech))
-				for i, tech := range newTech {
-					msg := ""
+				for _, tech := range newTech {
 					if wasRedirected(tech.LoadURL, tech.URL) {
-						msg = fmt.Sprintf("%s (was redirected to %s) is running %s %s", tech.LoadURL, tech.URL, tech.TechName, tech.Version)
+						msg += fmt.Sprintf("• %s (was redirected to %s) is running %s %s\n", tech.LoadURL, tech.URL, tech.TechName, tech.Version)
 					} else {
-						msg = fmt.Sprintf("%s is running %s %s", tech.LoadURL, tech.TechName, tech.Version)
+						msg += fmt.Sprintf("• %s is running %s %s\n", tech.LoadURL, tech.TechName, tech.Version)
 					}
-					alertFields[i] = NewSlackField(msg)
 				}
 			}
 		}
+		if msg == "" {
+			continue
+		}
+		alert := NewSlackSection(alertText)
+		//alert.AppendFields(alertFields)
+		blocks.AppendSection(alert)
+		data := NewSlackSection(msg)
+		blocks.AppendSection(data)
 	}
 
-	alert := NewSlackSection(alertText)
-	alert.AppendFields(alertFields)
-	blocks.AppendSection(alert)
 	ts := time.Unix(0, evt.Event[0].EventTimestamp)
-	footer := NewSlackSection(fmt.Sprintf("<!date^%d^ Event occurred at: {date_num} {time_secs}|%s>, <https://console.linkai.io/login/|login> to view", ts.Unix(), ts))
+	footer := NewSlackSection(fmt.Sprintf("<!date^%d^ Events occurred at: {date_num} {time_secs}|%s>, <https://console.linkai.io/login/|login> to view", ts.Unix(), ts))
 	blocks.AppendSection(footer)
 	data, err := json.Marshal(blocks)
 	if err != nil {
