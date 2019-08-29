@@ -148,7 +148,7 @@ func FormatSlackMessage(groupName string, evt *Data) (string, error) {
 				if err := json.Unmarshal([]byte(e.JSONData), &newHosts); err != nil {
 					return "", err
 				}
-				msg := "• "
+				msg += "• "
 				for i, newHost := range newHosts {
 					msg += newHost.Host
 					if i != len(newHosts)-1 {
