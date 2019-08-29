@@ -15,7 +15,7 @@ var queryMap = map[string]string{
 
 	"allScanGroupsWithPaused": fmt.Sprintf(`select %s from am.scan_group where deleted=false and paused=$1`, defaultColumns),
 
-	"scanGroupByID": fmt.Sprintf(`select %s	from am.scan_group where organization_id=$1 and scan_group_id=$2 and deleted=false`, defaultColumns),
+	"scanGroupByID": fmt.Sprintf(`select %s	from am.scan_group where organization_id=$1 and scan_group_id=$2`, defaultColumns),
 
 	"scanGroupByName": fmt.Sprintf(`select %s from am.scan_group where organization_id=$1 and scan_group_name=$2 and deleted=false`, defaultColumns),
 
